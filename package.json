@@ -1,10 +1,10 @@
 {
   "name": "self-hosted-node",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "",
   "repository": "https://github.com/trisacrypto/self-hosted-node.git",
-  "author": "Rotational Labs, Inc.",
-  "license": "",
+  "author": "TRISA",
+  "license": "MIT",
   "scripts": {
     "build:css": "npx tailwindcss -i pkg/server/static/styles/style.css -o pkg/server/static/styles/output.css",
     "watch:css": "npx tailwindcss -i pkg/server/static/styles/style.css -o pkg/server/static/styles/output.css --watch"
