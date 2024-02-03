@@ -4,6 +4,7 @@ import (
 	"os"
 	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/node"
 	"text/tabwriter"
 
 	"github.com/joho/godotenv"
@@ -44,8 +45,21 @@ func main() {
 	app.Run(os.Args)
 }
 
-func serve(c *cli.Context) error {
-	return cli.Exit("not implemented yet", 420)
+func serve(c *cli.Context) (err error) {
+	var conf config.Config
+	if conf, err = config.New(); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	var trisa *node.Node
+	if trisa, err = node.New(conf); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	if err = trisa.Serve(); err != nil {
+		return cli.Exit(err, 1)
+	}
+	return nil
 }
 
 func usage(c *cli.Context) error {

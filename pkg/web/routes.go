@@ -1,7 +1,7 @@
 package web
 
 import (
-	"embed"
+	"io/fs"
 	"net/http"
 	"self-hosted-node/pkg/logger"
 	"time"
@@ -10,15 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed all:static
-var staticFiles embed.FS
-
-//go:embed all:templates
-var templateFiles embed.FS
-
 // Sets up the server's middleware and routes.
 func (s *Server) setupRoutes() (err error) {
 	// Setup HTML template renderer
+	templateFiles, _ := fs.Sub(content, "templates")
 	includes := []string{"layouts/*.html", "components/*.html"}
 	if s.router.HTMLRender, err = NewRender(templateFiles, "*.html", includes...); err != nil {
 		return err
@@ -69,6 +64,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.NoMethod(s.NotAllowed)
 
 	// Static Files
+	staticFiles, _ := fs.Sub(content, "static")
 	s.router.StaticFS("/static", http.FS(staticFiles))
 
 	// Web UI Routes

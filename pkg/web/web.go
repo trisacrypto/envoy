@@ -2,27 +2,13 @@ package web
 
 import (
 	"net/http"
-	"os"
 	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
-func init() {
-	// Initializes zerolog with our default logging requirements
-	zerolog.TimeFieldFormat = time.RFC3339
-	zerolog.TimestampFieldName = logger.GCPFieldKeyTime
-	zerolog.MessageFieldName = logger.GCPFieldKeyMsg
-
-	// Add the severity hook for GCP logging
-	var gcpHook logger.SeverityHook
-	log.Logger = zerolog.New(os.Stdout).Hook(gcpHook).With().Timestamp().Logger()
-}
-
+// Create a new web server that serves the compliance and admin web user interface.
 func New(conf config.WebConfig) (s *Server, err error) {
 	if err = conf.Validate(); err != nil {
 		return nil, err
@@ -32,6 +18,12 @@ func New(conf config.WebConfig) (s *Server, err error) {
 		conf: conf,
 	}
 
+	// If not enabled, return just the server stub
+	if !conf.Enabled {
+		return s, nil
+	}
+
+	// Configure the gin router if enabled
 	s.router = gin.New()
 	s.router.RedirectTrailingSlash = true
 	s.router.RedirectFixedPath = false
@@ -43,6 +35,7 @@ func New(conf config.WebConfig) (s *Server, err error) {
 		return nil, err
 	}
 
+	// Create the http server if enabled
 	s.srv = &http.Server{
 		Addr:         s.conf.BindAddr,
 		Handler:      s.router,
@@ -67,4 +60,10 @@ func Debug(conf config.WebConfig, srv *http.Server) (s *Server, err error) {
 	s.srv = srv
 	s.srv.Handler = s.router
 	return s, nil
+}
+
+// Home currently renders the primary landing page for the web ui.
+// TODO: replace with dashboard or redirect as necessary.
+func (s *Server) Home(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
