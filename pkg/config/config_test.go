@@ -32,6 +32,48 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.ConsoleLog)
 }
 
+func TestWebConfig(t *testing.T) {
+	t.Run("Disabled", func(t *testing.T) {
+		conf := config.WebConfig{Enabled: false}
+		require.NoError(t, conf.Validate(), "expected disabled config to be valid")
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		conf := config.WebConfig{
+			Enabled:  true,
+			BindAddr: "127.0.0.1:0",
+			Origin:   "http://localhost",
+		}
+		require.NoError(t, conf.Validate(), "expected valid config to be valid")
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		testCases := []struct {
+			conf      config.WebConfig
+			errString string
+		}{
+			{
+				conf: config.WebConfig{
+					Enabled: true,
+					Origin:  "http://localhost",
+				},
+				errString: "invalid configuration: bindaddr is required",
+			},
+			{
+				conf: config.WebConfig{
+					Enabled:  true,
+					BindAddr: "127.0.0.1:0",
+				},
+				errString: "invalid configuration: origin is required",
+			},
+		}
+
+		for i, tc := range testCases {
+			require.EqualError(t, tc.conf.Validate(), tc.errString, "test case %d failed", i)
+		}
+	})
+}
+
 // Returns the current environment for the specified keys, or if no keys are specified
 // then it returns the current environment for all keys in the testEnv variable.
 func curEnv(keys ...string) map[string]string {

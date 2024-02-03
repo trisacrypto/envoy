@@ -15,28 +15,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// TODO: Replace with service and load static files.
-// var views = jet.NewSet(jet.NewOSFileSystemLoader("templates"))
-
-// func main() {
-// 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-// 		view, err := views.GetTemplate("/partials/test.jet")
-// 		if err != nil {
-// 			log.Println("Unexpected template error:", err.Error())
-// 		}
-// 		view.Execute(w, nil, nil)
-// 	})
-
-// 	http.ListenAndServe(":8080", nil)
-// }
-
 // The Web Server implements the compliance and administrative user interfaces.
 type Server struct {
 	sync.RWMutex
-	conf   config.WebConfig
-	srv    *http.Server
-	router *gin.Engine
-	url    *url.URL
+	conf    config.WebConfig
+	srv     *http.Server
+	router  *gin.Engine
+	url     *url.URL
+	healthy bool
+	ready   bool
 }
 
 // Serve the compliance and administrative user interfaces in its own go routine.
@@ -57,6 +44,7 @@ func (s *Server) Serve(errc chan<- error) (err error) {
 	}
 
 	s.setURL(sock.Addr())
+	s.SetStatus(true, true)
 
 	// Listen for HTTP requests and handle them.
 	go func() {
@@ -86,6 +74,8 @@ func (s *Server) Shutdown() (err error) {
 	}
 
 	log.Info().Msg("gracefully shutting down compliance and admin web user interface server")
+	s.SetStatus(false, false)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 	defer cancel()
 
@@ -97,13 +87,28 @@ func (s *Server) Shutdown() (err error) {
 	return nil
 }
 
+// SetStatus sets the health and ready status on the server, modifying the behavior of
+// the kubernetes probe responses.
+func (s *Server) SetStatus(health, ready bool) {
+	s.Lock()
+	s.healthy = health
+	s.ready = ready
+	s.Unlock()
+	log.Debug().Bool("health", health).Bool("ready", ready).Msg("server status set")
+}
+
 // URL returns the endpoint of the server as determined by the configuration and the
 // socket address and port (if specified).
 func (s *Server) URL() string {
+	s.RLock()
+	defer s.RUnlock()
 	return s.url.String()
 }
 
 func (s *Server) setURL(addr net.Addr) {
+	s.Lock()
+	defer s.Unlock()
+
 	s.url = &url.URL{
 		Scheme: "http",
 		Host:   addr.String(),
