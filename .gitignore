@@ -20,5 +20,8 @@
 # Go workspace file
 go.work
 
+.env
+.secret
+
 node_modules
 tmp

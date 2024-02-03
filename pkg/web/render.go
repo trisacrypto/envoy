@@ -1,12 +1,17 @@
 package web
 
 import (
+	"embed"
 	"html/template"
 	"io/fs"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin/render"
 )
+
+//go:embed all:static
+//go:embed all:templates
+var content embed.FS
 
 type Render struct {
 	templates map[string]*template.Template
