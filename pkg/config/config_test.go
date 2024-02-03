@@ -10,10 +10,13 @@ import (
 )
 
 var testEnv = map[string]string{
-	"TRISA_MAINTENANCE": "true",
-	"TRISA_MODE":        "test",
-	"TRISA_LOG_LEVEL":   "debug",
-	"TRISA_CONSOLE_LOG": "true",
+	"TRISA_MAINTENANCE":   "true",
+	"TRISA_MODE":          "test",
+	"TRISA_LOG_LEVEL":     "debug",
+	"TRISA_CONSOLE_LOG":   "true",
+	"TRISA_WEB_ENABLED":   "true",
+	"TRISA_WEB_BIND_ADDR": ":4000",
+	"TRISA_WEB_ORIGIN":    "https://example.com",
 }
 
 func TestConfig(t *testing.T) {
@@ -30,6 +33,10 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_MODE"], conf.Mode)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)
+	require.True(t, conf.Web.Maintenance)
+	require.True(t, conf.Web.Enabled)
+	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)
+	require.Equal(t, testEnv["TRISA_WEB_ORIGIN"], conf.Web.Origin)
 }
 
 func TestWebConfig(t *testing.T) {
