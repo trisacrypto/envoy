@@ -17,8 +17,15 @@ var staticFiles embed.FS
 var templateFiles embed.FS
 
 // Sets up the server's middleware and routes.
-func (s *Server) setupRoutes() error {
-	// Template Handling
+func (s *Server) setupRoutes() (err error) {
+	// Setup HTML template renderer
+	includes := []string{"layouts/*.html", "components/*.html"}
+	if s.router.HTMLRender, err = NewRender(templateFiles, "*.html", includes...); err != nil {
+		return err
+	}
+
+	// NOTE: partials can't have the same names as top-level pages
+	s.router.HTMLRender.(*Render).AddPattern(templateFiles, "partials/*.html")
 
 	// Create CORS configuration
 	corsConf := cors.Config{
@@ -45,6 +52,11 @@ func (s *Server) setupRoutes() error {
 		// TODO: add maintenance mode handler
 	}
 
+	// Kubernetes liveness probes added before middleware.
+	s.router.GET("/healthz", s.Healthz)
+	s.router.GET("/livez", s.Healthz)
+	s.router.GET("/readyz", s.Readyz)
+
 	// Add the middleware to the router
 	for _, middleware := range middlewares {
 		if middleware != nil {
@@ -52,17 +64,15 @@ func (s *Server) setupRoutes() error {
 		}
 	}
 
-	// Kubernetes liveness probes
-	s.router.GET("/healthz", s.Healthz)
-	s.router.GET("/livez", s.Healthz)
-	s.router.GET("/readyz", s.Readyz)
-
 	// NotFound and NotAllowed routes
 	s.router.NoRoute(s.NotFound)
 	s.router.NoMethod(s.NotAllowed)
 
 	// Static Files
 	s.router.StaticFS("/static", http.FS(staticFiles))
+
+	// Web UI Routes
+	s.router.GET("/", s.Home)
 
 	return nil
 }

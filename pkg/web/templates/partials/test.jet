@@ -1,5 +1,0 @@
-{{extends "/layout/index.jet"}}
-
-{{block documentBody()}}
-  <h1 class="text-red-500">Hello</h1>
-  {{end}}

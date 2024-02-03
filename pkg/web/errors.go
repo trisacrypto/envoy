@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: return not found page
+// Renders the "not found page"
 func (s *Server) NotFound(c *gin.Context) {
-	c.String(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	c.HTML(http.StatusNotFound, "404.html", nil)
 }
 
-// TODO: reeturn not allowed page
+// Renders the "invalid action page"
 func (s *Server) NotAllowed(c *gin.Context) {
-	c.String(http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
+	c.HTML(http.StatusMethodNotAllowed, "405.html", nil)
 }
