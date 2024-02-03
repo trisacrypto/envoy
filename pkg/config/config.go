@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"self-hosted-node/pkg/logger"
 
@@ -61,9 +62,31 @@ func (c Config) Validate() (err error) {
 	if c.Mode != gin.ReleaseMode && c.Mode != gin.DebugMode && c.Mode != gin.TestMode {
 		return fmt.Errorf("invalid configuration: %q is not a valid gin mode", c.Mode)
 	}
+
+	if err = c.Web.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c Config) GetLogLevel() zerolog.Level {
 	return zerolog.Level(c.LogLevel)
+}
+
+func (c WebConfig) Validate() (err error) {
+	// If not enabled, do not validate the config.
+	if !c.Enabled {
+		return nil
+	}
+
+	if c.BindAddr == "" {
+		return errors.New("invalid configuration: bindaddr is required")
+	}
+
+	if c.Origin == "" {
+		return errors.New("invalid configuration: origin is required")
+	}
+
+	return nil
 }
