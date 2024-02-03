@@ -6,8 +6,8 @@
   "author": "TRISA",
   "license": "MIT",
   "scripts": {
-    "build:css": "npx tailwindcss -i pkg/server/static/styles/style.css -o pkg/server/static/styles/output.css",
-    "watch:css": "npx tailwindcss -i pkg/server/static/styles/style.css -o pkg/server/static/styles/output.css --watch"
+    "build:css": "npx tailwindcss -i pkg/web/static/styles/style.css -o pkg/web/static/styles/output.css",
+    "watch:css": "npx tailwindcss -i pkg/web/static/styles/style.css -o pkg/web/static/styles/output.css --watch"
   },
   "devDependencies": {
     "daisyui": "^4.6.1",

@@ -740,6 +740,34 @@ html {
   --tw-backdrop-sepia:  ;
 }
 
+.footer {
+  display: grid;
+  width: 100%;
+  grid-auto-flow: row;
+  place-items: start;
+  -moz-column-gap: 1rem;
+       column-gap: 1rem;
+  row-gap: 2.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.footer > * {
+  display: grid;
+  place-items: start;
+  gap: 0.5rem;
+}
+
+@media (min-width: 48rem) {
+  .footer {
+    grid-auto-flow: column;
+  }
+
+  .footer-center {
+    grid-auto-flow: row dense;
+  }
+}
+
 .link {
   cursor: pointer;
   text-decoration-line: underline;
@@ -848,11 +876,37 @@ html {
   }
 }
 
+.m-auto {
+  margin: auto;
+}
+
 .block {
   display: block;
 }
 
-.text-red-500 {
-  --tw-text-opacity: 1;
-  color: rgb(239 68 68 / var(--tw-text-opacity));
+.flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.py-14 {
+  padding-top: 3.5rem;
+  padding-bottom: 3.5rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
+@media (min-width: 1024px) {
+  .lg\:w-\[1024px\] {
+    width: 1024px;
+  }
 }

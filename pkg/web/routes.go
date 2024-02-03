@@ -44,7 +44,7 @@ func (s *Server) setupRoutes() (err error) {
 		// CORS configuration allows the front-end to make cross-origin requests
 		cors.New(corsConf),
 
-		// TODO: add maintenance mode handler
+		s.Maintenance(),
 	}
 
 	// Kubernetes liveness probes added before middleware.

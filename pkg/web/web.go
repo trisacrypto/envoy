@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/config"
 	"time"
 
@@ -65,5 +66,5 @@ func Debug(conf config.WebConfig, srv *http.Server) (s *Server, err error) {
 // Home currently renders the primary landing page for the web ui.
 // TODO: replace with dashboard or redirect as necessary.
 func (s *Server) Home(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{})
+	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
 }
