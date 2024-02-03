@@ -14,19 +14,26 @@ import (
 // because of this prefix and the split_words struct tag in the conf below.
 const Prefix = "trisa"
 
-// Config contains all of the configuration parameters for an rtnl server and is
+// Config contains all of the configuration parameters for the trisa node and is
 // loaded from the environment or a configuration file with reasonable defaults for
 // values that are omitted. The Config should be validated in preparation for running
 // the server to ensure that all server operations work as expected.
 type Config struct {
-	Maintenance  bool                `default:"false" yaml:"maintenance"`
-	Mode         string              `default:"release"`
-	LogLevel     logger.LevelDecoder `split_words:"true" default:"info"`
-	ConsoleLog   bool                `split_words:"true" default:"false"`
-	BindAddr     string              `split_words:"true" default:":4444"`
-	AllowOrigins []string            `split_words:"true" default:"http://localhost:4444"`
-	Origin       string              `default:"https://localhost:4444"`
-	processed    bool
+	Maintenance bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
+	Mode        string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
+	LogLevel    logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
+	ConsoleLog  bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
+	Web         WebConfig           `split_words:"true"`
+	processed   bool
+}
+
+// WebConfig specifies the configuration for the web UI to manage the TRISA node and
+// TRISA transactions. The web UI can be enabled or disabled and runs independently of
+// the other servers on the node.
+type WebConfig struct {
+	Enabled  bool   `default:"true" desc:"if false, the web UI server will not be run"`
+	BindAddr string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
+	Origin   string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
 }
 
 func New() (conf Config, err error) {
