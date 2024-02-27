@@ -1,7 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-.link-hover {
-  @apply decoration-2 hover:decoration-[#23a8e0]
-}
