@@ -1,8 +1,8 @@
 {{ define "nav" }}
-<div class="navbar bg-[#517994]">
-  <nav class="navbar-start">
+<nav class="navbar bg-[#517994]">
+  <div class="navbar-start">
     <div class="dropdown">
-      <button type="button" class="ml-2 lg:hidden">
+      <button type="button" class="ml-2 focus:outline-none focus:ring-2 focus:ring-gray-200 lg:hidden">
         <i class="fa-solid fa-bars text-xl text-black"></i>
         <span class="sr-only">Open Menu</span>
       </button>
@@ -14,16 +14,16 @@
       </ul>
     </div>
     <img src="/static/logo192.png" alt="TRISA Logo" class="ml-4" />
-  </nav>
-  <nav class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1 font-semibold text-white">
+  </div>
+  <div class="navbar-center hidden lg:flex">
+    <ul class="menu menu-horizontal px-1 font-semibold text-base text-white">
       <li><a href="#">Transactions</a></li>
       <li><a href="#">Self Hosted Wallet</a></li>
       <li><a href="#">Counterparty VASPs</a></li>
       <li><a href="#">Address Book</a></li>
     </ul>
-  </nav>
-</div>
+  </div>
+</nav>
 {{ end }}
 
 <div class="navbar bg-base-100">
