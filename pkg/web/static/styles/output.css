@@ -740,6 +740,12 @@ html {
   --tw-backdrop-sepia:  ;
 }
 
+@media (hover:hover) {
+  .link-hover:hover {
+    text-decoration-line: underline;
+  }
+}
+
 .footer {
   display: grid;
   width: 100%;
@@ -771,6 +777,10 @@ html {
 .link {
   cursor: pointer;
   text-decoration-line: underline;
+}
+
+.link-hover {
+  text-decoration-line: none;
 }
 
 @keyframes button-pop {
@@ -880,6 +890,10 @@ html {
   margin: auto;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .block {
   display: block;
 }
@@ -888,13 +902,39 @@ html {
   display: flex;
 }
 
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.items-center {
+  align-items: center;
+}
+
 .justify-between {
   justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.bg-\[\#517994\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(81 121 148 / var(--tw-bg-opacity));
 }
 
 .py-14 {
   padding-top: 3.5rem;
   padding-bottom: 3.5rem;
+}
+
+.py-6 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 .text-center {
@@ -905,8 +945,26 @@ html {
   text-align: end;
 }
 
+.text-white {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
+}
+
 @media (min-width: 1024px) {
   .lg\:w-\[1024px\] {
     width: 1024px;
+  }
+
+  .lg\:text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .lg\:font-semibold {
+    font-weight: 600;
   }
 }
