@@ -22,7 +22,7 @@ const (
 	ReadOnly = "readonly"
 )
 
-// DSN (data source name)) represents the parsed components of an embedded database or
+// DSN (data source name) represents the parsed components of an embedded database or
 // database management service and is used to easily establish a connection to the db.
 // TODO: add support for PostgreSQL and other server databases.
 type DSN struct {
@@ -49,7 +49,7 @@ func Parse(uri string) (out *DSN, err error) {
 		Path:   strings.TrimPrefix(dsn.Path, "/"),
 	}
 
-	// Add any options represented as query paramaters.
+	// Add any options represented as query parameters.
 	if params := dsn.Query(); len(params) > 0 {
 		out.Options = make(map[string]string, len(params))
 		for k, v := range params {
