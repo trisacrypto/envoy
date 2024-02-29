@@ -1,19 +1,15 @@
 package dsn
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"self-hosted-node/pkg/store/errors"
 )
 
-var (
-	ErrDSNParse      = errors.New("could not parse dsn")
-	ErrInvalidDSN    = errors.New("could not parse DSN, critical component missing")
-	ErrUnknownScheme = errors.New("database scheme not handled by this package")
-	ErrPathRequired  = errors.New("a path is required for this database scheme")
-)
-
+// Supported schemes by this package.
 const (
 	SQLite  = "sqlite"
 	SQLite3 = "sqlite3"
@@ -21,13 +17,19 @@ const (
 	Mock    = "mock"
 )
 
+// Supported options by this package.
+const (
+	ReadOnly = "readonly"
+)
+
 // DSN (data source name)) represents the parsed components of an embedded database or
 // database management service and is used to easily establish a connection to the db.
 // TODO: add support for PostgreSQL and other server databases.
 type DSN struct {
-	Scheme  string
-	Path    string
-	Options map[string]string
+	Scheme   string
+	Path     string
+	ReadOnly bool
+	Options  map[string]string
 }
 
 // Parse a string based DSN into its constituent parts, creating a structured
@@ -35,11 +37,11 @@ type DSN struct {
 func Parse(uri string) (out *DSN, err error) {
 	dsn, err := url.Parse(uri)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrDSNParse, err)
+		return nil, fmt.Errorf("%w: %w", errors.ErrDSNParse, err)
 	}
 
 	if dsn.Scheme == "" || dsn.Path == "" {
-		return nil, ErrInvalidDSN
+		return nil, errors.ErrInvalidDSN
 	}
 
 	out = &DSN{
@@ -51,7 +53,14 @@ func Parse(uri string) (out *DSN, err error) {
 	if params := dsn.Query(); len(params) > 0 {
 		out.Options = make(map[string]string, len(params))
 		for k, v := range params {
-			out.Options[k] = v[0]
+			switch strings.ToLower(k) {
+			case ReadOnly:
+				if out.ReadOnly, err = strconv.ParseBool(v[0]); err != nil {
+					return nil, fmt.Errorf("could not parse read only option: %w", err)
+				}
+			default:
+				out.Options[k] = v[0]
+			}
 		}
 	}
 

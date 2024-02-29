@@ -1,29 +1,32 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
+
 	"self-hosted-node/pkg/store/dsn"
+	"self-hosted-node/pkg/store/errors"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 // Store implements the store.Store interface using SQLite3 as the storage backend.
 type Store struct {
-	dsn  *dsn.DSN
-	conn *sql.DB
+	readonly bool
+	conn     *sql.DB
 }
 
 func Open(uri *dsn.DSN) (_ *Store, err error) {
 	// Ensure that only SQLite3 connections can be opened.
 	if uri.Scheme != dsn.SQLite && uri.Scheme != dsn.SQLite3 {
-		return nil, dsn.ErrUnknownScheme
+		return nil, errors.ErrUnknownScheme
 	}
 
 	// Require a path in order to open the database connection (no in-memory databases)
 	if uri.Path == "" {
-		return nil, dsn.ErrPathRequired
+		return nil, errors.ErrPathRequired
 	}
 
 	// Check if the database file exists, if it doesn't exist it will be created and
@@ -35,7 +38,7 @@ func Open(uri *dsn.DSN) (_ *Store, err error) {
 	}
 
 	// Connect to the database
-	s := &Store{dsn: uri}
+	s := &Store{readonly: uri.ReadOnly}
 	if s.conn, err = sql.Open("sqlite3", uri.Path); err != nil {
 		return nil, err
 	}
@@ -60,4 +63,16 @@ func Open(uri *dsn.DSN) (_ *Store, err error) {
 
 func (s *Store) Close() error {
 	return s.conn.Close()
+}
+
+func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, err error) {
+	// Ensure the options respect the read-only option specified by the user.
+	if opts == nil {
+		opts = &sql.TxOptions{ReadOnly: s.readonly}
+	} else if s.readonly && !opts.ReadOnly {
+		return nil, errors.ErrReadOnly
+	}
+
+	// Create a transaction with the specified context.
+	return s.conn.BeginTx(ctx, opts)
 }

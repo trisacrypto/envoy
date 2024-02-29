@@ -1,8 +1,10 @@
 package dsn_test
 
 import (
-	"self-hosted-node/pkg/store/dsn"
 	"testing"
+
+	"self-hosted-node/pkg/store/dsn"
+	"self-hosted-node/pkg/store/errors"
 
 	"github.com/stretchr/testify/require"
 )
@@ -39,13 +41,23 @@ func TestParse(t *testing.T) {
 			nil,
 		},
 		{
-			"foo", nil, dsn.ErrInvalidDSN,
+			"sqlite3:////data/app.db?readonly=true",
+			&dsn.DSN{Scheme: "sqlite3", Path: "/data/app.db", ReadOnly: true, Options: map[string]string{}},
+			nil,
 		},
 		{
-			"foo://", nil, dsn.ErrInvalidDSN,
+			"sqlite3:////data/app.db?readonly=false",
+			&dsn.DSN{Scheme: "sqlite3", Path: "/data/app.db", ReadOnly: false, Options: map[string]string{}},
+			nil,
 		},
 		{
-			"cache_object:foo/bar", nil, dsn.ErrDSNParse,
+			"foo", nil, errors.ErrInvalidDSN,
+		},
+		{
+			"foo://", nil, errors.ErrInvalidDSN,
+		},
+		{
+			"cache_object:foo/bar", nil, errors.ErrDSNParse,
 		},
 	}
 
