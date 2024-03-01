@@ -2,7 +2,9 @@ package web
 
 import "github.com/gin-gonic/gin"
 
-func (s *Server) ListAccounts(c *gin.Context) {}
+func (s *Server) ListAccounts(c *gin.Context) {
+
+}
 
 func (s *Server) CreateAccount(c *gin.Context) {}
 

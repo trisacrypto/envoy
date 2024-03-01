@@ -3,6 +3,7 @@ module self-hosted-node
 go 1.21.5
 
 require (
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
