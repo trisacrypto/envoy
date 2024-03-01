@@ -2,21 +2,24 @@ package web
 
 import (
 	"net/http"
+	"time"
+
 	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/config"
-	"time"
+	"self-hosted-node/pkg/store"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Create a new web server that serves the compliance and admin web user interface.
-func New(conf config.WebConfig) (s *Server, err error) {
+func New(conf config.WebConfig, store store.Store) (s *Server, err error) {
 	if err = conf.Validate(); err != nil {
 		return nil, err
 	}
 
 	s = &Server{
-		conf: conf,
+		conf:  conf,
+		store: store,
 	}
 
 	// If not enabled, return just the server stub
@@ -51,8 +54,8 @@ func New(conf config.WebConfig) (s *Server, err error) {
 
 // Debug returns a server that uses the specified http server instead of creating one.
 // This function is primarily used to create test servers easily.
-func Debug(conf config.WebConfig, srv *http.Server) (s *Server, err error) {
-	if s, err = New(conf); err != nil {
+func Debug(conf config.WebConfig, store store.Store, srv *http.Server) (s *Server, err error) {
+	if s, err = New(conf, store); err != nil {
 		return nil, err
 	}
 

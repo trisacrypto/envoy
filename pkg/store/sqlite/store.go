@@ -8,8 +8,10 @@ import (
 
 	"self-hosted-node/pkg/store/dsn"
 	"self-hosted-node/pkg/store/errors"
+	"self-hosted-node/pkg/store/models"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/oklog/ulid/v2"
 )
 
 // Store implements the store.Store interface using SQLite3 as the storage backend.
@@ -75,4 +77,44 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, e
 
 	// Create a transaction with the specified context.
 	return s.conn.BeginTx(ctx, opts)
+}
+
+func (s *Store) ListAccounts(page *models.PageInfo) (*models.AccountsPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateAccount(*models.Account) error {
+	return nil
+}
+
+func (s *Store) RetrieveAccount(id ulid.ULID) (*models.Account, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateAccount(*models.Account) error {
+	return nil
+}
+
+func (s *Store) DeleteAccount(id ulid.ULID) error {
+	return nil
+}
+
+func (s *Store) ListCryptoAddresses(page *models.PageInfo) (*models.CryptoAddressPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateCryptoAddress(*models.CryptoAddress) error {
+	return nil
+}
+
+func (s *Store) RetrieveCryptoAddress(id ulid.ULID) (*models.CryptoAddress, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateCryptoAddress(*models.CryptoAddress) error {
+	return nil
+}
+
+func (s *Store) DeleteCryptoAddress(id ulid.ULID) error {
+	return nil
 }

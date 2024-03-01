@@ -4,11 +4,13 @@ import (
 	"errors"
 	"os"
 	"os/signal"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/web"
 	"syscall"
 	"time"
+
+	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/logger"
+	"self-hosted-node/pkg/store"
+	"self-hosted-node/pkg/web"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -50,8 +52,13 @@ func New(conf config.Config) (node *Node, err error) {
 		errc: make(chan error, 1),
 	}
 
+	// Connect to the database store
+	if node.store, err = store.Open(conf.DatabaseURL); err != nil {
+		return nil, err
+	}
+
 	// Create the web ui server if it is enabled
-	if node.web, err = web.New(conf.Web); err != nil {
+	if node.web, err = web.New(conf.Web, node.store); err != nil {
 		return nil, err
 	}
 
@@ -62,9 +69,10 @@ func New(conf config.Config) (node *Node, err error) {
 // the TRP API server, the web compliance and admin user interface, and the internal API
 // server, along with kubernetes probes and metrics if required.
 type Node struct {
-	conf config.Config
-	web  *web.Server
-	errc chan error
+	conf  config.Config
+	web   *web.Server
+	store store.Store
+	errc  chan error
 }
 
 // Serve all enabled services based on configuration and block until shutdown or until

@@ -7,9 +7,11 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/rotationalio/confire v1.0.0
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
+	github.com/trisacrypto/trisa v0.4.1
 	github.com/urfave/cli/v2 v2.27.1
 	golang.org/x/text v0.13.0
 )
