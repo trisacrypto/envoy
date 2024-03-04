@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -86,6 +87,30 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 		return nil, fmt.Errorf("could not deserialize status reply: %s", err)
 	}
 	return out, nil
+}
+
+//===========================================================================
+// Accounts Resource
+//===========================================================================
+
+func (s *APIv1) ListAccounts(context.Context, *PageQuery) (*AccountsList, error) {
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *APIv1) CreateAccount(context.Context, *Account) (*Account, error) {
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *APIv1) AccountDetail(context.Context, ulid.ULID) (*Account, error) {
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *APIv1) UpdateAccount(context.Context, *Account) (*Account, error) {
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *APIv1) DeleteAccount(context.Context, ulid.ULID) error {
+	return errors.New("not implemented yet")
 }
 
 //===========================================================================
