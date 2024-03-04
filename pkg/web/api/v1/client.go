@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/google/go-querystring/query"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -93,24 +93,78 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 // Accounts Resource
 //===========================================================================
 
-func (s *APIv1) ListAccounts(context.Context, *PageQuery) (*AccountsList, error) {
-	return nil, errors.New("not implemented yet")
+func (s *APIv1) ListAccounts(ctx context.Context, in *PageQuery) (out *AccountsList, err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode page query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/accounts", nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func (s *APIv1) CreateAccount(context.Context, *Account) (*Account, error) {
-	return nil, errors.New("not implemented yet")
+func (s *APIv1) CreateAccount(ctx context.Context, in *Account) (out *Account, err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, "/v1/accounts", in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func (s *APIv1) AccountDetail(context.Context, ulid.ULID) (*Account, error) {
-	return nil, errors.New("not implemented yet")
+func (s *APIv1) AccountDetail(ctx context.Context, id ulid.ULID) (out *Account, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s", id)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-func (s *APIv1) UpdateAccount(context.Context, *Account) (*Account, error) {
-	return nil, errors.New("not implemented yet")
+func (s *APIv1) UpdateAccount(ctx context.Context, in *Account) (out *Account, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s", in.ID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-func (s *APIv1) DeleteAccount(context.Context, ulid.ULID) error {
-	return errors.New("not implemented yet")
+func (s *APIv1) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s", id)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
+		return nil
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 //===========================================================================
