@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"self-hosted-node/pkg/store/errors"
 
 	"github.com/oklog/ulid/v2"
@@ -14,22 +15,61 @@ import (
 // addresses for specific crypto currencies and networks.
 type Account struct {
 	Model
-	CustomerID    string           `json:"customer_id"`    // Account ID of internal user record (optional)
-	FirstName     string           `json:"first_name"`     // First name (forename) of user
-	LastName      string           `json:"last_name"`      // Last name (surname) of user
-	TravelAddress string           `json:"travel_address"` // Generated TravelAddress for this user
-	IVMSRecord    *ivms101.Person  `json:"ivms101"`        // IVMS101 record for the account
-	addresses     []*CryptoAddress `json:"-"`              // Associated crypto addresses
+	CustomerID    sql.NullString   // Account ID of internal user record (optional)
+	FirstName     sql.NullString   // First name (forename) of user
+	LastName      sql.NullString   // Last name (surname) of user
+	TravelAddress string           // Generated TravelAddress for this user
+	IVMSRecord    *ivms101.Person  // IVMS101 record for the account
+	addresses     []*CryptoAddress // Associated crypto addresses
 }
 
 type CryptoAddress struct {
 	Model
-	AccountID     ulid.ULID `json:"account_id"`     // Reference to account the crypto address belongs to
-	CryptoAddress string    `json:"crypto_address"` // The actual crypto address of the wallet
-	Network       string    `json:"network"`        // The network associated with the crypto address in SIP0044 encoding
-	AssetType     string    `json:"asset_type"`     // The asset type with the crypto address (optional)
-	Tag           string    `json:"tag"`            // The memo or destination tag associated with the address (optional)
-	account       *Account  `json:"-"`              // Associated account
+	AccountID     ulid.ULID      // Reference to account the crypto address belongs to
+	CryptoAddress string         // The actual crypto address of the wallet
+	Network       string         // The network associated with the crypto address in SIP0044 encoding
+	AssetType     sql.NullString // The asset type with the crypto address (optional)
+	Tag           sql.NullString // The memo or destination tag associated with the address (optional)
+	account       *Account       // Associated account
+}
+
+// Scan a complete SELECT into the account model.
+func (a *Account) Scan(scanner Scanner) error {
+	return scanner.Scan(
+		&a.ID,
+		&a.CustomerID,
+		&a.FirstName,
+		&a.LastName,
+		&a.TravelAddress,
+		&a.IVMSRecord,
+		&a.Created,
+		&a.Modified,
+	)
+}
+
+// ScanSummary scans only the summary information into the account model.
+func (a *Account) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&a.ID,
+		&a.CustomerID,
+		&a.FirstName,
+		&a.LastName,
+		&a.TravelAddress,
+	)
+}
+
+// Get the complete named params of the account from the model.
+func (a *Account) Params() []any {
+	return []any{
+		sql.Named("id", a.ID),
+		sql.Named("customerID", a.CustomerID),
+		sql.Named("firstName", a.FirstName),
+		sql.Named("lastName", a.LastName),
+		sql.Named("travelAddress", a.TravelAddress),
+		sql.Named("ivms101", a.IVMSRecord),
+		sql.Named("created", a.Created),
+		sql.Named("modified", a.Modified),
+	}
 }
 
 // Returns associated crypto addresses if they are cached on the account model, returns
@@ -44,6 +84,34 @@ func (a *Account) CryptoAddresses() ([]*CryptoAddress, error) {
 // Used by store implementations to cache associated crypto addresses on the account.
 func (a *Account) SetCryptoAddresses(addresses []*CryptoAddress) {
 	a.addresses = addresses
+}
+
+// Scans a complete SELECT into the CryptoAddress model
+func (a *CryptoAddress) Scan(scanner Scanner) error {
+	return scanner.Scan(
+		&a.ID,
+		&a.AccountID,
+		&a.CryptoAddress,
+		&a.Network,
+		&a.AssetType,
+		&a.Tag,
+		&a.Created,
+		&a.Modified,
+	)
+}
+
+// Get the complete named params of the crypto address from the model.
+func (a *CryptoAddress) Params() []any {
+	return []any{
+		sql.Named("id", a.ID),
+		sql.Named("accountID", a.AccountID),
+		sql.Named("cryptoAddress", a.CryptoAddress),
+		sql.Named("network", a.Network),
+		sql.Named("assetType", a.AssetType),
+		sql.Named("tag", a.Tag),
+		sql.Named("created", a.Created),
+		sql.Named("modified", a.Modified),
+	}
 }
 
 // Returns associated account if it is cached on the crypto address model, returns an

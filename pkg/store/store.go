@@ -37,7 +37,6 @@ func Open(databaseURL string) (s Store, err error) {
 type Store interface {
 	io.Closer
 	AccountStore
-	CryptoAddressStore
 }
 
 // All Store implementations must implement the Store interface
@@ -53,13 +52,4 @@ type AccountStore interface {
 	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
 	UpdateAccount(context.Context, *models.Account) error
 	DeleteAccount(ctx context.Context, id ulid.ULID) error
-}
-
-// CryptoAddressStore provides CRUD interactions with CryptoAddress models.
-type CryptoAddressStore interface {
-	ListCryptoAddresses(ctx context.Context, page *models.PageInfo) (*models.CryptoAddressPage, error)
-	CreateCryptoAddress(context.Context, *models.CryptoAddress) error
-	RetrieveCryptoAddress(ctx context.Context, id ulid.ULID) (*models.CryptoAddress, error)
-	UpdateCryptoAddress(context.Context, *models.CryptoAddress) error
-	DeleteCryptoAddress(ctx context.Context, id ulid.ULID) error
 }

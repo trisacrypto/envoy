@@ -13,7 +13,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-const listAccountsSQL = "SELECT * FROM accounts"
+const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address FROM accounts"
 
 func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *models.AccountsPage, err error) {
 	var tx *sql.Tx
@@ -36,18 +36,16 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 
 	for rows.Next() {
 		// Scan account into memory
-		a := &models.Account{}
-		if err = rows.Scan(&a.ID, &a.CustomerID, &a.FirstName, &a.LastName, &a.TravelAddress, &a.IVMSRecord, &a.Created, &a.Modified); err != nil {
+		account := &models.Account{}
+		if err = account.ScanSummary(rows); err != nil {
 			return nil, err
 		}
 
-		// Scan related crypto addresses into memory
-		if err = s.retrieveCryptoAddresses(tx, a); err != nil {
-			return nil, err
-		}
+		// Ensure that addresses is non-nil and zero-valued
+		account.SetCryptoAddresses(make([]*models.CryptoAddress, 0))
 
 		// Append account to page
-		out.Accounts = append(out.Accounts, a)
+		out.Accounts = append(out.Accounts, account)
 	}
 
 	tx.Commit()
@@ -56,9 +54,9 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 
 const createAccountSQL = "INSERT INTO accounts (id, customer_id, first_name, last_name, travel_address, ivms101, created, modified) VALUES (:id, :customerID, :firstName, :lastName, :travelAddress, :ivms101, :created, :modified)"
 
-func (s *Store) CreateAccount(ctx context.Context, a *models.Account) (err error) {
+func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err error) {
 	// Basic validation
-	if !ulids.IsZero(a.ID) {
+	if !ulids.IsZero(account.ID) {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -69,26 +67,24 @@ func (s *Store) CreateAccount(ctx context.Context, a *models.Account) (err error
 	defer tx.Rollback()
 
 	// Create IDs and model metadata, updating the account in place.
-	a.ID = ulids.New()
-	a.Created = time.Now()
-	a.Modified = a.Created
-
-	// Create parameters array
-	params := []any{
-		sql.Named("id", a.ID),
-		sql.Named("customerID", a.CustomerID),
-		sql.Named("firstName", a.FirstName),
-		sql.Named("lastName", a.LastName),
-		sql.Named("travelAddress", a.TravelAddress),
-		sql.Named("ivms101", a.IVMSRecord),
-		sql.Named("created", a.Created),
-		sql.Named("modified", a.Modified),
-	}
+	account.ID = ulids.New()
+	account.Created = time.Now()
+	account.Modified = account.Created
 
 	// Execute the insert into the database
-	if _, err = tx.Exec(createAccountSQL, params...); err != nil {
+	if _, err = tx.Exec(createAccountSQL, account.Params()...); err != nil {
 		// TODO: handle constraint violations
 		return err
+	}
+
+	// Insert the associated crypto addresses into the database
+	addresses, _ := account.CryptoAddresses()
+	for _, addr := range addresses {
+		// Ensure the crypto address is associated with the new account
+		addr.AccountID = account.ID
+		if err = s.createCryptoAddress(tx, addr); err != nil {
+			return err
+		}
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -99,23 +95,28 @@ func (s *Store) CreateAccount(ctx context.Context, a *models.Account) (err error
 
 const retreiveAccountSQL = "SELECT * FROM accounts WHERE id=:id"
 
-func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (a *models.Account, err error) {
+func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (account *models.Account, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	a = &models.Account{}
-	if err = tx.QueryRow(retreiveAccountSQL, sql.Named("id", id)).Scan(&a.ID, &a.CustomerID, &a.FirstName, &a.LastName, &a.TravelAddress, &a.IVMSRecord, &a.Created, &a.Modified); err != nil {
+	account = &models.Account{}
+	if err = account.Scan(tx.QueryRow(retreiveAccountSQL, sql.Named("id", id))); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, dberr.ErrNotFound
 		}
 		return nil, err
 	}
 
+	// Retrieve associated crypto addresses with the account.
+	if err = s.retrieveCryptoAddresses(tx, account); err != nil {
+		return nil, err
+	}
+
 	tx.Commit()
-	return a, nil
+	return account, nil
 }
 
 const updateAccountSQL = "UPDATE accounts SET customer_id=:customerID, first_name=:firstName, last_name=:lastName, travel_address=:travelAddress, ivms101=:ivms101, modified=:modified WHERE id=:id"
@@ -133,23 +134,22 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 	defer tx.Rollback()
 
 	// Update modified timestamp (in place).
-	a.Modified = a.Created
-
-	// Create parameters array
-	params := []any{
-		sql.Named("id", a.ID),
-		sql.Named("customerID", a.CustomerID),
-		sql.Named("firstName", a.FirstName),
-		sql.Named("lastName", a.LastName),
-		sql.Named("travelAddress", a.TravelAddress),
-		sql.Named("ivms101", a.IVMSRecord),
-		sql.Named("modified", a.Modified),
-	}
+	a.Modified = time.Now()
 
 	// Execute the update into the database
-	if _, err = tx.Exec(updateAccountSQL, params...); err != nil {
+	if _, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
 		// TODO: handle constraint violations
 		return err
+	}
+
+	// Update the associated crypto addresses into the database
+	addresses, _ := a.CryptoAddresses()
+	for _, addr := range addresses {
+		// Ensure the crypto address is associated with the new account
+		addr.AccountID = a.ID
+		if err = s.updateCryptoAddress(tx, addr); err != nil {
+			return err
+		}
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -177,44 +177,73 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 	return nil
 }
 
-const getAccountCryptoAddressesSQL = "SELECT * FROM crypto_addresses WHERE account_id=:accountID"
+const retrieveCryptoAddressesSQL = "SELECT * FROM crypto_addresses WHERE account_id=:accountID"
 
 func (s *Store) retrieveCryptoAddresses(tx *sql.Tx, account *models.Account) (err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(getAccountCryptoAddressesSQL, sql.Named("accountID", account.ID)); err != nil {
+	if rows, err = tx.Query(retrieveCryptoAddressesSQL, sql.Named("accountID", account.ID)); err != nil {
 		return err
 	}
 	defer rows.Close()
 
 	addresses := make([]*models.CryptoAddress, 0)
 	for rows.Next() {
-		a := &models.CryptoAddress{}
-		if err = rows.Scan(&a.ID, &a.AccountID, &a.CryptoAddress, &a.Network, &a.AssetType, &a.Tag, &a.Created, &a.Modified); err != nil {
+		addr := &models.CryptoAddress{}
+		if err = addr.Scan(rows); err != nil {
 			return err
 		}
-		a.SetAccount(account)
+		addr.SetAccount(account)
+		addresses = append(addresses, addr)
 	}
 
 	account.SetCryptoAddresses(addresses)
 	return nil
 }
 
-func (s *Store) ListCryptoAddresses(ctx context.Context, page *models.PageInfo) (*models.CryptoAddressPage, error) {
-	return nil, dberr.ErrNotImplemented
+const createCryptoAddressSQL = "INSERT INTO crypto_addresses (id, account_id, crypto_address, network, asset_type, tag, created, modified) VALUES (:id, :accountID, :cryptoAddress, :network, :assetType, :tag, :created, :modified)"
+
+func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err error) {
+	if !ulids.IsZero(addr.ID) {
+		return dberr.ErrNoIDOnCreate
+	}
+
+	if ulids.IsZero(addr.AccountID) {
+		return dberr.ErrMissingReference
+	}
+
+	// Create IDs and model metadata, updating the account in place.
+	addr.ID = ulids.New()
+	addr.Created = time.Now()
+	addr.Modified = addr.Created
+
+	if _, err = tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
+		// TODO: handle constraint violations
+		return err
+	}
+	return nil
 }
 
-func (s *Store) CreateCryptoAddress(context.Context, *models.CryptoAddress) error {
-	return dberr.ErrNotImplemented
-}
+// TODO: this must be an upsert/delete since the data is being modified on the relation
+const updateCryptoAddressSQL = "UPDATE crypto_addresses SET account_id=:accountID, crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, modified=:modified WHERE id=:id"
 
-func (s *Store) RetrieveCryptoAddress(ctx context.Context, id ulid.ULID) (*models.CryptoAddress, error) {
-	return nil, dberr.ErrNotImplemented
-}
+func (s *Store) updateCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err error) {
+	// Basic validation
+	if ulids.IsZero(addr.ID) {
+		return dberr.ErrMissingID
+	}
 
-func (s *Store) UpdateCryptoAddress(context.Context, *models.CryptoAddress) error {
-	return dberr.ErrNotImplemented
-}
+	if ulids.IsZero(addr.AccountID) {
+		return dberr.ErrMissingReference
+	}
 
-func (s *Store) DeleteCryptoAddress(ctx context.Context, id ulid.ULID) error {
-	return dberr.ErrNotImplemented
+	// Update modified timestamp (in place).
+	addr.Modified = time.Now()
+
+	// Execute the update into the database
+	if _, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
+		// TODO: handle constraint violations
+		return err
+	}
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -261,9 +262,9 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 func AccountFromModel(account *models.Account) (out *api.Account, err error) {
 	out = &api.Account{
 		ID:            account.ID,
-		CustomerID:    account.CustomerID,
-		FirstName:     account.FirstName,
-		LastName:      account.LastName,
+		CustomerID:    account.CustomerID.String,
+		FirstName:     account.FirstName.String,
+		LastName:      account.LastName.String,
 		TravelAddress: account.TravelAddress,
 		Created:       account.Created,
 		Modified:      account.Modified,
@@ -292,8 +293,8 @@ func AccountFromModel(account *models.Account) (out *api.Account, err error) {
 			ID:            address.ID,
 			CryptoAddress: address.CryptoAddress,
 			Network:       address.Network,
-			AssetType:     address.AssetType,
-			Tag:           address.Tag,
+			AssetType:     address.AssetType.String,
+			Tag:           address.Tag.String,
 			Created:       address.Created,
 			Modified:      address.Modified,
 		})
@@ -309,9 +310,9 @@ func ModelFromAccount(in *api.Account) (account *models.Account, err error) {
 			Created:  in.Created,
 			Modified: in.Modified,
 		},
-		CustomerID:    in.CustomerID,
-		FirstName:     in.FirstName,
-		LastName:      in.LastName,
+		CustomerID:    sql.NullString{String: in.CustomerID, Valid: in.CustomerID != ""},
+		FirstName:     sql.NullString{String: in.FirstName, Valid: in.FirstName != ""},
+		LastName:      sql.NullString{String: in.FirstName, Valid: in.FirstName != ""},
 		TravelAddress: in.TravelAddress,
 		IVMSRecord:    nil,
 	}
@@ -334,8 +335,8 @@ func ModelFromAccount(in *api.Account) (account *models.Account, err error) {
 				},
 				CryptoAddress: address.CryptoAddress,
 				Network:       address.Network,
-				AssetType:     address.AssetType,
-				Tag:           address.Tag,
+				AssetType:     sql.NullString{String: address.AssetType, Valid: address.AssetType != ""},
+				Tag:           sql.NullString{String: address.Tag, Valid: address.Tag != ""},
 			})
 		}
 
