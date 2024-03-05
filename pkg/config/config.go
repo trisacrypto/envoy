@@ -24,6 +24,7 @@ type Config struct {
 	Mode        string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
 	LogLevel    logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
 	ConsoleLog  bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
+	DatabaseURL string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
 	Web         WebConfig           `split_words:"true"`
 	processed   bool
 }

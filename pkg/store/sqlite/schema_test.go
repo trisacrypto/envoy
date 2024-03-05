@@ -20,6 +20,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Migrations",
 			Path: "0000_migrations.sql",
 		},
+		{
+			ID:   1,
+			Name: "Initial Schema",
+			Path: "0001_initial_schema.sql",
+		},
 	}
 
 	for i, migration := range migrations {

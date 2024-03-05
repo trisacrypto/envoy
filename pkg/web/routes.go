@@ -67,8 +67,21 @@ func (s *Server) setupRoutes() (err error) {
 	staticFiles, _ := fs.Sub(content, "static")
 	s.router.StaticFS("/static", http.FS(staticFiles))
 
-	// Web UI Routes
+	// Web UI Routes (Pages)
+	// TODO: add authentication to these endpoints
 	s.router.GET("/", s.Home)
+
+	// API Routes (Including Content Negotiated Partials)
+	// TODO: add authentication to these endpoints
+	v1 := s.router.Group("/v1")
+	{
+		// Accounts Resource
+		v1.GET("/accounts", s.ListAccounts)
+		v1.POST("/accounts", s.CreateAccount)
+		v1.GET("/accounts/:id", s.AccountDetail)
+		v1.PUT("/accounts/:id", s.UpdateAccount)
+		v1.DELETE("/accounts/:id", s.DeleteAccount)
+	}
 
 	return nil
 }

@@ -7,9 +7,11 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"self-hosted-node/pkg/config"
 	"sync"
 	"time"
+
+	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/store"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -19,6 +21,7 @@ import (
 type Server struct {
 	sync.RWMutex
 	conf    config.WebConfig
+	store   store.Store
 	srv     *http.Server
 	router  *gin.Engine
 	url     *url.URL
