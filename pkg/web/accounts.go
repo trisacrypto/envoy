@@ -312,7 +312,7 @@ func ModelFromAccount(in *api.Account) (account *models.Account, err error) {
 		},
 		CustomerID:    sql.NullString{String: in.CustomerID, Valid: in.CustomerID != ""},
 		FirstName:     sql.NullString{String: in.FirstName, Valid: in.FirstName != ""},
-		LastName:      sql.NullString{String: in.FirstName, Valid: in.FirstName != ""},
+		LastName:      sql.NullString{String: in.LastName, Valid: in.LastName != ""},
 		TravelAddress: in.TravelAddress,
 		IVMSRecord:    nil,
 	}
