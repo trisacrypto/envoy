@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"self-hosted-node/pkg/store/dsn"
@@ -47,18 +48,18 @@ var (
 
 // AccountStore provides CRUD interactions with Account models.
 type AccountStore interface {
-	ListAccounts(page *models.PageInfo) (*models.AccountsPage, error)
-	CreateAccount(*models.Account) error
-	RetrieveAccount(id ulid.ULID) (*models.Account, error)
-	UpdateAccount(*models.Account) error
-	DeleteAccount(id ulid.ULID) error
+	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
+	CreateAccount(context.Context, *models.Account) error
+	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
+	UpdateAccount(context.Context, *models.Account) error
+	DeleteAccount(ctx context.Context, id ulid.ULID) error
 }
 
 // CryptoAddressStore provides CRUD interactions with CryptoAddress models.
 type CryptoAddressStore interface {
-	ListCryptoAddresses(page *models.PageInfo) (*models.CryptoAddressPage, error)
-	CreateCryptoAddress(*models.CryptoAddress) error
-	RetrieveCryptoAddress(id ulid.ULID) (*models.CryptoAddress, error)
-	UpdateCryptoAddress(*models.CryptoAddress) error
-	DeleteCryptoAddress(id ulid.ULID) error
+	ListCryptoAddresses(ctx context.Context, page *models.PageInfo) (*models.CryptoAddressPage, error)
+	CreateCryptoAddress(context.Context, *models.CryptoAddress) error
+	RetrieveCryptoAddress(ctx context.Context, id ulid.ULID) (*models.CryptoAddress, error)
+	UpdateCryptoAddress(context.Context, *models.CryptoAddress) error
+	DeleteCryptoAddress(ctx context.Context, id ulid.ULID) error
 }

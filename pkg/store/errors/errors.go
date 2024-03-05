@@ -10,4 +10,7 @@ var (
 	ErrReadOnly           = errors.New("cannot perform operation in read-only mode")
 	ErrMissingAssociation = errors.New("associated record(s) not cached on model")
 	ErrNotFound           = errors.New("record not found in database")
+	ErrNotImplemented     = errors.New("method not implemented for this storage backend")
+	ErrNoIDOnCreate       = errors.New("cannot create a resource with an established id")
+	ErrMissingID          = errors.New("missing id of resource")
 )

@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"self-hosted-node/pkg/store/dsn"
 	"self-hosted-node/pkg/store/models"
 
@@ -19,42 +20,42 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) ListAccounts(page *models.PageInfo) (*models.AccountsPage, error) {
+func (s *Store) ListAccounts(context.Context, *models.PageInfo) (*models.AccountsPage, error) {
 	return nil, nil
 }
 
-func (s *Store) CreateAccount(*models.Account) error {
+func (s *Store) CreateAccount(context.Context, *models.Account) error {
 	return nil
 }
 
-func (s *Store) RetrieveAccount(id ulid.ULID) (*models.Account, error) {
+func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error) {
 	return nil, nil
 }
 
-func (s *Store) UpdateAccount(*models.Account) error {
+func (s *Store) UpdateAccount(context.Context, *models.Account) error {
 	return nil
 }
 
-func (s *Store) DeleteAccount(id ulid.ULID) error {
+func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) error {
 	return nil
 }
 
-func (s *Store) ListCryptoAddresses(page *models.PageInfo) (*models.CryptoAddressPage, error) {
+func (s *Store) ListCryptoAddresses(ctx context.Context, page *models.PageInfo) (*models.CryptoAddressPage, error) {
 	return nil, nil
 }
 
-func (s *Store) CreateCryptoAddress(*models.CryptoAddress) error {
+func (s *Store) CreateCryptoAddress(context.Context, *models.CryptoAddress) error {
 	return nil
 }
 
-func (s *Store) RetrieveCryptoAddress(id ulid.ULID) (*models.CryptoAddress, error) {
+func (s *Store) RetrieveCryptoAddress(ctx context.Context, id ulid.ULID) (*models.CryptoAddress, error) {
 	return nil, nil
 }
 
-func (s *Store) UpdateCryptoAddress(*models.CryptoAddress) error {
+func (s *Store) UpdateCryptoAddress(context.Context, *models.CryptoAddress) error {
 	return nil
 }
 
-func (s *Store) DeleteCryptoAddress(id ulid.ULID) error {
+func (s *Store) DeleteCryptoAddress(ctx context.Context, id ulid.ULID) error {
 	return nil
 }

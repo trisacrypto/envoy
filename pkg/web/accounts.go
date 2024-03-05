@@ -38,7 +38,7 @@ func (s *Server) ListAccounts(c *gin.Context) {
 	// TODO: implement better pagination mechanism (with pagination tokens)
 
 	// Fetch the list of accounts from the database
-	if page, err = s.store.ListAccounts(query); err != nil {
+	if page, err = s.store.ListAccounts(c.Request.Context(), query); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process account list request"))
 		return
@@ -95,7 +95,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Create the model in the database (which will update the pointer)
-	if err = s.store.CreateAccount(account); err != nil {
+	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
 		// TODO: are there other error types that we need to handle to return a 400?
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
@@ -132,7 +132,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	}
 
 	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(accountID); err != nil {
+	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
@@ -198,7 +198,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	}
 
 	// Update the model in the database (which will update the pointer).
-	if err = s.store.UpdateAccount(account); err != nil {
+	if err = s.store.UpdateAccount(c.Request.Context(), account); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
@@ -238,7 +238,7 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	// Delete the account from the database
-	if err = s.store.DeleteAccount(accountID); err != nil {
+	if err = s.store.DeleteAccount(c.Request.Context(), accountID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
