@@ -1,8 +1,8 @@
 {{ template "base" . }}
 {{ define "content" }}
-  <section class="mx-auto py-14" hx-get="/v1/accounts" hx-trigger="load">
+  <section class="py-14" hx-get="/v1/accounts" hx-trigger="load">
     <div class="text-center">
-      <span class="loading loading-spinner loading-lg"></span>
+      <span class="loading loading-spinner loading-md"></span>
     </div>
   </section>
 
