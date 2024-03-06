@@ -71,3 +71,7 @@ func Debug(conf config.WebConfig, store store.Store, srv *http.Server) (s *Serve
 func (s *Server) Home(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
 }
+
+func (s *Server) Accounts(c *gin.Context) {
+	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
+}
