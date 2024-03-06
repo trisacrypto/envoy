@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/store"
 
@@ -64,26 +63,4 @@ func Debug(conf config.WebConfig, store store.Store, srv *http.Server) (s *Serve
 	s.srv = srv
 	s.srv.Handler = s.router
 	return s, nil
-}
-
-// Home currently renders the primary landing page for the web ui.
-// TODO: replace with dashboard or redirect as necessary.
-func (s *Server) Home(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
-}
-
-func (s *Server) Transactions(c *gin.Context) {
-	c.HTML(http.StatusOK, "transactions.html", gin.H{"Version": pkg.Version()})
-}
-
-func (s *Server) Accounts(c *gin.Context) {
-	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
-}
-
-func (s *Server) Counterparty(c *gin.Context) {
-	c.HTML(http.StatusOK, "counterparty.html", gin.H{"Version": pkg.Version()})
-}
-
-func (s *Server) Audit(c *gin.Context) {
-	c.HTML(http.StatusOK, "audit.html", gin.H{"Version": pkg.Version()})
 }
