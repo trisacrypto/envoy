@@ -72,6 +72,18 @@ func (s *Server) Home(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
 }
 
+func (s *Server) Transactions(c *gin.Context) {
+	c.HTML(http.StatusOK, "transactions.html", gin.H{"Version": pkg.Version()})
+}
+
 func (s *Server) Accounts(c *gin.Context) {
 	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
+}
+
+func (s *Server) Counterparty(c *gin.Context) {
+	c.HTML(http.StatusOK, "counterparty.html", gin.H{"Version": pkg.Version()})
+}
+
+func (s *Server) Audit(c *gin.Context) {
+	c.HTML(http.StatusOK, "audit.html", gin.H{"Version": pkg.Version()})
 }

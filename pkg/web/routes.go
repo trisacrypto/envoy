@@ -70,7 +70,10 @@ func (s *Server) setupRoutes() (err error) {
 	// Web UI Routes (Pages)
 	// TODO: add authentication to these endpoints
 	s.router.GET("/", s.Home)
+	s.router.GET("/transactions", s.Transactions)
 	s.router.GET("/accounts", s.Accounts)
+	s.router.GET("/counterparty", s.Counterparty)
+	s.router.GET("/audit", s.Audit)
 
 	// API Routes (Including Content Negotiated Partials)
 	// TODO: add authentication to these endpoints
