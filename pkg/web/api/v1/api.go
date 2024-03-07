@@ -22,6 +22,13 @@ type Client interface {
 	AccountDetail(context.Context, ulid.ULID) (*Account, error)
 	UpdateAccount(context.Context, *Account) (*Account, error)
 	DeleteAccount(context.Context, ulid.ULID) error
+
+	// CryptoAddress Resource
+	ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, in *PageQuery) (*CryptoAddressList, error)
+	CreateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (*CryptoAddress, error)
+	CryptoAddressDetail(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*CryptoAddress, error)
+	UpdateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (*CryptoAddress, error)
+	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
 }
 
 //===========================================================================
@@ -78,4 +85,9 @@ type CryptoAddress struct {
 type AccountsList struct {
 	Page     *PageQuery `json:"page"`
 	Accounts []*Account `json:"accounts"`
+}
+
+type CryptoAddressList struct {
+	Page             *PageQuery       `json:"page"`
+	CryptoAdddresses []*CryptoAddress `json:"crypto_addresses"`
 }

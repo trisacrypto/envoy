@@ -259,6 +259,16 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	})
 }
 
+func (s *Server) ListCryptoAddresses(c *gin.Context) {}
+
+func (s *Server) CreateCryptoAddress(c *gin.Context) {}
+
+func (s *Server) CryptoAddressDetail(c *gin.Context) {}
+
+func (s *Server) UpdateCryptoAddress(c *gin.Context) {}
+
+func (s *Server) DeleteCryptoAddress(c *gin.Context) {}
+
 func AccountFromModel(account *models.Account) (out *api.Account, err error) {
 	out = &api.Account{
 		ID:            account.ID,

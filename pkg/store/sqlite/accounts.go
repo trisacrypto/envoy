@@ -247,3 +247,23 @@ func (s *Store) updateCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 
 	return nil
 }
+
+func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateCryptoAddress(context.Context, *models.CryptoAddress) error {
+	return nil
+}
+
+func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateCryptoAddress(context.Context, *models.CryptoAddress) error {
+	return nil
+}
+
+func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error {
+	return nil
+}
