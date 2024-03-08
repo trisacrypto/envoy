@@ -2,6 +2,9 @@ package web
 
 import (
 	"net/http"
+	"self-hosted-node/pkg"
+	"self-hosted-node/pkg/web/api/v1"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +15,27 @@ const (
 	serverStatusUnhealthy   = "unhealthy"
 	serverStatusMaintenance = "maintenance"
 )
+
+// Status reports the version and uptime of the server
+func (s *Server) Status(c *gin.Context) {
+	var state string
+	s.RLock()
+	switch {
+	case s.healthy && s.ready:
+		state = "ok"
+	case s.healthy && !s.ready:
+		state = "not ready"
+	case !s.healthy:
+		state = "offline"
+	}
+	s.RUnlock()
+
+	c.JSON(http.StatusOK, &api.StatusReply{
+		Status:  state,
+		Version: pkg.Version(),
+		Uptime:  time.Since(s.started).String(),
+	})
+}
 
 // Healthz is used to alert k8s to the health/liveness status of the server.
 func (s *Server) Healthz(c *gin.Context) {

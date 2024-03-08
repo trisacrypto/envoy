@@ -168,6 +168,88 @@ func (s *APIv1) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 }
 
 //===========================================================================
+// CryptoAddress Resource
+//===========================================================================
+
+func (s *APIv1) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, in *PageQuery) (out *CryptoAddressList, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses", accountID)
+
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode page query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CreateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (out *CryptoAddress, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses", accountID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CryptoAddressDetail(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (out *CryptoAddress, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, cryptoAddressID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) UpdateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (out *CryptoAddress, err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, in.ID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (err error) {
+	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, cryptoAddressID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
+		return nil
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return nil
+	}
+
+	return nil
+}
+
+//===========================================================================
 // Client Utility Methods
 //===========================================================================
 

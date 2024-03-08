@@ -25,6 +25,7 @@ type Server struct {
 	srv     *http.Server
 	router  *gin.Engine
 	url     *url.URL
+	started time.Time
 	healthy bool
 	ready   bool
 }
@@ -48,6 +49,7 @@ func (s *Server) Serve(errc chan<- error) (err error) {
 
 	s.setURL(sock.Addr())
 	s.SetStatus(true, true)
+	s.started = time.Now()
 
 	// Listen for HTTP requests and handle them.
 	go func() {
