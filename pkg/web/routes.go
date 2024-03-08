@@ -79,12 +79,28 @@ func (s *Server) setupRoutes() (err error) {
 	// TODO: add authentication to these endpoints
 	v1 := s.router.Group("/v1")
 	{
+		// Status/Heartbeat endpoint
+		v1.GET("/status", s.Status)
+
 		// Accounts Resource
-		v1.GET("/accounts", s.ListAccounts)
-		v1.POST("/accounts", s.CreateAccount)
-		v1.GET("/accounts/:id", s.AccountDetail)
-		v1.PUT("/accounts/:id", s.UpdateAccount)
-		v1.DELETE("/accounts/:id", s.DeleteAccount)
+		accounts := v1.Group("/accounts")
+		{
+			accounts.GET("", s.ListAccounts)
+			accounts.POST("", s.CreateAccount)
+			accounts.GET("/:id", s.AccountDetail)
+			accounts.PUT("/:id", s.UpdateAccount)
+			accounts.DELETE("/:id", s.DeleteAccount)
+
+			// CryptoAddress Resource (nested on Accounts)
+			ca := accounts.Group("/:id/crypto-addresses")
+			{
+				ca.GET("", s.ListCryptoAddresses)
+				ca.POST("", s.CreateCryptoAddress)
+				ca.GET("/:cryptoAddressID", s.CryptoAddressDetail)
+				ca.PUT("/:cryptoAddressID", s.UpdateCryptoAddress)
+				ca.DELETE("/:cryptoAddressID", s.DeleteCryptoAddress)
+			}
+		}
 	}
 
 	return nil

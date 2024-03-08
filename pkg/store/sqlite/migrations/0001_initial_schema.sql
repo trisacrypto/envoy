@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS crypto_addresses (
     tag             TEXT,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(id)
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 COMMIT;
