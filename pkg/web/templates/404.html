@@ -1,9 +1,14 @@
-{{ template "base" . }}
+{{ template "error" . }}
 {{ define "content" }}
 
-<section class="text-center py-14">
-  <h1>Not Found</h1>
-  <p>The content you're looking for cannot be found</p>
+<section class="text-center py-12">
+  <img src="/static/404error.svg" alt="404 Error" class="w-[350px] mx-auto" />
+  <h2 class="mb-4 text-3xl">Page Not Found</h2>
+  <p class="my-4 text-xl">Sorry, we couldn't find the page you're looking for.</p>
+
+  <div class="my-10">
+    <a href="/" class="p-4 rounded-md bg-[#517994] text-white font-semibold hover:bg-[#517994]/80">Back to Home</a>
+  </div>
 </section>
 
 {{ end }}

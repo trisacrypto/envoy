@@ -1,18 +1,9 @@
 {{ define "base" }}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name='robots' content='noindex,follow' />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>{{ block "title" . }}TRISA Self Hosted Node{{ end }}</title>
-  <link rel="icon" type="image/png" href="/static/favicon.ico">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/static/styles/output.css" />
-
-</head>
+  {{ template "head" . }}
+  
 <body>
   {{ template "header" . }}
 
