@@ -149,9 +149,12 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 	a.Modified = time.Now()
 
 	// Execute the update into the database
-	if _, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
+	var result sql.Result
+	if result, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
 		// TODO: handle constraint violations
 		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -170,8 +173,11 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 	}
 	defer tx.Rollback()
 
-	if _, err = tx.Exec(deleteAccountSQL, sql.Named("id", id)); err != nil {
+	var result sql.Result
+	if result, err = tx.Exec(deleteAccountSQL, sql.Named("id", id)); err != nil {
 		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -334,13 +340,16 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 	addr.Modified = time.Now()
 
 	// Execute the update into the database
-	if _, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
+	var result sql.Result
+	if result, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dberr.ErrNotFound
 		}
 
 		// TODO: handle constraint violations
 		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -358,11 +367,14 @@ func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 	}
 	defer tx.Rollback()
 
-	if _, err = tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
+	var result sql.Result
+	if result, err = tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dberr.ErrNotFound
 		}
 		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
 	}
 
 	if err = tx.Commit(); err != nil {
