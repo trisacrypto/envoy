@@ -1,0 +1,15 @@
+{{ template "error" . }}
+{{ define "content" }}
+
+<section class="text-center my-14">
+  <h1 class="my-8 text-9xl font-black">500</h1>
+  <h2 class="my-8 text-5xl">Internal Server Error</h2>
+  <p class="text-xl">Sorry, something went wrong. Try to refresh the page or contact support for assistance.</p>
+
+  <div class="my-14 flex">
+    <a href="/" class="p-4 rounded-md bg-black text-white hover:bg-black/80">Back to Home</a>
+    <a href="mailto:support@rotational.io" class="p-4 rounded-md bg-black text-white hover:bg-black/80">Contact Support</a>
+  </div>
+</section>
+
+{{ end }}

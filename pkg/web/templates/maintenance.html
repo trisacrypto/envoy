@@ -1,9 +1,9 @@
-{{ template "base" . }}
+{{ template "error" . }}
 {{ define "content" }}
 
 <section class="text-center py-14">
-  <h1>Maintenance Mode</h1>
-  <p>The server is currently undergoing maintenance, please try again later.</p>
+  <img src="/static/maintenance.svg" alt="Website Maintenance" class="w-[350px] mx-auto" />
+  <p>The server is currently undergoing maintenance. We'll be back soon!</p>
 </section>
 
 {{ end }}
