@@ -2,9 +2,14 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
+	"self-hosted-node/pkg/store/models"
 	"time"
 
 	"github.com/oklog/ulid/v2"
+	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
 //===========================================================================
@@ -90,4 +95,139 @@ type AccountsList struct {
 type CryptoAddressList struct {
 	Page             *PageQuery       `json:"page"`
 	CryptoAdddresses []*CryptoAddress `json:"crypto_addresses"`
+}
+
+func NewAccount(model *models.Account) (out *Account, err error) {
+	out = &Account{
+		ID:            model.ID,
+		CustomerID:    model.CustomerID.String,
+		FirstName:     model.FirstName.String,
+		LastName:      model.LastName.String,
+		TravelAddress: model.TravelAddress,
+		Created:       model.Created,
+		Modified:      model.Modified,
+	}
+
+	// Render the IVMS101 data as as JSON string
+	if model.IVMSRecord != nil {
+		if data, err := json.Marshal(model.IVMSRecord); err != nil {
+			// Log the error but do not stop processing
+			log.Error().Err(err).Str("account_id", model.ID.String()).Msg("could not marshal IVMS101 record to JSON")
+		} else {
+			out.IVMSRecord = string(data)
+		}
+	}
+
+	// Collect the crypto address associations
+	var addresses []*models.CryptoAddress
+	if addresses, err = model.CryptoAddresses(); err != nil {
+		return nil, err
+	}
+
+	// Add the crypto addresses to the response
+	out.CryptoAdddresses = make([]*CryptoAddress, 0, len(addresses))
+	for _, address := range addresses {
+		addr, _ := NewCryptoAddress(address)
+		out.CryptoAdddresses = append(out.CryptoAdddresses, addr)
+	}
+
+	return out, nil
+}
+
+func NewAccountList(page *models.AccountsPage) (out *AccountsList, err error) {
+	// TODO: convert PageInfo to PageQuery
+	out = &AccountsList{
+		Page:     &PageQuery{},
+		Accounts: make([]*Account, 0, len(page.Accounts)),
+	}
+
+	for _, model := range page.Accounts {
+		var account *Account
+		if account, err = NewAccount(model); err != nil {
+			return nil, err
+		}
+
+		out.Accounts = append(out.Accounts, account)
+	}
+
+	return out, nil
+}
+
+func (a *Account) Model() (model *models.Account, err error) {
+	model = &models.Account{
+		Model: models.Model{
+			ID:       a.ID,
+			Created:  a.Created,
+			Modified: a.Modified,
+		},
+		CustomerID:    sql.NullString{String: a.CustomerID, Valid: a.CustomerID != ""},
+		FirstName:     sql.NullString{String: a.FirstName, Valid: a.FirstName != ""},
+		LastName:      sql.NullString{String: a.LastName, Valid: a.LastName != ""},
+		TravelAddress: a.TravelAddress,
+		IVMSRecord:    nil,
+	}
+
+	if a.IVMSRecord != "" {
+		model.IVMSRecord = &ivms101.Person{}
+		if err = json.Unmarshal([]byte(a.IVMSRecord), model.IVMSRecord); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(a.CryptoAdddresses) > 0 {
+		addresses := make([]*models.CryptoAddress, 0, len(a.CryptoAdddresses))
+		for _, address := range a.CryptoAdddresses {
+			addr, _ := address.Model()
+			addresses = append(addresses, addr)
+		}
+
+		model.SetCryptoAddresses(addresses)
+	}
+
+	return model, nil
+}
+
+func NewCryptoAddress(model *models.CryptoAddress) (*CryptoAddress, error) {
+	return &CryptoAddress{
+		ID:            model.ID,
+		CryptoAddress: model.CryptoAddress,
+		Network:       model.Network,
+		AssetType:     model.AssetType.String,
+		Tag:           model.Tag.String,
+		Created:       model.Created,
+		Modified:      model.Modified,
+	}, nil
+}
+
+func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressList, err error) {
+	// TODO: convert PageInfo to PageQuery
+	out = &CryptoAddressList{
+		Page:             &PageQuery{},
+		CryptoAdddresses: make([]*CryptoAddress, 0, len(page.CryptoAddresses)),
+	}
+
+	for _, model := range page.CryptoAddresses {
+		var addr *CryptoAddress
+		if addr, err = NewCryptoAddress(model); err != nil {
+			return nil, err
+		}
+
+		out.CryptoAdddresses = append(out.CryptoAdddresses, addr)
+	}
+
+	return out, nil
+}
+
+func (c *CryptoAddress) Model() (*models.CryptoAddress, error) {
+	return &models.CryptoAddress{
+		Model: models.Model{
+			ID:       c.ID,
+			Created:  c.Created,
+			Modified: c.Modified,
+		},
+		CryptoAddress: c.CryptoAddress,
+		Network:       c.Network,
+		AssetType:     sql.NullString{String: c.AssetType, Valid: c.AssetType != ""},
+		Tag:           sql.NullString{String: c.Tag, Valid: c.Tag != ""},
+	}, nil
 }

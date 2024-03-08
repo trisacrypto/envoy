@@ -1,8 +1,6 @@
 package web
 
 import (
-	"database/sql"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -14,8 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/oklog/ulid/v2"
-	"github.com/rs/zerolog/log"
-	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
 func (s *Server) ListAccounts(c *gin.Context) {
@@ -35,7 +31,6 @@ func (s *Server) ListAccounts(c *gin.Context) {
 		return
 	}
 
-	// TODO: convert the page query into page info
 	// TODO: implement better pagination mechanism (with pagination tokens)
 
 	// Fetch the list of accounts from the database
@@ -46,20 +41,10 @@ func (s *Server) ListAccounts(c *gin.Context) {
 	}
 
 	// Convert the accounts page into an accounts list object
-	out = &api.AccountsList{
-		Page:     &api.PageQuery{},
-		Accounts: make([]*api.Account, 0, len(page.Accounts)),
-	}
-
-	for _, model := range page.Accounts {
-		var account *api.Account
-		if account, err = AccountFromModel(model); err != nil {
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not process account list request"))
-			return
-		}
-
-		out.Accounts = append(out.Accounts, account)
+	if out, err = api.NewAccountList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process account list request"))
+		return
 	}
 
 	// Content negotiation
@@ -89,7 +74,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	// TODO: validate the account input
 
 	// Convert the API account request into a database model
-	if account, err = ModelFromAccount(in); err != nil {
+	if account, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -104,7 +89,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Convert the model back to an API response
-	if out, err = AccountFromModel(account); err != nil {
+	if out, err = api.NewAccount(account); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -145,7 +130,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	}
 
 	// Convert the model into an API response
-	if out, err = AccountFromModel(account); err != nil {
+	if out, err = api.NewAccount(account); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -192,7 +177,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	// TODO: validate the account input
 
 	// Convert the API account request into a database model
-	if account, err = ModelFromAccount(in); err != nil {
+	if account, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -212,7 +197,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	}
 
 	// Convert the model back to an API response
-	if out, err = AccountFromModel(account); err != nil {
+	if out, err = api.NewAccount(account); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -268,90 +253,3 @@ func (s *Server) CryptoAddressDetail(c *gin.Context) {}
 func (s *Server) UpdateCryptoAddress(c *gin.Context) {}
 
 func (s *Server) DeleteCryptoAddress(c *gin.Context) {}
-
-func AccountFromModel(account *models.Account) (out *api.Account, err error) {
-	out = &api.Account{
-		ID:            account.ID,
-		CustomerID:    account.CustomerID.String,
-		FirstName:     account.FirstName.String,
-		LastName:      account.LastName.String,
-		TravelAddress: account.TravelAddress,
-		Created:       account.Created,
-		Modified:      account.Modified,
-	}
-
-	// Render the IVMS101 data as as JSON string
-	if account.IVMSRecord != nil {
-		if data, err := json.Marshal(account.IVMSRecord); err != nil {
-			// Log the error but do not stop processing
-			log.Error().Err(err).Str("account_id", account.ID.String()).Msg("could not marshal IVMS101 record to JSON")
-		} else {
-			out.IVMSRecord = string(data)
-		}
-	}
-
-	// Collect the crypto address associations
-	var addresses []*models.CryptoAddress
-	if addresses, err = account.CryptoAddresses(); err != nil {
-		return nil, err
-	}
-
-	// Add the crypto addresses to the response
-	out.CryptoAdddresses = make([]*api.CryptoAddress, 0, len(addresses))
-	for _, address := range addresses {
-		out.CryptoAdddresses = append(out.CryptoAdddresses, &api.CryptoAddress{
-			ID:            address.ID,
-			CryptoAddress: address.CryptoAddress,
-			Network:       address.Network,
-			AssetType:     address.AssetType.String,
-			Tag:           address.Tag.String,
-			Created:       address.Created,
-			Modified:      address.Modified,
-		})
-	}
-
-	return out, nil
-}
-
-func ModelFromAccount(in *api.Account) (account *models.Account, err error) {
-	account = &models.Account{
-		Model: models.Model{
-			ID:       in.ID,
-			Created:  in.Created,
-			Modified: in.Modified,
-		},
-		CustomerID:    sql.NullString{String: in.CustomerID, Valid: in.CustomerID != ""},
-		FirstName:     sql.NullString{String: in.FirstName, Valid: in.FirstName != ""},
-		LastName:      sql.NullString{String: in.LastName, Valid: in.LastName != ""},
-		TravelAddress: in.TravelAddress,
-		IVMSRecord:    nil,
-	}
-
-	if in.IVMSRecord != "" {
-		account.IVMSRecord = &ivms101.Person{}
-		if err = json.Unmarshal([]byte(in.IVMSRecord), account.IVMSRecord); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(in.CryptoAdddresses) > 0 {
-		addresses := make([]*models.CryptoAddress, 0, len(in.CryptoAdddresses))
-		for _, address := range in.CryptoAdddresses {
-			addresses = append(addresses, &models.CryptoAddress{
-				Model: models.Model{
-					ID:       address.ID,
-					Created:  address.Created,
-					Modified: address.Modified,
-				},
-				CryptoAddress: address.CryptoAddress,
-				Network:       address.Network,
-				AssetType:     sql.NullString{String: address.AssetType, Valid: address.AssetType != ""},
-				Tag:           sql.NullString{String: address.Tag, Valid: address.Tag != ""},
-			})
-		}
-
-		account.SetCryptoAddresses(addresses)
-	}
-
-	return account, nil
-}
