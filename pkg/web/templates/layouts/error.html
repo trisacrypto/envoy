@@ -1,17 +1,9 @@
 {{ define "error" }}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex,follow">
-  <title>{{ block "title" .}}TRISA Self Hosted Node{{ end }}</title>
 
-  <link rel="icon" type="image/png" href="/static/favicon.ico">
+  {{ template "head" . }}
 
-  <link rel="stylesheet" href="/static/styles/output.css" />
-
-</head>
 <body>
 
   {{ template "error_header" . }}
