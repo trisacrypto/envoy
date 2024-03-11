@@ -1,4 +1,5 @@
-<table class="table overflow-x-auto table-auto">
+<div class="overflow-x-auto">
+  <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
         <th>Customer ID</th>
@@ -12,21 +13,35 @@
     <tbody>
       {{ if .Accounts }}
       {{ range .Accounts }}
-      <tr class="hover">
-      <td>{{ .CustomerID }}</td>
-      <td>{{ .FirstName }} &nbsp; {{ .LastName }}</td>
-        {{ range .CryptoAddresses }}
-      <td>{{ .CryptoAddresses }} </td>
-        {{ end }}
-      <td>{{ .Created }}</td>
+        <tr class="hover">
+          <td>{{ .CustomerID }}</td>
+          <td>{{ .FirstName }} &nbsp; {{ .LastName }}</td>
+          <td>{{ .CryptoAddresses.AssetType }}</td>
+
+          {{ if gt (len .CryptoAddresses) 1 }}
+          <td>
+            <ul>
+              {{ range .CryptoAddresses }}
+              <li>{{ .CryptoAddress }}<li>
+              {{ end }}
+            </ul>
+          </td>
+            {{ else }}
+          <td>{{ .CryptoAddresses.CryptoAddress }}</td>
+            {{ end }}
+
+          <td>{{ .Created }}</td>
+          {{ end }}
+          <td>
+            <button class="text-xl font-bold">&hellip;</button>
+          </td>
+        </tr>
+      {{ else }}
+        <tr class="text-center">
+          <td colspan="6" class="py-5 text-base">No customer accounts information available.</td>
+        </tr>
       {{ end }}
-      <td>
-        <button class="btn btn-sm">&hellip;</button>
-      </td>
-    </tr>
-    {{ else }}
-    <tr class="text-center">
-      <td colspan="6" class="py-5">No accounts information available at this time.</td>
-    </tr>
-    {{ end }}
-</table>
+    </tbody>
+  </table>
+  
+</div>

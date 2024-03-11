@@ -1699,10 +1699,6 @@ html {
   width: 350px;
 }
 
-.table-auto {
-  table-layout: auto;
-}
-
 .flex-col {
   flex-direction: column;
 }
