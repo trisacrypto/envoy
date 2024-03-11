@@ -1617,16 +1617,13 @@ html {
   z-index: 1;
 }
 
-.col-span-6 {
-  grid-column: span 6 / span 6;
-}
-
-.row-auto {
-  grid-row: auto;
-}
-
 .m-auto {
   margin: auto;
+}
+
+.mx-8 {
+  margin-left: 2rem;
+  margin-right: 2rem;
 }
 
 .mx-auto {
@@ -1654,19 +1651,8 @@ html {
   margin-bottom: 1rem;
 }
 
-.mx-4 {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
-
-.mx-8 {
-  margin-left: 2rem;
-  margin-right: 2rem;
-}
-
-.my-20 {
-  margin-top: 5rem;
-  margin-bottom: 5rem;
+.mb-12 {
+  margin-bottom: 3rem;
 }
 
 .mb-4 {
@@ -1683,10 +1669,6 @@ html {
 
 .mt-3 {
   margin-top: 0.75rem;
-}
-
-.mb-12 {
-  margin-bottom: 3rem;
 }
 
 .block {
@@ -1806,16 +1788,6 @@ html {
   padding-bottom: 5rem;
 }
 
-.py-4 {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-
-.py-8 {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-
 .py-5 {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
@@ -1867,21 +1839,16 @@ html {
   line-height: 1.75rem;
 }
 
-.text-lg {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-}
-
 .font-black {
   font-weight: 900;
 }
 
-.font-semibold {
-  font-weight: 600;
-}
-
 .font-bold {
   font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
 }
 
 .text-black {
@@ -1898,11 +1865,6 @@ html {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-.empty-table {
-  -moz-column-span: all;
-       column-span: all;
 }
 
 .hover\:bg-\[\#517994\]\/80:hover {
