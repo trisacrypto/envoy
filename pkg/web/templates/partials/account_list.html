@@ -1,22 +1,32 @@
-<table class="table overflow-x-auto">
-  <thead>
-    <tr>Customer ID</tr>
-    <tr>Name</tr>
-    <tr>Wallet Address</tr>
-    <tr>Date Created</tr>
-    <tr>Actions</tr>
-  </thead>
-  <tbody>
-    {{ range .Accounts }}
-    <tr class="hover">
-    <td>{{ .CustomerID }}</td>
-    <td>{{ .FirstName }} &nbsp; {{ .LastName }}</td>
-    <td>{{ .TravelAddress }}</td>
-    <td>{{ .Created }}</td>
-    <td>
-      <button class="btn btn-sm">&hellip;</button>
-    </td>
+<table class="table overflow-x-auto table-auto">
+    <thead class="font-bold text-base text-black">
+      <tr>
+        <th>Customer ID</th>
+        <th>Name</th>
+        <th>Virtual Asset</th>
+        <th>Wallet Address</th>
+        <th>Date Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ if .Accounts }}
+      {{ range .Accounts }}
+      <tr class="hover">
+      <td>{{ .CustomerID }}</td>
+      <td>{{ .FirstName }} &nbsp; {{ .LastName }}</td>
+        {{ range .CryptoAddresses }}
+      <td>{{ .CryptoAddresses }} </td>
+        {{ end }}
+      <td>{{ .Created }}</td>
+      {{ end }}
+      <td>
+        <button class="btn btn-sm">&hellip;</button>
+      </td>
+    </tr>
+    {{ else }}
+    <tr class="text-center">
+      <td colspan="6" class="py-5">No accounts information available at this time.</td>
     </tr>
     {{ end }}
-  </tbody>
 </table>
