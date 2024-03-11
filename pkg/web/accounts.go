@@ -51,7 +51,7 @@ func (s *Server) ListAccounts(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/account_list.html",
+		HTMLName: "account_list.html",
 	})
 }
 
@@ -99,7 +99,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/account_create.html",
+		HTMLName: "account_create.html",
 	})
 }
 
@@ -140,7 +140,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/account_detail.html",
+		HTMLName: "account_detail.html",
 	})
 }
 
@@ -207,7 +207,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/account_update.html",
+		HTMLName: "account_update.html",
 	})
 }
 
@@ -240,7 +240,7 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLData: gin.H{"AccountID": accountID},
 		JSONData: api.Reply{Success: true},
-		HTMLName: "partials/account_delete.html",
+		HTMLName: "account_delete.html",
 	})
 }
 
@@ -288,7 +288,7 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/crypto_address_list.html",
+		HTMLName: "crypto_address_list.html",
 	})
 }
 
@@ -351,7 +351,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/crypto_address_create.html",
+		HTMLName: "crypto_address_create.html",
 	})
 }
 
@@ -399,7 +399,7 @@ func (s *Server) CryptoAddressDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/crypto_address_detail.html",
+		HTMLName: "crypto_address_detail.html",
 	})
 }
 
@@ -476,7 +476,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/crypto_address_update.html",
+		HTMLName: "crypto_address_update.html",
 	})
 }
 
@@ -516,6 +516,6 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLData: gin.H{"AccountID": accountID, "CryptoAddressID": cryptoAddressID},
 		JSONData: api.Reply{Success: true},
-		HTMLName: "partials/crypto_address_delete.html",
+		HTMLName: "crypto_address_delete.html",
 	})
 }
