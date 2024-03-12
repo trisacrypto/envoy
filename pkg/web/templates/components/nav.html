@@ -3,8 +3,8 @@
   <div class="navbar-start">
     <div class="dropdown">
       <button type="button" class="ml-2 focus:outline-none focus:ring-2 focus:ring-gray-200 lg:hidden">
-        <i class="fa-solid fa-bars text-xl text-black"></i>
-        <span class="sr-only">Open Menu</span>
+        <i class="fa-solid fa-bars text-lg text-black"></i>
+        <span class="sr-only">Open Navigation Menu</span>
       </button>
       <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-[#517994] rounded-box w-52 text-white">
         <li><a href="/transactions"><i class="fa-solid fa-envelope"></i>Transactions</a></li>
@@ -16,7 +16,7 @@
     <img src="/static/logo192.png" alt="TRISA Logo" class="ml-2 lg:ml-0" />
   </div>
   <div class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1 font-semibold text-base text-white">
+    <ul class="menu menu-horizontal px-1 font-semibold text-white">
       <li><a href="/transactions"><i class="fa-solid fa-envelope"></i>Transactions</a></li>
       <li><a href="/accounts"><i class="fa-solid fa-rectangle-list"></i>Customer Accounts</a></li>
       <li><a href="/counterparty"><i class="fa-solid fa-building-columns"></i>Counterparty VASPs</a></li>
@@ -24,7 +24,17 @@
     </ul>
   </div>
   <div class="navbar-end">
-    <a href="#" class="btn btn-sm btn-neutral mr-4 text-base text-white">Logout</a>
+   <div class="dropdown dropdown-bottom dropdown-left">
+    <div tabindex="0" role="button" class="mr-4">
+      <i class="fa-solid fa-user text-lg text-white hover:text-black"></i>
+      <span class="sr-only">Open User Settings Menu</span>
+    </div>
+    <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 shadow bg-[#517994] rounded-box w-52 font-semibold text-white">
+      <li><a href="#"><i class="fa-solid fa-sliders"></i>Configure VASP</a></li>
+      <li><a href="#"><i class="fa-solid fa-gear"></i>User Settings</a></li>
+      <li><a href="#"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
+    </ul>
+   </div>
   </div>
 </nav>
 {{ end }}
