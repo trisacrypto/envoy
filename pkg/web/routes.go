@@ -101,6 +101,11 @@ func (s *Server) setupRoutes() (err error) {
 				ca.DELETE("/:cryptoAddressID", s.DeleteCryptoAddress)
 			}
 		}
+
+		transactions := v1.Group("/transactions")
+		{
+			transactions.GET("", s.ListTransactions)
+		}
 	}
 
 	return nil

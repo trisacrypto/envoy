@@ -1,8 +1,17 @@
 {{ template "base" . }}
 {{ define "content" }}
 
-<section class="my-14 text-center">
-  <h1>Transactions</h1>
+<section class="my-14">
+  <section class="flex items-center gap-x-12">
+    <h1>Transaction Inbox</h1>
+    <div class="flex items-center gap-x-1">
+      <button class="btn btn-md bg-[#55ACD8] text-white">Send New Secure Envelope</button>
+      <div class="tooltip" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
+        <button><i class="fa-solid fa-circle-info text-xl"></i></button>
+      </div>
+    </div>
+  </section>
+  <section hx-get="/v1/transactions" hx-trigger="load"></section>
 </section>
 
 {{ end }}
