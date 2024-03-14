@@ -1,17 +1,20 @@
 {{ template "base" . }}
 {{ define "content" }}
 
-<section class="my-14">
-  <section class="flex items-center gap-x-12">
-    <h1>Transaction Inbox</h1>
+<section class="mx-8 py-14 overflow-x-auto">
+  <section class="mb-12 flex items-center gap-x-12">
+    <h1 class="font-bold sm:text-2xl">Transaction Inbox</h1>
     <div class="flex items-center gap-x-1">
-      <button class="btn btn-md bg-[#55ACD8] text-white">Send New Secure Envelope</button>
-      <div class="tooltip" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
-        <button><i class="fa-solid fa-circle-info text-xl"></i></button>
+      <button class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Send New Secure Envelope</button>
+      <div class="tooltip tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
+        <button class="pt-2">
+          <img src="/static/infoicon.svg" alt="" />
+        </button> 
       </div>
     </div>
   </section>
   <section hx-get="/v1/transactions" hx-trigger="load"></section>
+  <!--  TODO: Display the spinner when data is returned from the transactions list endpoint. -->
     <!-- <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div> -->
