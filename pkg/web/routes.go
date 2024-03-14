@@ -106,7 +106,7 @@ func (s *Server) setupRoutes() (err error) {
 		transactions := v1.Group("/transactions")
 		{
 			transactions.GET("", s.ListTransactions)
-			transactions.POST("", s.CreateAccount)
+			transactions.POST("", s.CreateTransaction)
 			transactions.GET("/:id", s.TransactionDetail)
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
