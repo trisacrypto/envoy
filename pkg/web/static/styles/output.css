@@ -1594,6 +1594,10 @@ html {
   padding-bottom: 1.25rem;
 }
 
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -1649,6 +1653,11 @@ html {
   color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
+.text-red-700 {
+  --tw-text-opacity: 1;
+  color: rgb(185 28 28 / var(--tw-text-opacity));
+}
+
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
@@ -1666,6 +1675,14 @@ html {
 
 .hover\:bg-black\/80:hover {
   background-color: rgb(0 0 0 / 0.8);
+}
+
+.hover\:bg-\[\#517994\]\/90:hover {
+  background-color: rgb(81 121 148 / 0.9);
+}
+
+.hover\:bg-black\/90:hover {
+  background-color: rgb(0 0 0 / 0.9);
 }
 
 .hover\:text-black:hover {
