@@ -2,17 +2,15 @@ package web
 
 import (
 	"net/http"
-	api "self-hosted-node/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
 
 func (s *Server) ListTransactions(c *gin.Context) {
-	var out api.AccountsList
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
+		Data:     struct{}{},
 		HTMLName: "transaction_list.html",
 	})
 }
