@@ -1677,14 +1677,6 @@ html {
   background-color: rgb(0 0 0 / 0.8);
 }
 
-.hover\:bg-\[\#517994\]\/90:hover {
-  background-color: rgb(81 121 148 / 0.9);
-}
-
-.hover\:bg-black\/90:hover {
-  background-color: rgb(0 0 0 / 0.9);
-}
-
 .hover\:text-black:hover {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
