@@ -20,7 +20,7 @@ func (s *Server) setupRoutes() (err error) {
 	}
 
 	// NOTE: partials can't have the same names as top-level pages
-	s.router.HTMLRender.(*Render).AddPattern(templateFiles, "partials/*.html")
+	s.router.HTMLRender.(*Render).AddPattern(templateFiles, "partials/*/*.html")
 
 	// Create CORS configuration
 	corsConf := cors.Config{
@@ -102,9 +102,14 @@ func (s *Server) setupRoutes() (err error) {
 			}
 		}
 
+		// Transactions Resource
 		transactions := v1.Group("/transactions")
 		{
 			transactions.GET("", s.ListTransactions)
+			transactions.POST("", s.CreateTransaction)
+			transactions.GET("/:id", s.TransactionDetail)
+			transactions.PUT("/:id", s.UpdateTransaction)
+			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
 	}
 
