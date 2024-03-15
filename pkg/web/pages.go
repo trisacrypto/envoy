@@ -13,6 +13,10 @@ func (s *Server) Home(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
 }
 
+func (s *Server) LoginPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", gin.H{"Version": pkg.Version()})
+}
+
 func (s *Server) Transactions(c *gin.Context) {
 	c.HTML(http.StatusOK, "transactions.html", gin.H{"Version": pkg.Version()})
 }
