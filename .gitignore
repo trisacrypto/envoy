@@ -26,4 +26,6 @@ go.work
 node_modules
 tmp
 
+.DS_Store
+
 *.db

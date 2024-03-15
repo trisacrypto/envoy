@@ -1,8 +1,10 @@
 {{ define "footer" }}
 <footer>
-  <div class="m-auto flex justify-between lg:w-[1024px]">
-    <p id="application-version">Application v{{ .Version }}</p>
-    <p class="text-end">&copy; 2024 TRISA <a href="https://trisa.io" target="_blank">trisa.io</a></p>
+  <div class="m-auto w-full bg-[#517994] text-white">
+    <div class="p-4 flex justify-between">
+      <p id="application-version">Application v{{ .Version }}</p>
+      <p class="text-end">&copy; 2024 TRISA <a href="https://trisa.io" target="_blank" class="hover:underline">trisa.io</a></p>
+    </div>
   </div>
 </footer>
 {{ end }}
