@@ -2190,6 +2190,16 @@ html {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+body main {
+  margin-bottom: auto;
+}
+
 .hover\:bg-\[\#517994\]\/80:hover {
   background-color: rgb(81 121 148 / 0.8);
 }
@@ -2209,6 +2219,10 @@ html {
 .hover\:text-black:hover {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .focus\:outline-none:focus {
@@ -2260,10 +2274,6 @@ html {
 
   .lg\:hidden {
     display: none;
-  }
-
-  .lg\:w-\[1024px\] {
-    width: 1024px;
   }
 }
 
