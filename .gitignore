@@ -26,6 +26,7 @@ go.work
 node_modules
 tmp
 
+# OS Droppings
 .DS_Store
 
 *.db
