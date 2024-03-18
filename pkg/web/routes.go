@@ -75,6 +75,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/accounts", s.Accounts)
 	s.router.GET("/counterparty", s.CounterpartyVasps)
 	s.router.GET("/audit", s.AuditLog)
+	s.router.GET("/send-envelope", s.SendEnvelopeForm)
 
 	// API Routes (Including Content Negotiated Partials)
 	// TODO: add authentication to these endpoints

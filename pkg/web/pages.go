@@ -32,3 +32,7 @@ func (s *Server) CounterpartyVasps(c *gin.Context) {
 func (s *Server) AuditLog(c *gin.Context) {
 	c.HTML(http.StatusOK, "audit.html", gin.H{"Version": pkg.Version()})
 }
+
+func (s *Server) SendEnvelopeForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "send_envelope.html", gin.H{"Version": pkg.Version()})
+}
