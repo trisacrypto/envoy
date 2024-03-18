@@ -14,7 +14,7 @@ import (
 func (s *Server) setupRoutes() (err error) {
 	// Setup HTML template renderer
 	templateFiles, _ := fs.Sub(content, "templates")
-	includes := []string{"layouts/*.html", "components/*.html"}
+	includes := []string{"layouts/*.html", "components/*.html", "components/*/*.html"}
 	if s.router.HTMLRender, err = NewRender(templateFiles, "*.html", includes...); err != nil {
 		return err
 	}
@@ -75,6 +75,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/accounts", s.Accounts)
 	s.router.GET("/counterparty", s.CounterpartyVasps)
 	s.router.GET("/audit", s.AuditLog)
+	s.router.GET("/send-envelope", s.SendEnvelopeForm)
 
 	// API Routes (Including Content Negotiated Partials)
 	// TODO: add authentication to these endpoints

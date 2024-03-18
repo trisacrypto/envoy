@@ -1,0 +1,25 @@
+{{ define "virtual_asset" }}
+
+<section class="py-2 border-t border-t-black">
+  <h2 class="my-4 font-bold">3. VIRTUAL ASSET TRANSFER DETAILS</h2>
+  <div class="grid gap-6 my-4 md:grid-cols-2">
+    <div>
+      <label for="asset_type" class="label-style">Asset Type</label>
+      <input type="text" id="asset_type" placeholder="Enter asset type (eg.BTC)" class="input-style" />
+    </div>
+    <div>
+      <label for="amount" class="label-style">Transfer Amount</label>
+      <input type="text" id="amount" placeholder="Enter cryptocurrency amount" class="input-style" />
+    </div>
+  </div>
+  <div class="my-4">
+    <label for="transaction_id" class="label-style">Transaction ID (TxID)</label>
+    <input type="text" id="transaction_id" placeholder="Enter transaction id" class="input-style" />
+  </div>
+  <div class="my-4">
+    <label for="tag" class="label-style">Memo/Tag/Destination Address (optional)</label>
+    <input type="text" id="tag" placeholder="Enter memo/tag/destination address" class="input-style" />
+  </div>
+</section>
+
+{{ end }}
