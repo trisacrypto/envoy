@@ -14,7 +14,7 @@ import (
 func (s *Server) setupRoutes() (err error) {
 	// Setup HTML template renderer
 	templateFiles, _ := fs.Sub(content, "templates")
-	includes := []string{"layouts/*.html", "components/*.html", "components/*/*.html"}
+	includes := []string{"layouts/*.html", "components/*.html"}
 	if s.router.HTMLRender, err = NewRender(templateFiles, "*.html", includes...); err != nil {
 		return err
 	}
