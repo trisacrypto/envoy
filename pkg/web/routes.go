@@ -113,6 +113,11 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
+
+		transfers := v1.Group("/transfers")
+		{
+			transfers.GET("", s.LoadTransferPreview)
+		}
 	}
 
 	return nil
