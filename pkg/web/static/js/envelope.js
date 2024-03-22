@@ -1,23 +1,22 @@
-const bttn = document.getElementById('preview-envelope-bttn')
+const openModal = document.getElementById('open-envelope-modal')
+const closeModal = document.getElementById('close-envelope-modal')
+const previewModal = document.getElementById('preview-envelope-modal')
+const modalOverlay = document.getElementById('preview-envelope-overlay')
 
-bttn.addEventListener('click', () => {
-  const modal = document.getElementById('default-modal')
-  const overlay = document.getElementById('preview-envelope-overlay')
+openModal.addEventListener('click', () => {
+  previewModal.classList.remove('hidden');
+  modalOverlay.classList.remove('hidden');
 
-  modal.classList.remove('hidden')
-  overlay.classList.remove('hidden')
-
+  // Prevent users from scrolling when the modal is open.
   document.body.style.overflow = 'hidden';
-})
+});
 
-const closeBttn = document.getElementById('close-envelope-modal')
+if (closeModal) {
+  closeModal.addEventListener('click', () => {
+    previewModal.classList.add('hidden');
+    modalOverlay.classList.add('hidden');
 
-closeBttn.addEventListener('click', () => {
-  const modal = document.getElementById('default-modal')
-  const overlay = document.getElementById('preview-envelope-overlay')
-
-  modal.classList.add('hidden')
-  overlay.classList.add('hidden')
-
-  document.body.style.overflow = 'auto';
-})
+    // Reset scrolling behavior when the modal is closed.
+    document.body.style.overflow = 'auto';
+  })
+};

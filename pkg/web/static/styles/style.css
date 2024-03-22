@@ -21,9 +21,9 @@ body main {
 }
 
 .envelope-header {
-  @apply text-sm text-left;
+  @apply text-balance text-sm text-left sm:text-base;
 }
 
 .envelope-data {
-  @apply text-sm sm:text-base md:px-6 md:py-4;
+  @apply text-sm sm:text-base p-2 md:px-6 md:py-4;
 }

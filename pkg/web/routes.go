@@ -114,6 +114,7 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
 
+		// Transfers Resource
 		transfers := v1.Group("/transfers")
 		{
 			transfers.GET("", s.LoadTransferPreview)

@@ -12,16 +12,15 @@
 
       {{ template "virtual_asset" . }}
       
-      <!-- TODO: Add trigger to to display the envelope preview  -->
-      <button id="preview-envelope-bttn" type="submit" hx-get="/v1/transfers" hx-trigger="click" hx-target="#default-modal" data-modal-target="default-modal" data-modal-toggle="default-modal" class="mx-auto block btn bg-[#55ACD8] text-white font-semibold hover:bg-[#55ACD8]/90">Preview Envelope</button>
+      <button id="open-envelope-modal" type="submit" hx-get="/v1/transfers" hx-trigger="click" hx-target="#preview-envelope-modal" data-modal-target="preview-envelope-modal" data-modal-toggle="preview-envelope-modal" class="mx-auto block btn bg-[#55ACD8] text-white font-semibold hover:bg-[#55ACD8]/90">Preview Envelope</button>
 
-      <!-- Main modal -->
-      <div id="default-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div id="modal-container" class="flex flex-col justify-center"></div>
+      <!-- Preview envelope modal -->
+      <div id="preview-envelope-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div id="preview-envelope-container" class="flex flex-col justify-center"></div>
       </div>
 
+      <!-- Preview envelope modal overlay -->
       <div id="preview-envelope-overlay" class="hidden fixed top-0 left-0 right-0 bottom-0 bg-black/50"></div>
-
 
     </form>
   </section>
