@@ -1340,10 +1340,6 @@ html {
   line-height: 1em;
 }
 
-.input-bordered {
-  border-color: var(--fallback-bc,oklch(var(--bc)/0.2));
-}
-
 .input:focus,
   .input:focus-within {
   box-shadow: none;
@@ -1992,11 +1988,6 @@ html {
   margin-bottom: 3.5rem;
 }
 
-.my-16 {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-}
-
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -2005,6 +1996,10 @@ html {
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
 }
 
 .mb-12 {
@@ -2081,10 +2076,6 @@ html {
 
 .max-w-7xl {
   max-width: 80rem;
-}
-
-.max-w-xs {
-  max-width: 20rem;
 }
 
 .transform {
@@ -2315,6 +2306,10 @@ html {
 
 .pb-2 {
   padding-bottom: 0.5rem;
+}
+
+.pt-16 {
+  padding-top: 4rem;
 }
 
 .pt-2 {
