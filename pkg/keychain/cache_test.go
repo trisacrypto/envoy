@@ -18,13 +18,13 @@ func TestEmptyCache(t *testing.T) {
 	require.IsType(t, &memks.MemStore{}, chain.(*keychain.Cache).ExternalStore())
 
 	// No default key should return an error
-	_, err = chain.SealingKey("bravo.qredo.dev")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail on cache miss")
 
-	_, err = chain.UnsealingKey("", "bravo.qredo.dev")
+	_, err = chain.UnsealingKey("", "bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.NoDefaultKeys, "expected empty cache with no default keys to fail on cache miss")
 
-	_, err = chain.ExchangeKey("bravo.qredo.dev")
+	_, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.NoDefaultKeys, "expected empty cache with no default keys to fail on cache miss")
 
 	// Loading an internal key, without specifying it as a default or associated with common names should act as empty
@@ -34,13 +34,13 @@ func TestEmptyCache(t *testing.T) {
 	err = chain.Store(internalKey, nil)
 	require.NoError(t, err, "could not store internal key pair")
 
-	_, err = chain.SealingKey("bravo.qredo.dev")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail when not matched to common name")
 
-	_, err = chain.UnsealingKey("", "bravo.qredo.dev")
+	_, err = chain.UnsealingKey("", "bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.NoDefaultKeys, "expected empty cache with no default keys to fail when not matched to common name")
 
-	_, err = chain.ExchangeKey("bravo.qredo.dev")
+	_, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.NoDefaultKeys, "expected empty cache with no default keys to fail when not matched to common name")
 
 	// Should still be able to lookup internal key by signature
@@ -63,32 +63,32 @@ func TestDefaultCache(t *testing.T) {
 	require.IsType(t, &memks.MemStore{}, chain.(*keychain.Cache).ExternalStore())
 
 	// No default key should return an error
-	_, err = chain.SealingKey("bravo.qredo.dev")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail on cache miss")
 
-	keypair, err := chain.UnsealingKey("", "bravo.qredo.dev")
+	keypair, err := chain.UnsealingKey("", "bravo.trisa.dev")
 	require.NoError(t, err, "expected default key returned as unsealing key")
 	require.Equal(t, internalKey, keypair, "expected default keys returned")
 
-	exchange, err := chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err := chain.ExchangeKey("bravo.trisa.dev")
 	require.NoError(t, err, "expected default key returned for exchange key")
 	require.Equal(t, internalKey, exchange, "expected default keys returned")
 
 	// Cache an external key
 	externalKey, err := loadKeyFixture(fixtureRemoteKey)
 	require.NoError(t, err, "could not load external key fixture")
-	err = chain.Cache("bravo.qredo.dev", externalKey, 0)
+	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
 	require.NoError(t, err, "could not store external exchange key")
 
-	outgoing, err := chain.SealingKey("bravo.qredo.dev")
+	outgoing, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch external exchange key by commmon name")
 	require.Equal(t, externalKey, outgoing)
 
-	keypair, err = chain.UnsealingKey("", "bravo.qredo.dev")
+	keypair, err = chain.UnsealingKey("", "bravo.trisa.dev")
 	require.NoError(t, err, "expected default key returned as unsealing key")
 	require.Equal(t, internalKey, keypair, "expected default keys returned")
 
-	exchange, err = chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.NoError(t, err, "expected default key returned for exchange key")
 	require.Equal(t, internalKey, exchange, "expected default keys returned")
 
@@ -116,22 +116,22 @@ func TestCounterpartyCache(t *testing.T) {
 	require.IsType(t, &memks.MemStore{}, chain.(*keychain.Cache).ExternalStore())
 
 	// Store internal and external key associated with common names
-	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.qredo.dev", "charlie.qredo.dev"}})
+	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.trisa.dev", "charlie.trisa.dev"}})
 	require.NoError(t, err, "could not store internal unsealing key")
 
-	err = chain.Cache("bravo.qredo.dev", externalKey, 0)
+	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
 	require.NoError(t, err, "could not cache external exchange key")
 
 	// No errors should be returned on lookups
-	seal, err := chain.SealingKey("bravo.qredo.dev")
+	seal, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "expected key for common name as unsealing key")
 	require.Equal(t, externalKey, seal, "expected key for common name returned")
 
-	keypair, err := chain.UnsealingKey("", "bravo.qredo.dev")
+	keypair, err := chain.UnsealingKey("", "bravo.trisa.dev")
 	require.NoError(t, err, "expected key for common name returned as unsealing key")
 	require.Equal(t, internalKey, keypair, "expected key for common name returned")
 
-	exchange, err := chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err := chain.ExchangeKey("bravo.trisa.dev")
 	require.NoError(t, err, "expected key for common name returned for exchange key")
 	require.Equal(t, internalKey, exchange, "expected key for common name returned")
 
@@ -145,11 +145,11 @@ func TestKeyCacheExpiration(t *testing.T) {
 	require.NoError(t, err, "could not load external key fixture")
 
 	// Cache a key with configured cache duration
-	err = chain.Cache("bravo.qredo.dev", externalKey, 0)
+	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
 	require.NoError(t, err, "could not cache key")
 
 	// Cache hit should happen within 800ms
-	pubkey, err := chain.SealingKey("bravo.qredo.dev")
+	pubkey, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch cached pubkey")
 	require.Equal(t, externalKey, pubkey)
 
@@ -157,23 +157,23 @@ func TestKeyCacheExpiration(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 
 	// Cache miss should occur
-	pubkey, err = chain.SealingKey("bravo.qredo.dev")
+	pubkey, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotFound)
 	require.Nil(t, pubkey)
 
 	// Should be able to (re)cache a key with a specific duration
-	err = chain.Cache("bravo.qredo.dev", externalKey, 200*time.Millisecond)
+	err = chain.Cache("bravo.trisa.dev", externalKey, 200*time.Millisecond)
 	require.NoError(t, err, "could not cache key")
 
 	// Cache should not expire
 	time.Sleep(150 * time.Millisecond)
-	pubkey, err = chain.SealingKey("bravo.qredo.dev")
+	pubkey, err = chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch cached pubkey")
 	require.Equal(t, externalKey, pubkey)
 
 	// Cache should expire after second sleep
 	time.Sleep(150 * time.Millisecond)
-	_, err = chain.SealingKey("bravo.qredo.dev")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotFound)
 }
 
@@ -186,7 +186,7 @@ func TestKeyStoreExpiration(t *testing.T) {
 	keysig, err := internalKey.PublicKeySignature()
 	require.NoError(t, err, "could not compute public key signature")
 
-	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.qredo.dev"}})
+	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.trisa.dev"}})
 	require.NoError(t, err, "could not store internal key fixture")
 
 	// cache duration should not apply to internal keys
@@ -195,12 +195,12 @@ func TestKeyStoreExpiration(t *testing.T) {
 	require.NoError(t, err, "internal keys should not be subject to key cache")
 	require.Equal(t, internalKey, keypair)
 
-	exchange, err := chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err := chain.ExchangeKey("bravo.trisa.dev")
 	require.NoError(t, err, "internal keys should not be subject to key cache")
 	require.Equal(t, internalKey, exchange)
 
 	// add a key that does expire
-	err = chain.Store(internalKey, &keychain.KeyOptions{ExpiresOn: time.Now().Add(200 * time.Millisecond), Counterparties: []string{"bravo.qredo.dev"}})
+	err = chain.Store(internalKey, &keychain.KeyOptions{ExpiresOn: time.Now().Add(200 * time.Millisecond), Counterparties: []string{"bravo.trisa.dev"}})
 	require.NoError(t, err, "could not store internal key with expiration")
 
 	// should be able to immediately fetch keys
@@ -208,7 +208,7 @@ func TestKeyStoreExpiration(t *testing.T) {
 	require.NoError(t, err, "internal keys should not be subject to key cache")
 	require.Equal(t, internalKey, keypair)
 
-	exchange, err = chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.NoError(t, err, "internal keys should not be subject to key cache")
 	require.Equal(t, internalKey, exchange)
 
@@ -218,7 +218,7 @@ func TestKeyStoreExpiration(t *testing.T) {
 	require.ErrorIs(t, err, keyerr.KeyExpired, "expected internal key cache to have expired")
 	require.Nil(t, keypair, "expected no key to be returned after cache expiration")
 
-	exchange, err = chain.ExchangeKey("bravo.qredo.dev")
+	exchange, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyExpired, "expected internal key cache to have expired")
 	require.Nil(t, exchange)
 }
@@ -229,7 +229,7 @@ func TestLookup(t *testing.T) {
 
 	externalKey, err := loadKeyFixture(fixtureRemoteKey)
 	require.NoError(t, err, "could not load external key fixture")
-	err = chain.Cache("bravo.qredo.dev", externalKey, 0)
+	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
 	require.NoError(t, err, "could not cache external key fixture")
 
 	externalSignature, err := externalKey.PublicKeySignature()
@@ -237,7 +237,7 @@ func TestLookup(t *testing.T) {
 
 	internalKey, err := loadKeyFixture(fixtureLocalKey)
 	require.NoError(t, err, "could not load internal key fixture")
-	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.qredo.dev"}})
+	err = chain.Store(internalKey, &keychain.KeyOptions{Counterparties: []string{"bravo.trisa.dev"}})
 	require.NoError(t, err, "could not store internal key fixture")
 
 	internalSignature, err := internalKey.PublicKeySignature()
@@ -250,10 +250,10 @@ func TestLookup(t *testing.T) {
 		err        error
 		message    string
 	}{
-		{"bravo.qredo.dev", keychain.ExternalSource, externalSignature, nil, "expected successful lookup of external key"},
-		{"bravo.qredo.dev", keychain.InternalSource, internalSignature, nil, "expected successful lookup of internal key mapped to counterparty"},
-		{"charlie.qredo.dev", keychain.ExternalSource, "", keyerr.KeyNotMatched, "expected unsuccessful lookup of external key"},
-		{"charlie.qredo.dev", keychain.InternalSource, "", keyerr.NoDefaultKeys, "expected unsuccessful lookup of internal without default"},
+		{"bravo.trisa.dev", keychain.ExternalSource, externalSignature, nil, "expected successful lookup of external key"},
+		{"bravo.trisa.dev", keychain.InternalSource, internalSignature, nil, "expected successful lookup of internal key mapped to counterparty"},
+		{"charlie.trisa.dev", keychain.ExternalSource, "", keyerr.KeyNotMatched, "expected unsuccessful lookup of external key"},
+		{"charlie.trisa.dev", keychain.InternalSource, "", keyerr.NoDefaultKeys, "expected unsuccessful lookup of internal without default"},
 	}
 
 	// Test case where there are no default keys
@@ -274,10 +274,10 @@ func TestLookup(t *testing.T) {
 		err        error
 		message    string
 	}{
-		{"bravo.qredo.dev", keychain.ExternalSource, externalSignature, nil, "expected successful lookup of external key"},
-		{"bravo.qredo.dev", keychain.InternalSource, internalSignature, nil, "expected successful lookup of internal key mapped to counterparty"},
-		{"charlie.qredo.dev", keychain.ExternalSource, "", keyerr.KeyNotMatched, "expected unsuccessful lookup of external key"},
-		{"charlie.qredo.dev", keychain.InternalSource, internalSignature, nil, "expected uuccessful lookup of internal with default"},
+		{"bravo.trisa.dev", keychain.ExternalSource, externalSignature, nil, "expected successful lookup of external key"},
+		{"bravo.trisa.dev", keychain.InternalSource, internalSignature, nil, "expected successful lookup of internal key mapped to counterparty"},
+		{"charlie.trisa.dev", keychain.ExternalSource, "", keyerr.KeyNotMatched, "expected unsuccessful lookup of external key"},
+		{"charlie.trisa.dev", keychain.InternalSource, internalSignature, nil, "expected uuccessful lookup of internal with default"},
 	}
 
 	// Test case where there are no default keys
