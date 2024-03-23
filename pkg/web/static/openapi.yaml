@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: TRISA Node API
+  description: |-
+    The TRISA Node API allows users to interact with the TRISA Self-Hosted Node
+    in a programmatic fashion. This API is a JSON REST API that does not have
+    authentication -- it is intended that this API is served on an internal
+    IP address with routing only available to internal services.
+  termsOfService: https://trisa.io/terms/
+  contact:
+    email: support@rotational.io
+  license:
+    name: MIT Licensed
+    url: https://github.com/trisacrypto/trisa/blob/main/LICENSE
+  version: v0.1.0
+externalDocs:
+  description: TRISA Developer Documentation
+  url: https://trisa.dev
+tags:
+  - name: account
+    description: Stored information about your user/customer accounts.
+  - name: crypto_address
+    description: Associate crypto addresses with user accounts.
+  - name: transaction
+    description: Travel Rule information exchanges for specific crypto asset transactions.
+paths:
+  /v1/status:
+    get:
+      summary: Heartbeat endpoint
+      description: Allows users to check the status of the node
+      operationId: status
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusReply'
+        '503':
+          description: Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusReply'
+  /v1/accounts:
+    get:
+      tags:
+        - account
+      summary: List customer accounts
+      description: Paginated list of all stored customer accounts
+      operationId: listAccounts
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountList'
+    post:
+      tags:
+        - account
+      summary: Create customer account
+      description: Create a new customer account
+      operationId: createAccount
+      requestBody:
+        description: Create a new customer account
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception or missing field
+  /v1/account/{accountID}:
+    get:
+      tags:
+        - account
+      summary: Find account by ID
+      description: Returns a single account if found
+      operationId: accountDetail
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+    put:
+      tags:
+        - account
+      summary: Updates an account record
+      description: Update an account record (does not patch, all fields are required)
+      operationId: updateAccount
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception or missing field
+    delete:
+      tags:
+        - account
+      summary: Deletes an account
+      description: Deletes an account and associated crypto addresses
+      operationId: deleteAccount
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reply'
+        '404':
+          description: Account not found
+  /v1/accounts/{accountID}/crypto-addresses:
+    get:
+      tags:
+        - crypto_address
+      summary: list all crypto addresses for account
+      description: returns a paginated list of all crypto addresses associated with the account
+      operationId: listCryptoAddresses
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoAddressList'
+        '404':
+          description: Account not found
+    post:
+      tags:
+        - crypto_address
+      summary: Create crypto address
+      description: Create a crypto address associated with the specified account
+      operationId: createCryptoAddress
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CryptoAddress'
+      responses:
+        '201':
+          description: Crypto address created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoAddress'
+        '400':
+          description: Invalid input
+        '404':
+          description: Account not found
+        '422':
+          description: Validation exception or missing field
+  /v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID}:
+    get:
+      tags:
+        - crypto_address
+      summary: Lookup a specific crypto address
+      description: Returns detailed information about the specified crypto address
+      operationId: cryptoAddressesDetail
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+        - name: cryptoAddressID
+          in: path
+          description: ID of crypto address to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoAddress'
+        '404':
+          description: Account or crypto address not found
+    put:
+      tags:
+        - crypto_address
+      summary: Update a crypto address
+      description: Update a crypto address record (does not patch, all fields are required)
+      operationId: updateCryptoAddresses
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+        - name: cryptoAddressID
+          in: path
+          description: ID of crypto address to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CryptoAddress'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoAddress'
+        '404':
+          description: Account or crypto address not found
+        '422':
+          description: Validation exception or missing field
+    delete:
+      tags:
+        - crypto_address
+      summary: Delete a crypto address
+      description: Delete a crypto address record associated with account
+      operationId: deleteCryptoAddresses
+      parameters:
+        - name: accountID
+          in: path
+          description: ID of account to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+        - name: cryptoAddressID
+          in: path
+          description: ID of crypto address to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reply'
+        '404':
+          description: Account or crypto address not found
+components:
+  schemas:
+    CryptoAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ULID
+          example: 01HSNQWH856KKB2PFXEF4XJQWY
+        crypto_address:
+          type: string
+          example: 18dlice0aYQesEaFs3XuLHBXGoCyhjjHin
+        network:
+          type: string
+          format: SLIP-0044
+          example: BTC
+          externalDocs:
+            description: SLIP-0044 Definitions
+            url: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        asset_type:
+          type: string
+          description: crypto asset type for multi-asset chains
+        tag:
+          type: string
+          description: tag or memo for chains that require one
+        created:
+          type: string
+          format: datetime
+        modified:
+          type: string
+          format: datetime
+    CryptoAddressList:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        crypto_addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoAddress'
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ULID
+          example: 01HSNQWH856KKB2PFXEF4XJQWY
+          description: node-specific identifier
+        customer_id:
+          type: string
+          description: VASP identifier for customer account
+        first_name:
+          type: string
+          example: Jane
+          description: Given or first name of customer
+        last_name:
+          type: string
+          example: Doe
+          description: Family or last name of customer
+        crypto_addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoAddress'
+        created:
+          type: string
+          format: datetime
+        modified:
+          type: string
+          format: datetime
+    AccountList:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+    Reply:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: could not complete requested operation
+        version:
+          type: string
+          format: semver
+          example: 1.0.0
+    StatusReply:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+          enum:
+            - ok
+            - not ready
+            - unhealthy
+            - maintenance
+        uptime:
+          type: string
+          format: duration
+          example: 25h33m29.4860s
+        version:
+          type: string
+          format: semver
+          example: 1.0.0
+    PageQuery:
+      type: object
+      properties:
+        page_size:
+          type: integer
+          format: int32
+          example: 50
+          default: 100
+        next_page_token:
+          type: string
+          format: base64
+        prev_page_token:
+          type: string
+          format: base64
+  requestBodies:
+    Account:
+      description: Account that needs to be added or updated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Account'
+    CryptoAddress:
+      description: CryptoAddress associated with account that needs to be added or updated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CryptoAddress'
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+servers:
+  - url: http://localhost:8000
+    variables: {}
+    description: Local Development Server
