@@ -3,11 +3,15 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"self-hosted-node/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/confire"
 	"github.com/rs/zerolog"
+	"github.com/trisacrypto/trisa/pkg/trust"
 )
 
 // All environment variables will have this prefix unless otherwise defined in struct
@@ -26,6 +30,7 @@ type Config struct {
 	ConsoleLog  bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
 	DatabaseURL string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
 	Web         WebConfig           `split_words:"true"`
+	Node        TRISAConfig         `split_words:"true"`
 	processed   bool
 }
 
@@ -37,6 +42,28 @@ type WebConfig struct {
 	Enabled     bool   `default:"true" desc:"if false, the web UI server will not be run"`
 	BindAddr    string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
 	Origin      string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
+}
+
+// TRISAConfig is a generic configuration for the TRISA node options
+type TRISAConfig struct {
+	Maintenance         bool            `env:"TRISA_MAINTENANCE" desc:"if true sets the TRISA node to maintenance mode; inherited from parent"`
+	Enabled             bool            `default:"true" desc:"if false, the TRISA node server will not be run"`
+	BindAddr            string          `split_words:"true" default:":8100"`
+	Pool                string          `split_words:"true" required:"false"`
+	Certs               string          `split_words:"true" required:"false"`
+	KeyExchangeCacheTTL time.Duration   `split_words:"true" default:"24h"`
+	Directory           DirectoryConfig `split_words:"true"`
+	certs               *trust.Provider
+	pool                trust.ProviderPool
+}
+
+// DirectoryConfig is a generic configuration for connecting to a TRISA GDS service.
+// By default the configuration connects to the MainNet GDS, replace vaspdirectory.net
+// with trisatest.net to connect to the TestNet instead.
+type DirectoryConfig struct {
+	Insecure        bool   `default:"false" desc:"if true, do not connect using TLS"`
+	Endpoint        string `default:"api.vaspdirectory.net:443" required:"true" desc:"the endpoint of the public GDS service"`
+	MembersEndpoint string `default:"members.vaspdirectory.net:443" required:"true" split_words:"true" desc:"the endpoint of the members only GDS service"`
 }
 
 func New() (conf Config, err error) {
@@ -91,4 +118,73 @@ func (c WebConfig) Validate() (err error) {
 	}
 
 	return nil
+}
+
+// Validate that the TRISA config has mTLS certificates for operation.
+func (c *TRISAConfig) Validate() error {
+	if c.Pool == "" || c.Certs == "" {
+		return errors.New("invalid configuration: specify pool and cert paths")
+	}
+	return nil
+}
+
+// LoadCerts returns the mtls TRISA trust provider for setting up an mTLS 1.3 config.
+// NOTE: this method is not thread-safe, ensure it is not used from multiple go-routines
+func (c *TRISAConfig) LoadCerts() (_ *trust.Provider, err error) {
+	if c.certs == nil {
+		if err = c.load(); err != nil {
+			return nil, err
+		}
+	}
+	return c.certs, nil
+}
+
+// LoadPool returns the mtls TRISA trust provider pool for creating an x509.Pool.
+// NOTE: this method is not thread-safe, ensure it is not used from multiple go-routines
+func (c *TRISAConfig) LoadPool() (_ trust.ProviderPool, err error) {
+	if len(c.pool) == 0 {
+		if err = c.load(); err != nil {
+			return nil, err
+		}
+	}
+	return c.pool, nil
+}
+
+// Load and cache the certificates and provider pool from disk.
+func (c *TRISAConfig) load() (err error) {
+	var sz *trust.Serializer
+	if sz, err = trust.NewSerializer(false); err != nil {
+		return err
+	}
+
+	if c.certs, err = sz.ReadFile(c.Certs); err != nil {
+		return fmt.Errorf("could not parse certs: %s", err)
+	}
+
+	if c.pool, err = sz.ReadPoolFile(c.Pool); err != nil {
+		return fmt.Errorf("could not parse cert pool: %s", err)
+	}
+	return nil
+}
+
+// Reset the certs cache to force load the pool and certs again
+// NOTE: this method is not thread-safe, ensure it is not used from multiple go-routines
+func (c *TRISAConfig) Reset() {
+	c.pool = nil
+	c.certs = nil
+}
+
+// Network parses the directory service endpoint to identify the network of the directory.
+func (c DirectoryConfig) Network() string {
+	endpoint := c.Endpoint
+	if endpoint == "" {
+		return ""
+	}
+
+	endpoint = strings.Split(endpoint, ":")[0] // strip the port from the endpoint
+	parts := strings.Split(endpoint, ".")
+	if len(parts) < 2 {
+		return endpoint
+	}
+	return strings.Join(parts[len(parts)-2:], ".")
 }

@@ -1,24 +1,43 @@
 {{ template "base" . }}
 {{ define "content" }}
 
-<section class="mx-8 py-14 overflow-x-auto">
-  <section class="mb-12 flex items-center gap-x-6">
-    <h1 class="font-bold sm:text-2xl">Transaction Inbox</h1>
-    <div class="flex items-center gap-x-1">
+<section class="mx-8 py-14 overflow-hidden">
+  <section id="welcome-msg" class="mb-12 p-5 border-2 border-black/20 rounded">
+    <div class="mb-5 flex justify-between">
+      <h1 class="font-bold text-2xl">Welcome!</h1>
+      <button id="close-welcome-msg" class="btn btn-sm btn-circle btn-ghost">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close message</span>
+      </button>
+    </div>
+    <p class="pb-3">The TRISA Open Source Node is a secure method to send and receive compliance data for cross-border transactions. Follow these steps before sending your first secure envelope:</p>
+    <ul class="pb-3">
+      <li class="pb-2">Step 1: Configure your VASP</li>
+      <li class="pb-2">Step 2: Add a counterparty</li>
+      <li class="pb-2">Step 3: Register a new customer</li>
+      <li>Step 4: Send a secure envelope</li>
+    </ul>
+    <p>Note that your VASP must have an x.509 TRISA identity certificate issued through TRISA's Global Directory Service. You can request a certificate at <a href="https://vaspdirectory.net" target="_blank"><span class="text-[#0000EE] hover:underline">vaspdirectory.net</span></a>.</p>
+  </section>
+  <section class="mb-12 md:flex items-center gap-x-6">
+    <h1 class="font-bold text-2xl">Transaction Inbox</h1>
+    <div class="mt-3 md:mt-0 flex items-center gap-x-1">
       <a href="/send-envelope" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Send New Secure Envelope</a>
-      <div class="tooltip tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
+      <div class="tooltip tooltip-top md:tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
         <button class="pt-2">
           <img src="/static/infoicon.svg" alt="" />
         </button> 
       </div>
     </div>
   </section>
-  <section hx-get="/v1/transactions" hx-trigger="load"></section>
-  <!--  TODO: Display the spinner when data is returned from the transactions list endpoint. -->
-    <!-- <div class="text-center">
+  <section hx-get="/v1/transactions" hx-trigger="load">
+    <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
-    </div> -->
+    </div>
   </section>
 </section>
+{{ end }}
 
+{{ define "appcode"}}
+<script src="/static/js/welcomeMsg.js"></script>
 {{ end }}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/swaggest/swgui/v5cdn"
 )
 
 // Sets up the server's middleware and routes.
@@ -74,8 +75,14 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/transactions", s.Transactions)
 	s.router.GET("/accounts", s.Accounts)
 	s.router.GET("/counterparty", s.CounterpartyVasps)
-	s.router.GET("/audit", s.AuditLog)
 	s.router.GET("/send-envelope", s.SendEnvelopeForm)
+
+	// Swagger documentation with Swagger UI hosted from a CDN
+	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
+		"TRISA Node API Documentation",
+		"/static/openapi.json",
+		"/v1/docs",
+	)))
 
 	// API Routes (Including Content Negotiated Partials)
 	// TODO: add authentication to these endpoints
