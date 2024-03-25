@@ -120,6 +120,12 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
+
+		// Transfers Resource
+		transfers := v1.Group("/transfers")
+		{
+			transfers.GET("", s.LoadTransferPreview)
+		}
 	}
 
 	return nil

@@ -19,3 +19,11 @@ body main {
 .label-style {
   @apply mb-1 block font-bold;
 }
+
+.envelope-header {
+  @apply text-balance text-sm text-left sm:text-base;
+}
+
+.envelope-data {
+  @apply text-sm sm:text-base p-2 md:px-6 md:py-4;
+}
