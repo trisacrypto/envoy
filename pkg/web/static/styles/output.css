@@ -2199,6 +2199,10 @@ html {
   margin-top: 0.5rem;
 }
 
+.mb-5 {
+  margin-bottom: 1.25rem;
+}
+
 .block {
   display: block;
 }
@@ -2442,6 +2446,10 @@ html {
   padding-bottom: 1rem;
 }
 
+.pb-3 {
+  padding-bottom: 0.75rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -2520,6 +2528,11 @@ html {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.text-\[\#0000EE\] {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 238 / var(--tw-text-opacity));
 }
 
 .shadow {
