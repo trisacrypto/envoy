@@ -2,6 +2,25 @@
 {{ define "content" }}
 
 <section class="mx-8 py-14 overflow-x-auto">
+  <!-- Welcome Message !-->
+  <section>
+    <div class="flex justify-between">
+      <h1>Welcome!</h1>
+      <button class="close-welcome-msg">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close message</span>
+      </button>
+    </div>
+    <p>The TRISA Open Source Node is a secure method to send and receive compliance data for cross-border transactions. Follow these steps before sending your first secure envelope:</p>
+    <ul>
+      <li>Step 1: Configure your VASP</li>
+      <li>Step 2: Add a counterparty</li>
+      <li>Step 3: Populate address book</li>
+      <li>Step 4: Send a secure envelope</li>
+    </ul>
+    <p>Note that your VASP must have an x.509 TRISA identity certificate issued through TRISA's Global Directory Service. You can request a certificate at <a href="https://vaspdirectory.net" target="_blank">vaspdirectory.net</a>.</p>
+  </section>
+  <!-- Send Envelope -->
   <section class="mb-12 flex items-center gap-x-6">
     <h1 class="font-bold sm:text-2xl">Transaction Inbox</h1>
     <div class="flex items-center gap-x-1">
