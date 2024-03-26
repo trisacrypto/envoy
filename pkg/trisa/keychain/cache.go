@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/keychain/keyerr"
-	"self-hosted-node/pkg/keychain/memks"
+	"self-hosted-node/pkg/trisa/keychain/keyerr"
+	"self-hosted-node/pkg/trisa/keychain/memks"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )

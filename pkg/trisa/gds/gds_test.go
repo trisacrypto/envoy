@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/gds"
-	mockgds "self-hosted-node/pkg/gds/mock"
+	"self-hosted-node/pkg/trisa/gds"
+	mockgds "self-hosted-node/pkg/trisa/gds/mock"
 
 	"github.com/stretchr/testify/require"
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"

@@ -231,3 +231,20 @@ func (c *CryptoAddress) Model() (*models.CryptoAddress, error) {
 		Tag:           sql.NullString{String: c.Tag, Valid: c.Tag != ""},
 	}, nil
 }
+
+//===========================================================================
+// Counterparty Resource
+//===========================================================================
+
+type Counterparty struct {
+	ID                  string   `json:"vasp_id"`
+	RegisteredDirectory string   `json:"registered_directory"`
+	CommonName          string   `json:"common_name"`
+	Endpoint            string   `json:"endpoint"`
+	Name                string   `json:"name"`
+	Website             string   `json:"website"`
+	Country             string   `json:"country"`
+	BusinessCategory    string   `json:"business_category"`
+	VASPCategories      []string `json:"vasp_categories"`
+	VerifiedOn          string   `json:"verified_on"`
+}

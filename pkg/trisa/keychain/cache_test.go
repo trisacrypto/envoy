@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/keychain"
-	"self-hosted-node/pkg/keychain/keyerr"
-	"self-hosted-node/pkg/keychain/memks"
+	"self-hosted-node/pkg/trisa/keychain"
+	"self-hosted-node/pkg/trisa/keychain/keyerr"
+	"self-hosted-node/pkg/trisa/keychain/memks"
 
 	"github.com/stretchr/testify/require"
 )

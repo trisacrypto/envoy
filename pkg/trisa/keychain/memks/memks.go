@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/keychain/keyerr"
+	"self-hosted-node/pkg/trisa/keychain/keyerr"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
