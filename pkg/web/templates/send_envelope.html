@@ -5,23 +5,120 @@
   <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Send New Secure Envelope</h1>
   <section class="my-4 md:m-8">
     <p class="my-2 md:text-lg">Create a secure envelope to share transfer details with the counterparty.</p>
-    <form>
+    <form id="secure-envelope-form" method="post">
       {{ template "originator_information" . }}
 
       {{ template "beneficiary_information" . }}
 
       {{ template "virtual_asset" . }}
       
-      <button id="open-envelope-modal" type="submit" hx-get="/v1/transfers" hx-trigger="click" hx-target="#preview-envelope-modal" data-modal-target="preview-envelope-modal" data-modal-toggle="preview-envelope-modal" class="mx-auto block btn bg-[#55ACD8] text-white font-semibold hover:bg-[#55ACD8]/90">Preview Envelope</button>
+      <button id="preview-envelope-bttn" type="button" onclick="preview_envelope.showModal()" class="mx-auto block btn bg-[#55ACD8] text-white font-semibold hover:bg-[#55ACD8]/90">Preview Envelope</button>
 
-      <!-- Preview envelope modal -->
-      <div id="preview-envelope-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div id="preview-envelope-container" class="flex flex-col justify-center"></div>
-      </div>
-
-      <!-- Preview envelope modal overlay -->
-      <div id="preview-envelope-overlay" class="hidden fixed top-0 left-0 right-0 bottom-0 bg-black/50"></div>
-
+      <!-- Secure Envelope Preview Modal -->
+      <dialog id="preview_envelope" class="modal">
+          <div id="preview-envelope-container" class="modal-box mx-auto relative p-4 w-full max-w-7xl max-h-full">
+            <!-- Modal content -->
+              <div>
+                <!-- Modal header -->
+                <div class="md:flex items-center justify-between p-4 border-b">
+                  <div class="mb-4 md:mb-0">
+                    <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+                      Secure Envelope Details: Preview
+                    </h1>
+                  </div>
+                    <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4">
+                      <button hx-trigger="/v1/transactions" class="p-1 rounded w-1/3 bg-[#268D57] font-semibold text-white md:p-2">Send</button>
+                      <button type="button" onclick="preview_envelope.close()" class="p-1 rounded w-1/3 bg-[#55ACD8] font-semibold text-white md:p-2">Edit</button>
+                      <button type="button" onclick="preview_envelope.close()" class="p-1 rounded w-1/3 bg-[#DB3B00] font-semibold text-white md:p-2">Cancel</button>
+                    </div>
+                  </div>
+                    <!-- Modal body -->
+                  <div class="w-full py-4 lg:grid lg:grid-cols-2 lg:gap-x-8">
+                    <!-- Transfer details -->
+                    <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
+                      <table>
+                        <tr>
+                          <th scope="col" colspan="2" class="envelope-header pb-2">TRANSFER DETAILS</th>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Status</th>
+                          <td class="envelope-data">Preview</td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Type</th>
+                          <td class="envelope-data">Send Request</td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Date Created</th>
+                          <td class="envelope-data text-balance" id="date-created"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Protocol</th>
+                          <td class="envelope-data" id="transfer-protocol"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Asset Type</th>
+                          <td class="envelope-data" id="asset-type"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Transfer Amount</th>
+                          <td class="envelope-data" id="transfer-amt"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Memo/Tag</th>
+                          <td class="envelope-data text-balance" id="transfer-tag"></td>
+                        </tr>
+                      </table>
+                    </section>
+                    <!-- Identity details -->
+                    <section class="p-2 md:p-6 border border-black rounded bg-[#D9D9D9]">
+                      <table>
+                        <tr>
+                          <th scope="col" class="envelope-header pb-2">IDENTITY DETAILS</th>
+                          <th scope="col" class="envelope-header pb-2 px-2 md:px-6">ORIGINATOR</th>
+                          <th scope="col" class="envelope-header pb-2 px-2 md:px-6">BENEFICIARY</th>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Name</th>
+                          <td class="envelope-data" id="orig-name"></td>
+                          <td class="envelope-data" id="benf-name"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">VASP Name</th>
+                          <td class="envelope-data" id="orig-vasp-name"></td>
+                          <td class="envelope-data" id="benf-vasp-name"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">VASP LEI</th>
+                          <td class="envelope-data" id="orig-lei"></td>
+                          <td class="envelope-data" id="benf-lei"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Wallet Address</th>
+                          <td class="envelope-data" id="orig-wallet-addr"></td>
+                          <td class="envelope-data" id="benf-wallet-addr"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Internal Account #</th>
+                          <td class="envelope-data" id="orig-internal-acct"></td>
+                          <td class="envelope-data" id="benf-internal-acct"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row" class="envelope-header">Physical Address</th>
+                          <td class="envelope-data">
+                            <div id="orig-addr-one"></div>
+                            <div id="orig-addr-two"></div>
+                            <div id="orig-addr-three"></div>
+                            <div id="orig-country"></div>
+                          </td>
+                        </tr>
+                      </table>
+                    </section>
+                  </div>
+                </div>
+              </div>
+        </div>
+      </dialog>
     </form>
   </section>
 </section>

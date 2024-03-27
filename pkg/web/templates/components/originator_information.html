@@ -5,41 +5,41 @@
   <div class="grid gap-6 my-4 md:grid-cols-2">
     <div>
       <label for="originator_first_name" class="label-style">First or Given Name</label>
-      <input type="text" id="originator_first_name" placeholder="Enter originator's first or given name" class="input-style" />
+      <input type="text" id="originator_first_name" name="originator_first_name" placeholder="Enter originator's first or given name" class="input-style" />
     </div>
     <div>
       <label for="originator_last_name" class="label-style">Last or Family Name</label>
-      <input type="text" id="originator_last_name" placeholder="Enter originator's last or family name" class="input-style" />
+      <input type="text" id="originator_last_name" name="originator_last_name" placeholder="Enter originator's last or family name" class="input-style" />
     </div>
   </div>
   <div class="my-4">
     <label for="customer_identifier" class="label-style">Internal Customer Identifier</label>
-    <input type="text" id="customer_identifier" placeholder="Enter your customer's internal identification number" class="input-style" />
+    <input type="text" id="customer_identifier" name="customer_identifier" placeholder="Enter your customer's internal identification number" class="input-style" />
   </div>
   <div class="grid gap-6 my-4 md:grid-cols-2">
     <div>
-      <label for="address_one" class="label-style">Street Address - Line 1 (optional)</label>
-      <input type="text" id="address_one" placeholder="Enter originator's street address" class="input-style" />
+      <label for="address_one" class="label-style">Street Address - Line 1</label>
+      <input type="text" id="address_one" name="address_one" placeholder="Enter originator's street address" class="input-style" />
     </div>
     <div>
-      <label for="unit" class="label-style">Unit or Building No. (optional)</label>
-      <input type="text" id="unit" placeholder="Enter originator's unit or building number" class="input-style" />
-    </div>
-    <div>
-      <label for="address_two" class="label-style">Street Address - Line 2 (optional)</label>
-      <input type="text" id="address_two" placeholder="Enter originator's address" class="input-style" />
-    </div>
-    <div>
-      <label for="postal_code" class="label-style">Postal Code</label>
-      <input type="text" id="postal_code" placeholder="Enter originator's postal code" class="input-style" />
+      <label for="unit" class="label-style">Street Address - Line 2 (optional) eg. apartment or suite number</label>
+      <input type="text" id="address_two" name="address_two" placeholder="Enter originator's unit or building number" class="input-style" />
     </div>
     <div>
       <label for="city" class="label-style">City/Municipality</label>
-      <input type="text" id="city" placeholder="Enter originator's city or municipality" class="input-style" />
+      <input type="text" id="city" name="city" placeholder="Enter originator's city or municipality" class="input-style" />
+    </div>
+    <div>
+      <label for="city" class="label-style">Region/Province/State</label>
+      <input type="text" id="region" name="region" placeholder="Enter originator's region, province, or state" class="input-style" />
+    </div>
+    <div>
+      <label for="postal_code" class="label-style">Postal Code</label>
+      <input type="text" id="postal_code" name="postal_code" placeholder="Enter originator's postal code" class="input-style" />
     </div>
     <div>
       <label for="country" class="label-style">Country</label>
-      <input type="text" id="country" placeholder="Enter originator's country" class="input-style" />
+      <input type="text" id="country" name="country" placeholder="Enter originator's country" class="input-style" />
     </div>
   </div>
 </section>
