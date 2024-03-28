@@ -1,0 +1,9 @@
+{
+  "id": "b67d6f02-a018-49f0-9571-a5addbccb064",
+  "registered_directory": "trisatest.dev",
+  "common_name": "client.trisatest.dev",
+  "endpoint": "client.trisatest.dev:443",
+  "name": "TRISA Test Client",
+  "country": "US",
+  "verified_on": "2024-03-28T16:33:43Z"
+}

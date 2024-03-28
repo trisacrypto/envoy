@@ -7,6 +7,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
+	"github.com/trisacrypto/trisa/pkg/trust"
 	"google.golang.org/grpc"
 )
 
@@ -16,10 +18,12 @@ import (
 type Server struct {
 	api.UnimplementedTRISAHealthServer
 	api.UnimplementedTRISANetworkServer
-	srv     *grpc.Server
-	conf    config.TRISAConfig
-	network network.Network
-	echan   chan error
+	srv      *grpc.Server
+	conf     config.TRISAConfig
+	identity *trust.Provider
+	certPool trust.ProviderPool
+	network  network.Network
+	echan    chan error
 }
 
 // Create a new TRISA server ready to handle gRPC requests.
@@ -30,10 +34,29 @@ func New(conf config.TRISAConfig, network network.Network) (s *Server, err error
 		echan:   make(chan error),
 	}
 
+	// Load the TRISA identity certificates and trust pool
+	// TODO: load from the database if available
+	if s.identity, err = conf.LoadCerts(); err != nil {
+		return nil, err
+	}
+
+	if s.certPool, err = conf.LoadPool(); err != nil {
+		return nil, err
+	}
+
+	// Create TRISA mTLS configuration
+	var mtlsCreds grpc.ServerOption
+	if mtlsCreds, err = mtls.ServerCreds(s.identity, s.certPool); err != nil {
+		return nil, err
+	}
+
+	// Configure the gRPC server
 	opts := make([]grpc.ServerOption, 0, 3)
+	opts = append(opts, mtlsCreds)
 	opts = append(opts, s.UnaryInterceptors())
 	opts = append(opts, s.StreamInterceptors())
 
+	// Create the gRPC server and register TRISA services
 	s.srv = grpc.NewServer(opts...)
 	api.RegisterTRISAHealthServer(s.srv, s)
 	api.RegisterTRISANetworkServer(s.srv, s)
