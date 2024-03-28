@@ -1,0 +1,1 @@
+const addWalletBttn = document.getElementById('add-wallet-bttn')

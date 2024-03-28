@@ -1,4 +1,4 @@
-<div class="overflow-x-auto">
+<div class="">
   <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
@@ -15,25 +15,19 @@
       {{ range .Accounts }}
         <tr class="hover">
           <td>{{ .CustomerID }}</td>
-          <td>{{ .FirstName }} &nbsp; {{ .LastName }}</td>
-          <td>{{ .CryptoAddresses.AssetType }}</td>
-
-          {{ if gt (len .CryptoAddresses) 1 }}
+          <td>{{ .FirstName }}&nbsp;{{ .LastName }}</td>
+          <td></td>
+          <td></td>
+          {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+          <td>{{ $created }}</td>
           <td>
-            <ul>
-              {{ range .CryptoAddresses }}
-              <li>{{ .CryptoAddress }}<li>
-              {{ end }}
-            </ul>
-          </td>
-            {{ else }}
-          <td>{{ .CryptoAddresses.CryptoAddress }}</td>
-            {{ end }}
-
-          <td>{{ .Created }}</td>
-          {{ end }}
-          <td>
-            <button class="text-xl font-bold">&hellip;</button>
+            <div class="dropdown">
+              <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+                <li><a>Edit</a></li>
+                <li><a hx-get="/v1/transactions/{{ .ID }}" hx-trigger="click">Details</a></li>
+              </ul>
+            </div>
           </td>
         </tr>
       {{ else }}
@@ -41,7 +35,7 @@
           <td colspan="6" class="py-5 text-base">No customer accounts information available.</td>
         </tr>
       {{ end }}
+      {{ end }}
     </tbody>
   </table>
-  
 </div>
