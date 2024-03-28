@@ -5,7 +5,7 @@ import (
 
 	"self-hosted-node/pkg/bufconn"
 	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/gds/mock"
+	"self-hosted-node/pkg/trisa/gds/mock"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
