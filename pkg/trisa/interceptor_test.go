@@ -11,23 +11,28 @@ import (
 
 	"github.com/stretchr/testify/require"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestAvailableInterceptor(t *testing.T) {
 	// Create a maintenance mode TRISA server
-	svc, err := trisa.New(config.TRISAConfig{Maintenance: true}, nil)
+	svc, err := trisa.New(config.TRISAConfig{
+		Maintenance: true,
+		Certs:       "testdata/certs/alice.vaspbot.net.pem",
+		Pool:        "testdata/certs/trisatest.dev.pem",
+	}, nil)
 	require.NoError(t, err, "could not create maintenance mode TRISA server")
 
 	sock := bufconn.New()
 	go svc.Run(sock.Sock())
 	defer svc.Shutdown()
 
+	creds, err := loadClientCredentials("bufnet", "testdata/certs/client.trisatest.dev.pem")
+	require.NoError(t, err, "could not load client credentials from testdata")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cc, err := sock.Connect(ctx, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := sock.Connect(ctx, creds)
 	require.NoError(t, err, "could not connect to bufconn")
 
 	healthClient := api.NewTRISAHealthClient(cc)
