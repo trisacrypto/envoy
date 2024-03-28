@@ -24,7 +24,7 @@ func NewMocked(conf *config.TRISAConfig) (_ Network, err error) {
 	if conf == nil {
 		conf = &config.TRISAConfig{
 			Pool:                "testdata/pool.pem",
-			Certs:               "testdata/certs.pem",
+			Certs:               "testdata/alice.pem",
 			KeyExchangeCacheTTL: 1 * time.Second,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,
