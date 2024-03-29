@@ -26,7 +26,7 @@
               <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
                 <li><a>Edit</a></li>
-                <li><a hx-get="/v1/transactions/{{ .ID }}" hx-trigger="click">View</a></li>
+                <li><a id="acct-detail-bttn" onclick="acct_detail_modal.show()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_detail_modal">View</a></li>
               </ul>
             </div>
           </td>
