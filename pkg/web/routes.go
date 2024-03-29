@@ -120,6 +120,11 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
+
+		counterparties := v1.Group("/counterparties")
+		{
+			counterparties.GET("", s.ListCounterparties)
+		}
 	}
 
 	return nil
