@@ -93,8 +93,8 @@ type AccountsList struct {
 }
 
 type CryptoAddressList struct {
-	Page             *PageQuery       `json:"page"`
-	CryptoAdddresses []*CryptoAddress `json:"crypto_addresses"`
+	Page            *PageQuery       `json:"page"`
+	CryptoAddresses []*CryptoAddress `json:"crypto_addresses"`
 }
 
 func NewAccount(model *models.Account) (out *Account, err error) {
@@ -202,8 +202,8 @@ func NewCryptoAddress(model *models.CryptoAddress) (*CryptoAddress, error) {
 func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressList, err error) {
 	// TODO: convert PageInfo to PageQuery
 	out = &CryptoAddressList{
-		Page:             &PageQuery{},
-		CryptoAdddresses: make([]*CryptoAddress, 0, len(page.CryptoAddresses)),
+		Page:            &PageQuery{},
+		CryptoAddresses: make([]*CryptoAddress, 0, len(page.CryptoAddresses)),
 	}
 
 	for _, model := range page.CryptoAddresses {
@@ -212,7 +212,7 @@ func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressLis
 			return nil, err
 		}
 
-		out.CryptoAdddresses = append(out.CryptoAdddresses, addr)
+		out.CryptoAddresses = append(out.CryptoAddresses, addr)
 	}
 
 	return out, nil
