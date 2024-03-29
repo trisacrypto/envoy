@@ -1,4 +1,4 @@
-package trisa_test
+package interceptors_test
 
 import (
 	"context"
@@ -7,31 +7,44 @@ import (
 
 	"self-hosted-node/pkg/bufconn"
 	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/trisa"
+	"self-hosted-node/pkg/trisa/interceptors"
+	"self-hosted-node/pkg/trisa/mock"
 
 	"github.com/stretchr/testify/require"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-func TestAvailableInterceptor(t *testing.T) {
-	// Create a maintenance mode TRISA server
-	svc, err := trisa.New(config.TRISAConfig{
+func TestMaintenanceInterceptor(t *testing.T) {
+	// Create a mock maintenance mode TRISA server
+	conf := config.TRISAConfig{
 		Maintenance: true,
 		Certs:       "testdata/certs/alice.vaspbot.net.pem",
 		Pool:        "testdata/certs/trisatest.dev.pem",
-	}, nil)
-	require.NoError(t, err, "could not create maintenance mode TRISA server")
+	}
+
+	opts := []grpc.ServerOption{
+		grpc.StreamInterceptor(interceptors.StreamAvailable(conf)),
+		grpc.UnaryInterceptor(interceptors.UnaryAvailable(conf)),
+	}
 
 	sock := bufconn.New()
-	go svc.Run(sock.Sock())
+	svc := mock.New(sock, opts...)
 	defer svc.Shutdown()
 
-	creds, err := loadClientCredentials("bufnet", "testdata/certs/client.trisatest.dev.pem")
-	require.NoError(t, err, "could not load client credentials from testdata")
+	// Mock the OnStatus method
+	svc.OnStatus = func(context.Context, *api.HealthCheck) (*api.ServiceState, error) {
+		return &api.ServiceState{
+			Status: api.ServiceState_MAINTENANCE,
+		}, nil
+	}
 
+	// Create a client to connect to the mock TRISA server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
 	cc, err := sock.Connect(ctx, creds)
 	require.NoError(t, err, "could not connect to bufconn")
 

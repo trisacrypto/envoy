@@ -27,12 +27,14 @@ type trisaTestSuite struct {
 	svc     *trisa.Server
 	network network.Network
 	client  api.TRISANetworkClient
+	echan   chan error
 }
 
 func (s *trisaTestSuite) SetupSuite() {
 	assert := s.Assert()
 
 	s.conn = bufconn.New()
+	s.echan = make(chan error, 1)
 	s.conf = config.TRISAConfig{
 		Maintenance:         false,
 		BindAddr:            "bufnet",
@@ -50,7 +52,7 @@ func (s *trisaTestSuite) SetupSuite() {
 	s.network, err = network.NewMocked(&s.conf)
 	assert.NoError(err, "could not create TRISA network manager")
 
-	s.svc, err = trisa.New(s.conf, s.network)
+	s.svc, err = trisa.New(s.conf, s.network, s.echan)
 	assert.NoError(err, "could not create a new TRISA server")
 
 	// Run the TRISA server on the bufconn for tests

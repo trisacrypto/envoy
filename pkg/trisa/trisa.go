@@ -2,7 +2,9 @@ package trisa
 
 import (
 	"net"
+
 	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/trisa/interceptors"
 	"self-hosted-node/pkg/trisa/network"
 
 	"github.com/rs/zerolog/log"
@@ -23,15 +25,15 @@ type Server struct {
 	identity *trust.Provider
 	certPool trust.ProviderPool
 	network  network.Network
-	echan    chan error
+	echan    chan<- error
 }
 
 // Create a new TRISA server ready to handle gRPC requests.
-func New(conf config.TRISAConfig, network network.Network) (s *Server, err error) {
+func New(conf config.TRISAConfig, network network.Network, echan chan<- error) (s *Server, err error) {
 	s = &Server{
 		conf:    conf,
 		network: network,
-		echan:   make(chan error),
+		echan:   echan,
 	}
 
 	// Load the TRISA identity certificates and trust pool
@@ -53,8 +55,8 @@ func New(conf config.TRISAConfig, network network.Network) (s *Server, err error
 	// Configure the gRPC server
 	opts := make([]grpc.ServerOption, 0, 3)
 	opts = append(opts, mtlsCreds)
-	opts = append(opts, s.UnaryInterceptors())
-	opts = append(opts, s.StreamInterceptors())
+	opts = append(opts, interceptors.UnaryInterceptors(s.conf))
+	opts = append(opts, interceptors.StreamInterceptors(s.conf))
 
 	// Create the gRPC server and register TRISA services
 	s.srv = grpc.NewServer(opts...)
