@@ -36,19 +36,20 @@
           <label for="customer_id" class="label-style">Customer Account ID (optional)</label>
           <input type="text" id="customer_id" name="customer_id" class="input-style" />
         </div>
-        <div class="grid gap-6 my-4 md:grid-cols-2">
-          <div>
-            <label for="crypto_address" class="label-style">Wallet Address</label>
-            <input type="text" id="crypto_address" name="crypto_address" class="input-style" />
-          </div>
-          <div>
-            <label for="network" class="label-style">Network</label>
-            <input type="text" id="network" name="network" class="input-style" />
+        <div id="crypto-wallets">
+          <div class="grid gap-6 my-4 md:grid-cols-2">
+            <div>
+              <label for="crypto_address" class="label-style">Wallet Address 01</label>
+              <input type="text" id="crypto_address" name="crypto_address" class="input-style" />
+            </div>
+            <div>
+              <label for="network" class="label-style">Network</label>
+              <input type="text" id="network" name="network" class="input-style" />
+            </div>
           </div>
         </div>
-        <div></div>
         <div class="mb-4">
-          <button id="add-wallet-bttn" class="text-blue-600">+ Additional Wallets</button>
+          <button type="button" id="add-wallet-bttn" class="text-blue-600">+ Additional Wallets</button>
         </div>
         <div class="mb-4">
           <label for="notes" class="label-style">Notes</label>
