@@ -8,6 +8,7 @@ import (
 
 	"self-hosted-node/pkg/bufconn"
 	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/trisa"
 	directory "self-hosted-node/pkg/trisa/gds"
 	gdsmock "self-hosted-node/pkg/trisa/gds/mock"
@@ -32,6 +33,7 @@ type trisaTestSuite struct {
 
 func (s *trisaTestSuite) SetupSuite() {
 	assert := s.Assert()
+	logger.Discard()
 
 	s.conn = bufconn.New()
 	s.echan = make(chan error, 1)
@@ -72,6 +74,8 @@ func (s *trisaTestSuite) SetupSuite() {
 
 func (s *trisaTestSuite) TearDownSuite() {
 	assert := s.Assert()
+	logger.ResetLogger()
+
 	assert.NoError(s.svc.Shutdown(), "could not shutdown the TRISA server")
 	assert.NoError(s.conn.Close(), "could not close the bufconn")
 }

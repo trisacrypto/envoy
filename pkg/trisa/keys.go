@@ -2,9 +2,10 @@ package trisa
 
 import (
 	"context"
+
+	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/trisa/peers"
 
-	"github.com/rs/zerolog/log"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"google.golang.org/grpc/codes"
@@ -14,7 +15,8 @@ import (
 // KeyExchange is a preperatory RPC that is required before Transfer RPCs to ensure each
 // counterparty has the public keys needed to encrypt secure envelopes for the recipient.
 func (s *Server) KeyExchange(ctx context.Context, in *api.SigningKey) (out *api.SigningKey, err error) {
-	// TODO: add request identifier for tracing purposes to the log context
+	// Add tracing from context to the log context.
+	log := logger.Tracing(ctx)
 
 	// Identify the counterparty peer from the context.
 	var peer peers.Peer
@@ -23,8 +25,8 @@ func (s *Server) KeyExchange(ctx context.Context, in *api.SigningKey) (out *api.
 		return nil, status.Error(codes.Unauthenticated, "could not identify remote peer from mTLS certificates")
 	}
 
-	// Add peer to the log context
-	log := log.With().Str("peer", peer.String()).Logger()
+	// Add peer to the log context.
+	log = log.With().Str("peer", peer.String()).Logger()
 
 	// Store incoming sealing key in the key cache
 	var remote keys.Key
