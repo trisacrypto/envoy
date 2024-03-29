@@ -1,5 +1,5 @@
-<div class="">
-  <table class="table">
+<div>
+  <table class="table overflow-x-auto">
     <thead class="font-bold text-base text-black">
       <tr>
         <th>Customer ID</th>
@@ -16,6 +16,7 @@
         <tr class="hover">
           <td>{{ .CustomerID }}</td>
           <td>{{ .FirstName }}&nbsp;{{ .LastName }}</td>
+          <!-- TODO: Add virtual asset and wallet address values -->
           <td></td>
           <td></td>
           {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
@@ -25,7 +26,7 @@
               <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
                 <li><a>Edit</a></li>
-                <li><a hx-get="/v1/transactions/{{ .ID }}" hx-trigger="click">Details</a></li>
+                <li><a hx-get="/v1/transactions/{{ .ID }}" hx-trigger="click">View</a></li>
               </ul>
             </div>
           </td>

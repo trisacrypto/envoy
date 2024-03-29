@@ -2312,18 +2312,6 @@ html {
   margin-top: 0.75rem;
 }
 
-.mr-1 {
-  margin-right: 0.25rem;
-}
-
-.mr-6 {
-  margin-right: 1.5rem;
-}
-
-.\!mr-6 {
-  margin-right: 1.5rem !important;
-}
-
 .block {
   display: block;
 }
@@ -2368,48 +2356,9 @@ html {
   width: 100%;
 }
 
-.\!w-1\/2 {
-  width: 50% !important;
-}
-
-.\!w-\[109px\] {
-  width: 109px !important;
-}
-
-.\!w-\[190px\] {
-  width: 190px !important;
-}
-
-.\!w-\[190\.5px\] {
-  width: 190.5px !important;
-}
-
-.\!w-\[200px\] {
-  width: 200px !important;
-}
-
-.\!w-\[205px\] {
-  width: 205px !important;
-}
-
-.\!w-\[225px\] {
-  width: 225px !important;
-}
-
-.\!w-\[224px\] {
-  width: 224px !important;
-}
-
-.\!w-\[223px\] {
-  width: 223px !important;
-}
-
-.\!w-\[221px\] {
-  width: 221px !important;
-}
-
-.\!w-\[220px\] {
-  width: 220px !important;
+.min-w-fit {
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 .max-w-7xl {
@@ -2468,12 +2417,20 @@ html {
        column-gap: 1.5rem;
 }
 
+.overflow-auto {
+  overflow: auto;
+}
+
 .overflow-hidden {
   overflow: hidden;
 }
 
 .overflow-x-auto {
   overflow-x: auto;
+}
+
+.overflow-x-scroll {
+  overflow-x: scroll;
 }
 
 .text-balance {
@@ -2942,8 +2899,9 @@ body main {
     width: 100%;
   }
 
-  .md\:w-\[220px\] {
-    width: 220px;
+  .md\:max-w-fit {
+    max-width: -moz-fit-content;
+    max-width: fit-content;
   }
 
   .md\:grid-cols-2 {

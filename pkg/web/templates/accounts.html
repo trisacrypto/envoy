@@ -52,11 +52,11 @@
           <button type="button" id="add-wallet-bttn" class="text-blue-600">+ Additional Wallets</button>
         </div>
         <div class="mb-4">
-          <label for="notes" class="label-style">Notes</label>
-          <textarea id="notes" name="notes" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          <label for="tag" class="label-style">Notes</label>
+          <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
         </div>
         <div class="flex justify-center">
-          <button type="submit" hx-post="/v1/accounts" class="btn bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Register</button>
+          <button hx-post="/v1/accounts" class="btn bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Register</button>
         </div>
       </form>
       </div>
