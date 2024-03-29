@@ -1,0 +1,18 @@
+{
+  "id": "f04d02cb-7b88-44d1-a6c8-ddb6cbbd2d25",
+  "payload": "",
+  "encryption_key": "",
+  "encryption_algorithm": "",
+  "hmac": "",
+  "hmac_secret": "",
+  "hmac_algorithm": "",
+  "error": {
+    "code": "COMPLIANCE_CHECK_FAIL",
+    "message": "could not complete compliance checks",
+    "retry": false,
+    "details": null
+  },
+  "timestamp": "2021-11-12T09:05:19.335812-05:00",
+  "sealed": false,
+  "public_key_signature": ""
+}
