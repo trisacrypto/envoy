@@ -1,1 +1,38 @@
-<div>{{ .ID }}</div>
+<div class="modal-box">
+  <div class="mb-4 flex justify-between items-center">
+    <h1 class="font-bold text-xl">Customer Details</h1>
+    <button onclick="acct_detail_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <dl>
+    <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">First or Given Name</dt>
+      <dd>{{ .FirstName }}</dd>
+    </div>
+    <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">Last or Family Name</dt>
+      <dd>{{ .LastName }}</dd>
+    </div>
+    <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">Customer Account ID</dt>
+      <dd>{{ .CustomerID }}</dd>
+    </div>
+    {{ if .CryptoAddresses}}
+    {{ range .CryptoAddresses }}
+    <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">Wallet Address</dt>
+      <dd>{{ .CryptoAddress }}</dd>
+    </div>
+    <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">Notes</dt>
+      <dd>{{ .Tag }}</dd>
+    </div>
+    {{ end }}
+    {{ end }}
+  <div class="mt-8 flex justify-center">
+    <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Edit</button>
+ </div>
+  </div>
+</div>

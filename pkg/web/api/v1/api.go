@@ -66,15 +66,15 @@ type PageQuery struct {
 //===========================================================================
 
 type Account struct {
-	ID               ulid.ULID        `json:"id,omitempty"`
-	CustomerID       string           `json:"customer_id"`
-	FirstName        string           `json:"first_name"`
-	LastName         string           `json:"last_name"`
-	TravelAddress    string           `json:"travel_address,omitempty"`
-	IVMSRecord       string           `json:"ivms101,omitempty"`
-	CryptoAdddresses []*CryptoAddress `json:"crypto_addresses"`
-	Created          time.Time        `json:"created,omitempty"`
-	Modified         time.Time        `json:"modified,omitempty"`
+	ID              ulid.ULID        `json:"id,omitempty"`
+	CustomerID      string           `json:"customer_id"`
+	FirstName       string           `json:"first_name"`
+	LastName        string           `json:"last_name"`
+	TravelAddress   string           `json:"travel_address,omitempty"`
+	IVMSRecord      string           `json:"ivms101,omitempty"`
+	CryptoAddresses []*CryptoAddress `json:"crypto_addresses"`
+	Created         time.Time        `json:"created,omitempty"`
+	Modified        time.Time        `json:"modified,omitempty"`
 }
 
 type CryptoAddress struct {
@@ -93,8 +93,8 @@ type AccountsList struct {
 }
 
 type CryptoAddressList struct {
-	Page             *PageQuery       `json:"page"`
-	CryptoAdddresses []*CryptoAddress `json:"crypto_addresses"`
+	Page            *PageQuery       `json:"page"`
+	CryptoAddresses []*CryptoAddress `json:"crypto_addresses"`
 }
 
 func NewAccount(model *models.Account) (out *Account, err error) {
@@ -125,10 +125,10 @@ func NewAccount(model *models.Account) (out *Account, err error) {
 	}
 
 	// Add the crypto addresses to the response
-	out.CryptoAdddresses = make([]*CryptoAddress, 0, len(addresses))
+	out.CryptoAddresses = make([]*CryptoAddress, 0, len(addresses))
 	for _, address := range addresses {
 		addr, _ := NewCryptoAddress(address)
-		out.CryptoAdddresses = append(out.CryptoAdddresses, addr)
+		out.CryptoAddresses = append(out.CryptoAddresses, addr)
 	}
 
 	return out, nil
@@ -174,9 +174,9 @@ func (a *Account) Model() (model *models.Account, err error) {
 		}
 	}
 
-	if len(a.CryptoAdddresses) > 0 {
-		addresses := make([]*models.CryptoAddress, 0, len(a.CryptoAdddresses))
-		for _, address := range a.CryptoAdddresses {
+	if len(a.CryptoAddresses) > 0 {
+		addresses := make([]*models.CryptoAddress, 0, len(a.CryptoAddresses))
+		for _, address := range a.CryptoAddresses {
 			addr, _ := address.Model()
 			addresses = append(addresses, addr)
 		}
@@ -202,8 +202,8 @@ func NewCryptoAddress(model *models.CryptoAddress) (*CryptoAddress, error) {
 func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressList, err error) {
 	// TODO: convert PageInfo to PageQuery
 	out = &CryptoAddressList{
-		Page:             &PageQuery{},
-		CryptoAdddresses: make([]*CryptoAddress, 0, len(page.CryptoAddresses)),
+		Page:            &PageQuery{},
+		CryptoAddresses: make([]*CryptoAddress, 0, len(page.CryptoAddresses)),
 	}
 
 	for _, model := range page.CryptoAddresses {
@@ -212,7 +212,7 @@ func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressLis
 			return nil, err
 		}
 
-		out.CryptoAdddresses = append(out.CryptoAdddresses, addr)
+		out.CryptoAddresses = append(out.CryptoAddresses, addr)
 	}
 
 	return out, nil
