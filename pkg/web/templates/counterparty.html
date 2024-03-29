@@ -5,7 +5,7 @@
       <h1 class="font-bold text-2xl">Counterparty VASPs</h1>
       <button onclick="add_vasp_modal.show()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
     </section>
-    <section hx-get="/v1/counterparties" hx-trigger="load">
+    <section hx-get="/v1/vasps" hx-trigger="load">
       <div class="text-center">
         <span class="loading loading-spinner loading-lg"></span>
       </div>
