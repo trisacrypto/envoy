@@ -2356,11 +2356,6 @@ html {
   width: 100%;
 }
 
-.min-w-fit {
-  min-width: -moz-fit-content;
-  min-width: fit-content;
-}
-
 .max-w-7xl {
   max-width: 80rem;
 }
@@ -2417,20 +2412,12 @@ html {
        column-gap: 1.5rem;
 }
 
-.overflow-auto {
-  overflow: auto;
-}
-
 .overflow-hidden {
   overflow: hidden;
 }
 
 .overflow-x-auto {
   overflow-x: auto;
-}
-
-.overflow-x-scroll {
-  overflow-x: scroll;
 }
 
 .text-balance {
@@ -2897,11 +2884,6 @@ body main {
 
   .md\:w-full {
     width: 100%;
-  }
-
-  .md\:max-w-fit {
-    max-width: -moz-fit-content;
-    max-width: fit-content;
   }
 
   .md\:grid-cols-2 {
