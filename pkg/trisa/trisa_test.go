@@ -3,6 +3,7 @@ package trisa_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +20,8 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
 	"github.com/trisacrypto/trisa/pkg/trust"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type trisaTestSuite struct {
@@ -113,4 +116,26 @@ func loadClientCredentials(endpoint, path string) (_ grpc.DialOption, err error)
 	}
 
 	return mtls.ClientCreds(endpoint, certs, pool)
+}
+
+func loadFixture(path string, obj proto.Message) (err error) {
+	var data []byte
+	if data, err = os.ReadFile(path); err != nil {
+		return err
+	}
+
+	json := protojson.UnmarshalOptions{
+		AllowPartial:   true,
+		DiscardUnknown: true,
+	}
+
+	return json.Unmarshal(data, obj)
+}
+
+func loadSecureEnvelope(path string) (env *api.SecureEnvelope, err error) {
+	env = &api.SecureEnvelope{}
+	if err = loadFixture(path, env); err != nil {
+		return nil, err
+	}
+	return env, nil
 }
