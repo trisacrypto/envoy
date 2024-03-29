@@ -120,6 +120,11 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
 		}
+
+		vasps := v1.Group("/vasps")
+		{
+			vasps.GET("", s.ListCounterpartyVasps)
+		}
 	}
 
 	return nil
