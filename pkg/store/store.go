@@ -37,7 +37,7 @@ func Open(databaseURL string) (s Store, err error) {
 type Store interface {
 	io.Closer
 	AccountStore
-	CryptoAddressStore
+	CounterpartyStore
 }
 
 // All Store implementations must implement the Store interface
@@ -48,6 +48,7 @@ var (
 
 // AccountStore provides CRUD interactions with Account models.
 type AccountStore interface {
+	CryptoAddressStore
 	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
 	CreateAccount(context.Context, *models.Account) error
 	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
@@ -63,4 +64,13 @@ type CryptoAddressStore interface {
 	RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
 	UpdateCryptoAddress(context.Context, *models.CryptoAddress) error
 	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
+}
+
+// Counterparty store provides CRUD interactions with Counterparty models.
+type CounterpartyStore interface {
+	ListCounterparties(ctx context.Context, page *models.PageInfo) (*models.CounterpartyPage, error)
+	CreateCounterparty(context.Context, *models.Counterparty) error
+	RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
+	UpdateCounterparty(context.Context, *models.Counterparty) error
+	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error
 }

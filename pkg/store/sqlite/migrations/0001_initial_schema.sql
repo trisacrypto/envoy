@@ -32,4 +32,26 @@ CREATE TABLE IF NOT EXISTS crypto_addresses (
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
+-- Counterparties describes remote peers to exchange travel rule information with.
+CREATE TABLE IF NOT EXISTS counterparties (
+    id                      TEXT PRIMARY KEY,
+    source                  TEXT NOT NULL,
+    directory_id            TEXT,
+    registered_directory    TEXT,
+    protocol                TEXT NOT NULL,
+    common_name             TEXT NOT NULL,
+    endpoint                TEXT NOT NULL,
+    name                    TEXT NOT NULL,
+    website                 TEXT,
+    country                 TEXT NOT NULL,
+    business_category       TEXT NOT NULL,
+    vasp_categories         BLOB,
+    verified_on             DATETIME,
+    ivms101                 BLOB,
+    created                 DATETIME NOT NULL,
+    modified                DATETIME NOT NULL,
+    UNIQUE(protocol, common_name, endpoint),
+    UNIQUE(directory_id, registered_directory)
+);
+
 COMMIT;
