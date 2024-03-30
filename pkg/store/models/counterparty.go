@@ -50,6 +50,19 @@ func (c *Counterparty) Scan(scanner Scanner) error {
 	)
 }
 
+// Scan a partial SELECT into the counterparty model
+func (c *Counterparty) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&c.ID,
+		&c.Source,
+		&c.Protocol,
+		&c.Endpoint,
+		&c.Name,
+		&c.Website,
+		&c.Country,
+	)
+}
+
 // Get complete named params of the counterparty from the model.
 func (c *Counterparty) Params() []any {
 	return []any{
