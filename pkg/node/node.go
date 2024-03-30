@@ -10,6 +10,8 @@ import (
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/store"
+	"self-hosted-node/pkg/trisa"
+	"self-hosted-node/pkg/trisa/network"
 	"self-hosted-node/pkg/web"
 
 	"github.com/gin-gonic/gin"
@@ -57,8 +59,17 @@ func New(conf config.Config) (node *Node, err error) {
 		return nil, err
 	}
 
-	// Create the web ui server if it is enabled
-	if node.web, err = web.New(conf.Web, node.store); err != nil {
+	// Create the admin web ui server if it is enabled
+	if node.admin, err = web.New(conf.Web, node.store); err != nil {
+		return nil, err
+	}
+
+	// Create the TRISA API server
+	if node.network, err = network.New(conf.Node); err != nil {
+		return nil, err
+	}
+
+	if node.trisa, err = trisa.New(conf.Node, node.network, node.errc); err != nil {
 		return nil, err
 	}
 
@@ -69,10 +80,12 @@ func New(conf config.Config) (node *Node, err error) {
 // the TRP API server, the web compliance and admin user interface, and the internal API
 // server, along with kubernetes probes and metrics if required.
 type Node struct {
-	conf  config.Config
-	web   *web.Server
-	store store.Store
-	errc  chan error
+	conf    config.Config
+	admin   *web.Server
+	trisa   *trisa.Server
+	store   store.Store
+	network network.Network
+	errc    chan error
 }
 
 // Serve all enabled services based on configuration and block until shutdown or until
@@ -89,7 +102,12 @@ func (s *Node) Serve() (err error) {
 	// TODO: handle maintenance mode setup tasks
 
 	// Start the web ui server if it is enabled
-	if err = s.web.Serve(s.errc); err != nil {
+	if err = s.admin.Serve(s.errc); err != nil {
+		return err
+	}
+
+	// Start the TRISA node server
+	if err = s.trisa.Serve(); err != nil {
 		return err
 	}
 
@@ -102,8 +120,13 @@ func (s *Node) Shutdown() (err error) {
 	log.Info().Msg("gracefully shutting down trisa node services")
 
 	// Shutdown web ui server if it is enabled.
-	if serr := s.web.Shutdown(); serr != nil {
+	if serr := s.admin.Shutdown(); serr != nil {
 		err = errors.Join(err, serr)
+	}
+
+	// Shutdown the TRISA server
+	if terr := s.trisa.Shutdown(); terr != nil {
+		err = errors.Join(err, terr)
 	}
 
 	log.Debug().Msg("trisa node shutdown")
