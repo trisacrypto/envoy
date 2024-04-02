@@ -113,7 +113,11 @@ func (s *Node) Serve() (err error) {
 
 	// Block until an error occurs or shutdown happens
 	log.Info().Msg("trisa node server has started")
-	return <-s.errc
+	if err := <-s.errc; err != nil {
+		log.WithLevel(zerolog.FatalLevel).Err(err).Msg("trisa node crashed")
+		return err
+	}
+	return nil
 }
 
 func (s *Node) Shutdown() (err error) {

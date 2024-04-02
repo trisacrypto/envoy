@@ -28,6 +28,8 @@ var testEnv = map[string]string{
 	"TRISA_NODE_DIRECTORY_INSECURE":         "true",
 	"TRISA_NODE_DIRECTORY_ENDPOINT":         "localhost:2525",
 	"TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT": "localhost:2526",
+	"TRISA_DIRECTORY_SYNC_ENABLED":          "true",
+	"TRISA_DIRECTORY_SYNC_INTERVAL":         "10m",
 }
 
 func TestConfig(t *testing.T) {
@@ -56,6 +58,8 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.Node.Directory.Insecure)
 	require.Equal(t, testEnv["TRISA_NODE_DIRECTORY_ENDPOINT"], conf.Node.Directory.Endpoint)
 	require.Equal(t, testEnv["TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT"], conf.Node.Directory.MembersEndpoint)
+	require.True(t, conf.DirectorySync.Enabled)
+	require.Equal(t, 10*time.Minute, conf.DirectorySync.Interval)
 }
 
 func TestWebConfig(t *testing.T) {
