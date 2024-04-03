@@ -130,6 +130,7 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.GET("", s.ListCounterparties)
 			counterparties.POST("", s.CreateCounterparty)
 			counterparties.GET("/:id", s.CounterpartyDetail)
+			counterparties.GET("/:id/edit", s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", s.UpdateCounterparty)
 			counterparties.DELETE("/:id", s.DeleteCounterparty)
 		}
