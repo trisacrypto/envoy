@@ -1,7 +1,7 @@
 <div class="modal-box">
   <div class="mb-4 flex justify-between items-center">
     <h1 class="font-bold text-xl">Customer Details</h1>
-    <button onclick="acct_detail_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+    <button onclick="acct_modal.close()" class="btn btn-sm btn-circle btn-ghost">
       <i class="fa-solid fa-x"></i>
       <span class="sr-only">Close modal</span>
     </button>
@@ -19,20 +19,22 @@
       <dt class="font-bold">Customer Account ID</dt>
       <dd>{{ .CustomerID }}</dd>
     </div>
-    {{ if .CryptoAddresses}}
+    {{ if .CryptoAddresses }}
     {{ range .CryptoAddresses }}
-    <div class="mb-4 grid grid-cols-2">
+    <div class="mb-4 grid grid-cols-3">
       <dt class="font-bold">Wallet Address</dt>
       <dd>{{ .CryptoAddress }}</dd>
+      <dd>{{ .Network }}</dd>
     </div>
+      {{ end }}
     <div class="mb-4 grid grid-cols-2">
       <dt class="font-bold">Notes</dt>
       <dd>{{ .Tag }}</dd>
     </div>
     {{ end }}
-    {{ end }}
+  </dl>
   <div class="mt-8 flex justify-center">
-    <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Edit</button>
+    <button id="edit-acct-bttn" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Edit</button>
  </div>
   </div>
 </div>

@@ -144,6 +144,47 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	})
 }
 
+func (s *Server) UpdateAccountPreview(c *gin.Context) {
+	var (
+		err       error
+		accountID ulid.ULID
+		account   *models.Account
+		out       *api.Account
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model into an API response
+	if out, err = api.NewAccount(account); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Content negotiation
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "account_preview.html",
+	})
+}
+
 func (s *Server) UpdateAccount(c *gin.Context) {
 	var (
 		err       error
@@ -318,7 +359,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	// TODO: validate the input
 
 	// Convert the request into a database model
-	if model, err = in.Model(); err != nil {
+	if model, err = in.Model(nil); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -443,7 +484,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	// TODO: validate the crypto address input
 
 	// Convert the crypto address request into a database model
-	if model, err = in.Model(); err != nil {
+	if model, err = in.Model(nil); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return

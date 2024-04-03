@@ -97,6 +97,7 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.GET("", s.ListAccounts)
 			accounts.POST("", s.CreateAccount)
 			accounts.GET("/:id", s.AccountDetail)
+			accounts.GET("/:id/edit", s.UpdateAccountPreview)
 			accounts.PUT("/:id", s.UpdateAccount)
 			accounts.DELETE("/:id", s.DeleteAccount)
 

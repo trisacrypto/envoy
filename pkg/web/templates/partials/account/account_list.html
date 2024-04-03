@@ -25,8 +25,8 @@
             <div class="dropdown">
               <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
-                <li><a>Edit</a></li>
-                <li><a id="acct-detail-bttn" onclick="acct_detail_modal.show()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_detail_modal">View</a></li>
+                <li><a id="edit-acct-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML">Edit</a></li>
+                <li><a id="acct-detail-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_modal" hx-swap="innerHTML">View</a></li>
               </ul>
             </div>
           </td>
