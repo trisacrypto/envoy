@@ -16,10 +16,12 @@ import (
 )
 
 const (
-	LookupRPC = "trisa.gds.api.v1beta1.TRISADirectory/Lookup"
-	SearchRPC = "trisa.gds.api.v1beta1.TRISADirectory/Search"
-	ListRPC   = "gds.members.v1alpha1.TRISAMembers/List"
-	StatusRPC = "trisa.gds.api.v1beta1.TRISADirectory/Status"
+	LookupRPC  = "trisa.gds.api.v1beta1.TRISADirectory/Lookup"
+	SearchRPC  = "trisa.gds.api.v1beta1.TRISADirectory/Search"
+	SummaryRPC = "gds.members.v1alpha1.TRISAMembers/Summary"
+	ListRPC    = "gds.members.v1alpha1.TRISAMembers/List"
+	DetailRPC  = "gds.members.v1alpha1.TRISAMembers/Details"
+	StatusRPC  = "trisa.gds.api.v1beta1.TRISADirectory/Status"
 )
 
 // New creates a new mock GDS. If bufnet is nil, one is created for the user.
@@ -47,13 +49,15 @@ func New(bufnet *bufconn.Listener) *GDS {
 type GDS struct {
 	gds.UnimplementedTRISADirectoryServer
 	members.UnimplementedTRISAMembersServer
-	bufnet   *bufconn.Listener
-	srv      *grpc.Server
-	Calls    map[string]int
-	OnLookup func(context.Context, *gds.LookupRequest) (*gds.LookupReply, error)
-	OnSearch func(context.Context, *gds.SearchRequest) (*gds.SearchReply, error)
-	OnList   func(context.Context, *members.ListRequest) (*members.ListReply, error)
-	OnStatus func(context.Context, *gds.HealthCheck) (*gds.ServiceState, error)
+	bufnet    *bufconn.Listener
+	srv       *grpc.Server
+	Calls     map[string]int
+	OnLookup  func(context.Context, *gds.LookupRequest) (*gds.LookupReply, error)
+	OnSearch  func(context.Context, *gds.SearchRequest) (*gds.SearchReply, error)
+	OnSummary func(context.Context, *members.SummaryRequest) (*members.SummaryReply, error)
+	OnList    func(context.Context, *members.ListRequest) (*members.ListReply, error)
+	OnDetail  func(context.Context, *members.DetailsRequest) (*members.MemberDetails, error)
+	OnStatus  func(context.Context, *gds.HealthCheck) (*gds.ServiceState, error)
 }
 
 func (s *GDS) Channel() *bufconn.Listener {
@@ -69,6 +73,13 @@ func (s *GDS) Reset() {
 	for key := range s.Calls {
 		s.Calls[key] = 0
 	}
+
+	s.OnLookup = nil
+	s.OnSearch = nil
+	s.OnSummary = nil
+	s.OnList = nil
+	s.OnDetail = nil
+	s.OnStatus = nil
 }
 
 // UseFixture loadsa a JSON fixture from disk (usually in a testdata folder) to use as
@@ -101,12 +112,28 @@ func (s *GDS) UseFixture(rpc, path string) (err error) {
 		s.OnSearch = func(context.Context, *gds.SearchRequest) (*gds.SearchReply, error) {
 			return out, nil
 		}
+	case SummaryRPC:
+		out := &members.SummaryReply{}
+		if err = jsonpb.Unmarshal(data, out); err != nil {
+			return fmt.Errorf("could not unmarshal json into %T: %v", out, err)
+		}
+		s.OnSummary = func(ctx context.Context, sr *members.SummaryRequest) (*members.SummaryReply, error) {
+			return out, nil
+		}
 	case ListRPC:
 		out := &members.ListReply{}
 		if err = jsonpb.Unmarshal(data, out); err != nil {
 			return fmt.Errorf("could not unmarshal json into %T: %v", out, err)
 		}
 		s.OnList = func(context.Context, *members.ListRequest) (*members.ListReply, error) {
+			return out, nil
+		}
+	case DetailRPC:
+		out := &members.MemberDetails{}
+		if err = jsonpb.Unmarshal(data, out); err != nil {
+			return fmt.Errorf("could not unmarshal json into %T: %v", out, err)
+		}
+		s.OnDetail = func(ctx context.Context, dr *members.DetailsRequest) (*members.MemberDetails, error) {
 			return out, nil
 		}
 	case StatusRPC:
@@ -135,8 +162,16 @@ func (s *GDS) UseError(rpc string, code codes.Code, msg string) error {
 		s.OnSearch = func(context.Context, *gds.SearchRequest) (*gds.SearchReply, error) {
 			return nil, status.Error(code, msg)
 		}
+	case SummaryRPC:
+		s.OnSummary = func(ctx context.Context, sr *members.SummaryRequest) (*members.SummaryReply, error) {
+			return nil, status.Error(code, msg)
+		}
 	case ListRPC:
 		s.OnList = func(context.Context, *members.ListRequest) (*members.ListReply, error) {
+			return nil, status.Error(code, msg)
+		}
+	case DetailRPC:
+		s.OnDetail = func(ctx context.Context, dr *members.DetailsRequest) (*members.MemberDetails, error) {
 			return nil, status.Error(code, msg)
 		}
 	case StatusRPC:
@@ -159,9 +194,19 @@ func (s *GDS) Search(ctx context.Context, in *gds.SearchRequest) (*gds.SearchRep
 	return s.OnSearch(ctx, in)
 }
 
+func (s *GDS) Summary(ctx context.Context, in *members.SummaryRequest) (*members.SummaryReply, error) {
+	s.Calls[SummaryRPC]++
+	return s.OnSummary(ctx, in)
+}
+
 func (s *GDS) List(ctx context.Context, in *members.ListRequest) (*members.ListReply, error) {
 	s.Calls[ListRPC]++
 	return s.OnList(ctx, in)
+}
+
+func (s *GDS) Detail(ctx context.Context, in *members.DetailsRequest) (*members.MemberDetails, error) {
+	s.Calls[DetailRPC]++
+	return s.OnDetail(ctx, in)
 }
 
 func (s *GDS) Status(ctx context.Context, in *gds.HealthCheck) (*gds.ServiceState, error) {

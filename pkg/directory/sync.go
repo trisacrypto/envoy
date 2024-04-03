@@ -1,16 +1,20 @@
 package directory
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"sync"
 	"time"
 
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/store"
+	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/trisa/gds"
 	"self-hosted-node/pkg/trisa/network"
 
 	"github.com/rs/zerolog/log"
+	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 )
 
 // Syncs the VASPs stored in the Global TRISA Directory (GDS) to local storage for
@@ -19,12 +23,12 @@ import (
 // are updated in the local database.
 type Sync struct {
 	sync.Mutex
-	conf    config.DirectorySyncConfig
-	network network.Network
-	store   store.CounterpartyStore
-	echan   chan<- error
-	stop    chan struct{}
-	done    chan struct{}
+	conf  config.DirectorySyncConfig
+	gds   gds.Directory
+	store store.CounterpartyStore
+	echan chan<- error
+	stop  chan struct{}
+	done  chan struct{}
 }
 
 // Creates a new directory synchronization service but does not run it.
@@ -34,13 +38,17 @@ func New(conf config.DirectorySyncConfig, network network.Network, store store.C
 		return &Sync{conf: conf}, nil
 	}
 
-	// Return a fully allocated sync service
-	return &Sync{
-		conf:    conf,
-		network: network,
-		store:   store,
-		echan:   echan,
-	}, nil
+	s = &Sync{
+		conf:  conf,
+		store: store,
+		echan: echan,
+	}
+
+	if s.gds, err = network.Directory(); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 // Run the directory synchronization service.
@@ -104,16 +112,22 @@ func (s *Sync) Stop() error {
 }
 
 func (s *Sync) Sync() (err error) {
-	// Fetch members from the GDS
-	var gds gds.Directory
-	if gds, err = s.network.Directory(); err != nil {
-		return err
-	}
-
-	// Iterate over all members returned from the directory service
-	iter := ListMembers(gds)
+	// Fetch members from the GDS and iterate over pages.
+	iter := ListMembers(s.gds)
 	for iter.Next() {
-		// TODO: fetch details for member and populate in store.
+		for _, member := range iter.Members() {
+			var vasp *models.Counterparty
+			if vasp, err = s.Counterparty(member.Id); err != nil {
+				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not fetch vasp member details")
+				continue
+			}
+
+			if err = s.store.CreateCounterparty(context.Background(), vasp); err != nil {
+				// TODO: handle database specific errors including constraint violations
+				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
+				continue
+			}
+		}
 	}
 
 	// Check no errors were returned from iteration.
@@ -128,4 +142,41 @@ func (s *Sync) Sync() (err error) {
 	// TODO: remove members that are no longer part of the GDS
 
 	return nil
+}
+
+func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	var detail *members.MemberDetails
+	if detail, err = s.gds.Detail(ctx, &members.DetailsRequest{MemberId: vaspID}); err != nil {
+		return nil, err
+	}
+
+	// Create counterparty from detail reply
+	vasp = &models.Counterparty{
+		Source:              models.SourceDirectorySync,
+		DirectoryID:         sql.NullString{Valid: true, String: detail.MemberSummary.Id},
+		RegisteredDirectory: sql.NullString{Valid: true, String: detail.MemberSummary.RegisteredDirectory},
+		Protocol:            models.ProtocolTRISA,
+		CommonName:          detail.MemberSummary.CommonName,
+		Endpoint:            detail.MemberSummary.Endpoint,
+		Name:                detail.MemberSummary.Name,
+		Website:             sql.NullString{Valid: true, String: detail.MemberSummary.Website},
+		Country:             detail.MemberSummary.Country,
+		BusinessCategory:    detail.MemberSummary.BusinessCategory.String(),
+		VASPCategories:      models.VASPCategories(detail.MemberSummary.VaspCategories),
+		IVMSRecord:          detail.LegalPerson,
+	}
+
+	// Parse the verifiedOn timestamp
+	if detail.MemberSummary.VerifiedOn != "" {
+		var verifiedOn time.Time
+		if verifiedOn, err = time.Parse(time.RFC3339, detail.MemberSummary.VerifiedOn); err != nil {
+			return nil, fmt.Errorf("could not parse verified_on timestamp: %w", err)
+		}
+		vasp.VerifiedOn = sql.NullTime{Valid: true, Time: verifiedOn}
+	}
+
+	return vasp, nil
 }

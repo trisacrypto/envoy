@@ -9,6 +9,13 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
+const (
+	SourceDirectorySync = "gds"
+	SourceUserEntry     = "user"
+	ProtocolTRISA       = "trisa"
+	ProtocolTRP         = "trp"
+)
+
 // TODO: how to incorporate the TRIXO form into this model?
 // TODO: make sure that we add contacts associated with this model.
 type Counterparty struct {

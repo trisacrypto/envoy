@@ -157,6 +157,15 @@ func (g *GDS) Search(ctx context.Context, in *gds.SearchRequest, opts ...grpc.Ca
 	return g.client.Search(ctx, in, opts...)
 }
 
+func (g *GDS) Summary(ctx context.Context, in *members.SummaryRequest, opts ...grpc.CallOption) (*members.SummaryReply, error) {
+	g.RLock()
+	defer g.RUnlock()
+	if g.client == nil {
+		return nil, ErrNotConnected
+	}
+	return g.members.Summary(ctx, in, opts...)
+}
+
 func (g *GDS) List(ctx context.Context, in *members.ListRequest, opts ...grpc.CallOption) (*members.ListReply, error) {
 	g.RLock()
 	defer g.RUnlock()
@@ -164,6 +173,15 @@ func (g *GDS) List(ctx context.Context, in *members.ListRequest, opts ...grpc.Ca
 		return nil, ErrNotConnected
 	}
 	return g.members.List(ctx, in, opts...)
+}
+
+func (g *GDS) Detail(ctx context.Context, in *members.DetailsRequest, opts ...grpc.CallOption) (*members.MemberDetails, error) {
+	g.RLock()
+	defer g.RUnlock()
+	if g.client == nil {
+		return nil, ErrNotConnected
+	}
+	return g.members.Details(ctx, in, opts...)
 }
 
 func (g *GDS) Status(ctx context.Context, in *gds.HealthCheck, opts ...grpc.CallOption) (*gds.ServiceState, error) {
