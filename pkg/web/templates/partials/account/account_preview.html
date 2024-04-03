@@ -1,0 +1,45 @@
+<div class="modal-box">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-xl">Edit Customer Account</h1>
+    <button onclick="acct_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+<p class="py-4">Edit customer account details.</p>
+<div class="">
+  <form id="register-acct" method="post">
+    <div class="mb-4">
+      <label for="first_name" class="label-style">First or Given Name</label>
+      <input type="text" id="first_name" name="first_name" class="input-style" value="{{ .FirstName }}" />
+    </div>
+    <div class="mb-4">
+      <label for="last_name" class="label-style">Last or Family Name</label>
+      <input type="text" id="last_name" name="last_name" class="input-style" value="{{ .LastName }}" />
+    </div>
+    <div class="mb-4">
+      <label for="customer_id" class="label-style">Customer Account ID (optional)</label>
+      <input type="text" id="customer_id" name="customer_id" class="input-style" value="{{ .CustomerID }}" />
+    </div>
+    <div id="crypto-wallets">
+      <div class="grid gap-6 my-4 md:grid-cols-2">
+        <div>
+          <label for="crypto_address" class="label-style">Wallet Address 01</label>
+          <input type="text" id="crypto_address" name="crypto_address" class="input-style" />
+        </div>
+        <div>
+          <label for="network" class="label-style">Network</label>
+          <input type="text" id="network" name="network" class="input-style" />
+        </div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label for="tag" class="label-style">Notes</label>
+      <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+    </div>
+    <div class="flex justify-center">
+      <button hx-put="/v1/accounts/{{ .ID }}" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+    </div>
+  </form>
+  </div>
+</div>
