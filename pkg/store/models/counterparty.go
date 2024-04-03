@@ -30,7 +30,7 @@ type Counterparty struct {
 	Name                string               // the counterparty's legal entity name
 	Website             sql.NullString       // website with more information about the counterparty
 	Country             string               // country the counterparty is associated with
-	BusinessCategory    string               // the business category of the counterparty
+	BusinessCategory    sql.NullString       // the business category of the counterparty
 	VASPCategories      VASPCategories       // the categories of how the VASP handles crypto assets
 	VerifiedOn          sql.NullTime         // the datetime the VASP was verified in the directory (directory only)
 	IVMSRecord          *ivms101.LegalPerson // IVMS101 record for the counterparty
