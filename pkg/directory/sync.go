@@ -44,10 +44,12 @@ func New(conf config.DirectorySyncConfig, network network.Network, store store.C
 		echan: echan,
 	}
 
-	if s.gds, err = network.Directory(); err != nil {
-		return nil, err
+	// Network should only be nil for testing purposes; will panic during sync otherwise
+	if network != nil {
+		if s.gds, err = network.Directory(); err != nil {
+			return nil, err
+		}
 	}
-
 	return s, nil
 }
 
@@ -95,6 +97,11 @@ syncloop:
 
 // Stop the directory synchronization service, blocking until the service is shutdown.
 func (s *Sync) Stop() error {
+	// Do not stop the directory service if it is not enabled
+	if !s.conf.Enabled {
+		return nil
+	}
+
 	s.Lock()
 	defer s.Unlock()
 
@@ -175,7 +182,7 @@ func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error
 		if verifiedOn, err = time.Parse(time.RFC3339, detail.MemberSummary.VerifiedOn); err != nil {
 			return nil, fmt.Errorf("could not parse verified_on timestamp: %w", err)
 		}
-		vasp.VerifiedOn = sql.NullTime{Valid: true, Time: verifiedOn}
+		vasp.VerifiedOn = sql.NullTime{Valid: true, Time: verifiedOn.In(time.UTC)}
 	}
 
 	return vasp, nil

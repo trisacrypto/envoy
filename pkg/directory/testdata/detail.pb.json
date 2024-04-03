@@ -1,0 +1,81 @@
+{
+    "member_summary": {
+        "id": "b5b20dc2-dc0c-4acf-9861-5b73f1ccc170",
+        "registeredDirectory": "trisatest.dev",
+        "commonName": "alice.vaspbot.net",
+        "endpoint": "alice.vaspbot.net:443",
+        "name": "AliceVASP",
+        "website": "https://alicevasp.com",
+        "country": "US",
+        "businessCategory": "BUSINESS_ENTITY",
+        "vaspCategories": [
+            "DEX",
+            "Miner"
+        ],
+        "verifiedOn": "2024-04-02T16:53:21-05:00",
+        "status": "VERIFIED",
+        "firstListed": "2024-04-02T16:53:21-05:00",
+        "lastUpdated": "2024-04-02T16:53:21-05:00"
+    },
+    "legal_person": {
+        "name": {
+            "name_identifiers": [
+                {
+                    "legal_person_name": "AliceVASP, LLC",
+                    "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+                }
+            ]
+        },
+        "geographic_addresses": [
+            {
+                "address_type": "ADDRESS_TYPE_CODE_BIZZ",
+                "address_line": [
+                    "2622 Smith Street",
+                    "Needham, MA 02192"
+                ],
+                "country": "US"
+            }
+        ],
+        "national_identification": {
+            "national_identifier": "50OA00RCAFFIGIRUZR92",
+            "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_LEIX"
+        },
+        "country_of_registration": "US"
+    },
+    "trixo": {
+        "primary_national_jurisdiction": "US",
+        "primary_regulator": "FinCEN",
+        "financial_transfers_permitted": "yes",
+        "other_jurisdictions": [],
+        "has_required_regulatory_program": "yes",
+        "conducts_customer_kyc": true,
+        "kyc_threshold": 5,
+        "kyc_threshold_currency": "USD",
+        "must_comply_travel_rule": false,
+        "applicable_regulations": [],
+        "compliance_threshold": 3000,
+        "compliance_threshold_currency": "USD",
+        "must_safeguard_pii": false,
+        "safeguards_pii": true
+    },
+    "contacts": {
+        "technical": {
+            "name": "Patricia A. Knight",
+            "email": "patricia@alicevasp.com",
+            "phone": "+1 508-555-3136"
+        },
+        "administrative": {
+            "name": "Jeff Rush",
+            "email": "jeff@alicevasp.com"
+        },
+        "billing": {
+            "name": "Lottie Meyers",
+            "email": "lottie@alicevasp.com"
+        },
+        "legal": {
+            "name": "William J. Reddington",
+            "email": "bill@alicevasp.com",
+            "phone": "+1 508-555-0258"
+        }
+    }
+}

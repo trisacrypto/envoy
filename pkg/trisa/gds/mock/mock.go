@@ -204,7 +204,7 @@ func (s *GDS) List(ctx context.Context, in *members.ListRequest) (*members.ListR
 	return s.OnList(ctx, in)
 }
 
-func (s *GDS) Detail(ctx context.Context, in *members.DetailsRequest) (*members.MemberDetails, error) {
+func (s *GDS) Details(ctx context.Context, in *members.DetailsRequest) (*members.MemberDetails, error) {
 	s.Calls[DetailRPC]++
 	return s.OnDetail(ctx, in)
 }
