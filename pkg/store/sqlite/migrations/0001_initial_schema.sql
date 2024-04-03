@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     customer_id     TEXT,
     first_name      TEXT,
     last_name       TEXT,
-    travel_address  TEXT NOT NULL UNIQUE,
+    travel_address  TEXT UNIQUE,
     ivms101         BLOB,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS crypto_addresses (
     network         TEXT NOT NULL,
     asset_type      TEXT,
     tag             TEXT,
+    travel_address  TEXT UNIQUE,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE

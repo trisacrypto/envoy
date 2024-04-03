@@ -91,6 +91,9 @@ func (s *Server) setupRoutes() (err error) {
 		// Status/Heartbeat endpoint
 		v1.GET("/status", s.Status)
 
+		// TODO: remove, this is for debugging only
+		// v1.POST("/debug", s.Debug)
+
 		// Accounts Resource
 		accounts := v1.Group("/accounts")
 		{
