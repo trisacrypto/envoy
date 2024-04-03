@@ -18,7 +18,7 @@ type Account struct {
 	CustomerID    sql.NullString   // Account ID of internal user record (optional)
 	FirstName     sql.NullString   // First name (forename) of user
 	LastName      sql.NullString   // Last name (surname) of user
-	TravelAddress string           // Generated TravelAddress for this user
+	TravelAddress sql.NullString   // Generated TravelAddress for this user
 	IVMSRecord    *ivms101.Person  // IVMS101 record for the account
 	addresses     []*CryptoAddress // Associated crypto addresses
 }
@@ -30,6 +30,7 @@ type CryptoAddress struct {
 	Network       string         // The network associated with the crypto address in SIP0044 encoding
 	AssetType     sql.NullString // The asset type with the crypto address (optional)
 	Tag           sql.NullString // The memo or destination tag associated with the address (optional)
+	TravelAddress sql.NullString // Generated TravelAddress for this wallet address
 	account       *Account       // Associated account
 }
 
@@ -55,6 +56,7 @@ func (a *Account) ScanSummary(scanner Scanner) error {
 		&a.FirstName,
 		&a.LastName,
 		&a.TravelAddress,
+		&a.Created,
 	)
 }
 
@@ -95,6 +97,7 @@ func (a *CryptoAddress) Scan(scanner Scanner) error {
 		&a.Network,
 		&a.AssetType,
 		&a.Tag,
+		&a.TravelAddress,
 		&a.Created,
 		&a.Modified,
 	)
@@ -109,6 +112,7 @@ func (a *CryptoAddress) Params() []any {
 		sql.Named("network", a.Network),
 		sql.Named("assetType", a.AssetType),
 		sql.Named("tag", a.Tag),
+		sql.Named("travelAddress", a.TravelAddress),
 		sql.Named("created", a.Created),
 		sql.Named("modified", a.Modified),
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	dberr "self-hosted-node/pkg/store/errors"
 	"self-hosted-node/pkg/store/models"
 	"strings"
 	"time"
@@ -91,6 +93,7 @@ type CryptoAddress struct {
 	Network       string    `json:"network"`
 	AssetType     string    `json:"asset_type"`
 	Tag           string    `json:"tag"`
+	TravelAddress string    `json:"travel_address,omitempty"`
 	Created       time.Time `json:"created,omitempty"`
 	Modified      time.Time `json:"modified,omitempty"`
 }
@@ -111,7 +114,7 @@ func NewAccount(model *models.Account) (out *Account, err error) {
 		CustomerID:    model.CustomerID.String,
 		FirstName:     model.FirstName.String,
 		LastName:      model.LastName.String,
-		TravelAddress: model.TravelAddress,
+		TravelAddress: model.TravelAddress.String,
 		Created:       model.Created,
 		Modified:      model.Modified,
 	}
@@ -129,7 +132,9 @@ func NewAccount(model *models.Account) (out *Account, err error) {
 	// Collect the crypto address associations
 	var addresses []*models.CryptoAddress
 	if addresses, err = model.CryptoAddresses(); err != nil {
-		return nil, err
+		if !errors.Is(err, dberr.ErrMissingAssociation) {
+			return nil, err
+		}
 	}
 
 	// Add the crypto addresses to the response
@@ -171,7 +176,7 @@ func (a *Account) Model() (model *models.Account, err error) {
 		CustomerID:    sql.NullString{String: a.CustomerID, Valid: a.CustomerID != ""},
 		FirstName:     sql.NullString{String: a.FirstName, Valid: a.FirstName != ""},
 		LastName:      sql.NullString{String: a.LastName, Valid: a.LastName != ""},
-		TravelAddress: a.TravelAddress,
+		TravelAddress: sql.NullString{String: a.TravelAddress, Valid: a.TravelAddress != ""},
 		IVMSRecord:    nil,
 	}
 
@@ -202,6 +207,7 @@ func NewCryptoAddress(model *models.CryptoAddress) (*CryptoAddress, error) {
 		Network:       model.Network,
 		AssetType:     model.AssetType.String,
 		Tag:           model.Tag.String,
+		TravelAddress: model.TravelAddress.String,
 		Created:       model.Created,
 		Modified:      model.Modified,
 	}, nil
@@ -237,6 +243,7 @@ func (c *CryptoAddress) Model(acct *models.Account) (*models.CryptoAddress, erro
 		Network:       c.Network,
 		AssetType:     sql.NullString{String: c.AssetType, Valid: c.AssetType != ""},
 		Tag:           sql.NullString{String: c.Tag, Valid: c.Tag != ""},
+		TravelAddress: sql.NullString{String: c.TravelAddress, Valid: c.TravelAddress != ""},
 	}
 
 	if acct != nil {

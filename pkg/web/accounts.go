@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dberr "self-hosted-node/pkg/store/errors"
@@ -75,7 +76,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 
 	// Convert the API account request into a database model
 	if account, err = in.Model(); err != nil {
-		c.Error(err)
+		c.Error(fmt.Errorf("could not deserialize request into model: %w", err))
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
@@ -83,14 +84,14 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	// Create the model in the database (which will update the pointer)
 	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
 		// TODO: are there other error types that we need to handle to return a 400?
-		c.Error(err)
+		c.Error(fmt.Errorf("could not create account: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
 	// Convert the model back to an API response
 	if out, err = api.NewAccount(account); err != nil {
-		c.Error(err)
+		c.Error(fmt.Errorf("serialization failed: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}

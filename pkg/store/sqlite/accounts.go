@@ -13,7 +13,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address FROM accounts"
+const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created FROM accounts"
 
 // Retrieve summary information for all accounts for the specified page, omitting
 // crypto addresses and any other irrelevant information.
@@ -88,7 +88,6 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 		if err = s.createCryptoAddress(tx, addr); err != nil {
 			return err
 		}
-		addr.SetAccount(account)
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -253,7 +252,7 @@ func (s *Store) listCryptoAddresses(tx *sql.Tx, account *models.Account) (err er
 	return nil
 }
 
-const createCryptoAddressSQL = "INSERT INTO crypto_addresses (id, account_id, crypto_address, network, asset_type, tag, created, modified) VALUES (:id, :accountID, :cryptoAddress, :network, :assetType, :tag, :created, :modified)"
+const createCryptoAddressSQL = "INSERT INTO crypto_addresses (id, account_id, crypto_address, network, asset_type, tag, travel_address, created, modified) VALUES (:id, :accountID, :cryptoAddress, :network, :assetType, :tag, :travelAddress, :created, :modified)"
 
 func (s *Store) CreateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
 	var tx *sql.Tx
@@ -319,7 +318,7 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 }
 
 // TODO: this must be an upsert/delete since the data is being modified on the relation
-const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, modified=:modified WHERE id=:id and account_id=:accountID"
+const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, travel_address=:travelAddress modified=:modified WHERE id=:id and account_id=:accountID"
 
 func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
 	// Basic validation
