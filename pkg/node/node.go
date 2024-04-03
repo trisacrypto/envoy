@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"self-hosted-node/pkg/config"
+	"self-hosted-node/pkg/directory"
 	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/store"
 	"self-hosted-node/pkg/trisa"
@@ -73,6 +74,11 @@ func New(conf config.Config) (node *Node, err error) {
 		return nil, err
 	}
 
+	// Create the directory sync background routine
+	if node.syncd, err = directory.New(conf.DirectorySync, node.network, node.store, node.errc); err != nil {
+		return nil, err
+	}
+
 	return node, nil
 }
 
@@ -83,6 +89,7 @@ type Node struct {
 	conf    config.Config
 	admin   *web.Server
 	trisa   *trisa.Server
+	syncd   *directory.Sync
 	store   store.Store
 	network network.Network
 	errc    chan error
@@ -113,7 +120,11 @@ func (s *Node) Serve() (err error) {
 
 	// Block until an error occurs or shutdown happens
 	log.Info().Msg("trisa node server has started")
-	return <-s.errc
+	if err := <-s.errc; err != nil {
+		log.WithLevel(zerolog.FatalLevel).Err(err).Msg("trisa node crashed")
+		return err
+	}
+	return nil
 }
 
 func (s *Node) Shutdown() (err error) {

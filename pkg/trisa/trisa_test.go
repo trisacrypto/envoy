@@ -42,6 +42,7 @@ func (s *trisaTestSuite) SetupSuite() {
 	s.echan = make(chan error, 1)
 	s.conf = config.TRISAConfig{
 		Maintenance:         false,
+		Enabled:             true,
 		BindAddr:            "bufnet",
 		Certs:               "testdata/certs/alice.vaspbot.net.pem",
 		Pool:                "testdata/certs/trisatest.dev.pem",

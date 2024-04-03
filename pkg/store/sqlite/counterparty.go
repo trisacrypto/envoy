@@ -48,6 +48,38 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 	return out, nil
 }
 
+const listCounterpartySourceInfoSQL = "SELECT id, source, directory_id, registered_directory_protocol FROM counterparties WHERE source=:source"
+
+func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) (out []*models.CounterpartySourceInfo, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	out = make([]*models.CounterpartySourceInfo, 0)
+
+	var rows *sql.Rows
+	if rows, err = tx.Query(listCounterpartySourceInfoSQL, sql.Named("source", source)); err != nil {
+		// TODO: handle database specific errors
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		// Scan counterparty source info into memory
+		info := &models.CounterpartySourceInfo{}
+		if err = info.Scan(rows); err != nil {
+			return nil, err
+		}
+
+		out = append(out, info)
+	}
+
+	tx.Commit()
+	return out, nil
+}
+
 const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :created, :modified)"
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {

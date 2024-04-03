@@ -64,6 +64,10 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 	return nil, nil
 }
 
+func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) ([]*models.CounterpartySourceInfo, error) {
+	return nil, nil
+}
+
 func (s *Store) CreateCounterparty(context.Context, *models.Counterparty) error {
 	return nil
 }

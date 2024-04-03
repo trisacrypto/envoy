@@ -24,14 +24,15 @@ const Prefix = "trisa"
 // values that are omitted. The Config should be validated in preparation for running
 // the server to ensure that all server operations work as expected.
 type Config struct {
-	Maintenance bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
-	Mode        string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
-	LogLevel    logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
-	ConsoleLog  bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
-	DatabaseURL string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
-	Web         WebConfig           `split_words:"true"`
-	Node        TRISAConfig         `split_words:"true"`
-	processed   bool
+	Maintenance   bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
+	Mode          string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
+	LogLevel      logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
+	ConsoleLog    bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
+	DatabaseURL   string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
+	Web           WebConfig           `split_words:"true"`
+	Node          TRISAConfig         `split_words:"true"`
+	DirectorySync DirectorySyncConfig `split_words:"true"`
+	processed     bool
 }
 
 // WebConfig specifies the configuration for the web UI to manage the TRISA node and
@@ -64,6 +65,13 @@ type DirectoryConfig struct {
 	Insecure        bool   `default:"false" desc:"if true, do not connect using TLS"`
 	Endpoint        string `default:"api.vaspdirectory.net:443" required:"true" desc:"the endpoint of the public GDS service"`
 	MembersEndpoint string `default:"members.vaspdirectory.net:443" required:"true" split_words:"true" desc:"the endpoint of the members only GDS service"`
+}
+
+// DirectorySyncConfig manages the behavior of synchronizing counterparty VASPs with the
+// TRISA Global Directory Service (GDS).
+type DirectorySyncConfig struct {
+	Enabled  bool          `default:"true" desc:"if false, the sync background service will not be run"`
+	Interval time.Duration `default:"6h" desc:"the interval synchronization is run"`
 }
 
 func New() (conf Config, err error) {

@@ -6,7 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+)
+
+const (
+	SourceDirectorySync = "gds"
+	SourceUserEntry     = "user"
+	ProtocolTRISA       = "trisa"
+	ProtocolTRP         = "trp"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
@@ -83,6 +91,24 @@ func (c *Counterparty) Params() []any {
 		sql.Named("created", c.Created),
 		sql.Named("modified", c.Modified),
 	}
+}
+
+type CounterpartySourceInfo struct {
+	ID                  ulid.ULID
+	Source              string         // either directory or locally created
+	DirectoryID         sql.NullString // the directory ID associated with the counterparty (directory only)
+	RegisteredDirectory sql.NullString // the registered directory of the counterparty (directory only)
+	Protocol            string         // either TRISA or TRP; the protocol to use to send travel rule information
+}
+
+func (c *CounterpartySourceInfo) Scan(scanner Scanner) error {
+	return scanner.Scan(
+		&c.ID,
+		&c.Source,
+		&c.DirectoryID,
+		&c.RegisteredDirectory,
+		&c.Protocol,
+	)
 }
 
 // VASPCategories allows the string list to be stored in the database as a JSON array.

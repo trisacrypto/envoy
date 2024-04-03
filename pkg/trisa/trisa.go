@@ -36,6 +36,11 @@ func New(conf config.TRISAConfig, network network.Network, echan chan<- error) (
 		echan:   echan,
 	}
 
+	// If not enabled return the server stub
+	if !conf.Enabled {
+		return s, nil
+	}
+
 	// Load the TRISA identity certificates and trust pool
 	// TODO: load from the database if available
 	if s.identity, err = conf.LoadCerts(); err != nil {
@@ -66,13 +71,18 @@ func New(conf config.TRISAConfig, network network.Network, echan chan<- error) (
 }
 
 func (s *Server) Serve() (err error) {
+	if !s.conf.Enabled {
+		log.Warn().Bool("enabled", s.conf.Enabled).Msg("trisa node server is not enabled")
+		return nil
+	}
+
 	var sock net.Listener
 	if sock, err = net.Listen("tcp", s.conf.BindAddr); err != nil {
 		return err
 	}
 
 	go s.Run(sock)
-	log.Info().Str("addr", s.conf.BindAddr).Bool("maintenance", s.conf.Maintenance).Msg("TRISA server started")
+	log.Info().Str("addr", s.conf.BindAddr).Bool("maintenance", s.conf.Maintenance).Msg("trisa server started")
 	return nil
 }
 
@@ -84,8 +94,8 @@ func (s *Server) Run(sock net.Listener) {
 }
 
 func (s *Server) Shutdown() error {
-	log.Trace().Msg("gracefully shutting down the TRISA server")
+	log.Trace().Msg("gracefully shutting down the trisa server")
 	s.srv.GracefulStop()
-	log.Debug().Msg("TRISA server stopped")
+	log.Debug().Msg("trisa server stopped")
 	return nil
 }
