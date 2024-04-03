@@ -161,7 +161,7 @@ func (s *APIv1) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 	}
 
 	if _, err = s.Do(req, nil, true); err != nil {
-		return nil
+		return err
 	}
 
 	return nil
@@ -243,7 +243,87 @@ func (s *APIv1) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 	}
 
 	if _, err = s.Do(req, nil, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//===========================================================================
+// Counterparty Resource
+//===========================================================================
+
+func (s *APIv1) ListCounterparties(ctx context.Context, in *PageQuery) (out *CounterpartyList, err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode page query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/counterparties", nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) CreateCounterparty(ctx context.Context, in *Counterparty) (out *Counterparty, err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, "/v1/counterparties", in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) CounterpartyDetail(ctx context.Context, id ulid.ULID) (out *Counterparty, err error) {
+	endpoint := fmt.Sprintf("/v1/counterparties/%s", id)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) UpdateCounterparty(ctx context.Context, in *Counterparty) (out *Counterparty, err error) {
+	endpoint := fmt.Sprintf("/v1/counterparties/%s", in.ID)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error) {
+	endpoint := fmt.Sprintf("/v1/counterparties/%s", id)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
 		return nil
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return err
 	}
 
 	return nil

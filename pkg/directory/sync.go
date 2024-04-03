@@ -220,7 +220,7 @@ func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error
 		Name:                detail.MemberSummary.Name,
 		Website:             sql.NullString{Valid: true, String: detail.MemberSummary.Website},
 		Country:             detail.MemberSummary.Country,
-		BusinessCategory:    detail.MemberSummary.BusinessCategory.String(),
+		BusinessCategory:    sql.NullString{Valid: true, String: detail.MemberSummary.BusinessCategory.String()},
 		VASPCategories:      models.VASPCategories(detail.MemberSummary.VaspCategories),
 		IVMSRecord:          detail.LegalPerson,
 	}
