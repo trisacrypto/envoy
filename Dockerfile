@@ -17,7 +17,7 @@ WORKDIR $GOPATH/src/github.com/trisacrypto/self-hosted-node
 COPY go.mod .
 COPY go.sum .
 
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=1
 ENV GO111MODULE=on
 RUN go mod download
 RUN go mod verify
