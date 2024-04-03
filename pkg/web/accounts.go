@@ -359,7 +359,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	// TODO: validate the input
 
 	// Convert the request into a database model
-	if model, err = in.Model(); err != nil {
+	if model, err = in.Model(nil); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -484,7 +484,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	// TODO: validate the crypto address input
 
 	// Convert the crypto address request into a database model
-	if model, err = in.Model(); err != nil {
+	if model, err = in.Model(nil); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return

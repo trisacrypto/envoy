@@ -88,6 +88,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 		if err = s.createCryptoAddress(tx, addr); err != nil {
 			return err
 		}
+		addr.SetAccount(account)
 	}
 
 	if err = tx.Commit(); err != nil {

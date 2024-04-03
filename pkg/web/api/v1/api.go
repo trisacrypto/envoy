@@ -185,7 +185,7 @@ func (a *Account) Model() (model *models.Account, err error) {
 	if len(a.CryptoAddresses) > 0 {
 		addresses := make([]*models.CryptoAddress, 0, len(a.CryptoAddresses))
 		for _, address := range a.CryptoAddresses {
-			addr, _ := address.Model()
+			addr, _ := address.Model(model)
 			addresses = append(addresses, addr)
 		}
 
@@ -226,8 +226,8 @@ func NewCryptoAddressList(page *models.CryptoAddressPage) (out *CryptoAddressLis
 	return out, nil
 }
 
-func (c *CryptoAddress) Model() (*models.CryptoAddress, error) {
-	return &models.CryptoAddress{
+func (c *CryptoAddress) Model(acct *models.Account) (*models.CryptoAddress, error) {
+	addr := &models.CryptoAddress{
 		Model: models.Model{
 			ID:       c.ID,
 			Created:  c.Created,
@@ -237,7 +237,12 @@ func (c *CryptoAddress) Model() (*models.CryptoAddress, error) {
 		Network:       c.Network,
 		AssetType:     sql.NullString{String: c.AssetType, Valid: c.AssetType != ""},
 		Tag:           sql.NullString{String: c.Tag, Valid: c.Tag != ""},
-	}, nil
+	}
+
+	if acct != nil {
+		addr.SetAccount(acct)
+	}
+	return addr, nil
 }
 
 //===========================================================================
