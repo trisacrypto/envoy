@@ -13,6 +13,7 @@ import (
 	"self-hosted-node/pkg/trisa/gds"
 	"self-hosted-node/pkg/trisa/network"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 )
@@ -119,6 +120,16 @@ func (s *Sync) Stop() error {
 }
 
 func (s *Sync) Sync() (err error) {
+	// Create the counterparty source map for upsert identification and deletion
+	var local map[string]ulid.ULID
+	if local, err = s.MakeSourceMap(); err != nil {
+		// If the database cannot be accessed, this is a fatal error
+		return err
+	}
+
+	// Track which members have been upserted to identify counterparties to remove
+	upserts := make(map[ulid.ULID]struct{})
+
 	// Fetch members from the GDS and iterate over pages.
 	iter := ListMembers(s.gds)
 	for iter.Next() {
@@ -129,11 +140,23 @@ func (s *Sync) Sync() (err error) {
 				continue
 			}
 
-			if err = s.store.CreateCounterparty(context.Background(), vasp); err != nil {
-				// TODO: handle database specific errors including constraint violations
-				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
-				continue
+			// Lookup the counterparty in the local table to determine if update or create is required
+			var update bool
+			vasp.ID, update = local[member.Id]
+
+			if update {
+				if err = s.store.UpdateCounterparty(context.Background(), vasp); err != nil {
+					// TODO: handle database specific errors including constraint violations
+					log.Warn().Err(err).Str("id", vasp.ID.String()).Str("vaspID", member.Id).Msg("could not update vasp member counterparty")
+				}
+			} else {
+				if err = s.store.CreateCounterparty(context.Background(), vasp); err != nil {
+					// TODO: handle database specific errors including constraint violations
+					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
+				}
 			}
+
+			upserts[vasp.ID] = struct{}{}
 		}
 	}
 
@@ -146,9 +169,35 @@ func (s *Sync) Sync() (err error) {
 		return nil
 	}
 
-	// TODO: remove members that are no longer part of the GDS
+	// Remove members that are no longer part of the GDS
+	for _, cpID := range local {
+		// If a local ID has not been created or updated then it is no longer in the
+		// GDS and should be removed from the local database.
+		if _, ok := upserts[cpID]; !ok {
+			if err = s.store.DeleteCounterparty(context.Background(), cpID); err != nil {
+				log.Warn().Err(err).Str("id", cpID.String()).Msg("could not delete counterparty")
+			}
+		}
+	}
 
 	return nil
+}
+
+func (s *Sync) MakeSourceMap() (local map[string]ulid.ULID, err error) {
+	var srcInfo []*models.CounterpartySourceInfo
+	if srcInfo, err = s.store.ListCounterpartySourceInfo(context.Background(), models.SourceDirectorySync); err != nil {
+		return nil, err
+	}
+
+	local = make(map[string]ulid.ULID)
+	for _, info := range srcInfo {
+		if !info.DirectoryID.Valid || info.DirectoryID.String == "" {
+			continue
+		}
+		local[info.DirectoryID.String] = info.ID
+	}
+
+	return local, nil
 }
 
 func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error) {
