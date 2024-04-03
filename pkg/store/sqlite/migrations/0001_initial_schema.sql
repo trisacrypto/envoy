@@ -44,14 +44,13 @@ CREATE TABLE IF NOT EXISTS counterparties (
     name                    TEXT NOT NULL,
     website                 TEXT,
     country                 TEXT NOT NULL,
-    business_category       TEXT NOT NULL,
+    business_category       TEXT,
     vasp_categories         BLOB,
     verified_on             DATETIME,
     ivms101                 BLOB,
     created                 DATETIME NOT NULL,
     modified                DATETIME NOT NULL,
-    UNIQUE(protocol, common_name, endpoint),
-    UNIQUE(directory_id, registered_directory)
+    UNIQUE(protocol, common_name, endpoint)
 );
 
 COMMIT;

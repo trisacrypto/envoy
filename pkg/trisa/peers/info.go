@@ -34,12 +34,12 @@ func (i *Info) Validate() error {
 // Returns a counterparty data structure for API purposes.
 func (i *Info) Counterparty() *api.Counterparty {
 	return &api.Counterparty{
-		ID:                  i.ID,
+		DirectoryID:         i.ID,
 		RegisteredDirectory: i.RegisteredDirectory,
 		CommonName:          i.CommonName,
 		Endpoint:            i.Endpoint,
 		Name:                i.Name,
 		Country:             i.Country,
-		VerifiedOn:          i.VerifiedOn.Format(time.RFC3339Nano),
+		VerifiedOn:          i.VerifiedOn,
 	}
 }
