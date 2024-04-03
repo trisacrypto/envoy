@@ -26,8 +26,8 @@
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
-              <li><a onclick="" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="" hx-swap="innerHTML">Edit</a></li>
-              <li><a onclick="" hx-get="/v1/counterparties/{{ .ID }}" hx-target="" hx-swap="innerHTML">View</a></li>
+              <li><a onclick="" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">Edit</a></li>
+              <li><a onclick="" hx-get="/v1/counterparties/{{ .ID }}" hx-target="#cparty_modal" hx-swap="innerHTML">View</a></li>
             </ul>
           </div>
         </td>

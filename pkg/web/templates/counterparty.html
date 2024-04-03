@@ -25,10 +25,6 @@
       <p class="py-4">Add new counterparty VASP details.</p>
       <div class="">
         <form id="new-vasp-form" method="post">
-          <div class="mb-4">
-            <label for="name" class="label-style">VASP Legal Name</label>
-            <input type="text" id="name" name="name" class="input-style" />
-          </div>
             <div class="mb-4">
               <label for="email" class="label-style">Compliance Email Address</label>
               <input type="text" id="email" name="email" class="input-style" />
@@ -76,11 +72,14 @@
             <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
           </div>
           <div class="flex justify-center">
-            <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+            <button hx-post="/v1/counterparties" hx-ext="json-enc" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
           </div>
         </form>
       </div>
     </div>
   </dialog>
+
+  <!-- Target for edit and view counterparty modals -->
+  <dialog id="cparty_modal" class="modal"></dialog>
 
 {{ end }}

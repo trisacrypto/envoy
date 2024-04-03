@@ -16,9 +16,15 @@
         <tr class="hover">
           <td>{{ .CustomerID }}</td>
           <td>{{ .FirstName }}&nbsp;{{ .LastName }}</td>
-          <!-- TODO: Add virtual asset and wallet address values -->
-          <td></td>
-          <td></td>
+          {{ if .CryptoAddresses }}
+          {{ range .CryptoAddresses }}
+          <td>{{ .CryptoAddress }}</td>
+          <td>{{ .Network }}</td>
+          {{ end }}
+          {{ else }}
+          <td class="px-16">-</td>
+          <td class="px-16">-</td>
+          {{ end }}
           {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
           <td>{{ $created }}</td>
           <td>

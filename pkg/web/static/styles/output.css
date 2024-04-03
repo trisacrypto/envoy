@@ -2454,6 +2454,10 @@ html {
   margin-top: 2rem;
 }
 
+.ml-12 {
+  margin-left: 3rem;
+}
+
 .block {
   display: block;
 }
@@ -2766,6 +2770,16 @@ html {
   padding-bottom: 2.25rem;
 }
 
+.px-12 {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+.px-16 {
+  padding-left: 4rem;
+  padding-right: 4rem;
+}
+
 .pb-2 {
   padding-bottom: 0.5rem;
 }
@@ -2780,6 +2794,10 @@ html {
 
 .pt-2 {
   padding-top: 0.5rem;
+}
+
+.pl-12 {
+  padding-left: 3rem;
 }
 
 .text-center {
