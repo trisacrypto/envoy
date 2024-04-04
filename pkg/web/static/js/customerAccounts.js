@@ -1,7 +1,6 @@
 const addWalletBttn = document.getElementById('add-wallet-bttn')
 const extractWalletRE = /(crypto_address|network)_(\d+)/g;
 
-
 document.body.addEventListener("htmx:configRequest", (e) => {
   // Check if this is a POST request for the accounts form.
   if (e.detail.path == "/v1/accounts" && e.detail.verb == "post") {
@@ -57,3 +56,13 @@ addWalletBttn?.addEventListener('click', () => {
   </div>
   `)
 })
+
+document.body.addEventListener('htmx:afterRequest', (e) => {
+  const newAcctForm = 'new-acct-form'
+  // Check if the request to register a new customer account was successful.
+  if (e.detail.elt.id === newAcctForm && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    // Close the modal and reset the form values.
+    document.getElementById('new_acct_modal').close()
+    document.getElementById(newAcctForm).reset()
+  }
+});
