@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"net/url"
 	dberr "self-hosted-node/pkg/store/errors"
 	"self-hosted-node/pkg/store/models"
 	"strings"
@@ -351,7 +352,18 @@ func (c *Counterparty) Validate() (err error) {
 	}
 
 	if c.CommonName == "" {
-		err = ValidationError(err, MissingField("common_name"))
+		// Set common name to the hostname endpoint if not supplied by default
+		if c.Endpoint != "" {
+			if u, err := url.Parse(c.Endpoint); err == nil {
+				c.CommonName = u.Hostname()
+			}
+		}
+
+		// If no common name still exists (e.g. endpoint is missing or not parseable)
+		// then return a missing field error
+		if c.CommonName == "" {
+			err = ValidationError(err, MissingField("common_name"))
+		}
 	}
 
 	if c.Endpoint == "" {

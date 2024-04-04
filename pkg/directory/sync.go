@@ -79,6 +79,13 @@ func (s *Sync) run() {
 	ticker := time.NewTicker(s.conf.Interval)
 	log.Info().Dur("sync_interval", s.conf.Interval).Msg("directory sync service running")
 
+	// Execute first sync at startup
+	if err := s.Sync(); err != nil {
+		s.echan <- fmt.Errorf("directory synchronization fatal error: %w", err)
+		return
+	}
+
+	// Start directory sync interval
 syncloop:
 	for {
 		select {

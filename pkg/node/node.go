@@ -106,7 +106,13 @@ func (s *Node) Serve() (err error) {
 		s.errc <- s.Shutdown()
 	}()
 
-	// TODO: handle maintenance mode setup tasks
+	// Run services that should not be run in maintenance mode
+	if !s.conf.Maintenance {
+		// Run the directory sync service
+		if err = s.syncd.Run(); err != nil {
+			return err
+		}
+	}
 
 	// Start the web ui server if it is enabled
 	if err = s.admin.Serve(s.errc); err != nil {
@@ -129,6 +135,13 @@ func (s *Node) Serve() (err error) {
 
 func (s *Node) Shutdown() (err error) {
 	log.Info().Msg("gracefully shutting down trisa node services")
+
+	// Stop services that only run when not in maintenance mode
+	if !s.conf.Maintenance {
+		if serr := s.syncd.Stop(); serr != nil {
+			err = errors.Join(err, serr)
+		}
+	}
 
 	// Shutdown web ui server if it is enabled.
 	if serr := s.admin.Shutdown(); serr != nil {
