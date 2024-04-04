@@ -8,6 +8,16 @@ type PageInfo struct {
 	PrevPageID ulid.ULID `json:"prev_page_id"`
 }
 
+type TransactionPage struct {
+	Transactions []*Transaction `json:"transactions"`
+	Page         *PageInfo      `json:"page"`
+}
+
+type SecureEnvelopePage struct {
+	Envelopes []*SecureEnvelope `json:"envelopes"`
+	Page      *PageInfo         `json:"page"`
+}
+
 type AccountsPage struct {
 	Accounts []*Account `json:"accounts"`
 	Page     *PageInfo  `json:"page"`
