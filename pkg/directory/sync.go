@@ -120,6 +120,8 @@ func (s *Sync) Stop() error {
 }
 
 func (s *Sync) Sync() (err error) {
+	log.Debug().Msg("starting directory members sync")
+
 	// Create the counterparty source map for upsert identification and deletion
 	var local map[string]ulid.ULID
 	if local, err = s.MakeSourceMap(); err != nil {
@@ -129,6 +131,7 @@ func (s *Sync) Sync() (err error) {
 
 	// Track which members have been upserted to identify counterparties to remove
 	upserts := make(map[ulid.ULID]struct{})
+	updated, created, deleted := 0, 0, 0
 
 	// Fetch members from the GDS and iterate over pages.
 	iter := ListMembers(s.gds)
@@ -148,11 +151,15 @@ func (s *Sync) Sync() (err error) {
 				if err = s.store.UpdateCounterparty(context.Background(), vasp); err != nil {
 					// TODO: handle database specific errors including constraint violations
 					log.Warn().Err(err).Str("id", vasp.ID.String()).Str("vaspID", member.Id).Msg("could not update vasp member counterparty")
+				} else {
+					updated++
 				}
 			} else {
 				if err = s.store.CreateCounterparty(context.Background(), vasp); err != nil {
 					// TODO: handle database specific errors including constraint violations
 					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
+				} else {
+					created++
 				}
 			}
 
@@ -176,10 +183,13 @@ func (s *Sync) Sync() (err error) {
 		if _, ok := upserts[cpID]; !ok {
 			if err = s.store.DeleteCounterparty(context.Background(), cpID); err != nil {
 				log.Warn().Err(err).Str("id", cpID.String()).Msg("could not delete counterparty")
+			} else {
+				deleted++
 			}
 		}
 	}
 
+	log.Info().Int("updated", updated).Int("created", created).Int("deleted", deleted).Msg("directory members sync complete")
 	return nil
 }
 
