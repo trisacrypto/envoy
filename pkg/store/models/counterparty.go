@@ -38,7 +38,9 @@ type Counterparty struct {
 
 // Scan a complete SELECT into the counterparty model
 func (c *Counterparty) Scan(scanner Scanner) error {
-	return scanner.Scan(
+	var data []byte
+
+	err := scanner.Scan(
 		&c.ID,
 		&c.Source,
 		&c.DirectoryID,
@@ -52,10 +54,20 @@ func (c *Counterparty) Scan(scanner Scanner) error {
 		&c.BusinessCategory,
 		&c.VASPCategories,
 		&c.VerifiedOn,
-		&c.IVMSRecord,
+		&data,
 		&c.Created,
 		&c.Modified,
 	)
+
+	if err != nil {
+		return err
+	}
+
+	c.IVMSRecord = &ivms101.LegalPerson{}
+	if err = json.Unmarshal(data, c.IVMSRecord); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Scan a partial SELECT into the counterparty model
@@ -73,6 +85,9 @@ func (c *Counterparty) ScanSummary(scanner Scanner) error {
 
 // Get complete named params of the counterparty from the model.
 func (c *Counterparty) Params() []any {
+	// HACK: need to add the Scanner interface to the IVMS101 data
+	data, _ := json.Marshal(c.IVMSRecord)
+
 	return []any{
 		sql.Named("id", c.ID),
 		sql.Named("source", c.Source),
@@ -87,7 +102,7 @@ func (c *Counterparty) Params() []any {
 		sql.Named("businessCategory", c.BusinessCategory),
 		sql.Named("vaspCategories", c.VASPCategories),
 		sql.Named("verifiedOn", c.VerifiedOn),
-		sql.Named("ivms101", c.IVMSRecord),
+		sql.Named("ivms101", data),
 		sql.Named("created", c.Created),
 		sql.Named("modified", c.Modified),
 	}
