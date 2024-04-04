@@ -4,6 +4,7 @@ import (
 	"self-hosted-node/pkg/bufconn"
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/directory"
+	"self-hosted-node/pkg/store"
 	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/trisa/gds"
 	mockgds "self-hosted-node/pkg/trisa/gds/mock"
@@ -14,11 +15,43 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
 )
 
 func TestStartStop(t *testing.T) {
+	bufnet := bufconn.New()
+	defer bufnet.Close()
+
+	conf := config.Config{
+		Node: config.TRISAConfig{
+			Pool:                "testdata/trisatest.dev.pem",
+			Certs:               "testdata/client.trisatest.dev.pem",
+			KeyExchangeCacheTTL: 24 * time.Hour,
+			Directory: config.DirectoryConfig{
+				Insecure:        true,
+				Endpoint:        "bufnet",
+				MembersEndpoint: "bufnet",
+			},
+		},
+		DirectorySync: config.DirectorySyncConfig{
+			Enabled:  true,
+			Interval: 48 * time.Hour,
+		},
+	}
+
+	network, err := network.NewMocked(&conf.Node)
+	require.NoError(t, err, "could not create mocked network")
+
+	dir, err := network.Directory()
+	require.NoError(t, err, "could not fetch mocked directory service")
+	mock := dir.(*gds.MockGDS).GetMock()
+	mock.UseError(mockgds.ListRPC, codes.Unavailable, "service not available")
+
+	store, err := store.Open("mock:///mock")
+	require.NoError(t, err, "could not open mock store")
+
 	t.Run("Enabled", func(t *testing.T) {
-		sync, err := directory.New(config.DirectorySyncConfig{Enabled: true, Interval: 48 * time.Hour}, nil, nil, nil)
+		sync, err := directory.New(conf.DirectorySync, network, store, nil)
 		require.NoError(t, err, "could not create directory")
 
 		require.ErrorIs(t, sync.Stop(), directory.ErrSyncNotRunning)
@@ -33,7 +66,8 @@ func TestStartStop(t *testing.T) {
 	})
 
 	t.Run("Disabled", func(t *testing.T) {
-		sync, err := directory.New(config.DirectorySyncConfig{Enabled: false}, nil, nil, nil)
+		conf := config.DirectorySyncConfig{Enabled: false}
+		sync, err := directory.New(conf, network, nil, nil)
 		require.NoError(t, err, "could not create directory")
 		require.NoError(t, sync.Stop(), "calling stop should do nothing when not enabled")
 
