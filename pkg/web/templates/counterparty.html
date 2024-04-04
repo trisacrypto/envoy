@@ -3,9 +3,9 @@
   <section class="mx-8 py-14">
     <section class="flex gap-x-6 mb-12">
       <h1 class="font-bold text-2xl">Counterparty VASPs</h1>
-      <button onclick="add_cparty_modal.show()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
+      <button onclick="add_cparty_modal.showModal()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
     </section>
-    <section hx-get="/v1/counterparties" hx-trigger="load">
+    <section id="counterparties" hx-get="/v1/counterparties" hx-trigger="load">
       <div class="text-center">
         <span class="loading loading-spinner loading-lg"></span>
       </div>
@@ -24,10 +24,10 @@
       </div>
       <p class="py-4">Add new counterparty VASP details.</p>
       <div class="">
-        <form id="new-vasp-form" method="post">
+        <form id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
             <div class="mb-4">
-              <label for="email" class="label-style">Compliance Email Address</label>
-              <input type="text" id="email" name="email" class="input-style" />
+              <label for="name" class="label-style">Name</label>
+              <input type="text" id="name" name="name" class="input-style" />
             </div>
           </div>
           <div class="mb-4">
@@ -72,7 +72,7 @@
             <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
           </div>
           <div class="flex justify-center">
-            <button hx-post="/v1/counterparties" hx-ext="json-enc" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+            <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
           </div>
         </form>
       </div>
@@ -82,4 +82,8 @@
   <!-- Target for edit and view counterparty modals -->
   <dialog id="cparty_modal" class="modal"></dialog>
 
+{{ end }}
+
+{{ define "appcode" }}
+<script src="/static/js/counterparties.js"></script>
 {{ end }}
