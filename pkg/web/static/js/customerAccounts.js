@@ -58,7 +58,6 @@ addWalletBttn?.addEventListener('click', () => {
   `)
 })
 
-
 document.body.addEventListener('htmx:afterRequest', (e) => {
   // Check if the request to register a new customer account was successful.
   if (e.detail.elt.id === newAcctForm && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
