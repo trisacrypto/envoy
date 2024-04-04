@@ -28,3 +28,8 @@ previewEnvelopeBttn?.addEventListener('click', () => {
   document.getElementById('transfer-amt').textContent = envelopeData.amount
   document.getElementById('transfer-tag').textContent = envelopeData.tag
 });
+
+// 
+$(function() {
+  $('#networks').select2();
+});

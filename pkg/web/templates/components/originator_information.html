@@ -4,17 +4,17 @@
   <h2 class="my-4 font-bold">1. ORIGINATOR INFORMATION</h2>
   <div class="grid gap-6 my-4 md:grid-cols-2">
     <div>
-      <label for="originator_first_name" class="label-style">First or Given Name</label>
-      <input type="text" id="originator_first_name" name="originator_first_name" placeholder="Enter originator's first or given name" class="input-style" />
+      <label for="first_name" class="label-style">First or Given Name</label>
+      <input type="text" id="first_name" name="first_name" placeholder="Enter originator's first or given name" class="input-style" />
     </div>
     <div>
-      <label for="originator_last_name" class="label-style">Last or Family Name</label>
-      <input type="text" id="originator_last_name" name="originator_last_name" placeholder="Enter originator's last or family name" class="input-style" />
+      <label for="last_name" class="label-style">Last or Family Name</label>
+      <input type="text" id="last_name" name="last_name" placeholder="Enter originator's last or family name" class="input-style" />
     </div>
   </div>
   <div class="my-4">
-    <label for="customer_identifier" class="label-style">Internal Customer Identifier</label>
-    <input type="text" id="customer_identifier" name="customer_identifier" placeholder="Enter your customer's internal identification number" class="input-style" />
+    <label for="customer_id" class="label-style">Internal Customer Identifier</label>
+    <input type="text" id="customer_id" name="customer_id" placeholder="Enter your customer's internal identification number" class="input-style" />
   </div>
   <div class="grid gap-6 my-4 md:grid-cols-2">
     <div>
@@ -37,6 +37,7 @@
       <label for="postal_code" class="label-style">Postal Code</label>
       <input type="text" id="postal_code" name="postal_code" placeholder="Enter originator's postal code" class="input-style" />
     </div>
+    <!-- Replace with a select. Values must be 2 country code. -->
     <div>
       <label for="country" class="label-style">Country</label>
       <input type="text" id="country" name="country" placeholder="Enter originator's country" class="input-style" />

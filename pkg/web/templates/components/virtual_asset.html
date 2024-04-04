@@ -4,12 +4,20 @@
   <h2 class="my-4 font-bold">3. VIRTUAL ASSET TRANSFER DETAILS</h2>
   <div class="grid gap-6 my-4 md:grid-cols-2">
     <div>
-      <label for="asset_type" class="label-style">Asset Type</label>
-      <input type="text" id="asset_type" name="asset_type" placeholder="Enter asset type (eg.BTC)" class="input-style" />
+      <label for="crypto_address" class="label-style">Wallet Address</label>
+      <input type="text" id="crypto_address" name="crypto_address" placeholder="Enter the wallet address" class="input-style" />
+    </div>
+    <!-- Use select for network. Values must equal slip 0044 values on submit -->
+    <div class="grid">
+      {{ template "network_select" . }}
     </div>
     <div>
       <label for="amount" class="label-style">Transfer Amount</label>
       <input type="text" id="amount" name="amount" placeholder="Enter asset amount" class="input-style" />
+    </div>
+    <div>
+      <label for="asset_type" class="label-style">Asset Type (optional)</label>
+      <input type="text" id="asset_type" name="asset_type" placeholder="Enter asset type based on requirements" class="input-style" />
     </div>
   </div>
   <div class="my-4">
