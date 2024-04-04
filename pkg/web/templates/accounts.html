@@ -5,7 +5,7 @@
       <h1 class="font-bold text-2xl">Customer Accounts</h1>
       <button onclick="new_acct_modal.showModal()" class="mt-3 md:mt-0 btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Register New Customer</button>
     </section>
-    <section hx-get="/v1/accounts" hx-trigger="load">
+    <section id="accounts" hx-get="/v1/accounts" hx-trigger="load">
       <div class="text-center">
         <span class="loading loading-spinner loading-lg"></span>
       </div>
@@ -43,7 +43,7 @@
               <input type="text" id="crypto_address_0" name="crypto_address_0" class="input-style" />
             </div>
             <div>
-              <label for="network" class="label-style">Network</label>
+              <label for="network_0" class="label-style">Network</label>
               <input type="text" id="network_0" name="network_0" class="input-style" />
             </div>
           </div>

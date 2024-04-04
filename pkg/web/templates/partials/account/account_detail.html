@@ -21,16 +21,18 @@
     </div>
     {{ if .CryptoAddresses }}
     {{ range .CryptoAddresses }}
-    <div class="mb-4 grid grid-cols-3">
+    <div class="mb-4 grid grid-cols-2">
       <dt class="font-bold">Wallet Address</dt>
-      <dd>{{ .CryptoAddress }}</dd>
-      <dd>{{ .Network }}</dd>
+      <div class="mb-4 grid grid-cols-2">
+        <dd>{{ .CryptoAddress }}</dd>
+        <dd>{{ .Network }}</dd>
+      </div>
     </div>
-      {{ end }}
     <div class="mb-4 grid grid-cols-2">
       <dt class="font-bold">Notes</dt>
       <dd>{{ .Tag }}</dd>
     </div>
+    {{ end }}
     {{ end }}
   </dl>
   <div class="mt-8 flex justify-center">
