@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS secure_envelopes (
     is_error        BOOLEAN NOT NULL,
     encryption_key  BLOB NOT NULL,
     hmac_secret     BLOB NOT NULL,
+    valid_hmac      BOOLEAN DEFAULT NULL,
     timestamp       DATETIME NOT NULL,
     public_key      TEXT NOT NULL,
     envelope        BLOB NOT NULL,

@@ -37,6 +37,7 @@ type SecureEnvelope struct {
 	IsError       bool                // If the envelope contains an error/rejection rather than a payload
 	EncryptionKey []byte              // The encryption key, encrypted with the public key of the local node. Note this may differ from the value in the envelope for outgoing messages
 	HMACSecret    []byte              // The hmac secret, encrypted with the public key of the local node. Note that this may differ from the value in the envelope for outgoing messages
+	ValidHMAC     sql.NullBool        // If the hmac has been validated against the payload and non-repudiation properties are satisfied
 	Timestamp     time.Time           // The timestamp of the envelope as defined by the envelope
 	PublicKey     string              // The signature of the public key that sealed the encryption key and hmac secret, may differ from the value in the envelope for ougoing envelopes.
 	Envelope      *api.SecureEnvelope // The secure envelope protocol buffer stored as a BLOB
@@ -131,6 +132,7 @@ func (e *SecureEnvelope) Scan(scanner Scanner) error {
 		&e.IsError,
 		&e.EncryptionKey,
 		&e.HMACSecret,
+		&e.ValidHMAC,
 		&e.Timestamp,
 		&e.PublicKey,
 		&e.Envelope,
@@ -147,6 +149,7 @@ func (e *SecureEnvelope) Params() []any {
 		sql.Named("isError", e.IsError),
 		sql.Named("encryptionKey", e.EncryptionKey),
 		sql.Named("hmacSecret", e.HMACSecret),
+		sql.Named("validHMAC", e.ValidHMAC),
 		sql.Named("timestamp", e.Timestamp),
 		sql.Named("publicKey", e.PublicKey),
 		sql.Named("envelope", e.Envelope),

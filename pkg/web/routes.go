@@ -123,8 +123,16 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/:id", s.TransactionDetail)
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
+
+			// SecureEnvelope Resource (nested on Transactions)
+			se := transactions.Group("/:id/secure-envelopes")
+			{
+				se.GET("", s.ListSecureEnvelopes)
+				se.GET("/:envelopeID", s.SecureEnvelopeDetail)
+			}
 		}
 
+		// Counterparties Resource
 		counterparties := v1.Group("/counterparties")
 		{
 			counterparties.GET("", s.ListCounterparties)
