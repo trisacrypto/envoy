@@ -13,7 +13,7 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
   if (e.detail.elt.id === addCpartyForm && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     // Close the add counterparty modal and reset the form.
     document.getElementById('add_cparty_modal').close();
-    document.getElementsByClassName(addCpartyForm).reset();
+    document.getElementById(addCpartyForm).reset();
   }
 });
 
