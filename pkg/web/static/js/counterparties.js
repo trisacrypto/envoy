@@ -17,3 +17,12 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     document.getElementById(editCpartyForm).reset();
   }
 });
+
+// Move div with country list from below footer to inside the add counterparty modal on load.
+document.body.addEventListener('htmx:afterSwap', () => {
+  const addCpartyModal = document.getElementById('add_cparty_modal');
+  const countryList = document.querySelector('.ss-content');
+  if (addCpartyModal && countryList) {
+    addCpartyModal.appendChild(countryList);
+  }
+}); 
