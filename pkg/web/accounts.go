@@ -221,7 +221,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	// Convert the API account request into a database model
 	if account, err = in.Model(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
