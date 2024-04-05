@@ -18,6 +18,7 @@ var testEnv = map[string]string{
 	"TRISA_MODE":                            "test",
 	"TRISA_LOG_LEVEL":                       "debug",
 	"TRISA_CONSOLE_LOG":                     "true",
+	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
 	"TRISA_WEB_ENABLED":                     "true",
 	"TRISA_WEB_BIND_ADDR":                   ":4000",
 	"TRISA_WEB_ORIGIN":                      "https://example.com",
@@ -46,6 +47,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_MODE"], conf.Mode)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)
+	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
 	require.True(t, conf.Web.Maintenance)
 	require.True(t, conf.Web.Enabled)
 	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)

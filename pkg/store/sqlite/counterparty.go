@@ -48,7 +48,7 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 	return out, nil
 }
 
-const listCounterpartySourceInfoSQL = "SELECT id, source, directory_id, registered_directory_protocol FROM counterparties WHERE source=:source"
+const listCounterpartySourceInfoSQL = "SELECT id, source, directory_id, registered_directory, protocol FROM counterparties WHERE source=:source"
 
 func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) (out []*models.CounterpartySourceInfo, err error) {
 	var tx *sql.Tx

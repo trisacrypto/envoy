@@ -123,7 +123,7 @@ func (c *VASPCategories) Scan(src interface{}) error {
 	case nil:
 		return nil
 	default:
-		return fmt.Errorf("incompatible type for vasp cateogires: %T", t)
+		return fmt.Errorf("incompatible type for vasp categories: %T", t)
 	}
 
 	// Unmarshal the JSON string array

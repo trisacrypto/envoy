@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggest/swgui v1.8.1
 	github.com/trisacrypto/directory v1.7.6
-	github.com/trisacrypto/trisa v0.4.1
+	github.com/trisacrypto/trisa v0.5.1
 	github.com/urfave/cli/v2 v2.27.1
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.57.0
