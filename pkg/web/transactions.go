@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 )
 
 func (s *Server) ListTransactions(c *gin.Context) {
@@ -241,6 +242,128 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 		HTMLData: gin.H{"TransactionID": transactionID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "transaction_delete.html",
+	})
+}
+
+func (s *Server) ListSecureEnvelopes(c *gin.Context) {
+	var (
+		err           error
+		in            *api.EnvelopeListQuery
+		transactionID uuid.UUID
+		page          *models.SecureEnvelopePage
+		out           *api.EnvelopesList
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Parse the URL parameters from the request
+	in = &api.EnvelopeListQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse envelope list query request"))
+		return
+	}
+
+	// TODO: implement better pagination mechanism (with pagination tokens)
+
+	// Fetch the list of secure envelopes for the specified transactionID
+	if page, err = s.store.ListSecureEnvelopes(c.Request.Context(), transactionID, nil); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process secure envelopes list request"))
+		return
+	}
+
+	// TODO: implement decryption!
+	// TODO: handle archive queries
+	if in.Decrypt {
+		err = errors.New("envelope decryption not implemented yet")
+		c.Error(err)
+		c.JSON(http.StatusNotImplemented, api.Error(err))
+		return
+	} else {
+		if out, err = api.NewSecureEnvelopeList(page); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error("could not process secure envelopes list request"))
+			return
+		}
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "secure_envelope_list.html",
+	})
+}
+
+func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
+	var (
+		err           error
+		in            *api.EnvelopeQuery
+		transactionID uuid.UUID
+		envelopeID    ulid.ULID
+		model         *models.SecureEnvelope
+		out           *api.SecureEnvelope
+	)
+
+	in = &api.EnvelopeQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse envelope query"))
+		return
+	}
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Parse the envelopeID passed in from the URL
+	if envelopeID, err = ulid.Parse(c.Param("envelopeID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("secure envelope not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if model, err = s.store.RetrieveSecureEnvelope(c.Request.Context(), transactionID, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction or secure envelope not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// TODO: handle decryption
+	// TODO: handle archive queries
+	if in.Decrypt {
+		err = errors.New("envelope decryption not implemented yet")
+		c.Error(err)
+		c.JSON(http.StatusNotImplemented, api.Error(err))
+		return
+	} else {
+		if out, err = api.NewSecureEnvelope(model); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "secure_envelope_detail.html",
 	})
 }
 

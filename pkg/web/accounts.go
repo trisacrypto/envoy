@@ -314,6 +314,11 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 
 	// Fetch the list of crypto addresses from the database
 	if page, err = s.store.ListCryptoAddresses(c.Request.Context(), accountID, query); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process crypto address list request"))
 		return
