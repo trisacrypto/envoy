@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"net/http"
 	"self-hosted-node/pkg/logger"
+	"self-hosted-node/pkg/metrics"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -52,6 +53,10 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
+
+	// Prometheus metrics handler added before middleware.
+	// Note metrics will be served at /metrics
+	metrics.Routes(s.router)
 
 	// Add the middleware to the router
 	for _, middleware := range middlewares {
