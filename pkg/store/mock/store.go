@@ -5,6 +5,7 @@ import (
 	"self-hosted-node/pkg/store/dsn"
 	"self-hosted-node/pkg/store/models"
 
+	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -17,6 +18,46 @@ func Open(uri *dsn.DSN) (*Store, error) {
 }
 
 func (s *Store) Close() error {
+	return nil
+}
+
+func (s *Store) ListTransactions(context.Context, *models.PageInfo) (*models.TransactionPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateTransaction(context.Context, *models.Transaction) error {
+	return nil
+}
+
+func (s *Store) RetrieveTransaction(context.Context, uuid.UUID) (*models.Transaction, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateTransaction(context.Context, *models.Transaction) error {
+	return nil
+}
+
+func (s *Store) DeleteTransaction(context.Context, uuid.UUID) error {
+	return nil
+}
+
+func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateSecureEnvelope(context.Context, *models.SecureEnvelope) error {
+	return nil
+}
+
+func (s *Store) RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) error {
+	return nil
+}
+
+func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error {
 	return nil
 }
 
