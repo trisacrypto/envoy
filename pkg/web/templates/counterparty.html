@@ -1,47 +1,55 @@
+{{ define "styles" }}
+<link href="https://unpkg.com/slim-select@latest/dist/slimselect.css" rel="stylesheet"></link>
+{{ end }}
+
 {{ template "base" . }}
 {{ define "content" }}
   <section class="mx-8 py-14">
     <section class="flex gap-x-6 mb-12">
       <h1 class="font-bold text-2xl">Counterparty VASPs</h1>
-      <button onclick="add_vasp_modal.show()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
+      <button onclick="add_cparty_modal.showModal()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
     </section>
-    <section hx-get="/v1/vasps" hx-trigger="load">
+    <section id="counterparties" hx-get="/v1/counterparties" hx-trigger="load">
       <div class="text-center">
         <span class="loading loading-spinner loading-lg"></span>
       </div>
     </section>
-  </section>
 
   <!-- Add VASP Modal -->
-  <dialog id="add_vasp_modal" class="modal">
-    <div class="modal-box">
+  <dialog id="add_cparty_modal" class="modal">
+    <div class="modal-box max-w-3xl">
       <div class="flex justify-between items-center">
         <h1 class="font-bold text-xl">Add New Counterparty VASP</h1>
-        <button onclick="add_vasp_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <button onclick="add_cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
           <i class="fa-solid fa-x"></i>
           <span class="sr-only">Close modal</span>
         </button>
       </div>
       <p class="py-4">Add new counterparty VASP details.</p>
-      <div class="">
-        <form id="new-vasp-form" method="post">
-          <div class="mb-4">
-            <label for="legal_name" class="label-style">VASP Legal Name</label>
-            <input type="text" id="legal_name" name="legal_name" class="input-style" />
-          </div>
-          <div class="mb-4 grid md:grid-cols-2 gap-6">
+      <div>
+        <form id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
+          <div class="mb-4 grid gap-6 md:grid-cols-2">
             <div>
-              <label for="lei" class="label-style">LEI</label>
-              <input type="text" id="lei" name="lei" class="input-style" />
+              <label for="name" class="label-style">VASP Name</label>
+              <input type="text" id="name" name="name" class="input-style" />
             </div>
             <div>
-              <label for="email" class="label-style">Compliance Email Address</label>
-              <input type="text" id="email" name="email" class="input-style" />
+              <label for="website" class="label-style">Website</label>
+              <input type="text" id="website" name="website" class="input-style" />
+            </div>
+          </div>
+          <div class="mb-4 grid gap-6 md:grid-cols-2">
+            <div>
+              <label for="common_name" class="label-style">Common Name</label>
+              <input type="text" id="common_name" name="common_name" class="input-style" />
+            </div>
+            <div>
+              <label for="endpoint" class="label-style">Endpoint</label>
+              <input type="text" id="endpoint" name="endpoint" class="input-style" />
             </div>
           </div>
           <div class="mb-4">
-            <label for="api_url" class="label-style">API URL</label>
-            <input type="text" id="api_url" name="api_url" class="input-style" />
+            {{ template "country_select" . }}
           </div>
           <div class="mb-4">
             <label for="signing_key" class="label-style">Signing Key (optional)</label>
@@ -51,11 +59,11 @@
             <h3 class="font-bold">Supported Protocols</h3>
             <div class="mt-2 flex items-center gap-x-4">
               <div class="flex items-center">
-                <input type="checkbox" id="trisa" name="trisa" value="trisa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+                <input type="checkbox" id="trisa" name="protocol" value="trisa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
                 <label for="trisa" class="ms-2 text-sm font-medium text-gray-900">TRISA</label>
               </div>
               <div class="flex items-center">
-                <input type="checkbox" id="trp" name="trp" value="trp" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+                <input type="checkbox" id="trp" name="protocol" value="trp" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
                 <label for="trp" class="ms-2 text-sm font-medium text-gray-900">TRP</label>
               </div>
             </div>
@@ -88,4 +96,14 @@
     </div>
   </dialog>
 
+  <!-- Target for edit and view counterparty modals -->
+  <dialog id="cparty_modal" class="modal"></dialog>
+</section>
+
+{{ end }}
+
+{{ define "appcode" }}
+<script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
+<script src="/static/js/counterparties.js"></script>
+<script src="/static/js/countrySelect.js"></script>
 {{ end }}

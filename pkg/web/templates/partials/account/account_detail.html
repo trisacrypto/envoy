@@ -29,8 +29,15 @@
       </div>
     </div>
     <div class="mb-4 grid grid-cols-2">
-      <dt class="font-bold">Notes</dt>
-      <dd>{{ .Tag }}</dd>
+      <dt class="font-bold">Wallet Address</dt>
+      <div class="mb-4 grid grid-cols-2">
+        <dd>{{ .CryptoAddress }}</dd>
+        <dd>{{ .Network }}</dd>
+      </div>
+      <div class="mb-4 grid grid-cols-2">
+        <dt class="font-bold">Notes</dt>
+        <dd>{{ .Tag }}</dd>
+      </div>
     </div>
     {{ end }}
     {{ end }}

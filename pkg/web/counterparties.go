@@ -151,6 +151,45 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	})
 }
 
+func (s *Server) UpdateCounterpartyPreview(c *gin.Context) {
+	var (
+		err            error
+		counterpartyID ulid.ULID
+		counterparty   *models.Counterparty
+		out            *api.Counterparty
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if counterparty, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if out, err = api.NewCounterparty(counterparty); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "counterparty_preview.html",
+	})
+}
+
 func (s *Server) UpdateCounterparty(c *gin.Context) {
 	var (
 		err            error

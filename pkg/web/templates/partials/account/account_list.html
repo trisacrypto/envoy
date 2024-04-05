@@ -4,8 +4,7 @@
       <tr>
         <th>Customer ID</th>
         <th>Name</th>
-        <th>Virtual Asset</th>
-        <th>Wallet Address</th>
+        <th>Travel Address</th>
         <th>Date Created</th>
         <th>Actions</th>
       </tr>
@@ -16,9 +15,11 @@
         <tr class="hover">
           <td>{{ .CustomerID }}</td>
           <td>{{ .FirstName }}&nbsp;{{ .LastName }}</td>
-          <!-- TODO: Add virtual asset and wallet address values -->
-          <td></td>
-          <td></td>
+          {{ if .TravelAddress }}
+          <td>{{ .TravelAddress }}</td>
+          {{ else }}
+          <td class="px-16">-</td>
+          {{ end }}
           {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
           <td>{{ $created }}</td>
           <td>

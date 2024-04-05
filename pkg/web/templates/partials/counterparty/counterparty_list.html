@@ -3,21 +3,43 @@
     <thead class="font-bold text-base text-black">
       <tr>
         <th>Name</th>
-        <th>LEI</th>
-        <th>API URL</th>
-        <th>Auto Approve</th>
-        <th>Beneficiary</th>
-        <th>Optional Signing Key</th>
+        <th>Website</th>
         <th>Protocol</th>
+        <th>Optional Signing Key</th>
+        <th>Auto Approve</th>
         <th>Date Added</th>
         <th>Action</th>
       </tr>
     </thead>
     <tbody>
-      <!-- TODO: Add counterparty data -->
-      <tr class="text-center">
-        <td colspan="9" class="py-5">There are no counterparty VASPs to display.</td>
+      {{ if .Counterparties }}
+      {{ range .Counterparties }}
+      <tr class="hover">
+        <td>{{ .Name }}</td>
+        <td>{{ .Website }}</td>
+        <td>{{ .Protocol }}</td>
+        <td class="px-16">-</td>
+        <td class="px-16">-</td>
+        {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+        <td>{{ $created }}</td>
+        <td>
+          <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+              {{ if eq .Source "user"}}
+              <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">Edit</a></li>
+              {{ end }}
+              <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}" hx-target="#cparty_modal" hx-swap="innerHTML">View</a></li>
+            </ul>
+          </div>
+        </td>
       </tr>
+      {{ end }}
+      {{ else }}
+      <tr class="text-center">
+        <td colspan="9" class="py-5 text-base">There are no counterparty VASPs to display.</td>
+      </tr>
+      {{ end }}
     </tbody>
   </table>
 </div>
