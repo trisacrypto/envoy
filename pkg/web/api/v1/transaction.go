@@ -145,7 +145,7 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	return model, nil
 }
 
-func NewSecureEnvelope(model *models.SecureEnvelope, validHMAC bool) (out *SecureEnvelope, err error) {
+func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err error) {
 	out = &SecureEnvelope{
 		ID:                  model.ID,
 		Direction:           model.Direction,
@@ -153,7 +153,7 @@ func NewSecureEnvelope(model *models.SecureEnvelope, validHMAC bool) (out *Secur
 		Payload:             model.Envelope.Payload,
 		EncryptionKey:       model.EncryptionKey,
 		EncryptionAlgorithm: model.Envelope.EncryptionAlgorithm,
-		ValidHMAC:           validHMAC,
+		ValidHMAC:           model.ValidHMAC.Bool,
 		HMAC:                model.Envelope.Hmac,
 		HMACSecret:          model.HMACSecret,
 		HMACAlgorithm:       model.Envelope.HmacAlgorithm,
@@ -179,7 +179,7 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 	for _, model := range page.Envelopes {
 		// TODO: how to validate HMAC signature?
 		var env *SecureEnvelope
-		if env, err = NewSecureEnvelope(model, true); err != nil {
+		if env, err = NewSecureEnvelope(model); err != nil {
 			return nil, err
 		}
 		out.SecureEnvelopes = append(out.SecureEnvelopes, env)
