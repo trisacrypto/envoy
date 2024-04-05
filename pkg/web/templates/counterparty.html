@@ -14,7 +14,6 @@
         <span class="loading loading-spinner loading-lg"></span>
       </div>
     </section>
-  </section>
 
   <!-- Add VASP Modal -->
   <dialog id="add_cparty_modal" class="modal">
@@ -31,7 +30,7 @@
         <form id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
           <div class="mb-4 grid gap-6 md:grid-cols-2">
             <div>
-              <label for="name" class="label-style">Name</label>
+              <label for="name" class="label-style">VASP Name</label>
               <input type="text" id="name" name="name" class="input-style" />
             </div>
             <div>
@@ -99,6 +98,7 @@
 
   <!-- Target for edit and view counterparty modals -->
   <dialog id="cparty_modal" class="modal"></dialog>
+</section>
 
 {{ end }}
 

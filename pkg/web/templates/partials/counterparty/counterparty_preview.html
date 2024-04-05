@@ -1,4 +1,4 @@
-<div class="modal-box">
+<div class="modal-box max-w-3xl">
   <div class="flex justify-between items-center">
     <h1 class="font-bold text-xl">Edit Counterparty VASP</h1>
     <button onclick="cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
@@ -8,19 +8,30 @@
   </div>
   <p class="py-4">Edit counterparty VASP details.</p>
   <div>
-    <form id="edit-cparty-form" hx-put="/v1/counterparties/{{ .ID }}" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties">
-        <div class="mb-4">
-          <label for="name" class="label-style">Name</label>
+    <form id="edit-cparty-form">
+      <div class="mb-4 grid gap-6 md:grid-cols-2">
+        <div>
+          <label for="name" class="label-style">VASP Name</label>
           <input type="text" id="name" name="name" class="input-style" value="{{ .Name }}" />
+        </div>
+        <div>
+          <label for="website" class="label-style">Website</label>
+          <input type="text" id="website" name="website" class="input-style" value="{{ .Website }}" />
+        </div>
+      </div>
+      <div class="mb-4 grid gap-6 md:grid-cols-2">
+        <div>
+          <label for="common_name" class="label-style">Common Name</label>
+          <input type="text" id="common_name" name="common_name" class="input-style" value="{{ .CommonName }}" />
+        </div>
+        <div>
+          <label for="endpoint" class="label-style">Endpoint</label>
+          <input type="text" id="endpoint" name="endpoint" class="input-style" value="{{ .Endpoint }}" />
         </div>
       </div>
       <div class="mb-4">
-        <label for="website" class="label-style">API URL</label>
-        <input type="text" id="website" name="website" class="input-style" value="{{ .Website }}" />
-      </div>
-      <div class="mb-4">
         <label for="signing_key" class="label-style">Signing Key (optional)</label>
-        <input type="text" id="signing_key" name="signing_key" class="input-style" value="{{ .SigningKey }}" />
+        <input type="text" id="signing_key" name="signing_key" class="input-style" value="" />
       </div>
       <div class="mb-6">
         <h3 class="font-bold">Supported Protocols</h3>
@@ -57,22 +68,17 @@
         <div>
           <label for="auto_approve" class="label-style">Auto Approve?</label>
           <select id="auto_approve" size="2" class="overflow-y-auto bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-            {{ if .AutoApprove }}
             <option value="true" selected>YES</option>
             <option value="false">NO</option>
-            {{ else }}
-            <option value="true" selected>YES</option>
-            <option value="false" selected>NO</option>
-            {{ end }}
           </select>
         </div>
       </div>
       <div class="mb-4">
         <label for="tag" class="label-style">Notes</label>
-        <textarea id="tag" name="tag" value="{{ .Tag }}" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        <textarea id="tag" name="tag" value="" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
       </div>
       <div class="flex justify-center">
-        <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+        <button type="submit" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
       </div>
     </form>
   </div>
