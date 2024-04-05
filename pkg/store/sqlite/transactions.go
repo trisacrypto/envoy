@@ -14,7 +14,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-const listTransactionsSQL = "SELECT t.*, count(e.id) FROM transactions t JOIN secure_envelopes e ON t.id=e.envelope_id"
+const listTransactionsSQL = "SELECT t.*, count(e.id) AS numEnvelopes FROM transactions t JOIN secure_envelopes e ON t.id=e.envelope_id GROUP BY t.id"
 
 func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (out *models.TransactionPage, err error) {
 	var tx *sql.Tx
