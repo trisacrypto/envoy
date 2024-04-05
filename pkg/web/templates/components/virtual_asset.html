@@ -7,10 +7,9 @@
       <label for="crypto_address" class="label-style">Wallet Address</label>
       <input type="text" id="crypto_address" name="crypto_address" placeholder="Enter the wallet address" class="input-style" />
     </div>
-    <!-- Use select for network. Values must equal slip 0044 values on submit -->
-    <div class="grid">
+
       {{ template "network_select" . }}
-    </div>
+      
     <div>
       <label for="amount" class="label-style">Transfer Amount</label>
       <input type="text" id="amount" name="amount" placeholder="Enter asset amount" class="input-style" />

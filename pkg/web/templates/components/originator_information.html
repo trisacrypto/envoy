@@ -37,11 +37,9 @@
       <label for="postal_code" class="label-style">Postal Code</label>
       <input type="text" id="postal_code" name="postal_code" placeholder="Enter originator's postal code" class="input-style" />
     </div>
-    <!-- Replace with a select. Values must be 2 country code. -->
-    <div>
-      <label for="country" class="label-style">Country</label>
-      <input type="text" id="country" name="country" placeholder="Enter originator's country" class="input-style" />
-    </div>
+    
+    {{ template "country_select" . }}
+
   </div>
 </section>
 

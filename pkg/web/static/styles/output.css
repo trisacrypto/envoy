@@ -2989,6 +2989,11 @@ body main {
   --tw-ring-color: rgb(59 130 246 / var(--tw-ring-opacity)) !important;
 }
 
+.ss-placeholder {
+  --tw-text-opacity: 1 !important;
+  color: rgb(17 24 39 / var(--tw-text-opacity)) !important;
+}
+
 @media (min-width: 768px) {
   .md\:tooltip-right:before {
     transform: translateY(-50%);
