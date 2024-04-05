@@ -1,7 +1,7 @@
 {{ define "network_select" }}
 <label for="networks" class="label-style">Network</label>
-<select id="networks" name="network" class="">
-  <option value="">Select a network</option>
+<select id="networks" name="network">
+  <option data-placeholder="true"></option>
   <option value="BTC">Bitcoin</option>
   <option value="ETH">Ethereum</option>
   <option value="AGM">Argoneum</option>
@@ -26,6 +26,5 @@
   <option value="VIA">Viacoin</option>
   <option value="ZCL">Zclassic</option>
   <option value="XZC">ZCoin</option>
-
 </select>
 {{ end }}

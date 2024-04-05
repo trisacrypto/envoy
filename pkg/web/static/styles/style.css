@@ -27,3 +27,12 @@ body main {
 .envelope-data {
   @apply text-sm sm:text-base p-2 md:px-6 md:py-4;
 }
+
+/* Select network styles */
+.ss-main {
+  @apply !bg-gray-50 !border-gray-300 !text-gray-900 !text-sm !rounded-lg focus:!ring-blue-500 focus:!border-blue-500 !w-full !p-2.5;
+}
+
+.ss-search input {
+  @apply focus:!ring-blue-500 focus:!border-blue-500;
+}

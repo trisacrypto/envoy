@@ -29,7 +29,12 @@ previewEnvelopeBttn?.addEventListener('click', () => {
   document.getElementById('transfer-tag').textContent = envelopeData.tag
 });
 
-// 
-$(function() {
-  $('#networks').select2();
-});
+// Display a searchable dropdown for networks.
+new SlimSelect({
+  select: '#networks',
+  // TODO: Add data and remove from the network select component.
+  settings: {
+    placeholderText: 'Select a network',
+  }
+})
+
