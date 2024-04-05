@@ -221,7 +221,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	// Convert the API account request into a database model
 	if account, err = in.Model(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
@@ -314,6 +314,11 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 
 	// Fetch the list of crypto addresses from the database
 	if page, err = s.store.ListCryptoAddresses(c.Request.Context(), accountID, query); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process crypto address list request"))
 		return
