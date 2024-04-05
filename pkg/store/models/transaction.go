@@ -8,7 +8,6 @@ import (
 	"self-hosted-node/pkg/ulids"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 )
 
@@ -33,7 +32,7 @@ type Transaction struct {
 
 type SecureEnvelope struct {
 	Model
-	EnvelopeID    ulid.ULID           // Also a foreign key reference to the Transaction
+	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
 	Direction     string              // Either "out" outgoing or "in" incoming
 	IsError       bool                // If the envelope contains an error/rejection rather than a payload
 	EncryptionKey []byte              // The encryption key, encrypted with the public key of the local node. Note this may differ from the value in the envelope for outgoing messages
@@ -60,6 +59,26 @@ func (t *Transaction) Scan(scanner Scanner) error {
 		&t.LastUpdate,
 		&t.Created,
 		&t.Modified,
+	)
+}
+
+func (t *Transaction) ScanWithCount(scanner Scanner) error {
+	return scanner.Scan(
+		&t.ID,
+		&t.Source,
+		&t.Status,
+		&t.Counterparty,
+		&t.CounterpartyID,
+		&t.Originator,
+		&t.OriginatorAddress,
+		&t.Beneficiary,
+		&t.BeneficiaryAddress,
+		&t.VirtualAsset,
+		&t.Amount,
+		&t.LastUpdate,
+		&t.Created,
+		&t.Modified,
+		&t.numEnvelopes,
 	)
 }
 

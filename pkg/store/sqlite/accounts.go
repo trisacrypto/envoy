@@ -280,7 +280,7 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 		return dberr.ErrMissingReference
 	}
 
-	// Create IDs and model metadata, updating the account in place.
+	// Create IDs and model metadata, updating the crypto address in place.
 	addr.ID = ulids.New()
 	addr.Created = time.Now()
 	addr.Modified = addr.Created

@@ -54,4 +54,43 @@ CREATE TABLE IF NOT EXISTS counterparties (
     UNIQUE(protocol, common_name, endpoint)
 );
 
+-- Transactions is a high-level wrapper for secure envelopes that are used for travel
+-- rule information exchanges about a blockchain transaction.
+CREATE TABLE IF NOT EXISTS transactions (
+    id                  TEXT PRIMARY KEY,
+    source              TEXT NOT NULL,
+    status              TEXT NOT NULL,
+    counterparty        TEXT NOT NULL,
+    counterparty_id     TEXT,
+    originator          TEXT,
+    originator_address  TEXT,
+    beneficiary         TEXT,
+    beneficiary_address TEXT,
+    virtual_asset       TEXT NOT NULL,
+    amount              REAL NOT NULL,
+    last_update         DATETIME,
+    created             DATETIME NOT NULL,
+    modified            DATETIME NOT NULL,
+    FOREIGN KEY (counterparty_id) REFERENCES counterparties(id) ON DELETE SET NULL
+);
+
+-- SecureEnvelopes store the encrypted PII that is transmitted between VASPs for
+-- compliance purposes. These envelopes are stored in the database in an encrypted
+-- fashion, and can only be opened if secure keys are available.
+CREATE TABLE IF NOT EXISTS secure_envelopes (
+    id              TEXT PRIMARY KEY,
+    envelope_id     TEXT NOT NULL,
+    direction       TEXT NOT NULL,
+    is_error        BOOLEAN NOT NULL,
+    encryption_key  BLOB NOT NULL,
+    hmac_secret     BLOB NOT NULL,
+    timestamp       DATETIME NOT NULL,
+    public_key      TEXT NOT NULL,
+    envelope        BLOB NOT NULL,
+    created         DATETIME NOT NULL,
+    modified        DATETIME NOT NULL,
+    FOREIGN KEY (envelope_id) REFERENCES transactions(id) ON DELETE CASCADE
+);
+
+
 COMMIT;
