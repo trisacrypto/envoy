@@ -1,3 +1,7 @@
+{{ define "styles" }}
+<link href="https://unpkg.com/slim-select@latest/dist/slimselect.css" rel="stylesheet"></link>
+{{ end }}
+
 {{ template "base" . }}
 {{ define "content" }}
 
@@ -53,8 +57,8 @@
                           <td class="envelope-data text-balance" id="date-created"></td>
                         </tr>
                         <tr>
-                          <th scope="row" class="envelope-header">Protocol</th>
-                          <td class="envelope-data" id="transfer-protocol"></td>
+                          <th scope="row" class="envelope-header">Network</th>
+                          <td class="envelope-data" id="transfer-network"></td>
                         </tr>
                         <tr>
                           <th scope="row" class="envelope-header">Asset Type</th>
@@ -126,5 +130,6 @@
 {{ end }}
 
 {{ define "appcode" }}
+<script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
 <script src="/static/js/envelope.js"></script>
 {{ end }}

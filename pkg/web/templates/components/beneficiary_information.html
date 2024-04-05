@@ -2,23 +2,15 @@
 
 <section class="py-2 border-t border-t-black">
   <h2 class="my-4 font-bold">2. BENEFICIARY INFORMATION</h2>
-  <div class="grid gap-6 my-4 md:grid-cols-2">
-    <div>
-      <label for="beneficiary_first_name" class="label-style">First or Given Name</label>
-      <input type="text" id="beneficiary_first_name" name="beneficiary_first_name" placeholder="Enter beneficiary's first or given name" class="input-style" />
-    </div>
-    <div>
-      <label for="beneficiary_last_name" class="label-style">Last or Family Name</label>
-      <input type="text" id="beneficiary_last_name" name="beneficiary_last_name" placeholder="Enter beneficiary's last or family name" class="input-style" />
-    </div>
-  </div>
   <div class="my-4">
-    <label for="wallet_address" class="label-style">Wallet Address or Travel Rule Address</label>
-    <input type="text" id="wallet_address" name="wallet_address" placeholder="Enter the beneficiary's internal identification number" class="input-style" />
-  </div>
+    <!-- TODO: Make beneficiary a select that pulls values from counterparty vasp -->
+    <div class="my-4">
+      <label for="beneficiary_vasp" class="label-style">Beneficiary VASP</label>
+      <input type="text" id="beneficiary_vasp" name="beneficiary_vasp" placeholder="Enter the beneficiary's VASP" class="input-style" />
+    </div>
   <div class="my-4">
-    <label for="beneficiary_vasp" class="label-style">Beneficiary VASP</label>
-    <input type="text" id="beneficiary_vasp" name="beneficiary_vasp" placeholder="Enter the beneficiary's VASP" class="input-style" />
+    <label for="travel_address" class="label-style">Travel Address</label>
+    <input type="text" id="travel_address" name="travel_address" placeholder="Enter the beneficiary's travel address" class="input-style" />
   </div>
 </section>
 
