@@ -10,6 +10,7 @@ import (
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/directory"
 	"self-hosted-node/pkg/logger"
+	"self-hosted-node/pkg/metrics"
 	"self-hosted-node/pkg/store"
 	"self-hosted-node/pkg/trisa"
 	"self-hosted-node/pkg/trisa/network"
@@ -48,6 +49,11 @@ func New(conf config.Config) (node *Node, err error) {
 
 	// Set the gin mode for all gin servers
 	gin.SetMode(conf.Mode)
+
+	// Register the prometheus metrics
+	if err = metrics.Setup(); err != nil {
+		return nil, err
+	}
 
 	// Create the node and start to register its internal servers
 	node = &Node{

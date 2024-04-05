@@ -2,8 +2,11 @@ package logger
 
 import (
 	"fmt"
-	"self-hosted-node/pkg"
+	"net/http"
 	"time"
+
+	"self-hosted-node/pkg"
+	"self-hosted-node/pkg/metrics"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -14,6 +17,9 @@ import (
 // NOTE: we previously used github.com/dn365/gin-zerolog but wanted more customization.
 func GinLogger(server string) gin.HandlerFunc {
 	version := pkg.Version()
+
+	// Initialize prometheus collectors (safe to call multiple times)
+	metrics.Setup()
 
 	return func(c *gin.Context) {
 		// Before request
@@ -68,5 +74,10 @@ func GinLogger(server string) gin.HandlerFunc {
 		default:
 			logctx.Info().Msg(msg)
 		}
+
+		// prometheus metrics - log request duration and type
+		duration := time.Since(started)
+		metrics.RequestDuration.WithLabelValues(server, http.StatusText(status), path).Observe(duration.Seconds())
+		metrics.RequestsHandled.WithLabelValues(server, http.StatusText(status), path).Inc()
 	}
 }

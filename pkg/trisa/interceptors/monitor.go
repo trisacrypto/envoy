@@ -3,12 +3,14 @@ package interceptors
 import (
 	"context"
 	"io"
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/ulids"
 	"strings"
 	"sync"
 	"time"
+
+	"self-hosted-node/pkg"
+	"self-hosted-node/pkg/logger"
+	"self-hosted-node/pkg/metrics"
+	"self-hosted-node/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
@@ -33,9 +35,14 @@ func UnaryMonitoring() grpc.UnaryServerInterceptor {
 	})
 
 	version := pkg.Version()
+	metrics.Setup()
+
 	return func(ctx context.Context, in interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (out interface{}, err error) {
 		// Parse the method for tags
 		service, method := ParseMethod(info.FullMethod)
+
+		// Monitor how many RPCs have been started
+		metrics.RPCStarted.WithLabelValues("unary", service, method).Inc()
 
 		// Create a request ID for tracing purposes and add to context
 		requestID := ulid.MustNew(ulid.Now(), entropy).String()
@@ -71,6 +78,10 @@ func UnaryMonitoring() grpc.UnaryServerInterceptor {
 			log.Error().Err(err).Msgf("unhandled error code %s: %s", code, info.FullMethod)
 		}
 
+		// Monitor how many RPCs have been completed
+		metrics.RPCHandled.WithLabelValues("unary", service, method, code.String()).Inc()
+		metrics.RPCDuration.WithLabelValues("unary", service, method).Observe(duration.Seconds())
+
 		return out, err
 	}
 }
@@ -86,16 +97,21 @@ func StreamMonitoring() grpc.StreamServerInterceptor {
 	})
 
 	version := pkg.Version()
+	metrics.Setup()
+
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		// Parse the method for tags
 		service, method := ParseMethod(info.FullMethod)
+
+		// Monitor how many streams have been started
+		metrics.RPCStarted.WithLabelValues("stream", service, method).Inc()
 
 		// Create a request ID for tracing purposes and add to context
 		requestID := ulid.MustNew(ulid.Now(), entropy).String()
 		ctx := logger.WithRequestID(stream.Context(), requestID)
 
 		// Create a monitored stream to pass to the stream handler
-		monitored := &MonitoredStream{ServerStream: stream, ctx: ctx}
+		monitored := &MonitoredStream{stream, ctx, 0, 0, service, method}
 
 		// Handle the request and trace how long the request takes
 		start := time.Now()
@@ -129,6 +145,10 @@ func StreamMonitoring() grpc.StreamServerInterceptor {
 			log.Error().Err(err).Msgf("unhandled error code %s: %s", code, info.FullMethod)
 		}
 
+		// Monitor how many RPCs have been completed
+		metrics.RPCHandled.WithLabelValues("stream", service, method, code.String()).Inc()
+		metrics.RPCDuration.WithLabelValues("stream", service, method).Observe(duration.Seconds())
+
 		return err
 	}
 }
@@ -145,15 +165,18 @@ func ParseMethod(method string) (string, string) {
 // the stream for logging purposes. It also provides the stream the adapted context.
 type MonitoredStream struct {
 	grpc.ServerStream
-	ctx   context.Context
-	sends uint64
-	recvs uint64
+	ctx     context.Context
+	sends   uint64
+	recvs   uint64
+	service string
+	method  string
 }
 
 // Increment the number of sent messages if there is no error on Send.
 func (s *MonitoredStream) SendMsg(m interface{}) (err error) {
 	if err = s.ServerStream.SendMsg(m); err == nil {
 		s.sends++
+		metrics.StreamMsgSent.WithLabelValues("stream", s.service, s.method).Inc()
 	}
 	return err
 }
@@ -162,6 +185,7 @@ func (s *MonitoredStream) SendMsg(m interface{}) (err error) {
 func (s *MonitoredStream) RecvMsg(m interface{}) (err error) {
 	if err = s.ServerStream.RecvMsg(m); err == nil {
 		s.recvs++
+		metrics.StreamMsgRecv.WithLabelValues("stream", s.service, s.method).Inc()
 	}
 	return err
 }
