@@ -23,6 +23,12 @@ type Client interface {
 	UpdateTransaction(context.Context, *Transaction) (*Transaction, error)
 	DeleteTransaction(context.Context, uuid.UUID) error
 
+	// SecureEnvelopes Resource
+	ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (*EnvelopesList, error)
+	SecureEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (*SecureEnvelope, error)
+	DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (*DecryptedEnvelope, error)
+	DeleteSecureEnvelope(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) error
+
 	// Accounts Resource
 	ListAccounts(context.Context, *PageQuery) (*AccountsList, error)
 	CreateAccount(context.Context, *Account) (*Account, error)

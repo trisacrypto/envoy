@@ -132,6 +132,74 @@ func (s *APIv1) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 }
 
 //===========================================================================
+// Secure and Decrypted Envelopes Resource
+//===========================================================================
+
+const secureEnvelopesEP = "secure-envelopes"
+
+func (s *APIv1) ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (out *EnvelopesList, err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode envelope page query: %w", err)
+	}
+
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), secureEnvelopesEP)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) SecureEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (out *SecureEnvelope, err error) {
+	var params url.Values
+	if params, err = query.Values(&EnvelopeQuery{Decrypt: false}); err != nil {
+		return nil, fmt.Errorf("could not encode envelope query: %w", err)
+	}
+
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), secureEnvelopesEP, envID.String())
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (out *DecryptedEnvelope, err error) {
+	var params url.Values
+	if params, err = query.Values(&EnvelopeQuery{Decrypt: true}); err != nil {
+		return nil, fmt.Errorf("could not encode envelope query: %w", err)
+	}
+
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), secureEnvelopesEP, envID.String())
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DeleteSecureEnvelope(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) error {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), secureEnvelopesEP, envID.String())
+	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
 // Accounts Resource
 //===========================================================================
 
