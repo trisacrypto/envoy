@@ -14,6 +14,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/google/go-querystring/query"
+	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -90,243 +91,169 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 }
 
 //===========================================================================
+// Transactions Resource
+//===========================================================================
+
+const transactionsEP = "/v1/transactions"
+
+func (s *APIv1) ListTransactions(ctx context.Context, in *PageQuery) (out *TransactionsList, err error) {
+	if err = s.List(ctx, transactionsEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CreateTransaction(ctx context.Context, in *Transaction) (out *Transaction, err error) {
+	if err = s.Create(ctx, transactionsEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) TransactionDetail(ctx context.Context, id uuid.UUID) (out *Transaction, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, id.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) UpdateTransaction(ctx context.Context, in *Transaction) (out *Transaction, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, id.String())
+	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
 // Accounts Resource
 //===========================================================================
 
+const accountsEP = "/v1/accounts"
+
 func (s *APIv1) ListAccounts(ctx context.Context, in *PageQuery) (out *AccountsList, err error) {
-	var params url.Values
-	if params, err = query.Values(in); err != nil {
-		return nil, fmt.Errorf("could not encode page query: %w", err)
-	}
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/accounts", nil, &params); err != nil {
-		return nil, err
-	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
+	if err = s.List(ctx, accountsEP, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
 func (s *APIv1) CreateAccount(ctx context.Context, in *Account) (out *Account, err error) {
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPost, "/v1/accounts", in, nil); err != nil {
-		return nil, err
-	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
+	if err = s.Create(ctx, accountsEP, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
 func (s *APIv1) AccountDetail(ctx context.Context, id ulid.ULID) (out *Account, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s", id)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, id.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) UpdateAccount(ctx context.Context, in *Account) (out *Account, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s", in.ID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s", id)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
-		return nil
-	}
-
-	if _, err = s.Do(req, nil, true); err != nil {
-		return err
-	}
-
-	return nil
+	endpoint, _ := url.JoinPath(accountsEP, id.String())
+	return s.Delete(ctx, endpoint)
 }
 
 //===========================================================================
 // CryptoAddress Resource
 //===========================================================================
 
+const cryptoAddressesEP = "crypto-addresses"
+
 func (s *APIv1) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, in *PageQuery) (out *CryptoAddressList, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses", accountID)
-
-	var params url.Values
-	if params, err = query.Values(in); err != nil {
-		return nil, fmt.Errorf("could not encode page query: %w", err)
-	}
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
-		return nil, err
-	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, accountID.String(), cryptoAddressesEP)
+	if err = s.List(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
 func (s *APIv1) CreateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (out *CryptoAddress, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses", accountID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, in, nil); err != nil {
-		return nil, err
-	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, accountID.String(), cryptoAddressesEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
 func (s *APIv1) CryptoAddressDetail(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (out *CryptoAddress, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, cryptoAddressID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, accountID.String(), cryptoAddressesEP, cryptoAddressID.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) UpdateCryptoAddress(ctx context.Context, accountID ulid.ULID, in *CryptoAddress) (out *CryptoAddress, err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, in.ID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+	endpoint, _ := url.JoinPath(accountsEP, accountID.String(), cryptoAddressesEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (err error) {
-	endpoint := fmt.Sprintf("/v1/accounts/%s/crypto-addresses/%s", accountID, cryptoAddressID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
-		return nil
-	}
-
-	if _, err = s.Do(req, nil, true); err != nil {
-		return err
-	}
-
-	return nil
+	endpoint, _ := url.JoinPath(accountsEP, accountID.String(), cryptoAddressesEP, cryptoAddressID.String())
+	return s.Delete(ctx, endpoint)
 }
 
 //===========================================================================
 // Counterparty Resource
 //===========================================================================
 
+const counterpartiesEP = "/v1/counterparties"
+
 func (s *APIv1) ListCounterparties(ctx context.Context, in *PageQuery) (out *CounterpartyList, err error) {
-	var params url.Values
-	if params, err = query.Values(in); err != nil {
-		return nil, fmt.Errorf("could not encode page query: %w", err)
-	}
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/counterparties", nil, &params); err != nil {
+	if err = s.List(ctx, counterpartiesEP, in, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) CreateCounterparty(ctx context.Context, in *Counterparty) (out *Counterparty, err error) {
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPost, "/v1/counterparties", in, nil); err != nil {
+	if err = s.Create(ctx, counterpartiesEP, in, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) CounterpartyDetail(ctx context.Context, id ulid.ULID) (out *Counterparty, err error) {
-	endpoint := fmt.Sprintf("/v1/counterparties/%s", id)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+	endpoint, _ := url.JoinPath(counterpartiesEP, id.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) UpdateCounterparty(ctx context.Context, in *Counterparty) (out *Counterparty, err error) {
-	endpoint := fmt.Sprintf("/v1/counterparties/%s", in.ID)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+	endpoint, _ := url.JoinPath(counterpartiesEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
-
-	if _, err = s.Do(req, &out, true); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 
 func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error) {
-	endpoint := fmt.Sprintf("/v1/counterparties/%s", id)
-
-	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
-		return nil
-	}
-
-	if _, err = s.Do(req, nil, true); err != nil {
-		return err
-	}
-
-	return nil
+	endpoint, _ := url.JoinPath(counterpartiesEP, id.String())
+	return s.Delete(ctx, endpoint)
 }
 
 //===========================================================================
@@ -393,6 +320,76 @@ func (s *APIv1) WaitForReady(ctx context.Context) (err error) {
 		case <-wait:
 		}
 	}
+}
+
+//===========================================================================
+// REST Resource Methods
+//===========================================================================
+
+func (s *APIv1) List(ctx context.Context, endpoint string, in *PageQuery, out interface{}) (err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return fmt.Errorf("could not encode page query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, &params); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *APIv1) Create(ctx context.Context, endpoint string, in, out interface{}) (err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, in, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *APIv1) Detail(ctx context.Context, endpoint string, out interface{}) (err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *APIv1) Update(ctx context.Context, endpoint string, in, out interface{}) (err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPut, endpoint, in, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *APIv1) Delete(ctx context.Context, endpoint string) (err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return err
+	}
+	return nil
 }
 
 //===========================================================================
