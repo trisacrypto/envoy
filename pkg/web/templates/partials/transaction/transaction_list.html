@@ -2,9 +2,8 @@
   <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
-        <th>Type</th>
         <th>Status</th>
-        <th>Originator VASP</th>
+        <th>Counterparty</th>
         <th>Originator</th>
         <th>Beneficiary</th>
         <th>Virtual Asset</th>
@@ -14,10 +13,32 @@
       </tr>
     </thead>
     <tbody>
-      <!-- TODO: Add transactions table data here and display message below if there are no transactions. -->
+      {{ if .Transactions }}
+      {{ range .Transactions}}
+        <tr class="hover">
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">-</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Counterparty }}</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Originator }}</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Beneficiary }}</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .VirtualAsset }}</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Amount }}</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Created }}</td>
+          <td>
+            <div class="dropdown">
+              <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+                <li><a id="edit-acct-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML">Edit</a></li>
+                <li><a id="acct-detail-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_modal" hx-swap="innerHTML">View</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {{ end }}
+      {{ else }}
         <tr class="text-center">
           <td colspan="9" class="py-5">There are no transactions to display.</td>
         </tr>
+        {{ end }}
     </tbody>
   </table>
 </div>
