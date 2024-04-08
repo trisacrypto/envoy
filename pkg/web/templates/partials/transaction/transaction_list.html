@@ -2,22 +2,127 @@
   <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
-        <th>Type</th>
         <th>Status</th>
-        <th>Originator VASP</th>
+        <th>Counterparty</th>
         <th>Originator</th>
         <th>Beneficiary</th>
         <th>Virtual Asset</th>
         <th>Amount</th>
         <th>Date Created</th>
+        <th>Last Update</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <!-- TODO: Add transactions table data here and display message below if there are no transactions. -->
-        <tr class="text-center">
-          <td colspan="9" class="py-5">There are no transactions to display.</td>
-        </tr>
+      {{ if .Transactions }}
+      {{ range .Transactions }}
+      {{ if .Status }}
+      <div class="flex items-center gap-x-1">
+        {{ if eq .Status "Draft" }}
+        <svg
+        width="6"
+        height="6"
+        viewBox="0 0 6 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
+        <path
+          d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
+          fill="#6b7280"
+        />
+      </svg>
+        <td class="text-gray-500">{{ .Status }}</td>
+        {{ else if eq .Status "Pending" }}
+        <svg
+        width="6"
+        height="6"
+        viewBox="0 0 6 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
+        <path
+          d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
+          fill="#a16207"
+        />
+      </svg>
+        <td class="text-yellow-700">{{ .Status }}</td>
+        {{ else if eq .Status "ActionRequired" }}
+        <svg
+        width="6"
+        height="6"
+        viewBox="0 0 6 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
+        <path
+          d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
+          fill="#1d4ed8"
+        />
+      </svg>
+        <td class="text-blue-700">{{ .Status }}</td>
+        {{ else if eq .Status "Completed" }}
+        <svg
+        width="6"
+        height="6"
+        viewBox="0 0 6 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
+        <path
+          d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
+          fill="#15803d"
+        />
+      </svg>
+        <td class="text-green-700">{{ .Status }}</td>
+        {{ else if eq .Status "Archived" }}
+        <svg
+        width="6"
+        height="6"
+        viewBox="0 0 6 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
+        <path
+          d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
+          fill="#374151"
+        />
+      </svg>
+        <td class="text-gray-700">{{ .Status }}</td>
+        {{ end }}
+      </div>
+      {{ else }}
+      <td>-</td>
+      {{ end }}
+      <td>{{ .Counterparty }}</td>
+      <td>{{ .Originator }}</td>
+      <td>{{ .Beneficiary }}</td>
+      <td>{{ .VirtualAsset }}</td>
+      <td>{{ .Amount }}</td>
+      {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+      <td>{{ $created }}</td>
+      {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05" }}
+      <td>{{ $lastUpdate }}</td>
+      <td>
+        <div class="dropdown">
+          <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
+          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+            <li><a>Approve</a></li>
+            <li><a>Reject</a></li>
+            <li><a>Archive</a></li>
+          </ul>
+        </div>
+      </td>
+      {{ end }}
+      {{ else }}
+      <tr class="text-center">
+        <td colspan="9" class="py-5">There are no transactions to display.</td>
+      </tr>
+      {{ end }}
     </tbody>
   </table>
 </div>

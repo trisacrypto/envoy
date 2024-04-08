@@ -30,7 +30,7 @@
       </div>
     </div>
   </section>
-  <section hx-get="/v1/transactions" hx-trigger="load">
+  <section id="transactions" hx-get="/v1/transactions" hx-ext="json-enc" hx-trigger="load">
     <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
