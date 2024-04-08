@@ -34,6 +34,15 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   }
 });
 
+// Move div with network list from below footer to inside the add customer account modal on load.
+document.body.addEventListener('htmx:afterSwap', () => {
+  const addCpartyModal = document.getElementById('new_acct_modal');
+  const networkList = document.querySelector('.ss-content');
+  if (addCpartyModal && networkList) {
+    addCpartyModal.appendChild(networkList);
+  }
+}); 
+
 
 addWalletBttn?.addEventListener('click', () => {
   const walletDiv = document.getElementById('crypto-wallets')
