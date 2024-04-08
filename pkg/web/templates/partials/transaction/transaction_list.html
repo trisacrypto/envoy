@@ -97,7 +97,7 @@
         </div>
         {{ end }}
         {{ else }}
-        <td>-</td>
+        <td class="px-8">-</td>
         {{ end }}
         <td>{{ .Counterparty }}</td>
         <td>{{ .Originator }}</td>
@@ -106,8 +106,7 @@
         <td>{{ .Amount }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
-        {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05" }}
-        <td>{{ $lastUpdate }}</td>
+        <td class="px-16">-</td>
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
