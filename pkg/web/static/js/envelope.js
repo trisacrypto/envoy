@@ -7,7 +7,7 @@ previewEnvelopeBttn?.addEventListener('click', () => {
   const envelopeData = Object.fromEntries(formData);
 
   // Originator Info Form Values
-  document.getElementById('orig-name').textContent = envelopeData.originator_first_name + ' ' + envelopeData.originator_last_name
+  document.getElementById('orig-name').textContent = envelopeData.orig_first_name + ' ' + envelopeData.orig_last_name
   document.getElementById('orig-internal-acct').textContent = envelopeData.customer_identifier
   document.getElementById('orig-addr-one').textContent = envelopeData.address_one
 
@@ -19,7 +19,7 @@ previewEnvelopeBttn?.addEventListener('click', () => {
   document.getElementById('orig-country').textContent = envelopeData.country
 
   // Beneficiary Info Form Values
-  document.getElementById('benf-name').textContent = envelopeData.beneficiary_first_name + ' ' + envelopeData.beneficiary_last_name
+  document.getElementById('benf-name').textContent = ''
   document.getElementById('benf-vasp-name').textContent = envelopeData.beneficiary_vasp
   document.getElementById('benf-wallet-addr').textContent = envelopeData.wallet_address
 

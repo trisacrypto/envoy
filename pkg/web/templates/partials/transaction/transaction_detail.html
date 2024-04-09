@@ -1,1 +1,81 @@
-<section></section>
+<div class="modal-box mx-auto relative p-4 w-full max-w-7xl max-h-full">
+  <!-- Modal content -->
+    <div>
+      <!-- Modal header -->
+      <div class="md:flex items-center justify-between p-4 border border-black bg-[#D9D9D9]">
+        <div class="mb-4 md:mb-0">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Secure Envelope Details
+          </h1>
+        </div>
+          <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4">
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Approve</button>
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+          </div>
+        </div>
+          <!-- Modal body -->
+        <div class="w-full py-4 lg:grid lg:grid-cols-2 lg:gap-x-8">
+          <!-- Transfer details -->
+          <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
+            <table>
+              <tr>
+                <th scope="col" colspan="2" class="envelope-header pb-2">TRANSFER DETAILS</th>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Status</th>
+                {{ if .Status }}
+                <td class="envelope-data">{{ .Status }}</td>
+                {{ else }}
+                <td class="envelope-data">-</td>
+                {{ end }}
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Date Created</th>
+                {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+                <td class="envelope-data text-balance" id="date-created">{{ $created }}</td>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Network</th>
+                <td class="envelope-data" id="transfer-network">{{ .VirtualAsset }}</td>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Transfer Amount</th>
+                <td class="envelope-data" id="transfer-amt">{{ .Amount }}</td>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Memo/Tag</th>
+                <td class="envelope-data text-balance" id="transfer-tag">-</td>
+              </tr>
+            </table>
+          </section>
+          <!-- Identity details -->
+          <section class="p-2 md:p-6 border border-black rounded bg-[#D9D9D9]">
+            <table>
+              <tr>
+                <th scope="col" class="envelope-header pb-2">IDENTITY DETAILS</th>
+                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">ORIGINATOR</th>
+                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">BENEFICIARY</th>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">VASP Name</th>
+                <td class="envelope-data" id="orig-name">{{ .Counterparty }}</td>
+                <td class="envelope-data" id="benf-name">-</td>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Name</th>
+                <td class="envelope-data" id="orig-name">{{ .Originator }}</td>
+                <td class="envelope-data" id="benf-name">{{ .Beneficiary }}</td>
+              </tr>
+              <tr>
+                <th scope="row" class="envelope-header">Wallet Address</th>
+                <td class="envelope-data" id="orig-wallet-addr">{{ .OriginatorAddress }}</td>
+                <td class="envelope-data" id="benf-wallet-addr">{{ .BeneficiaryAddress }}</td>
+              </tr>
+            </table>
+          </section>
+        </div>
+      </div>
+    </div>
+</div>
