@@ -73,5 +73,6 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     // Close the modal and reset the form values.
     document.getElementById('new_acct_modal').close()
     document.getElementById(newAcctForm).reset()
+    networkSelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' })
   }
 });
