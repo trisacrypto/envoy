@@ -2578,8 +2578,8 @@ html {
        column-gap: 1.5rem;
 }
 
-.overflow-hidden {
-  overflow: hidden;
+.overflow-auto {
+  overflow: auto;
 }
 
 .overflow-x-auto {
