@@ -20,81 +20,40 @@
         {{ if .Status }}
         <div class="flex items-center gap-x-1">
           {{ if eq .Status "Draft" }}
-          <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          {...props}
-        >
-          <path
-            d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
-            fill="#6b7280"
-          />
-        </svg>
-          <td class="text-gray-500">{{ .Status }}</td>
+          <td>
+            <div class="flex items-center gap-x-1">
+              <img src="/static/draftStatusIcon.svg" alt="" />
+              <span>{{ .Status }}</span>
+            </div>
+          </td>
           {{ else if eq .Status "Pending" }}
-          <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          {...props}
-        >
-          <path
-            d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
-            fill="#a16207"
-          />
-        </svg>
-          <td class="text-yellow-700">{{ .Status }}</td>
+          <td>
+            <div class="flex items-center gap-x-1">
+              <img src="/static/pendingStatusIcon.svg" alt="" />
+              <span>{{ .Status }}</span>
+            </div>
+          </td>
           {{ else if eq .Status "ActionRequired" }}
-          <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          {...props}
-        >
-          <path
-            d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
-            fill="#1d4ed8"
-          />
-        </svg>
-          <td class="text-blue-700">{{ .Status }}</td>
+          <td>
+            <div class="flex items-center gap-x-1">
+              <img src="/static/actionStatusIcon.svg" alt="" />
+              <span>{{ .Status }}</span>
+            </div>
+          </td>
           {{ else if eq .Status "Completed" }}
-          <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          {...props}
-        >
-          <path
-            d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
-            fill="#15803d"
-          />
-        </svg>
-          <td class="text-green-700">{{ .Status }}</td>
+          <td>
+            <div class="flex items-center gap-x-1">
+              <img src="/static/completeStatusIcon.svg" alt="" />
+              <span>{{ .Status }}</span>
+            </div>
+          </td>
           {{ else if eq .Status "Archived" }}
-          <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          {...props}
-        >
-          <path
-            d="M6 3C6 4.65685 4.65685 6 3 6C1.34315 6 0 4.65685 0 3C0 1.34315 1.34315 0 3 0C4.65685 0 6 1.34315 6 3Z"
-            fill="#374151"
-          />
-        </svg>
-          <td class="text-gray-700">{{ .Status }}</td>
-        </div>
+          <td>
+            <div class="flex items-center gap-x-1">
+              <img src="/static/archiveStatusIcon.svg" alt="" />
+              <span>{{ .Status }}</span>
+            </div>
+          </td>
         {{ end }}
         {{ else }}
         <td class="px-8">-</td>
