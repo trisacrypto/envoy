@@ -33,7 +33,8 @@
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Date Created</th>
-                <td class="envelope-data text-balance" id="date-created">{{ .Created }}</td>
+                {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+                <td class="envelope-data text-balance" id="date-created">{{ $created }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Network</th>
@@ -58,14 +59,14 @@
                 <th scope="col" class="envelope-header pb-2 px-2 md:px-6">BENEFICIARY</th>
               </tr>
               <tr>
+                <th scope="row" class="envelope-header">VASP Name</th>
+                <td class="envelope-data" id="orig-name">{{ .Counterparty }}</td>
+                <td class="envelope-data" id="benf-name">-</td>
+              </tr>
+              <tr>
                 <th scope="row" class="envelope-header">Name</th>
                 <td class="envelope-data" id="orig-name">{{ .Originator }}</td>
                 <td class="envelope-data" id="benf-name">{{ .Beneficiary }}</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">VASP Name</th>
-                <td class="envelope-data" id="orig-vasp-name">-</td>
-                <td class="envelope-data" id="benf-vasp-name">-</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Wallet Address</th>

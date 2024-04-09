@@ -2369,10 +2369,6 @@ html {
   border-width: 0;
 }
 
-.pointer-events-none {
-  pointer-events: none;
-}
-
 .relative {
   position: relative;
 }
@@ -2534,6 +2530,10 @@ html {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .flex-row {
   flex-direction: row;
 }
@@ -2622,15 +2622,6 @@ html {
   border-width: 2px;
 }
 
-.border-y {
-  border-top-width: 1px;
-  border-bottom-width: 1px;
-}
-
-.border-b {
-  border-bottom-width: 1px;
-}
-
 .border-t {
   border-top-width: 1px;
 }
@@ -2652,11 +2643,6 @@ html {
 .border-t-black {
   --tw-border-opacity: 1;
   border-top-color: rgb(0 0 0 / var(--tw-border-opacity));
-}
-
-.bg-\[\#268D57\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(38 141 87 / var(--tw-bg-opacity));
 }
 
 .bg-\[\#2F4858\] {
@@ -2704,14 +2690,14 @@ html {
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
 }
 
-.bg-red-700 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(185 28 28 / var(--tw-bg-opacity));
-}
-
 .bg-green-700 {
   --tw-bg-opacity: 1;
   background-color: rgb(21 128 61 / var(--tw-bg-opacity));
+}
+
+.bg-red-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(185 28 28 / var(--tw-bg-opacity));
 }
 
 .p-1 {
@@ -2815,6 +2801,10 @@ html {
   padding-top: 0.5rem;
 }
 
+.pt-3 {
+  padding-top: 0.75rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -2887,11 +2877,6 @@ html {
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
-}
-
-.text-blue-500 {
-  --tw-text-opacity: 1;
-  color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 
 .text-blue-600 {
@@ -3063,32 +3048,32 @@ body main {
   background-color: rgb(81 121 148 / 0.9);
 }
 
+.hover\:bg-\[\#55ACD8\]\/80:hover {
+  background-color: rgb(85 172 216 / 0.8);
+}
+
 .hover\:bg-\[\#55ACD8\]\/90:hover {
   background-color: rgb(85 172 216 / 0.9);
-}
-
-.hover\:bg-black\/80:hover {
-  background-color: rgb(0 0 0 / 0.8);
-}
-
-.hover\:bg-\[\#268D57\]\/80:hover {
-  background-color: rgb(38 141 87 / 0.8);
 }
 
 .hover\:bg-\[\#DB3B00\]\/80:hover {
   background-color: rgb(219 59 0 / 0.8);
 }
 
+.hover\:bg-black\/80:hover {
+  background-color: rgb(0 0 0 / 0.8);
+}
+
 .hover\:bg-gray-700\/80:hover {
   background-color: rgb(55 65 81 / 0.8);
 }
 
-.hover\:bg-red-700\/80:hover {
-  background-color: rgb(185 28 28 / 0.8);
-}
-
 .hover\:bg-green-700\/80:hover {
   background-color: rgb(21 128 61 / 0.8);
+}
+
+.hover\:bg-red-700\/80:hover {
+  background-color: rgb(185 28 28 / 0.8);
 }
 
 .hover\:text-black:hover {
