@@ -12,9 +12,12 @@ import (
 
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/store"
+	dberr "self-hosted-node/pkg/store/errors"
+	"self-hosted-node/pkg/store/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 )
 
 // The Web Server implements the compliance and administrative user interfaces.
@@ -25,6 +28,7 @@ type Server struct {
 	srv     *http.Server
 	router  *gin.Engine
 	url     *url.URL
+	vasp    *models.Counterparty
 	started time.Time
 	healthy bool
 	ready   bool
@@ -126,4 +130,30 @@ func (s *Server) setURL(addr net.Addr) {
 	if tcp, ok := addr.(*net.TCPAddr); ok && tcp.IP.IsUnspecified() {
 		s.url.Host = fmt.Sprintf("127.0.0.1:%d", tcp.Port)
 	}
+}
+
+// Localparty returns the VASP information for the current node.
+func (s *Server) Localparty(ctx context.Context) (_ *models.Counterparty, err error) {
+	if s.vasp == nil {
+		// Parse TRISA endpoint
+		var uri *traddr.URL
+		if uri, err = traddr.Parse(s.conf.TRISAEndpoint); err != nil {
+			return nil, fmt.Errorf("could not parse configured trisa endpoint: %w", err)
+		}
+
+		commonName := uri.Hostname()
+		if commonName == "" {
+			return nil, ErrNoLocalCommonName
+		}
+
+		// Lookup VASP information from counterparty database
+		if s.vasp, err = s.store.LookupCounterparty(ctx, commonName); err != nil {
+			log.Warn().Err(err).Msg("could not lookup local vasp information")
+			if errors.Is(err, dberr.ErrNotFound) {
+				return nil, ErrNoLocalparty
+			}
+			return nil, fmt.Errorf("could not lookup counterparty by common name: %w", err)
+		}
+	}
+	return s.vasp, nil
 }

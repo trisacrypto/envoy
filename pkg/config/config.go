@@ -39,10 +39,12 @@ type Config struct {
 // TRISA transactions. The web UI can be enabled or disabled and runs independently of
 // the other servers on the node.
 type WebConfig struct {
-	Maintenance bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
-	Enabled     bool   `default:"true" desc:"if false, the web UI server will not be run"`
-	BindAddr    string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
-	Origin      string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
+	Maintenance   bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
+	Enabled       bool   `default:"true" desc:"if false, the web UI server will not be run"`
+	BindAddr      string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
+	Origin        string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
+	TRISAEndpoint string `split_words:"true" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	TRPEndpoint   string `split_words:"true" desc:"trp endpoint for incoming openvasp requests"`
 }
 
 // TRISAConfig is a generic configuration for the TRISA node options

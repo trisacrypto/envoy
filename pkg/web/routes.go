@@ -129,6 +129,11 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", s.UpdateTransaction)
 			transactions.DELETE("/:id", s.DeleteTransaction)
 
+			// UI methods only for demo
+			// TODO: delete these routes
+			transactions.POST("/prepare", s.PrepareTransaction)
+			transactions.POST("/send", s.SendPreparedTransaction)
+
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")
 			{

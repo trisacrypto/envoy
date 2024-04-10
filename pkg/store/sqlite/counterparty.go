@@ -126,6 +126,27 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 	return counterparty, nil
 }
 
+const lookupCounterpartySQL = "SELECT * FROM counterparties WHERE common_name=:commonName"
+
+func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (counterparty *models.Counterparty, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	counterparty = &models.Counterparty{}
+	if err = counterparty.Scan(tx.QueryRow(lookupCounterpartySQL, sql.Named("commonName", commonName))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	tx.Commit()
+	return counterparty, nil
+}
+
 const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {

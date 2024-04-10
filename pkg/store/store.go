@@ -96,6 +96,7 @@ type CounterpartyStore interface {
 	ListCounterpartySourceInfo(ctx context.Context, source string) ([]*models.CounterpartySourceInfo, error)
 	CreateCounterparty(context.Context, *models.Counterparty) error
 	RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
+	LookupCounterparty(ctx context.Context, commonName string) (*models.Counterparty, error)
 	UpdateCounterparty(context.Context, *models.Counterparty) error
 	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error
 }
