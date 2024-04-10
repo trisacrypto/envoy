@@ -54,6 +54,8 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.Web.Enabled)
 	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)
 	require.Equal(t, testEnv["TRISA_WEB_ORIGIN"], conf.Web.Origin)
+	require.Equal(t, testEnv["TRISA_WEB_TRISA_ENDPOINT"], conf.Web.TRISAEndpoint)
+	require.Equal(t, testEnv["TRISA_WEB_TRP_ENDPOINT"], conf.Web.TRPEndpoint)
 	require.True(t, conf.Node.Maintenance)
 	require.Equal(t, testEnv["TRISA_NODE_BIND_ADDR"], conf.Node.BindAddr)
 	require.Equal(t, testEnv["TRISA_NODE_POOL"], conf.Node.Pool)

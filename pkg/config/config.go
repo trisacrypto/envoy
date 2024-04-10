@@ -43,8 +43,8 @@ type WebConfig struct {
 	Enabled       bool   `default:"true" desc:"if false, the web UI server will not be run"`
 	BindAddr      string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
 	Origin        string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
-	TRISAEndpoint string `required:"false" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
-	TRPEndpoint   string `required:"false" desc:"trp endpoint for incoming openvasp requests"`
+	TRISAEndpoint string `split_words:"true" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	TRPEndpoint   string `split_words:"true" desc:"trp endpoint for incoming openvasp requests"`
 }
 
 // TRISAConfig is a generic configuration for the TRISA node options
