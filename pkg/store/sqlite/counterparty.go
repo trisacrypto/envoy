@@ -126,7 +126,7 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 	return counterparty, nil
 }
 
-const lookupCounterpartySQL = "SELECT * FROM conterparties WHERE common_name=:commonName"
+const lookupCounterpartySQL = "SELECT * FROM counterparties WHERE common_name=:commonName"
 
 func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (counterparty *models.Counterparty, err error) {
 	var tx *sql.Tx
