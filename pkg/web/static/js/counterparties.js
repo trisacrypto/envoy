@@ -14,6 +14,7 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     // Close the add counterparty modal and reset the form.
     document.getElementById('add_cparty_modal').close();
     document.getElementById(addCpartyForm).reset();
+    countrySelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
   }
 });
 
