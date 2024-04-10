@@ -157,3 +157,23 @@ func (s *Server) Localparty(ctx context.Context) (_ *models.Counterparty, err er
 	}
 	return s.vasp, nil
 }
+
+// Create a TRISA travel address
+func (s *Server) TravelAddress(path, protocol string) (_ string, err error) {
+	if s.conf.TRISAEndpoint == "" {
+		return "", ErrNoTRISAEndpoint
+	}
+
+	params := make(url.Values)
+	params.Set("t", "i")
+	params.Set("mode", protocol)
+
+	uri := &url.URL{
+		Scheme:   "",
+		Host:     s.conf.TRISAEndpoint,
+		Path:     path,
+		RawQuery: params.Encode(),
+	}
+
+	return traddr.Encode(uri.String())
+}

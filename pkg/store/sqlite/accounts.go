@@ -13,7 +13,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created FROM accounts"
+const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created, modified FROM accounts"
 
 // Retrieve summary information for all accounts for the specified page, omitting
 // crypto addresses and any other irrelevant information.

@@ -57,6 +57,7 @@ func (a *Account) ScanSummary(scanner Scanner) error {
 		&a.LastName,
 		&a.TravelAddress,
 		&a.Created,
+		&a.Modified,
 	)
 }
 
