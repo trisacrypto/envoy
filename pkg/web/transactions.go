@@ -367,14 +367,6 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 	})
 }
 
-func (s *Server) PrepareTransaction(c *gin.Context) {
-
-}
-
-func (s *Server) SendPreparedTransaction(c *gin.Context) {
-
-}
-
 func CheckUUIDMatch(id, target uuid.UUID) error {
 	if id == uuid.Nil {
 		return ulids.ErrMissingID

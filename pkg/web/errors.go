@@ -1,10 +1,16 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"self-hosted-node/pkg"
 
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	ErrNoLocalCommonName = errors.New("invalid configuration: no common name in trisa endpoint configuration")
+	ErrNoLocalparty      = errors.New("could not lookup local vasp counterparty from database, please try again later")
 )
 
 // Renders the "not found page"
