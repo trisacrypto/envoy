@@ -14,7 +14,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-const listTransactionsSQL = "SELECT t.*, count(e.id) AS numEnvelopes FROM transactions t JOIN secure_envelopes e ON t.id=e.envelope_id GROUP BY t.id"
+const listTransactionsSQL = "SELECT id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, last_update, created, modified FROM transactions"
 
 func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (out *models.TransactionPage, err error) {
 	var tx *sql.Tx
@@ -37,7 +37,7 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (ou
 
 	for rows.Next() {
 		transaction := &models.Transaction{}
-		if err = transaction.ScanWithCount(rows); err != nil {
+		if err = transaction.Scan(rows); err != nil {
 			return nil, err
 		}
 		out.Transactions = append(out.Transactions, transaction)
