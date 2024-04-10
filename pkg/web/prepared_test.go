@@ -1,18 +1,14 @@
 package web_test
 
 import (
-	"fmt"
+	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 )
 
-func ExampleBeneficiaryTravelAddress() {
+func TestBeneficiaryTravelAddressCreation(t *testing.T) {
 	ta, err := traddr.Encode("//api.bob.vaspbot.net:443/?t=i")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(ta)
-	// Output:
-	//ta24sKtCmQ92AFBJjkbFW6DxDigXsqZQbyq7k1ePJpN57gffo
+	require.NoError(t, err, "could not encode endpoint as travel address")
+	require.Equal(t, "ta24sKtCmQ92AFBJjkbFW6DxDigXsqZQbyq7k1ePJpN57gffo", ta)
 }
