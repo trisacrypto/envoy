@@ -128,3 +128,6 @@ func (s *Store) UpdateCounterparty(context.Context, *models.Counterparty) error 
 func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error {
 	return nil
 }
+
+func (s *Store) UseTravelAddressFactory(models.TravelAddressFactory) {
+}

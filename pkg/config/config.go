@@ -43,13 +43,13 @@ type WebConfig struct {
 	Enabled       bool   `default:"true" desc:"if false, the web UI server will not be run"`
 	BindAddr      string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
 	Origin        string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
-	TRISAEndpoint string `split_words:"true" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
-	TRPEndpoint   string `split_words:"true" desc:"trp endpoint for incoming openvasp requests"`
+	TRISAEndpoint string `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
 }
 
 // TRISAConfig is a generic configuration for the TRISA node options
 type TRISAConfig struct {
 	Maintenance         bool            `env:"TRISA_MAINTENANCE" desc:"if true sets the TRISA node to maintenance mode; inherited from parent"`
+	Endpoint            string          `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
 	Enabled             bool            `default:"true" desc:"if false, the TRISA node server will not be run"`
 	BindAddr            string          `split_words:"true" default:":8100"`
 	Pool                string          `split_words:"true" required:"false"`

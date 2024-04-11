@@ -82,6 +82,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Create the model in the database (which will update the pointer)
+	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
 		// TODO: are there other error types that we need to handle to return a 400?
 		c.Error(fmt.Errorf("could not create account: %w", err))
@@ -375,6 +376,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Create the model in the database
+	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
