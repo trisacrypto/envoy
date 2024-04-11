@@ -6,7 +6,7 @@ const origCountrySelect = new SlimSelect({
 // Can more than one country be selected?
 const benfCountrySelect = new SlimSelect({
   select: '#benf_countries',
-})
+});
 
 const countries = {
   AF: 'Afghanistan',
@@ -258,5 +258,6 @@ const countries = {
 
 const countriesArray = Object.entries(countries).map(([value, text]) => ({ text, value }));
 countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
+
 origCountrySelect.setData(countriesArray);
 benfCountrySelect.setData(countriesArray);
