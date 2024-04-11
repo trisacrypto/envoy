@@ -46,8 +46,14 @@ document.body.addEventListener('htmx:configRequest', (e) => {
   }
 
   if (e.detail.path === '/v1/transactions/send' && e.detail.verb === 'post') {
-    console.log(e)
-   // TODO: Add form to transfer preview and transform data from the params before sending to the server.
+    params = e.detail.parameters;
+
+    // Parse JSON data and remove dump property.
+    const data = JSON.parse(params.travel_address);
+    delete data.dump;
+
+    // Modify outgoing request with parsed JSON data.
+    e.detail.parameters = data;
   }
 });
 
