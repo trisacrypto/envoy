@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	dberr "self-hosted-node/pkg/store/errors"
@@ -109,6 +110,12 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 		Transaction: in.Transaction(),
 	}
 
+	if out.Dump, err = Dump(out); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not marshal prepared transaction data"))
+		return
+	}
+
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
@@ -146,4 +153,13 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		HTMLData: gin.H{"TransactionID": ""},
 		HTMLName: "transaction_sent.html",
 	})
+}
+
+func Dump(data interface{}) (string, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
 }

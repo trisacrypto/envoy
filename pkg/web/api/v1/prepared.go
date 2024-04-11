@@ -20,6 +20,7 @@ type Prepared struct {
 	TravelAddress string                   `json:"travel_address"`
 	Identity      *ivms101.IdentityPayload `json:"identity"`
 	Transaction   *generic.Transaction     `json:"transaction"`
+	Dump          string                   `json:"dump"`
 }
 
 type Person struct {
