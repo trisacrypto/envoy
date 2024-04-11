@@ -8,6 +8,7 @@ import (
 
 	"self-hosted-node/pkg/store/dsn"
 	"self-hosted-node/pkg/store/errors"
+	"self-hosted-node/pkg/store/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -16,6 +17,7 @@ import (
 type Store struct {
 	readonly bool
 	conn     *sql.DB
+	mkta     models.TravelAddressFactory
 }
 
 func Open(uri *dsn.DSN) (_ *Store, err error) {
@@ -75,4 +77,8 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, e
 
 	// Create a transaction with the specified context.
 	return s.conn.BeginTx(ctx, opts)
+}
+
+func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
+	s.mkta = f
 }

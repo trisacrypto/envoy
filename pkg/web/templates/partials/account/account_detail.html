@@ -19,29 +19,21 @@
       <dt class="font-bold">Customer Account ID</dt>
       <dd>{{ .CustomerID }}</dd>
     </div>
-    {{ if .CryptoAddresses }}
-    {{ range .CryptoAddresses }}
-    <div class="mb-4 grid grid-cols-2">
-      <dt class="font-bold">Wallet Address</dt>
-      <div class="mb-4 grid grid-cols-2">
-        <dd>{{ .CryptoAddress }}</dd>
-        <dd>{{ .Network }}</dd>
-      </div>
-    </div>
-    <div class="mb-4 grid grid-cols-2">
-      <dt class="font-bold">Wallet Address</dt>
-      <div class="mb-4 grid grid-cols-2">
-        <dd>{{ .CryptoAddress }}</dd>
-        <dd>{{ .Network }}</dd>
-      </div>
-      <div class="mb-4 grid grid-cols-2">
-        <dt class="font-bold">Notes</dt>
-        <dd>{{ .Tag }}</dd>
-      </div>
-    </div>
-    {{ end }}
-    {{ end }}
   </dl>
+  {{ if .CryptoAddresses }}
+  <div class="mb-4 flex">
+    <h2 class="font-bold text-lg">Wallet Addresses</h2>
+  </div>
+  {{ range .CryptoAddresses }}
+  <div class="mb-4">
+    <p>
+      <span class="font-bold">{{ .Network }}</span>&nbsp;&nbsp;&nbsp;
+      <span>{{ .CryptoAddress }}</span>
+    </p>
+    <p class="text-sm">{{ .TravelAddress }}</p>
+  </div>
+  {{ end }}
+  {{ end }}
   <div class="mt-8 flex justify-center">
     <button id="edit-acct-bttn" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML" class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Edit</button>
  </div>
