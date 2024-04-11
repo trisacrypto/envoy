@@ -109,12 +109,6 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 		Transaction: in.Transaction(),
 	}
 
-	if out.Dump, err = Dump(out); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not marshal prepared transaction data"))
-		return
-	}
-
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,

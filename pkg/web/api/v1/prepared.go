@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 )
@@ -20,7 +22,6 @@ type Prepared struct {
 	TravelAddress string                   `json:"travel_address"`
 	Identity      *ivms101.IdentityPayload `json:"identity"`
 	Transaction   *generic.Transaction     `json:"transaction"`
-	Dump          string                   `json:"dump"`
 }
 
 type Person struct {
@@ -41,6 +42,15 @@ type Transfer struct {
 	AssetType string  `json:"asset_type"`
 	TxID      string  `json:"transaction_id"`
 	Tag       string  `json:"tag"`
+}
+
+func (p *Prepared) Dump() string {
+	data, err := json.Marshal(p)
+	if err != nil {
+		log.Warn().Err(err).Msg("could not marshal prepared data")
+		return ""
+	}
+	return string(data)
 }
 
 func (p *Prepare) Validate() error {
