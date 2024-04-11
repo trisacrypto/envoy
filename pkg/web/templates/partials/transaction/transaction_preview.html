@@ -9,11 +9,11 @@
           </h1>
         </div>
           <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4">
-            <button id="send-transfer-bttn" hx-post="/v1/transactions/send" hx-ext="json-enc" class="p-1 rounded w-1/3 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Send</button>
+            <button type="submit" id="send-transfer-bttn" class="p-1 rounded w-1/3 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Send</button>
             <button type="button" onclick="preview_envelope.close()" class="p-1 rounded w-1/3 bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
             <button type="button" onclick="preview_envelope.close()" class="p-1 rounded w-1/3 bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
           </div>
-        </div>
+      </div>
           <!-- Modal body -->
         <div class="w-full py-4 lg:grid lg:grid-cols-2 lg:gap-x-8">
           <!-- Transfer details -->
@@ -92,8 +92,4 @@
       </div>
     </div>
 </div>
-</dialog>
 
-<input type="hidden" id="prepared_travel_addr" name="prepared_travel_addr" value="{{ .TravelAddress }}" />
-<input type="hidden" id="prepared_identity" name="prepared_identity" value="{{ .Identity }}" />
-<input type="hidden" id="prepared_transaction" name="prepared_transaction" value="{{ .Transaction}}" />

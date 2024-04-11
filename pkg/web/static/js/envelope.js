@@ -41,4 +41,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     // Modify outgoing request data.
     e.detail.parameters = data;
   }
+
+  if (e.detail.path === '/v1/transactions/send' && e.detail.verb === 'post') {
+    console.log(e)
+   // TODO: Add form to transfer preview and transform data from the params before sending to the server.
+  }
 });
+
