@@ -30,6 +30,7 @@ type Person struct {
 	AddrLine2     string `json:"addr_line_2"`
 	City          string `json:"city"`
 	State         string `json:"state"`
+	PostalCode    string `json:"post_code"`
 	Country       string `json:"country"`
 	CryptoAddress string `json:"crypto_address"`
 }
@@ -72,7 +73,7 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 	addrLines := []string{
 		strings.TrimSpace(p.AddrLine1),
 		strings.TrimSpace(p.AddrLine2),
-		strings.TrimSpace(fmt.Sprintf("%s, %s", p.City, p.State)),
+		strings.TrimSpace(fmt.Sprintf("%s, %s, %s", p.City, p.State, p.PostalCode)),
 	}
 
 	for i, line := range addrLines {
