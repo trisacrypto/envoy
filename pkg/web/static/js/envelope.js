@@ -14,6 +14,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         addr_line_1: params.orig_addr_line_1,
         addr_line_2: params.orig_addr_line_2,
         city: params.orig_city,
+        post_code: params.orig_post_code,
         state: params.orig_state,
         country: params.orig_country,
         crypto_address: params.orig_crypto_address
@@ -26,9 +27,11 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         addr_line_2: params.benf_addr_line_2,
         city: params.benf_city,
         state: params.benf_state,
+        post_code: params.benf_post_code,
         country: params.benf_country,
         crypto_address: params.benf_crypto_address
       },
+      // TODO: Add notes to data
       transfer:{
         amount: parseFloat(params.amount),
         network: params.network,
