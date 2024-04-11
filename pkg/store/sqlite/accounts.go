@@ -11,6 +11,7 @@ import (
 	"self-hosted-node/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
+	"github.com/rs/zerolog/log"
 )
 
 const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created, modified FROM accounts"
@@ -73,6 +74,15 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 	account.ID = ulids.New()
 	account.Created = time.Now()
 	account.Modified = account.Created
+
+	// Create the travel address for the crypto address, logging errors without returning
+	if s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(account); err != nil {
+			log.Warn().Err(err).Str("type", "account").Str("id", account.ID.String()).Msg("could not assign travel address")
+		}
+		account.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
 
 	// Execute the insert into the database
 	if _, err = tx.Exec(createAccountSQL, account.Params()...); err != nil {
@@ -285,6 +295,15 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 	addr.Created = time.Now()
 	addr.Modified = addr.Created
 
+	// Create the travel address for the crypto address, logging errors without returning
+	if s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(addr); err != nil {
+			log.Warn().Err(err).Str("type", "crypto_address").Str("id", addr.ID.String()).Msg("could not assign travel address")
+		}
+		addr.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
+
 	if _, err = tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dberr.ErrNotFound
@@ -318,7 +337,7 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 }
 
 // TODO: this must be an upsert/delete since the data is being modified on the relation
-const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, travel_address=:travelAddress modified=:modified WHERE id=:id and account_id=:accountID"
+const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, travel_address=:travelAddress, modified=:modified WHERE id=:id and account_id=:accountID"
 
 func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
 	// Basic validation

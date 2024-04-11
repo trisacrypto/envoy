@@ -1,13 +1,10 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 
-	"self-hosted-node/pkg/logger"
 	dberr "self-hosted-node/pkg/store/errors"
 	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/ulids"
@@ -85,26 +82,12 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Create the model in the database (which will update the pointer)
+	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
 		// TODO: are there other error types that we need to handle to return a 400?
 		c.Error(fmt.Errorf("could not create account: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
-	}
-
-	// Create the travel address for the account now that we have an ID
-	// Do not error if creating a travel account fails
-	path, _ := url.JoinPath("accounts", account.ID.String())
-	if travelAddress, err := s.TravelAddress(path, "trisa"); err != nil {
-		log := logger.Tracing(c.Request.Context())
-		log.Warn().Err(err).Msg("could not create travel address for account")
-	} else {
-		// Update the model with the travel address added
-		account.TravelAddress = sql.NullString{Valid: true, String: travelAddress}
-		if err = s.store.UpdateAccount(c.Request.Context(), account); err != nil {
-			log := logger.Tracing(c.Request.Context())
-			log.Warn().Err(err).Msg("could not update account with travel address")
-		}
 	}
 
 	// Convert the model back to an API response
@@ -393,6 +376,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Create the model in the database
+	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))

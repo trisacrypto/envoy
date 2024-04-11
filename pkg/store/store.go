@@ -72,6 +72,7 @@ type SecureEnvelopeStore interface {
 
 // AccountStore provides CRUD interactions with Account models.
 type AccountStore interface {
+	TravelAddressStore
 	CryptoAddressStore
 	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
 	CreateAccount(context.Context, *models.Account) error
@@ -83,6 +84,7 @@ type AccountStore interface {
 // CryptoAddressStore provides CRUD interactions with CryptoAddress models and their
 // associated Account model.
 type CryptoAddressStore interface {
+	TravelAddressStore
 	ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)
 	CreateCryptoAddress(context.Context, *models.CryptoAddress) error
 	RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
@@ -99,4 +101,8 @@ type CounterpartyStore interface {
 	LookupCounterparty(ctx context.Context, commonName string) (*models.Counterparty, error)
 	UpdateCounterparty(context.Context, *models.Counterparty) error
 	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error
+}
+
+type TravelAddressStore interface {
+	UseTravelAddressFactory(models.TravelAddressFactory)
 }

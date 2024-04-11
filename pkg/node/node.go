@@ -12,6 +12,7 @@ import (
 	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/metrics"
 	"self-hosted-node/pkg/store"
+	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/trisa"
 	"self-hosted-node/pkg/trisa/network"
 	"self-hosted-node/pkg/web"
@@ -64,6 +65,13 @@ func New(conf config.Config) (node *Node, err error) {
 	// Connect to the database store
 	if node.store, err = store.Open(conf.DatabaseURL); err != nil {
 		return nil, err
+	}
+
+	// Configure the store with travel address generators
+	if factory, err := models.NewTravelAddressFactory(conf.Node.Endpoint, "trisa"); err != nil {
+		log.Warn().Err(err).Msg("could not configure travel address factory")
+	} else {
+		node.store.UseTravelAddressFactory(factory)
 	}
 
 	// Create the admin web ui server if it is enabled
