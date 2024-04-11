@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	dberr "self-hosted-node/pkg/store/errors"
@@ -153,13 +152,4 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		HTMLData: gin.H{"TransactionID": ""},
 		HTMLName: "transaction_sent.html",
 	})
-}
-
-func Dump(data interface{}) (string, error) {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonData), nil
 }
