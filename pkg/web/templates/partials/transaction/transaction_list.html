@@ -54,8 +54,7 @@
               <span>{{ .Status }}</span>
             </div>
           </td>
-        {{ end }}
-        {{ else }}
+          {{ end }}
         <td class="px-8 cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">-</td>
         {{ end }}
         <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Counterparty }}</td>
