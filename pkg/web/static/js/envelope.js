@@ -2,8 +2,6 @@ const previewEnvelopeBttn = document.getElementById('preview-envelope-bttn')
 const secureEnvelopeForm = document.getElementById('secure-envelope-form')
 
 document.body.addEventListener('htmx:configRequest', (e) => {
-  console.log(e);
-
   if (e.detail.path === '/v1/transactions/prepare' && e.detail.verb === 'post') {
     const params = e.detail.parameters;
 
@@ -40,11 +38,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       },
     }
 
-    // Modify 
+    // Modify outgoing request data.
     e.detail.parameters = data;
   }
-})
-
-document.body.addEventListener('htmx:afterRequest', (e) => {
-  console.log('afterRequest', e);
-})
+});
