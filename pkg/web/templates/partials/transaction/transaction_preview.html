@@ -94,8 +94,6 @@
 </div>
 </dialog>
 
-<div id="prepared-form" class="hidden">
-  <input id="prepared_travel_addr" name="prepared_travel_addr" value="{{ .TravelAddress }}" />
-  <input id="prepared_identity" name="prepared_identity" value="{{ .Identity }}" />
-  <input id="prepared_transaction" name="prepared_transaction" value="{{ .Transaction}}" />
-</div>
+<input type="hidden" id="prepared_travel_addr" name="prepared_travel_addr" value="{{ .TravelAddress }}" />
+<input type="hidden" id="prepared_identity" name="prepared_identity" value="{{ .Identity }}" />
+<input type="hidden" id="prepared_transaction" name="prepared_transaction" value="{{ .Transaction}}" />
