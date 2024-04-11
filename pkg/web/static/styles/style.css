@@ -25,7 +25,7 @@ body main {
 }
 
 .envelope-data {
-  @apply text-sm sm:text-base p-2 md:px-6 md:py-4;
+  @apply text-sm sm:text-base p-2 md:px-6 md:py-4 max-w-44 break-words;
 }
 
 /* Select network styles */

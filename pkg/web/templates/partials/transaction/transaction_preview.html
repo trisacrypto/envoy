@@ -27,8 +27,8 @@
                 <td class="envelope-data">Draft</td>
               </tr>
               <tr>
-                <th scope="row" class="envelope-header">Date Created</th>
-                <td class="envelope-data text-balance" id="date-created"></td>
+                <th scope="row" class="envelope-header">Travel Address</th>
+                <td class="text-balance p-2 md:px-6 md:py-4">{{ .TravelAddress }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Network</th>
@@ -49,8 +49,8 @@
             <table>
               <tr>
                 <th scope="col" class="envelope-header pb-2">IDENTITY DETAILS</th>
-                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">ORIGINATOR</th>
-                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">BENEFICIARY</th>
+                <th scope="col" class="envelope-header pb-2 px-2">ORIGINATOR</th>
+                <th scope="col" class="envelope-header pb-2 px-2">BENEFICIARY</th>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Name</th>
@@ -68,7 +68,7 @@
                 <td class="envelope-data" id="benf-lei"></td>
               </tr>
               <tr>
-                <th scope="row" class="envelope-header">Wallet Address</th>
+                <th scope="row" class="envelope-header">Crypto Address</th>
                 <td class="envelope-data" id="orig-wallet-addr">{{ .Transaction.Originator }}</td>
                 <td class="envelope-data" id="benf-wallet-addr">{{ .Transaction.Beneficiary }}</td>
               </tr>

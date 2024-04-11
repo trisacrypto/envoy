@@ -2957,6 +2957,8 @@ body main {
 }
 
 .envelope-data {
+  max-width: 11rem;
+  overflow-wrap: break-word;
   padding: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -3170,6 +3172,11 @@ body main {
   .md\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+
+  .md\:py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 
   .md\:text-3xl {
