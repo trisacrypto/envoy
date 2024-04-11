@@ -1,30 +1,50 @@
 const previewEnvelopeBttn = document.getElementById('preview-envelope-bttn')
 const secureEnvelopeForm = document.getElementById('secure-envelope-form')
 
-// Get form values and display in preview modal.
-previewEnvelopeBttn?.addEventListener('click', () => {
-  const formData = new FormData(secureEnvelopeForm);
-  const envelopeData = Object.fromEntries(formData);
+document.body.addEventListener('htmx:configRequest', (e) => {
+  if (e.detail.path === '/v1/transactions/prepare' && e.detail.verb === 'post') {
+    const params = e.detail.parameters;
 
-  // Originator Info Form Values
-  document.getElementById('orig-name').textContent = envelopeData.orig_first_name + ' ' + envelopeData.orig_last_name
-  document.getElementById('orig-internal-acct').textContent = envelopeData.customer_identifier
-  document.getElementById('orig-addr-one').textContent = envelopeData.address_one
+    let data = {
+      travel_address: params.travel_address,
+      originator:{
+        first_name: params.orig_first_name,
+        last_name: params.orig_last_name,
+        customer_id: params.orig_customer_id,
+        addr_line_1: params.orig_addr_line_1,
+        addr_line_2: params.orig_addr_line_2,
+        city: params.orig_city,
+        state: params.orig_state,
+        country: params.orig_country,
+        crypto_address: params.orig_crypto_address
+      },
+      beneficiary:{
+        first_name: params.benf_first_name,
+        last_name: params.benf_last_name,
+        customer_id: params.benf_customer_id,
+        addr_line_1: params.benf_addr_line_1,
+        addr_line_2: params.benf_addr_line_2,
+        city: params.benf_city,
+        state: params.benf_state,
+        country: params.benf_country,
+        crypto_address: params.benf_crypto_address
+      },
+      transfer:{
+        amount: parseFloat(params.amount),
+        network: params.network,
+        asset_type: params.asset_type,
+        transaction_id: params.transaction_id,
+        tag: params.tag,
+      },
+    }
 
-  if (envelopeData.address_two) {
-    document.getElementById('orig-addr-two').textContent = envelopeData.address_two
+    // Modify outgoing request data.
+    e.detail.parameters = data;
   }
 
-  document.getElementById('orig-addr-three').textContent = envelopeData.city + ' ' + envelopeData.region + ' ' + envelopeData.postal_code
-  document.getElementById('orig-country').textContent = envelopeData.country
-
-  // Beneficiary Info Form Values
-  document.getElementById('benf-name').textContent = ''
-  document.getElementById('benf-vasp-name').textContent = envelopeData.beneficiary_vasp
-  document.getElementById('benf-wallet-addr').textContent = envelopeData.wallet_address
-
-  // Virtual Asset Form Values
-  document.getElementById('asset-type').textContent = envelopeData.asset_type
-  document.getElementById('transfer-amt').textContent = envelopeData.amount
-  document.getElementById('transfer-tag').textContent = envelopeData.tag
+  if (e.detail.path === '/v1/transactions/send' && e.detail.verb === 'post') {
+    console.log(e)
+   // TODO: Add form to transfer preview and transform data from the params before sending to the server.
+  }
 });
+

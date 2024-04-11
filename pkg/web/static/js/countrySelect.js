@@ -1,7 +1,12 @@
 // Display a searchable dropdown for countries.
-const countrySelect = new SlimSelect({
-  select: '#countries',
+const origCountrySelect = new SlimSelect({
+  select: '#orig_countries',
 });
+
+// Can more than one country be selected?
+const benfCountrySelect = new SlimSelect({
+  select: '#benf_countries',
+})
 
 const countries = {
   AF: 'Afghanistan',
@@ -253,4 +258,5 @@ const countries = {
 
 const countriesArray = Object.entries(countries).map(([value, text]) => ({ text, value }));
 countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
-countrySelect.setData(countriesArray);
+origCountrySelect.setData(countriesArray);
+benfCountrySelect.setData(countriesArray);
