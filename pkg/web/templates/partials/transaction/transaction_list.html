@@ -20,11 +20,11 @@
       <tr>
         <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
           {{ if eq .Source "local" }}
-          <i class="fa-solid fa-file-export"></i>
+          <i class="fa-solid fa-file-export" title="Outgoing transaction from local VASP"></i>
           {{ else if eq .Source "remote" }}
-          <i class="fa-solid fa-file-import"></i>
+          <i class="fa-solid fa-file-import" title="Incoming transaction from remote VASP"></i>
           {{ else }}
-          <i class="fa-solid fa-question"></i>
+          <i class="fa-solid fa-question" title="Unknown transaction type"></i>
           {{ end }}
         </td>
         {{ if .Status }}
