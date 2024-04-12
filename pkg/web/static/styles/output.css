@@ -2476,12 +2476,16 @@ html {
   margin-top: 0.75rem;
 }
 
-.mt-4 {
-  margin-top: 1rem;
-}
-
 .mt-8 {
   margin-top: 2rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
 }
 
 .block {
@@ -2548,8 +2552,16 @@ html {
   max-width: 80rem;
 }
 
+.max-w-32 {
+  max-width: 8rem;
+}
+
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
 }
 
 .transform {
@@ -2562,6 +2574,10 @@ html {
 
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .flex-row {
@@ -2881,6 +2897,11 @@ html {
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 .font-black {
