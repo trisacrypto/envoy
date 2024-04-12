@@ -71,6 +71,12 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 		return
 	}
 
+	// If the transaction is created by the API, it is considered local.
+	in.Source = models.SourceLocal
+
+	// Mark the transaction as a draft until a secure envelope is sent.
+	in.Status = models.StatusDraft
+
 	if err = in.Validate(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))

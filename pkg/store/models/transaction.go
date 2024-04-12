@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"self-hosted-node/pkg/store/errors"
@@ -9,6 +10,16 @@ import (
 
 	"github.com/google/uuid"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+)
+
+const (
+	SourceLocal    = "local"
+	SourceRemote   = "remote"
+	StatusDraft    = "draft"
+	StatusPending  = "pending"
+	StatusAction   = "action required"
+	StatusComplete = "completed"
+	StatusArchived = "archived"
 )
 
 type Transaction struct {
@@ -167,4 +178,14 @@ func (e *SecureEnvelope) Transaction() (*Transaction, error) {
 
 func (e *SecureEnvelope) SetTransaction(tx *Transaction) {
 	e.transaction = tx
+}
+
+func ValidStatus(status string) bool {
+	status = strings.TrimSpace(strings.ToLower(status))
+	switch status {
+	case StatusDraft, StatusPending, StatusAction, StatusComplete, StatusArchived:
+		return true
+	default:
+		return false
+	}
 }

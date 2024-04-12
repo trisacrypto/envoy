@@ -108,7 +108,7 @@ func (s *Store) retrieveTransaction(tx *sql.Tx, transactionID uuid.UUID) (transa
 	return transaction, nil
 }
 
-const updateTransactionSQL = "UPDATE transactions SET source=:source, status=:status, counterparty=:counterparty, counterparty_id=:counterpatyID, originator=:originator, originator_address=:originatorAddress, beneficiary=:beneficiary, beneficiary_address=:beneficiaryAddress, virtual_asset=:virtualAsset, amount=:amount, lastUpdate=:lastUpdate, modified=:modified WHERE id=:id"
+const updateTransactionSQL = "UPDATE transactions SET source=:source, status=:status, counterparty=:counterparty, counterparty_id=:counterpartyID, originator=:originator, originator_address=:originatorAddress, beneficiary=:beneficiary, beneficiary_address=:beneficiaryAddress, virtual_asset=:virtualAsset, amount=:amount, last_update=:lastUpdate, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (err error) {
 	// Basic validation
