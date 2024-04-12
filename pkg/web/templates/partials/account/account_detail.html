@@ -21,16 +21,19 @@
     </div>
   </dl>
   {{ if .CryptoAddresses }}
-  <div class="mb-4 flex">
+  <div class="mt-8 mb-4">
     <h2 class="font-bold text-lg">Wallet Addresses</h2>
   </div>
   {{ range .CryptoAddresses }}
   <div class="mb-4">
-    <p>
-      <span class="font-bold">{{ .Network }}</span>&nbsp;&nbsp;&nbsp;
-      <span>{{ .CryptoAddress }}</span>
-    </p>
-    <p class="text-sm">{{ .TravelAddress }}</p>
+    <div class="grid grid-cols-2">
+      <dt class="font-bold">{{ .Network }}</dt>
+      <div>
+        <div>
+          <dd class="break-words">{{ .CryptoAddress }}<dd>
+          <dd class="mt-4 text-sm break-words">{{ .TravelAddress }}</dd>
+        </div>
+      </div>
   </div>
   {{ end }}
   {{ end }}

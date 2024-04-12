@@ -2,6 +2,7 @@ const addWalletBttn = document.getElementById('add-wallet-bttn')
 const extractWalletRE = /(crypto_address|network)_(\d+)/g;
 
 document.body.addEventListener("htmx:configRequest", (e) => {
+  console.log(e)
   // Check if this is a POST request for the accounts form.
   if (e.detail.path == "/v1/accounts" && e.detail.verb == "post") {
     // Modify the POST data to ensure the wallet addresses are collected correctly

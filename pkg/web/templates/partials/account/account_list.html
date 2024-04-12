@@ -16,7 +16,7 @@
           <td>{{ .CustomerID }}</td>
           <td>{{ .FirstName }}&nbsp;{{ .LastName }}</td>
           {{ if .TravelAddress }}
-          <td>{{ .TravelAddress }}</td>
+          <td class="max-w-sm break-words">{{ .TravelAddress }}</td>
           {{ else }}
           <td class="px-16">-</td>
           {{ end }}
