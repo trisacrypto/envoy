@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/ulids"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -123,7 +124,34 @@ func NewTransactionList(page *models.TransactionPage) (out *TransactionsList, er
 }
 
 func (c *Transaction) Validate() (err error) {
-	return nil
+	if c.Source == "" {
+		err = ValidationError(err, MissingField("source"))
+	}
+
+	if c.Source != models.SourceLocal && c.Source != models.SourceRemote {
+		err = ValidationError(err, IncorrectField("source", "source must either be local or remote"))
+	}
+
+	c.Status = strings.TrimSpace(strings.ToLower(c.Status))
+	if c.Status == "" {
+		err = ValidationError(err, MissingField("status"))
+	} else if !models.ValidStatus(c.Status) {
+		err = ValidationError(err, IncorrectField("status", "status must be one of draft, pending, action required, completed, or archived"))
+	}
+
+	if c.Counterparty == "" {
+		err = ValidationError(err, MissingField("counterparty"))
+	}
+
+	if c.VirtualAsset == "" {
+		err = ValidationError(err, MissingField("virtual_asset"))
+	}
+
+	if c.Amount == 0.0 {
+		err = ValidationError(err, MissingField("amount"))
+	}
+
+	return err
 }
 
 func (c *Transaction) Model() (model *models.Transaction, err error) {
