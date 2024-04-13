@@ -1,4 +1,4 @@
-package passwd
+package auth
 
 import (
 	"bytes"

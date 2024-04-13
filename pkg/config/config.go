@@ -39,11 +39,23 @@ type Config struct {
 // TRISA transactions. The web UI can be enabled or disabled and runs independently of
 // the other servers on the node.
 type WebConfig struct {
-	Maintenance   bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
-	Enabled       bool   `default:"true" desc:"if false, the web UI server will not be run"`
-	BindAddr      string `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
-	Origin        string `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
-	TRISAEndpoint string `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	Maintenance   bool       `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
+	Enabled       bool       `default:"true" desc:"if false, the web UI server will not be run"`
+	BindAddr      string     `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
+	Origin        string     `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
+	TRISAEndpoint string     `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	Auth          AuthConfig `split_words:"true"`
+}
+
+// AuthConfig specifies the configuration for authenticating WebUI requests
+type AuthConfig struct {
+	Keys            map[string]string `required:"false" desc:"optional static key configuration as a map of keyID to path on disk"`
+	Audience        string            `default:"http://localhost:8000" desc:"value for the aud jwt claim"`
+	Issuer          string            `default:"http://localhost:8000" desc:"value for the iss jwt claim"`
+	CookieDomain    string            `split_words:"true" default:"localhost" desc:"limit cookies to the specified domain (exclude port)"`
+	AccessTokenTTL  time.Duration     `split_words:"true" default:"1h" desc:"the amount of time before an access token expires"`
+	RefreshTokenTTL time.Duration     `split_words:"true" default:"2h" desc:"the amount of time before a refresh token expires"`
+	TokenOverlap    time.Duration     `split_words:"true" default:"-15m" desc:"the amount of overlap between the access and refresh token"`
 }
 
 // TRISAConfig is a generic configuration for the TRISA node options
