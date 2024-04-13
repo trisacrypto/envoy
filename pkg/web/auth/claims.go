@@ -12,6 +12,7 @@ import (
 type Claims struct {
 	jwt.RegisteredClaims
 	ClientID    string   `json:"clientID,omitempty"`
+	Name        string   `json:"name,omitempty"`
 	Email       string   `json:"email,omitempty"`
 	Gravatar    string   `json:"gravatar,omitempty"`
 	Role        string   `json:"role,omitempty"`

@@ -49,6 +49,7 @@ func (s *TokenTestSuite) TestTokenManager() {
 	// Create an access token from simple claims
 	creds := &auth.Claims{
 		Email: "kate@example.com",
+		Name:  "Kate Holland",
 	}
 
 	accessToken, err := tm.CreateAccessToken(creds)
@@ -67,6 +68,7 @@ func (s *TokenTestSuite) TestTokenManager() {
 	require.True(ac.NotBefore.Before(now))
 	require.True(ac.ExpiresAt.After(now))
 	require.Equal(creds.Email, ac.Email)
+	require.Equal(creds.Name, ac.Name)
 
 	// Create a refresh token from the access token
 	refreshToken, err := tm.CreateRefreshToken(accessToken)
@@ -127,6 +129,7 @@ func (s *TokenTestSuite) TestValidTokens() {
 	// Default creds
 	creds := &auth.Claims{
 		Email: "kate@example.com",
+		Name:  "Kate Holland",
 	}
 
 	// TODO: add validation steps and test
@@ -161,6 +164,7 @@ func (s *TokenTestSuite) TestInvalidTokens() {
 			ExpiresAt: jwt.NewNumericDate(now.Add(-30 * time.Minute)), // exp is validated and is before now
 		},
 		Email: "kate@example.com",
+		Name:  "Kate Holland",
 	}
 
 	// Test validation signed with wrong kid
@@ -256,6 +260,7 @@ func (s *TokenTestSuite) TestKeyRotation() {
 	// Create a valid token with the "old token manager"
 	token, err := oldTM.CreateAccessToken(&auth.Claims{
 		Email: "kate@example.com",
+		Name:  "Kate Holland",
 	})
 	require.NoError(err)
 
@@ -294,6 +299,7 @@ func (s *TokenTestSuite) TestParseExpiredToken() {
 	// Default creds
 	creds := &auth.Claims{
 		Email: "kate@example.com",
+		Name:  "Kate Holland",
 	}
 
 	accessToken, err := tm.CreateAccessToken(creds)
@@ -325,6 +331,7 @@ func (s *TokenTestSuite) TestParseExpiredToken() {
 	require.Equal(claims.ID, pclaims.ID)
 	require.Equal(claims.ExpiresAt, pclaims.ExpiresAt)
 	require.Equal(creds.Email, claims.Email)
+	require.Equal(creds.Name, claims.Name)
 
 	// Ensure signature is still validated on parse
 	tks += "abcdefg"

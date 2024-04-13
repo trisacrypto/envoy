@@ -14,6 +14,7 @@ import (
 	"self-hosted-node/pkg/store"
 	dberr "self-hosted-node/pkg/store/errors"
 	"self-hosted-node/pkg/store/models"
+	"self-hosted-node/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -27,6 +28,7 @@ type Server struct {
 	store   store.Store
 	srv     *http.Server
 	router  *gin.Engine
+	issuer  *auth.ClaimsIssuer
 	url     *url.URL
 	vasp    *models.Counterparty
 	started time.Time
