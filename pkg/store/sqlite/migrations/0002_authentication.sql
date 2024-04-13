@@ -3,7 +3,7 @@ BEGIN;
 
 -- Roles are collections of permissions that can be quickly assigned to a user
 CREATE TABLE IF NOT EXISTS roles (
-    id              TEXT PRIMARY KEY,
+    id              INTEGER PRIMARY KEY,
     title           TEXT NOT NULL UNIQUE,
     description     TEXT,
     is_default      BOOLEAN DEFAULT false NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS roles (
 
 -- Permissions authorize users and api keys to perform actions on the api
 CREATE TABLE IF NOT EXISTS permissions (
-    id              TEXT PRIMARY KEY,
+    id              INTEGER PRIMARY KEY,
     title           TEXT NOT NULL UNIQUE,
     description     TEXT,
     created         DATETIME NOT NULL,
@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 -- Maps permissions to roles
 CREATE TABLE IF NOT EXISTS role_permissions (
-    role_id         TEXT NOT NULL,
-    permission_id   TEXT NOT NULL,
+    role_id         INTEGER NOT NULL,
+    permission_id   INTEGER NOT NULL,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
     PRIMARY KEY (role_id, permission_id),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
     name            TEXT,
     email           TEXT NOT NULL UNIQUE,
     passwords       TEXT NOT NULL UNIQUE,
-    role_id         TEXT NOT NULL,
+    role_id         INTEGER NOT NULL,
     last_login      DATETIME,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
 -- Maps permissions to api keys
 CREATE TABLE IF NOT EXISTS api_key_permissions (
     api_key_id      TEXT NOT NULL,
-    permission_id   TEXT NOT NULL,
+    permission_id   INTEGER NOT NULL,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
     PRIMARY KEY (api_key_id, permission_id),

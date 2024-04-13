@@ -30,6 +30,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Authentication",
 			Path: "0002_authentication.sql",
 		},
+		{
+			ID:   3,
+			Name: "Default Roles",
+			Path: "0003_default_roles.sql",
+		},
 	}
 
 	for i, migration := range migrations {

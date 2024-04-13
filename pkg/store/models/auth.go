@@ -3,8 +3,7 @@ package models
 import (
 	"database/sql"
 	"self-hosted-node/pkg/store/errors"
-
-	"github.com/oklog/ulid/v2"
+	"time"
 )
 
 type User struct {
@@ -12,7 +11,7 @@ type User struct {
 	Name        sql.NullString
 	Email       string
 	Password    string
-	RoleID      ulid.ULID
+	RoleID      int64
 	LastLogin   sql.NullTime
 	role        *Role
 	permissions []string
@@ -27,17 +26,21 @@ type APIKey struct {
 }
 
 type Role struct {
-	Model
+	ID          int64
 	Title       string
 	Description string
 	IsDefault   bool
+	Created     time.Time
+	Modified    time.Time
 	permissions []*Permission
 }
 
 type Permission struct {
-	Model
+	ID          int64
 	Title       string
 	Description string
+	Created     time.Time
+	Modified    time.Time
 }
 
 func (u User) Role() (*Role, error) {
