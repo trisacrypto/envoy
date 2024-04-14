@@ -94,6 +94,18 @@ func (u *User) Scan(scanner Scanner) error {
 	)
 }
 
+func (u *User) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&u.ID,
+		&u.Name,
+		&u.Email,
+		&u.RoleID,
+		&u.LastLogin,
+		&u.Created,
+		&u.Modified,
+	)
+}
+
 func (u *User) Params() []any {
 	return []any{
 		sql.Named("id", u.ID),
@@ -112,6 +124,16 @@ func (k *APIKey) Scan(scanner Scanner) error {
 		&k.ID,
 		&k.ClientID,
 		&k.Secret,
+		&k.LastSeen,
+		&k.Created,
+		&k.Modified,
+	)
+}
+
+func (k *APIKey) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&k.ID,
+		&k.ClientID,
 		&k.LastSeen,
 		&k.Created,
 		&k.Modified,

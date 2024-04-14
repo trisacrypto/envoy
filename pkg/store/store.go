@@ -40,6 +40,8 @@ type Store interface {
 	TransactionStore
 	AccountStore
 	CounterpartyStore
+	UserStore
+	APIKeyStore
 }
 
 // All Store implementations must implement the Store interface
@@ -105,4 +107,21 @@ type CounterpartyStore interface {
 
 type TravelAddressStore interface {
 	UseTravelAddressFactory(models.TravelAddressFactory)
+}
+
+type UserStore interface {
+	ListUsers(ctx context.Context, page *models.PageInfo) (*models.UserPage, error)
+	CreateUser(context.Context, *models.User) error
+	RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error)
+	UpdateUser(context.Context, *models.User) error
+	SetUserPassword(ctx context.Context, userID ulid.ULID, password string) error
+	DeleteUser(ctx context.Context, userID ulid.ULID) error
+}
+
+type APIKeyStore interface {
+	ListAPIKeys(context.Context, *models.PageInfo) (*models.APIKeyPage, error)
+	CreateAPIKey(context.Context, *models.APIKey) error
+	RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
+	UpdateAPIKey(context.Context, *models.APIKey) error
+	DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error
 }

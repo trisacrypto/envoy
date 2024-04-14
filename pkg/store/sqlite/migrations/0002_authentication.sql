@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS users (
     id              TEXT PRIMARY KEY,
     name            TEXT,
     email           TEXT NOT NULL UNIQUE,
-    passwords       TEXT NOT NULL UNIQUE,
+    password        TEXT NOT NULL UNIQUE,
     role_id         INTEGER NOT NULL,
     last_login      DATETIME,
     created         DATETIME NOT NULL,
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- API Authentication using authorization bearer tokens and argon2 derived key secrets
 CREATE TABLE IF NOT EXISTS api_keys (
     id              TEXT PRIMARY KEY,
-    client_id       TEXT NOT NULL,
-    secret          TEXT NOT NULL,
+    client_id       TEXT NOT NULL UNIQUE,
+    secret          TEXT NOT NULL UNIQUE,
     last_seen       DATETIME,
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL
