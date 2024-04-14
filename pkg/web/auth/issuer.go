@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -13,6 +14,11 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+)
+
+const (
+	refreshPath            = "/v1/reauthenticate"
+	DefaultRefreshAudience = "http://localhost:8000/v1/reauthenticate"
 )
 
 // Global variables that should really not be changed except between major versions.
@@ -25,10 +31,11 @@ var (
 )
 
 type ClaimsIssuer struct {
-	conf       config.AuthConfig
-	keyID      ulid.ULID
-	key        *rsa.PrivateKey
-	publicKeys map[ulid.ULID]*rsa.PublicKey
+	conf            config.AuthConfig
+	keyID           ulid.ULID
+	key             *rsa.PrivateKey
+	publicKeys      map[ulid.ULID]*rsa.PublicKey
+	refreshAudience string
 }
 
 func NewIssuer(conf config.AuthConfig) (_ *ClaimsIssuer, err error) {
@@ -135,10 +142,13 @@ func (tm *ClaimsIssuer) CreateRefreshToken(accessToken *jwt.Token) (_ *jwt.Token
 		return nil, ErrUnparsableClaims
 	}
 
+	// Add the refresh audience to the audience claims
+	audience := append(accessClaims.Audience, tm.RefreshAudience())
+
 	claims := &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        accessClaims.ID,
-			Audience:  accessClaims.Audience,
+			Audience:  audience,
 			Issuer:    accessClaims.Issuer,
 			Subject:   accessClaims.Subject,
 			IssuedAt:  accessClaims.IssuedAt,
@@ -181,6 +191,21 @@ func (tm *ClaimsIssuer) Keys() map[ulid.ULID]*rsa.PublicKey {
 // CurrentKey returns the ulid of the current key being used to sign tokens.
 func (tm *ClaimsIssuer) CurrentKey() ulid.ULID {
 	return tm.keyID
+}
+
+func (tm *ClaimsIssuer) RefreshAudience() string {
+	if tm.refreshAudience == "" {
+		if tm.conf.Issuer != "" {
+			if aud, err := url.Parse(tm.conf.Issuer); err == nil {
+				tm.refreshAudience = aud.ResolveReference(&url.URL{Path: refreshPath}).String()
+			}
+		}
+
+		if tm.refreshAudience == "" {
+			tm.refreshAudience = DefaultRefreshAudience
+		}
+	}
+	return tm.refreshAudience
 }
 
 // keyFunc is an jwt.KeyFunc that selects the RSA public key from the list of managed

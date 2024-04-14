@@ -13,6 +13,10 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+//===========================================================================
+// Users Store
+//===========================================================================
+
 const listUsersSQL = "SELECT id, name, email, role_id, last_login, created, modified FROM users"
 
 func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (out *models.UserPage, err error) {
@@ -268,6 +272,10 @@ func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions 
 
 	return permissions, rows.Err()
 }
+
+//===========================================================================
+// APIKeys Store
+//===========================================================================
 
 const listAPIKeysSQL = "SELECT id, client_id, last_seen, created, modified FROM api_keys"
 

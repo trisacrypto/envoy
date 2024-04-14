@@ -2,7 +2,8 @@ package auth
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"self-hosted-node/pkg/store/models"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -19,25 +20,60 @@ type Claims struct {
 	Permissions []string `json:"permissions,omitempty"`
 }
 
-func NewClaims(ctx context.Context) (*Claims, error) {
-	// TODO: identify user type or apikey type and use appropriate method
-	return NewClaimsForUser(ctx)
+type SubjectType rune
+
+const (
+	SubjectUser   = SubjectType('u')
+	SubjectAPIKey = SubjectType('k')
+)
+
+func NewClaims(ctx context.Context, model any) (*Claims, error) {
+	switch t := model.(type) {
+	case *models.User:
+		return NewClaimsForUser(ctx, t)
+	case *models.APIKey:
+		return NewClaimsForAPIClient(ctx, t)
+	default:
+		return nil, fmt.Errorf("unknown model type %T: cannot create claims", t)
+	}
 }
 
-func NewClaimsForUser(ctx context.Context) (claims *Claims, err error) {
-	return nil, errors.New("not implemented yet")
+func NewClaimsForUser(ctx context.Context, user *models.User) (claims *Claims, err error) {
+	claims = &Claims{
+		Name:        user.Name.String,
+		Email:       user.Email,
+		Gravatar:    "",
+		Permissions: user.Permissions(),
+	}
+
+	var role *models.Role
+	if role, err = user.Role(); err != nil {
+		return nil, err
+	}
+
+	claims.Role = role.Title
+	claims.SetSubjectID(SubjectUser, user.ID)
+	return claims, nil
 }
 
-func NewClaimsForAPIClient(ctx context.Context) (claims *Claims, err error) {
-	return nil, errors.New("not implemented yet")
+func NewClaimsForAPIClient(ctx context.Context, key *models.APIKey) (claims *Claims, err error) {
+	claims = &Claims{
+		ClientID:    key.ClientID,
+		Permissions: key.Permissions(),
+	}
+
+	claims.SetSubjectID(SubjectAPIKey, key.ID)
+	return claims, nil
 }
 
-func (c *Claims) SetSubjectID(uid ulid.ULID) {
-	c.Subject = uid.String()
+func (c *Claims) SetSubjectID(sub SubjectType, id ulid.ULID) {
+	c.Subject = fmt.Sprintf("%c%s", sub, id)
 }
 
-func (c Claims) SubjectID() (ulid.ULID, error) {
-	return ulid.Parse(c.Subject)
+func (c Claims) SubjectID() (SubjectType, ulid.ULID, error) {
+	sub := SubjectType(c.Subject[0])
+	id, err := ulid.Parse(c.Subject[1:])
+	return sub, id, err
 }
 
 func (c Claims) HasPermission(required string) bool {
@@ -50,6 +86,10 @@ func (c Claims) HasPermission(required string) bool {
 }
 
 func (c Claims) HasAllPermissions(required ...string) bool {
+	if len(required) == 0 {
+		return false
+	}
+
 	for _, perm := range required {
 		if !c.HasPermission(perm) {
 			return false

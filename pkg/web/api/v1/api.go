@@ -15,6 +15,9 @@ import (
 // internal API (e.g. the API that users can integrate with).
 type Client interface {
 	Status(context.Context) (*StatusReply, error)
+	Login(context.Context, *LoginRequest) (*LoginReply, error)
+	Authenticate(context.Context, *APIAuthentication) (*LoginReply, error)
+	Reauthenticate(context.Context, *ReauthenticateRequest) (*LoginReply, error)
 
 	// Transactions Resource
 	ListTransactions(context.Context, *PageQuery) (*TransactionsList, error)

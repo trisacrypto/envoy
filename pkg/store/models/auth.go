@@ -43,6 +43,10 @@ type Permission struct {
 	Modified    time.Time
 }
 
+//===========================================================================
+// Associated Fields and Models
+//===========================================================================
+
 func (u User) Role() (*Role, error) {
 	if u.role == nil {
 		return nil, errors.ErrMissingAssociation
@@ -80,6 +84,10 @@ func (r Role) Permissions() ([]*Permission, error) {
 func (r *Role) SetPermissions(permissions []*Permission) {
 	r.permissions = permissions
 }
+
+//===========================================================================
+// Scan and Params
+//===========================================================================
 
 func (u *User) Scan(scanner Scanner) error {
 	return scanner.Scan(

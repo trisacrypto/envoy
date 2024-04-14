@@ -79,7 +79,8 @@ func (s *TokenTestSuite) TestTokenManager() {
 	// Check access token claims
 	rc := refreshToken.Claims.(*auth.Claims)
 	require.Equal(ac.ID, rc.ID, "access and refresh tokens must have same jid")
-	require.Equal(ac.Audience, rc.Audience)
+	require.NotEqual(ac.Audience, rc.Audience, "expected refresh token to have refresh audience")
+	require.Equal(jwt.ClaimStrings{"http://localhost:3000", "http://localhost:3001/v1/reauthenticate"}, rc.Audience)
 	require.Equal(ac.Issuer, rc.Issuer)
 	require.Equal(ac.Subject, rc.Subject)
 	require.True(rc.IssuedAt.Equal(ac.IssuedAt.Time))
@@ -338,6 +339,37 @@ func (s *TokenTestSuite) TestParseExpiredToken() {
 	claims, err = tm.Parse(tks)
 	require.Error(err, "claims were parsed with bad signature")
 	require.Empty(claims, "bad signature token returned non-empty claims")
+}
+
+func (s *TokenTestSuite) TestRefreshAudience() {
+	require := s.Require()
+
+	tests := []struct {
+		issuer   string
+		expected string
+	}{
+		{
+			"https://trisa.example.com",
+			"https://trisa.example.com/v1/reauthenticate",
+		},
+		{
+			"",
+			auth.DefaultRefreshAudience,
+		},
+	}
+
+	for i, tc := range tests {
+		conf := config.AuthConfig{
+			Audience: tc.issuer,
+			Issuer:   tc.issuer,
+		}
+
+		tm, err := auth.NewIssuer(conf)
+		require.NoError(err, "could not initialize token manager")
+
+		audience := tm.RefreshAudience()
+		require.Equal(tc.expected, audience, "test case %d failed", i)
+	}
 }
 
 // Execute suite as a go test.

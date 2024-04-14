@@ -99,6 +99,11 @@ func (s *Server) setupRoutes() (err error) {
 		// TODO: remove, this is for debugging only
 		// v1.POST("/debug", s.Debug)
 
+		// Authentication endpoints
+		v1.POST("/login", s.Login)
+		v1.POST("/authenticate", s.Authenticate)
+		v1.POST("/reauthenticate", s.Reauthenticate)
+
 		// Accounts Resource
 		accounts := v1.Group("/accounts")
 		{
