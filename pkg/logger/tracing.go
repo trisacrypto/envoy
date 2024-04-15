@@ -15,7 +15,7 @@ const (
 )
 
 func Tracing(ctx context.Context) zerolog.Logger {
-	requestID := ctx.Value(KeyRequestID).(string)
+	requestID, _ := RequestID(ctx)
 	return log.With().Str("request_id", requestID).Logger()
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"self-hosted-node/pkg/config"
 	"self-hosted-node/pkg/store"
+	"self-hosted-node/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,11 @@ func New(conf config.WebConfig, store store.Store) (s *Server, err error) {
 	// If not enabled, return just the server stub
 	if !conf.Enabled {
 		return s, nil
+	}
+
+	// Configure the token issuer if enabled
+	if s.issuer, err = auth.NewIssuer(conf.Auth); err != nil {
+		return nil, err
 	}
 
 	// Configure the gin router if enabled

@@ -23,6 +23,13 @@ var testEnv = map[string]string{
 	"TRISA_WEB_ENABLED":                     "true",
 	"TRISA_WEB_BIND_ADDR":                   ":4000",
 	"TRISA_WEB_ORIGIN":                      "https://example.com",
+	"TRISA_WEB_AUTH_KEYS":                   "foo:/path/to/foo.pem,bar:/path/to/bar.pem",
+	"TRISA_WEB_AUTH_AUDIENCE":               "https://example.com",
+	"TRISA_WEB_AUTH_ISSUER":                 "https://auth.example.com",
+	"TRISA_WEB_AUTH_COOKIE_DOMAIN":          "example.com",
+	"TRISA_WEB_AUTH_ACCESS_TOKEN_TTL":       "24h",
+	"TRISA_WEB_AUTH_REFRESH_TOKEN_TTL":      "48h",
+	"TRISA_WEB_AUTH_TOKEN_OVERLAP":          "-12h",
 	"TRISA_NODE_BIND_ADDR":                  ":556",
 	"TRISA_NODE_POOL":                       "fixtures/certs/pool.gz",
 	"TRISA_NODE_CERTS":                      "fixtures/certs/certs.gz",
@@ -54,6 +61,13 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)
 	require.Equal(t, testEnv["TRISA_WEB_ORIGIN"], conf.Web.Origin)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Web.TRISAEndpoint)
+	require.Len(t, conf.Web.Auth.Keys, 2)
+	require.Equal(t, testEnv["TRISA_WEB_AUTH_AUDIENCE"], conf.Web.Auth.Audience)
+	require.Equal(t, testEnv["TRISA_WEB_AUTH_ISSUER"], conf.Web.Auth.Issuer)
+	require.Equal(t, testEnv["TRISA_WEB_AUTH_COOKIE_DOMAIN"], conf.Web.Auth.CookieDomain)
+	require.Equal(t, 24*time.Hour, conf.Web.Auth.AccessTokenTTL)
+	require.Equal(t, 48*time.Hour, conf.Web.Auth.RefreshTokenTTL)
+	require.Equal(t, -12*time.Hour, conf.Web.Auth.TokenOverlap)
 	require.True(t, conf.Node.Maintenance)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Node.Endpoint)
 	require.Equal(t, testEnv["TRISA_NODE_BIND_ADDR"], conf.Node.BindAddr)
