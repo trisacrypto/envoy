@@ -2,10 +2,12 @@ package auth
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
 
 	"self-hosted-node/pkg/web/api/v1"
+	"self-hosted-node/pkg/web/htmx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -55,9 +57,13 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, api.Error(err))
 				return
 			case binding.MIMEHTML:
-				// Return a 401 and redirect the user to the login page
+				// Redirect the user to the login page
+				params := make(url.Values)
+				params.Set("next", c.Request.URL.Path)
+				redirect := &url.URL{Path: "/login", RawQuery: params.Encode()}
+
 				c.Abort()
-				c.Redirect(http.StatusFound, "/login")
+				htmx.Redirect(c, http.StatusFound, redirect.String())
 				return
 			default:
 				c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)

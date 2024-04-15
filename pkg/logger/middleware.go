@@ -7,8 +7,10 @@ import (
 
 	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/metrics"
+	"self-hosted-node/pkg/ulids"
 
 	"github.com/gin-gonic/gin"
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -16,6 +18,7 @@ import (
 // zerolog rather than the default Gin logger which is a standard HTTP logger.
 // NOTE: we previously used github.com/dn365/gin-zerolog but wanted more customization.
 func GinLogger(server string) gin.HandlerFunc {
+	entropy := ulids.NewPool()
 	version := pkg.Version()
 
 	// Initialize prometheus collectors (safe to call multiple times)
@@ -29,6 +32,10 @@ func GinLogger(server string) gin.HandlerFunc {
 		if c.Request.URL.RawQuery != "" {
 			path = path + "?" + c.Request.URL.RawQuery
 		}
+
+		// Create a request ID for tracing purposes and add to context
+		requestID := ulid.MustNew(ulid.Now(), entropy).String()
+		c.Request = c.Request.WithContext(WithRequestID(c.Request.Context(), requestID))
 
 		// Handle the request
 		c.Next()
@@ -44,6 +51,7 @@ func GinLogger(server string) gin.HandlerFunc {
 			Int("resp_bytes", c.Writer.Size()).
 			Int("status", status).
 			Str("client_ip", c.ClientIP()).
+			Str("request_id", requestID).
 			Logger()
 
 		// Log any errors that were added to the context

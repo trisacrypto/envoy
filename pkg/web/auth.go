@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
+
 	"self-hosted-node/pkg/logger"
 	dberr "self-hosted-node/pkg/store/errors"
 	"self-hosted-node/pkg/store/models"
 	"self-hosted-node/pkg/web/api/v1"
 	"self-hosted-node/pkg/web/auth"
-	"time"
+	"self-hosted-node/pkg/web/htmx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -101,10 +103,10 @@ func (s *Server) Login(c *gin.Context) {
 		c.JSON(http.StatusOK, out)
 	case binding.MIMEHTML:
 		if in.Next != "" {
-			c.Redirect(http.StatusFound, in.Next)
+			htmx.Redirect(c, http.StatusFound, in.Next)
 			return
 		}
-		c.Redirect(http.StatusFound, "/")
+		htmx.Redirect(c, http.StatusFound, "/")
 	default:
 		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
 	}
@@ -278,7 +280,7 @@ func (s *Server) Reauthenticate(c *gin.Context) {
 	case binding.MIMEJSON:
 		c.JSON(http.StatusOK, out)
 	case binding.MIMEHTML:
-		c.Redirect(http.StatusFound, "/")
+		htmx.Redirect(c, http.StatusFound, "/")
 	default:
 		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
 	}

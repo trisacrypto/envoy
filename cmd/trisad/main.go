@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"database/sql"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
@@ -18,6 +22,7 @@ import (
 	permiss "self-hosted-node/pkg/web/auth/permissions"
 
 	"github.com/joho/godotenv"
+	"github.com/oklog/ulid/v2"
 	confire "github.com/rotationalio/confire/usage"
 	"github.com/urfave/cli/v2"
 )
@@ -91,6 +96,25 @@ func main() {
 			After:     closeDB,
 			Args:      true,
 			ArgsUsage: "all | permission [permission ...]",
+		},
+		{
+			Name:     "tokenkey",
+			Usage:    "generate an RSA token key pair and ulid for JWT token signing",
+			Category: "admin",
+			Action:   generateTokenKey,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "out",
+					Aliases: []string{"o"},
+					Usage:   "path to write keys out to (optional, will be saved as ulid.pem by default)",
+				},
+				&cli.IntFlag{
+					Name:    "size",
+					Aliases: []string{"s"},
+					Usage:   "number of bits for the generated keys",
+					Value:   4096,
+				},
+			},
 		},
 	}
 
@@ -207,6 +231,38 @@ func createAPIKey(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("created api key with %d permissions\nclient id:\t%s\nclient secret:\t%s\n", len(permissions), key.ClientID, secret)
+	return nil
+}
+
+func generateTokenKey(c *cli.Context) (err error) {
+	// Create ULID and determine outpath
+	keyid := ulid.Make()
+
+	var out string
+	if out = c.String("out"); out == "" {
+		out = fmt.Sprintf("%s.pem", keyid)
+	}
+
+	// Generate RSA keys using crypto random
+	var key *rsa.PrivateKey
+	if key, err = rsa.GenerateKey(rand.Reader, c.Int("size")); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	// Open file to PEM encode keys to
+	var f *os.File
+	if f, err = os.OpenFile(out, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	if err = pem.Encode(f, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	fmt.Printf("RSA key id: %s -- saved with PEM encoding to %s\n", keyid, out)
 	return nil
 }
 

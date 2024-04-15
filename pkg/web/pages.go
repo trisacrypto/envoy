@@ -5,6 +5,7 @@ import (
 
 	"self-hosted-node/pkg"
 	"self-hosted-node/pkg/web/auth"
+	"self-hosted-node/pkg/web/htmx"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +25,7 @@ func (s *Server) Logout(c *gin.Context) {
 	auth.ClearAuthCookies(c, s.conf.Auth.CookieDomain)
 
 	// Send the user to the login page
-	c.Redirect(http.StatusFound, "/login")
+	htmx.Redirect(c, http.StatusFound, "/login")
 }
 
 func (s *Server) Transactions(c *gin.Context) {

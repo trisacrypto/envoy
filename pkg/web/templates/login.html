@@ -16,24 +16,33 @@
   </header>
   <main class="flex flex-col justify-center w-full">
     <section class="mx-auto pt-16">
-      <form class="form-control w-full border-2 rounded-md py-8 px-8 md:px-36">
+      <form hx-post="/v1/login" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}' class="form-control w-full border-2 rounded-md py-8 px-8 md:px-36">
         <h1 class="pb-2 text-xl font-semibold">Log into your TRISA Node</h1>
         <div class="py-2">
-          <label for="username" class="mb-1 block">Username</label>
-          <input type="text" id="username" name="username" required class="input-style" />
+          <label for="email" class="mb-1 block">Email Address</label>
+          <input type="email" id="email" name="email" required class="input-style" />
         </div>
         <div class="py-2">
           <label for="password" class="mb-1 block">Password</label>
-          <input type="text" id="password" name="password" required class="input-style" />
+          <input type="password" id="password" name="password" required class="input-style" />
         </div>
+        <input type="hidden" id="next" name="next" value="" />
         <div class="py-2">
-          <button class="btn text-base w-full bg-[#517994] text-white hover:bg-[#517994]/90">Log In</button>
+          <button type="submit" class="btn text-base w-full bg-[#517994] text-white hover:bg-[#517994]/90">Log In</button>
         </div>
       </form>
     </section>
   </main>
 
   {{ template "footer" . }}
+
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/json-enc.js"></script>
+  <script>
+    let params = new URL(document.location.toString()).searchParams;
+    let nextInput = document.getElementById("next");
+    nextInput.value = params.get("next");
+  </script>
 
 </body>
 </html>
