@@ -56,14 +56,55 @@ addWalletBttn?.addEventListener('click', () => {
     <div>
       <label for="network_${walletCount}" class="label-style">Network</label>
       <div class="flex items-center gap-x-1">
-        <input type="text" id="network_${walletCount}" name="network_${walletCount}" class="input-style" />
+        <select id="network_${walletCount}" name="network_${walletCount}"></select>
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()">
           <i class="fa-solid fa-trash"><span class="sr-only">Delete wallet</span></i>
         </button>
+        <div id="network_list_${walletCount}></div>
       </div>
     </div>
   </div>
   `)
+
+  // Initialize the network select list for the new wallet.
+  const additionalNetworkSelect = new SlimSelect({
+    select: `#network_${walletCount}`,
+    settings: {
+      contentLocation: document.getElementById(`network_list_${walletCount}`)
+    },
+  })
+
+  const networks = {
+    "BTC": "Bitcoin",
+    "ETH": "Ethereum",
+    "AGM": "Argoneum",
+    "BCH": "Bitcoin Cash",
+    "BTG": "Bitcoin Gold",
+    "XBC": "Bitcoinplus",
+    "BTX": "BitCore",
+    "CHC": "Chaincoin",
+    "DASH": "Dash",
+    "DOGEC": "DogeCash",
+    "DOGE": "Dogecoin",
+    "FTC": "Feathercoin",
+    "GRS": "Groestlcoin",
+    "KOTO": "Koto",
+    "LBTC": "Liquid",
+    "LTC": "Litecoin",
+    "MONA": "Monacoin",
+    "POLIS": "Polis",
+    "TRC": "Terracoin",
+    "UFO": "UFO",
+    "XVG": "Verge Currency",
+    "VIA": "Viacoin",
+    "ZCL": "Zclassic",
+    "XZC": "ZCoin"
+  };
+
+  const additionalNetworksArray = Object.entries(networks).map(([value, text]) => ({text, value}));
+  additionalNetworksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
+  additionalNetworkSelect.setData(additionalNetworksArray);
+
 })
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
