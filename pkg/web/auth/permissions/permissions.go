@@ -8,6 +8,8 @@ import (
 
 type Permission uint8
 
+type Permissions []Permission
+
 // Permissions constants from the database associated with the primary Key
 const (
 	Unknown Permission = iota
@@ -29,6 +31,16 @@ const (
 	PKIDelete
 	PKIView
 )
+
+var AllPermissions = [17]Permission{
+	UsersManage, UsersView,
+	APIKeysManage, APIKeysView, APIKeysRevoke,
+	CounterpartiesManage, CounterpartiesView,
+	AccountsManage, AccountsView,
+	TravelRuleManage, TravelRuleDelete, TravelRuleView,
+	ConfigManage, ConfigView,
+	PKIManage, PKIDelete, PKIView,
+}
 
 var names = [18]string{
 	"unknown",
@@ -82,4 +94,12 @@ func (p *Permission) UnmarshalJSON(data []byte) (err error) {
 		return err
 	}
 	return nil
+}
+
+func (p Permissions) String() []string {
+	s := make([]string, 0, len(p))
+	for _, permission := range p {
+		s = append(s, permission.String())
+	}
+	return s
 }

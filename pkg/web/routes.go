@@ -80,11 +80,8 @@ func (s *Server) setupRoutes() (err error) {
 
 	// Authorization Helper
 	authorize := func(permissions ...permiss.Permission) gin.HandlerFunc {
-		perms := make([]string, 0, len(permissions))
-		for _, perm := range permissions {
-			perms = append(perms, perm.String())
-		}
-		return auth.Authorize(perms...)
+		perms := permiss.Permissions(permissions)
+		return auth.Authorize(perms.String()...)
 	}
 
 	// Web UI Routes (Pages)

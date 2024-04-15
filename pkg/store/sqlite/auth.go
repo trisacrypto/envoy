@@ -246,7 +246,7 @@ const fetchRoleSQL = "SELECT * FROM roles WHERE id=:roleID"
 
 func (s *Store) fetchRole(tx *sql.Tx, roleID int64) (role *models.Role, err error) {
 	role = &models.Role{}
-	if err = tx.QueryRow(fetchRoleSQL, sql.Named("roleID", roleID)).Scan(&role); err != nil {
+	if err = role.Scan(tx.QueryRow(fetchRoleSQL, sql.Named("roleID", roleID))); err != nil {
 		return nil, err
 	}
 	return role, nil
