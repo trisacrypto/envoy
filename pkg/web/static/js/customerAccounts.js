@@ -1,5 +1,7 @@
 const addWalletBttn = document.getElementById('add-wallet-bttn')
 const extractWalletRE = /(crypto_address|network)_(\d+)/g;
+const newAcctModal = document.getElementById('new_acct_modal')
+const walletDiv = document.getElementById('crypto-wallets')
 
 document.body.addEventListener("htmx:configRequest", (e) => {
   // Check if this is a POST request for the accounts form.
@@ -34,29 +36,19 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   }
 });
 
-// Move div with network list from below footer to inside the add customer account modal on load.
-document.body.addEventListener('htmx:afterSwap', () => {
-  const addCpartyModal = document.getElementById('new_acct_modal');
-  const networkList = document.querySelector('.ss-content');
-  if (addCpartyModal && networkList) {
-    addCpartyModal.appendChild(networkList);
-  }
-}); 
-
-
 addWalletBttn?.addEventListener('click', () => {
-  const walletDiv = document.getElementById('crypto-wallets')
-  const walletCount = walletDiv.children.length + 1
-  walletDiv.insertAdjacentHTML('beforeend', `
+  const labelCount = walletDiv?.children.length + 1
+  const walletCount = walletDiv?.children.length * 1
+  walletDiv?.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${walletCount}</label>
+      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${labelCount}</label>
       <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
     </div>
     <div>
-      <label for="network_${walletCount}" class="label-style">Network</label>
+      <label for="network_${walletCount}" class="label-style">Network ${labelCount}</label>
       <div class="flex items-center gap-x-1">
-        <input type="text" id="network_${walletCount}" name="network_${walletCount}" class="input-style" />
+        <select id="network_${walletCount}" name="network_${walletCount}"></select>
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()">
           <i class="fa-solid fa-trash"><span class="sr-only">Delete wallet</span></i>
         </button>
@@ -64,6 +56,20 @@ addWalletBttn?.addEventListener('click', () => {
     </div>
   </div>
   `)
+
+  // Create a div to ensure content appears in the modal and not the document body.
+  newAcctModal.appendChild(document.createElement('div')).id = `network_list_${walletCount}`
+
+  // Initialize network select for each new wallet.
+  const additionalNetworkSelect = new SlimSelect({
+    select: `#network_${walletCount}`,
+    settings: {
+      contentLocation: document.getElementById(`network_list_${walletCount}`),
+    },
+  })
+
+  // Add network options to additional wallet.
+  additionalNetworkSelect.setData(networksArray);
 })
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
@@ -71,8 +77,13 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
   // Check if the request to register a new customer account was successful.
   if (e.detail.elt.id === newAcctForm && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     // Close the modal and reset the form values.
-    document.getElementById('new_acct_modal').close()
+    newAcctModal?.close()
     document.getElementById(newAcctForm).reset()
     networkSelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' })
+
+    // If user added more than 1 wallet, remove the additional wallets.
+    while (walletDiv?.children.length > 1) {
+      walletDiv?.removeChild(walletDiv.lastChild)
+    }
   }
 });
