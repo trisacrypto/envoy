@@ -43,14 +43,15 @@ document.body.addEventListener('htmx:afterSwap', () => {
   }
 }); 
 
-
 addWalletBttn?.addEventListener('click', () => {
   const walletDiv = document.getElementById('crypto-wallets')
-  const walletCount = walletDiv.children.length + 1
+  const addressCount = walletDiv.children.length + 1
+  const walletCount = walletDiv.children.length * 1
+  console.log(walletCount)
   walletDiv.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${walletCount}</label>
+      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${addressCount}</label>
       <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
     </div>
     <div>
@@ -60,51 +61,24 @@ addWalletBttn?.addEventListener('click', () => {
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()">
           <i class="fa-solid fa-trash"><span class="sr-only">Delete wallet</span></i>
         </button>
-        <div id="network_list_${walletCount}></div>
       </div>
     </div>
   </div>
   `)
 
-  // Initialize the network select list for the new wallet.
+  // Insert div for the network content to be displayed in the select dropdown.
+  document.getElementById('new_acct_modal').appendChild(document.createElement('div')).id = `network_list_${walletCount}`
+
+  // Initialize network select for each new wallet.
   const additionalNetworkSelect = new SlimSelect({
     select: `#network_${walletCount}`,
     settings: {
-      contentLocation: document.getElementById(`network_list_${walletCount}`)
+      contentLocation: document.getElementById(`network_list_${walletCount}`),
     },
   })
 
-  const networks = {
-    "BTC": "Bitcoin",
-    "ETH": "Ethereum",
-    "AGM": "Argoneum",
-    "BCH": "Bitcoin Cash",
-    "BTG": "Bitcoin Gold",
-    "XBC": "Bitcoinplus",
-    "BTX": "BitCore",
-    "CHC": "Chaincoin",
-    "DASH": "Dash",
-    "DOGEC": "DogeCash",
-    "DOGE": "Dogecoin",
-    "FTC": "Feathercoin",
-    "GRS": "Groestlcoin",
-    "KOTO": "Koto",
-    "LBTC": "Liquid",
-    "LTC": "Litecoin",
-    "MONA": "Monacoin",
-    "POLIS": "Polis",
-    "TRC": "Terracoin",
-    "UFO": "UFO",
-    "XVG": "Verge Currency",
-    "VIA": "Viacoin",
-    "ZCL": "Zclassic",
-    "XZC": "ZCoin"
-  };
-
-  const additionalNetworksArray = Object.entries(networks).map(([value, text]) => ({text, value}));
-  additionalNetworksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
-  additionalNetworkSelect.setData(additionalNetworksArray);
-
+  // Add network options to additional wallet.
+  additionalNetworkSelect.setData(networksArray);
 })
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
@@ -115,5 +89,10 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     document.getElementById('new_acct_modal').close()
     document.getElementById(newAcctForm).reset()
     networkSelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' })
+    // If user added more than 1 wallet, remove the additional wallets.
+    const walletDiv = document.getElementById('crypto-wallets')
+    while (walletDiv.children.length > 1) {
+      walletDiv.removeChild(walletDiv.lastChild)
+    }
   }
 });
