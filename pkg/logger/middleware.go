@@ -34,6 +34,7 @@ func GinLogger(server string) gin.HandlerFunc {
 		}
 
 		// Create a request ID for tracing purposes and add to context
+		// HACK: this creates a shallow copy of the request, which might cause issues?
 		requestID := ulid.MustNew(ulid.Now(), entropy).String()
 		c.Request = c.Request.WithContext(WithRequestID(c.Request.Context(), requestID))
 
