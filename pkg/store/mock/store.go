@@ -131,3 +131,47 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 
 func (s *Store) UseTravelAddressFactory(models.TravelAddressFactory) {
 }
+
+func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (*models.UserPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateUser(context.Context, *models.User) error {
+	return nil
+}
+
+func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateUser(context.Context, *models.User) error {
+	return nil
+}
+
+func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password string) (err error) {
+	return nil
+}
+
+func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) error {
+	return nil
+}
+
+func (s *Store) ListAPIKeys(context.Context, *models.PageInfo) (*models.APIKeyPage, error) {
+	return nil, nil
+}
+
+func (s *Store) CreateAPIKey(context.Context, *models.APIKey) error {
+	return nil
+}
+
+func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateAPIKey(context.Context, *models.APIKey) error {
+	return nil
+}
+
+func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
+	return nil
+}

@@ -32,3 +32,13 @@ type CounterpartyPage struct {
 	Counterparties []*Counterparty `json:"counterparties"`
 	Page           *PageInfo       `json:"page"`
 }
+
+type UserPage struct {
+	Users []*User   `json:"users"`
+	Page  *PageInfo `json:"page"`
+}
+
+type APIKeyPage struct {
+	APIKeys []*APIKey `json:"api_keys"`
+	Page    *PageInfo `json:"page"`
+}

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"self-hosted-node/pkg/web/api/v1/credentials"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -52,8 +53,9 @@ func New(endpoint string, opts ...ClientOption) (_ Client, err error) {
 
 // APIv1 implements the v1 Client interface for making requests to the TRISA SHN.
 type APIv1 struct {
-	endpoint *url.URL     // the base url for all requests
-	client   *http.Client // used to make http requests to the server
+	endpoint *url.URL                // the base url for all requests
+	client   *http.Client            // used to make http requests to the server
+	creds    credentials.Credentials // default credentials used to authorize requests
 }
 
 // Ensure the APIv1 implements the Client interface
@@ -63,10 +65,12 @@ var _ Client = &APIv1{}
 // Client Methods
 //===========================================================================
 
+const statusEP = "/v1/status"
+
 func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 	// Make the HTTP request
 	var req *http.Request
-	if req, err = s.NewRequest(ctx, http.MethodGet, "/v1/status", nil, nil); err != nil {
+	if req, err = s.NewRequest(ctx, http.MethodGet, statusEP, nil, nil); err != nil {
 		return nil, err
 	}
 
@@ -88,6 +92,42 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 		return nil, fmt.Errorf("could not deserialize status reply: %s", err)
 	}
 	return out, nil
+}
+
+const loginEP = "/v1/login"
+
+func (s *APIv1) Login(ctx context.Context, in *LoginRequest) (out *LoginReply, err error) {
+	return s.authenticate(ctx, loginEP, in)
+}
+
+const authenticateEP = "/v1/authenticate"
+
+func (s *APIv1) Authenticate(ctx context.Context, in *APIAuthentication) (out *LoginReply, err error) {
+	return s.authenticate(ctx, authenticateEP, in)
+}
+
+const refreshEP = "/v1/reauthenticate"
+
+func (s *APIv1) Reauthenticate(ctx context.Context, in *ReauthenticateRequest) (out *LoginReply, err error) {
+	return s.authenticate(ctx, refreshEP, in)
+}
+
+func (s *APIv1) authenticate(ctx context.Context, endpoint string, in any) (out *LoginReply, err error) {
+	// Authenticate requests are posts with the given data (e.g. user credentials, api key credentials, or refresh token)
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, in, nil); err != nil {
+		return nil, err
+	}
+
+	// The response will always be a login reply
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	// Set the returned credentials on the client for future requests
+	// TODO: handle refresh tokens for reauthentication
+	s.creds = credentials.Token(out.AccessToken)
+	return out, err
 }
 
 //===========================================================================
@@ -509,7 +549,14 @@ func (s *APIv1) NewRequest(ctx context.Context, method, path string, data interf
 	}
 	req.Header.Add("X-Request-ID", requestID)
 
-	// TODO: Add authentication and authorization header.
+	// Add authentication and authorization header.
+	if s.creds != nil {
+		var token string
+		if token, err = s.creds.AccessToken(); err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	// Add CSRF protection if its available
 	if s.client.Jar != nil {

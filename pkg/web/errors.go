@@ -12,6 +12,7 @@ var (
 	ErrNoTRISAEndpoint   = errors.New("cannot construct trisa travel address: no trisa endpoint defined")
 	ErrNoLocalCommonName = errors.New("invalid configuration: no common name in trisa endpoint configuration")
 	ErrNoLocalparty      = errors.New("could not lookup local vasp counterparty from database, please try again later")
+	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 )
 
 // Renders the "not found page"

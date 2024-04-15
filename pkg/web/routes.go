@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"self-hosted-node/pkg/logger"
 	"self-hosted-node/pkg/metrics"
+	"self-hosted-node/pkg/web/auth"
+	permiss "self-hosted-node/pkg/web/auth/permissions"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -73,14 +75,23 @@ func (s *Server) setupRoutes() (err error) {
 	staticFiles, _ := fs.Sub(content, "static")
 	s.router.StaticFS("/static", http.FS(staticFiles))
 
+	// Authentication Middleware
+	authenticate := auth.Authenticate(s.issuer)
+
+	// Authorization Helper
+	authorize := func(permissions ...permiss.Permission) gin.HandlerFunc {
+		perms := permiss.Permissions(permissions)
+		return auth.Authorize(perms.String()...)
+	}
+
 	// Web UI Routes (Pages)
-	// TODO: add authentication to these endpoints
-	s.router.GET("/", s.Home)
+	s.router.GET("/", authenticate, s.Home)
 	s.router.GET("/login", s.LoginPage)
-	s.router.GET("/transactions", s.Transactions)
-	s.router.GET("/accounts", s.Accounts)
-	s.router.GET("/counterparty", s.CounterpartyVasps)
-	s.router.GET("/send-envelope", s.SendEnvelopeForm)
+	s.router.GET("/logout", s.Logout)
+	s.router.GET("/transactions", authenticate, s.Transactions)
+	s.router.GET("/accounts", authenticate, s.Accounts)
+	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
+	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
@@ -99,58 +110,62 @@ func (s *Server) setupRoutes() (err error) {
 		// TODO: remove, this is for debugging only
 		// v1.POST("/debug", s.Debug)
 
+		// Authentication endpoints
+		v1.POST("/login", s.Login)
+		v1.POST("/authenticate", s.Authenticate)
+		v1.POST("/reauthenticate", s.Reauthenticate)
+
 		// Accounts Resource
-		accounts := v1.Group("/accounts")
+		accounts := v1.Group("/accounts", authenticate)
 		{
-			accounts.GET("", s.ListAccounts)
-			accounts.POST("", s.CreateAccount)
-			accounts.GET("/:id", s.AccountDetail)
-			accounts.GET("/:id/edit", s.UpdateAccountPreview)
-			accounts.PUT("/:id", s.UpdateAccount)
-			accounts.DELETE("/:id", s.DeleteAccount)
+			accounts.GET("", authorize(permiss.AccountsView), s.ListAccounts)
+			accounts.POST("", authorize(permiss.AccountsManage), s.CreateAccount)
+			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
+			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
+			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
+			accounts.DELETE("/:id", authorize(permiss.AccountsManage), s.DeleteAccount)
 
 			// CryptoAddress Resource (nested on Accounts)
 			ca := accounts.Group("/:id/crypto-addresses")
 			{
-				ca.GET("", s.ListCryptoAddresses)
-				ca.POST("", s.CreateCryptoAddress)
-				ca.GET("/:cryptoAddressID", s.CryptoAddressDetail)
-				ca.PUT("/:cryptoAddressID", s.UpdateCryptoAddress)
-				ca.DELETE("/:cryptoAddressID", s.DeleteCryptoAddress)
+				ca.GET("", authorize(permiss.AccountsView), s.ListCryptoAddresses)
+				ca.POST("", authorize(permiss.AccountsManage), s.CreateCryptoAddress)
+				ca.GET("/:cryptoAddressID", authorize(permiss.AccountsView), s.CryptoAddressDetail)
+				ca.PUT("/:cryptoAddressID", authorize(permiss.AccountsManage), s.UpdateCryptoAddress)
+				ca.DELETE("/:cryptoAddressID", authorize(permiss.AccountsManage), s.DeleteCryptoAddress)
 			}
 		}
 
 		// Transactions Resource
-		transactions := v1.Group("/transactions")
+		transactions := v1.Group("/transactions", authenticate)
 		{
-			transactions.GET("", s.ListTransactions)
-			transactions.POST("", s.CreateTransaction)
-			transactions.GET("/:id", s.TransactionDetail)
-			transactions.PUT("/:id", s.UpdateTransaction)
-			transactions.DELETE("/:id", s.DeleteTransaction)
+			transactions.GET("", authorize(permiss.TravelRuleView), s.ListTransactions)
+			transactions.POST("", authorize(permiss.TravelRuleManage), s.CreateTransaction)
+			transactions.GET("/:id", authorize(permiss.TravelRuleView), s.TransactionDetail)
+			transactions.PUT("/:id", authorize(permiss.TravelRuleManage), s.UpdateTransaction)
+			transactions.DELETE("/:id", authorize(permiss.TravelRuleDelete), s.DeleteTransaction)
 
-			// UI methods only for demo
-			// TODO: delete these routes
-			transactions.POST("/prepare", s.PrepareTransaction)
-			transactions.POST("/send", s.SendPreparedTransaction)
+			// Primarily UI methods but are also API Helper Methods
+			transactions.POST("/prepare", authorize(permiss.TravelRuleManage), s.PrepareTransaction)
+			transactions.POST("/send", authorize(permiss.TravelRuleManage), s.SendPreparedTransaction)
 
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")
 			{
-				se.GET("", s.ListSecureEnvelopes)
-				se.GET("/:envelopeID", s.SecureEnvelopeDetail)
+				se.GET("", authorize(permiss.TravelRuleView), s.ListSecureEnvelopes)
+				se.GET("/:envelopeID", authorize(permiss.TravelRuleView), s.SecureEnvelopeDetail)
 			}
 		}
 
 		// Counterparties Resource
-		counterparties := v1.Group("/counterparties")
+		counterparties := v1.Group("/counterparties", authenticate)
 		{
-			counterparties.GET("", s.ListCounterparties)
-			counterparties.POST("", s.CreateCounterparty)
-			counterparties.GET("/:id", s.CounterpartyDetail)
-			counterparties.GET("/:id/edit", s.UpdateCounterpartyPreview)
-			counterparties.PUT("/:id", s.UpdateCounterparty)
-			counterparties.DELETE("/:id", s.DeleteCounterparty)
+			counterparties.GET("", authorize(permiss.CounterpartiesView), s.ListCounterparties)
+			counterparties.POST("", authorize(permiss.CounterpartiesManage), s.CreateCounterparty)
+			counterparties.GET("/:id", authorize(permiss.CounterpartiesView), s.CounterpartyDetail)
+			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
+			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
+			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
 		}
 	}
 

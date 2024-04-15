@@ -7,6 +7,7 @@
   <title>TRISA Self Hosted Node</title>
 
   <link rel="icon" type="image/png" href="/static/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/static/styles/output.css" />
 
 </head>
@@ -15,25 +16,49 @@
     <img src="/static/logo192.png" alt="TRISA logo" class="ml-4" />
   </header>
   <main class="flex flex-col justify-center w-full">
+    <div id="alerts" class="toast toast-top toast-end"></div>
     <section class="mx-auto pt-16">
-      <form class="form-control w-full border-2 rounded-md py-8 px-8 md:px-36">
+      <form hx-post="/v1/login" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}' class="form-control w-full border-2 rounded-md py-8 px-8 md:px-36">
         <h1 class="pb-2 text-xl font-semibold">Log into your TRISA Node</h1>
         <div class="py-2">
-          <label for="username" class="mb-1 block">Username</label>
-          <input type="text" id="username" name="username" required class="input-style" />
+          <label for="email" class="mb-1 block">Email Address</label>
+          <input type="email" id="email" name="email" required class="input-style" />
         </div>
         <div class="py-2">
           <label for="password" class="mb-1 block">Password</label>
-          <input type="text" id="password" name="password" required class="input-style" />
+          <input type="password" id="password" name="password" required class="input-style" />
         </div>
+        <input type="hidden" id="next" name="next" value="" />
         <div class="py-2">
-          <button class="btn text-base w-full bg-[#517994] text-white hover:bg-[#517994]/90">Log In</button>
+          <button type="submit" class="btn text-base w-full bg-[#517994] text-white hover:bg-[#517994]/90">Log In</button>
         </div>
       </form>
     </section>
   </main>
 
   {{ template "footer" . }}
+
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/json-enc.js"></script>
+  <script>
+    // Add the next query param in the URL to the hidden input for login
+    const params = new URL(document.location.toString()).searchParams;
+    const nextInput = document.getElementById("next");
+    nextInput.value = params.get("next");
+
+    // Handle errors from the backend
+    document.body.addEventListener("htmx:responseError", (e) => {
+      const error = JSON.parse(e.detail.xhr.response);
+      const alerts = document.getElementById("alerts");
+
+      alerts.insertAdjacentHTML('beforeend', `
+        <div role="alert" class="alert alert-error">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>${error.error}</span>
+        </div>
+      `);
+    });
+  </script>
 
 </body>
 </html>
