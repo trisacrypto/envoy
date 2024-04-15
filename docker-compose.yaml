@@ -1,0 +1,67 @@
+version: "3"
+services:
+  gds:
+    image: trisa/gds
+    init: true
+    depends_on:
+      - trtl
+    ports:
+      - 4433:4433
+      - 4434:4434
+      - 4435:4435
+    volumes:
+      - ./tmp/gds:/data
+    environment:
+      - GDS_DIRECTORY_ID=trisatest.dev
+      - GDS_SECRET_KEY=supersecretsquirrel
+      - GDS_MAINTENANCE=false
+      - GDS_LOG_LEVEL=debug
+      - GDS_CONSOLE_LOG=true
+      - GDS_API_ENABLED=false
+      - GDS_BIND_ADDR=:4433
+      - GDS_ADMIN_ENABLED=false
+      - GDS_ADMIN_BIND_ADDR=:4434
+      - GDS_MEMBERS_ENABLED=true
+      - GDS_MEMBERS_BIND_ADDR=:4435
+      - GDS_MEMBERS_INSECURE=true
+      - GDS_DATABASE_URL=trtl://trtl:4436/
+      - GDS_DATABASE_REINDEX_ON_BOOT=false
+      - GDS_DATABASE_INSECURE=true
+      - SECTIGO_TESTING=true
+      - SECTIGO_PROFILE=17
+      - SECTIGO_ENVIRONMENT=testing
+      - SECTIGO_ENDPOINT=http://localhost
+      - GDS_EMAIL_TESTING=true
+      - GDS_EMAIL_STORAGE=/data/emails
+      - GDS_CERTMAN_ENABLED=false
+      - GDS_CERTMAN_STORAGE=/data/certs
+      - GDS_BACKUP_ENABLED=false
+      - GDS_BACKUP_STORAGE=/data/backups
+      - GDS_ACTIVITY_ENABLED=false
+      - GDS_SECRETS_TESTING=true
+
+  trtl:
+    image: trisa/trtl
+    init: true
+    ports:
+      - 4436:4436
+      - 7777:7777
+    volumes:
+      - ./tmp/gds:/data
+    environment:
+      - TRTL_MAINTENANCE=false
+      - TRTL_BIND_ADDR=:4436
+      - TRTL_METRICS_ADDR=:7777
+      - TRTL_METRICS_ENABLED=false
+      - TRTL_LOG_LEVEL=debug
+      - TRTL_CONSOLE_LOG=true
+      - TRTL_DATABASE_URL=leveldb:////data/db
+      - TRTL_DATABASE_REINDEX_ON_BOOT=false
+      - TRTL_REPLICA_ENABLED=false
+      - TRTL_REPLICA_PID=8
+      - TRTL_REPLICA_REGION=docker
+      - TRTL_REPLICA_NAME=docker-8
+      - TRTL_REPLICA_GOSSIP_INTERVAL=10s
+      - TRTL_REPLICA_GOSSIP_SIGMA=1500ms
+      - TRTL_INSECURE=true
+      - TRTL_BACKUP_ENABLED=false
