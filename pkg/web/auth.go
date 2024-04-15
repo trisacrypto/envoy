@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -73,7 +74,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	// Create access and refresh tokens and return them to the user
+	// Create access and refresh tokens for authentication
 	if claims, err = auth.NewClaims(ctx, user); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to process login request"))
@@ -87,8 +88,26 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	// TODO: content negotiation and redirect if html
-	c.JSON(http.StatusOK, out)
+	// Set the tokens as cookies for the front-end
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to process login request"))
+		return
+	}
+
+	// Content negotiation and redirect if html
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, out)
+	case binding.MIMEHTML:
+		if in.Next != "" {
+			c.Redirect(http.StatusFound, in.Next)
+			return
+		}
+		c.Redirect(http.StatusFound, "/")
+	default:
+		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
+	}
 }
 
 func (s *Server) Authenticate(c *gin.Context) {
@@ -159,6 +178,12 @@ func (s *Server) Authenticate(c *gin.Context) {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to process authenticate request"))
 		return
+	}
+
+	// Set the tokens as cookies in case the api client has a cookie jar
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+		log := logger.Tracing(c.Request.Context())
+		log.Warn().Err(err).Msg("could not set cookies on api authenticate")
 	}
 
 	c.JSON(http.StatusOK, out)
@@ -241,8 +266,22 @@ func (s *Server) Reauthenticate(c *gin.Context) {
 		return
 	}
 
-	// TODO: content negotiation and redirect if html
-	c.JSON(http.StatusOK, out)
+	// Set the tokens as cookies for the front-end/api cookie jar
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to process reauthenticate request"))
+		return
+	}
+
+	// Content negotiation and redirect if html
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, out)
+	case binding.MIMEHTML:
+		c.Redirect(http.StatusFound, "/")
+	default:
+		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
+	}
 }
 
 func (s *Server) reauthenticateUser(c *gin.Context, userID ulid.ULID) (_ *auth.Claims, err error) {

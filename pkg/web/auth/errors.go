@@ -19,4 +19,5 @@ var (
 	ErrParseBearer       = errors.New("could not parse Bearer token from Authorization header")
 	ErrNoAuthorization   = errors.New("no authorization header in request")
 	ErrNoRefreshToken    = errors.New("cannot reauthenticate no refresh token in request")
+	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 )

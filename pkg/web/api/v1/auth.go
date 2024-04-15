@@ -9,6 +9,7 @@ import "strings"
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Next     string `json:"next"`
 }
 
 type APIAuthentication struct {

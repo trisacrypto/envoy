@@ -8,6 +8,7 @@ import (
 	"self-hosted-node/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,25 +24,45 @@ const (
 var bearer = regexp.MustCompile(`^\s*[Bb]earer\s+([a-zA-Z0-9_\-\.]+)\s*$`)
 
 func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var (
-			err         error
-			accessToken string
-			claims      *Claims
-		)
-
+	innerAuthenticate := func(c *gin.Context) (claims *Claims, err error) {
 		// Fetch access token from the request, if no access token is available, reject.
+		var accessToken string
 		if accessToken, err = GetAccessToken(c); err != nil {
 			log.Debug().Err(err).Msg("no access token in authenticated request")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, api.Error(ErrAuthRequired))
-			return
+			return nil, ErrAuthRequired
 		}
 
 		if claims, err = issuer.Verify(accessToken); err != nil {
 			// TODO: attempt to refresh the claims if the accessToken is expired.
 			log.Debug().Err(err).Msg("invalid access token in request")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, api.Error(ErrAuthRequired))
-			return
+			return nil, ErrAuthRequired
+		}
+
+		return claims, nil
+	}
+
+	return func(c *gin.Context) {
+		var (
+			err    error
+			claims *Claims
+		)
+
+		if claims, err = innerAuthenticate(c); err != nil {
+			// Content Negotiation
+			switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+			case binding.MIMEJSON:
+				// Return a 401 with the error to the API client
+				c.AbortWithStatusJSON(http.StatusUnauthorized, api.Error(err))
+				return
+			case binding.MIMEHTML:
+				// Return a 401 and redirect the user to the login page
+				c.Abort()
+				c.Redirect(http.StatusFound, "/login")
+				return
+			default:
+				c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
+				return
+			}
 		}
 
 		// Add claims to context fo ruse in downstream processing
