@@ -9,6 +9,7 @@
         <th>Beneficiary</th>
         <th class="text-center">Virtual Asset</th>
         <th class="text-center">Amount</th>
+        <th># of Envelopes</th>
         <th>Date Created</th>
         <th>Last Update</th>
         <th>Actions</th>
@@ -96,6 +97,7 @@
         </td>
         <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .VirtualAsset }}</td>
         <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Amount }}</td>
+        <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .EnvelopeCount }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ $created }}</td>
         <td class="px-16 cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">&mdash;</td>
