@@ -2,10 +2,11 @@ package api
 
 import (
 	"database/sql"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/ulids"
 	"strings"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"

@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	directory "self-hosted-node/pkg/trisa/gds"
-	"self-hosted-node/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	directory "github.com/trisacrypto/envoy/pkg/trisa/gds"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
-	dmock "self-hosted-node/pkg/trisa/gds/mock"
-	pmock "self-hosted-node/pkg/trisa/peers/mock"
+	dmock "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
+	pmock "github.com/trisacrypto/envoy/pkg/trisa/peers/mock"
 
 	"github.com/stretchr/testify/require"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"

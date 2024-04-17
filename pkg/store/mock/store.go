@@ -2,8 +2,9 @@ package mock
 
 import (
 	"context"
-	"self-hosted-node/pkg/store/dsn"
-	"self-hosted-node/pkg/store/models"
+
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"

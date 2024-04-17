@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/store"
-	"self-hosted-node/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
 )

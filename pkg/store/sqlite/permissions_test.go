@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"self-hosted-node/pkg/store/dsn"
-	db "self-hosted-node/pkg/store/sqlite"
-	"self-hosted-node/pkg/web/auth/permissions"
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
 	"github.com/stretchr/testify/require"
 )

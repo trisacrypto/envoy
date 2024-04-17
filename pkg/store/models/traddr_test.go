@@ -3,8 +3,8 @@ package models_test
 import (
 	"testing"
 
-	dberr "self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"

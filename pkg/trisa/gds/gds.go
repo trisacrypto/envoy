@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"sync"
 
-	"self-hosted-node/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/config"
 
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 	gds "github.com/trisacrypto/trisa/pkg/trisa/gds/api/v1beta1"

@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"self-hosted-node/pkg/bufconn"
+
+	"github.com/trisacrypto/envoy/pkg/bufconn"
 
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"google.golang.org/grpc"

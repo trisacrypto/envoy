@@ -3,9 +3,9 @@ package network_test
 import (
 	"testing"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
 	"github.com/stretchr/testify/require"
 )

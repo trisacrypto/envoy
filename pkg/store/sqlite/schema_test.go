@@ -3,7 +3,7 @@ package sqlite_test
 import (
 	"testing"
 
-	db "self-hosted-node/pkg/store/sqlite"
+	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
 
 	"github.com/stretchr/testify/require"
 )

@@ -2,9 +2,10 @@ package web
 
 import (
 	"net/http"
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/web/api/v1"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

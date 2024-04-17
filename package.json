@@ -1,8 +1,8 @@
 {
-  "name": "self-hosted-node",
+  "name": "envoy",
   "version": "0.9.0",
   "main": "",
-  "repository": "https://github.com/trisacrypto/self-hosted-node.git",
+  "repository": "https://github.com/trisacrypto/envoy.git",
   "author": "TRISA",
   "license": "MIT",
   "scripts": {

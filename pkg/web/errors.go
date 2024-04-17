@@ -3,7 +3,8 @@ package web
 import (
 	"errors"
 	"net/http"
-	"self-hosted-node/pkg"
+
+	"github.com/trisacrypto/envoy/pkg"
 
 	"github.com/gin-gonic/gin"
 )

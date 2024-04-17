@@ -6,11 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/directory"
-	"self-hosted-node/pkg/trisa/gds"
-	mockgds "self-hosted-node/pkg/trisa/gds/mock"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/directory"
+	"github.com/trisacrypto/envoy/pkg/trisa/gds"
+	mockgds "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
 
 	"github.com/stretchr/testify/require"
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"

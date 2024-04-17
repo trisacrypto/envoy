@@ -2,8 +2,9 @@ package models
 
 import (
 	"database/sql"
-	"self-hosted-node/pkg/store/errors"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 )
 
 type User struct {

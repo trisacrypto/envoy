@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"

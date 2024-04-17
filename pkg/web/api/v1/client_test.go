@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"self-hosted-node/pkg/web/api/v1"
 	"testing"
+
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"

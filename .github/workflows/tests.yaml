@@ -36,7 +36,7 @@ jobs:
       GOTEST_GITHUB_ACTIONS: 1
     defaults:
       run:
-        working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/self-hosted-node
+        working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
     steps:
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -54,7 +54,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          path: ${{ env.GOPATH }}/src/github.com/trisacrypto/self-hosted-node
+          path: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
 
       - name: Install Dependencies
         run: |
@@ -74,7 +74,7 @@ jobs:
       GOBIN: ${{ github.workspace }}/go/bin
     defaults:
       run:
-        working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/self-hosted-node
+        working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
     steps:
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -92,7 +92,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          path: ${{ env.GOPATH }}/src/github.com/trisacrypto/self-hosted-node
+          path: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
 
       - name: Install Dependencies
         run: |

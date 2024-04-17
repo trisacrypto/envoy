@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/trisa/keychain/keyerr"
-	"self-hosted-node/pkg/trisa/keychain/memks"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain/keyerr"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain/memks"
 
 	"github.com/stretchr/testify/require"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"

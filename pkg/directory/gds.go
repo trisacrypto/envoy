@@ -2,8 +2,9 @@ package directory
 
 import (
 	"context"
-	"self-hosted-node/pkg/trisa/gds"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 )
