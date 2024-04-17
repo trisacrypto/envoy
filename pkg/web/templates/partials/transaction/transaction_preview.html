@@ -14,7 +14,8 @@
               if event.detail.successful
                 remove @open from #preview_envelope
                 then reset() the #secure-envelope-form
-                then remove .ss-single from <div.ss-values/>" 
+                then reload() the location of the window
+                then go to top of the body" 
           hx-post="/v1/transactions/send" 
           hx-target="#secure-envelope-form" 
           hx-swap="none" 
