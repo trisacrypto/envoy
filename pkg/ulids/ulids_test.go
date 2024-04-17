@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	. "self-hosted-node/pkg/ulids"
+	. "github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"

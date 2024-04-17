@@ -2,8 +2,9 @@ package interceptors_test
 
 import (
 	"os"
-	"self-hosted-node/pkg/logger"
 	"testing"
+
+	"github.com/trisacrypto/envoy/pkg/logger"
 )
 
 func TestMain(m *testing.M) {

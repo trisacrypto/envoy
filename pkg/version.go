@@ -11,7 +11,7 @@ const (
 	VersionReleaseNumber = 12
 )
 
-// Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/self-hosted-node/pkg.GitVersion=$(git rev-parse --short HEAD)'"
+// Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=$(git rev-parse --short HEAD)'"
 var GitVersion string
 
 // Version returns the semantic version for the current build.

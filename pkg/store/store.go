@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"self-hosted-node/pkg/store/dsn"
-	"self-hosted-node/pkg/store/mock"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/store/sqlite"
+
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	"github.com/trisacrypto/envoy/pkg/store/mock"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/config"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"

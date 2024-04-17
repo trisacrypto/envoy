@@ -10,8 +10,9 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"self-hosted-node/pkg/web/api/v1/credentials"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/web/api/v1/credentials"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/google/go-querystring/query"

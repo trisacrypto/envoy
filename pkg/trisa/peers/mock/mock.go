@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
 
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/mtls"

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"self-hosted-node/pkg/store/dsn"
-	"self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )

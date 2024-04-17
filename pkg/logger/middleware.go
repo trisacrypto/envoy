@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/metrics"
-	"self-hosted-node/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/metrics"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"

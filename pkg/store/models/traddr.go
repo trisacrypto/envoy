@@ -3,8 +3,9 @@ package models
 import (
 	"fmt"
 	"net/url"
-	"self-hosted-node/pkg/store/errors"
 	"strings"
+
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"

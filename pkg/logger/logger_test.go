@@ -3,9 +3,10 @@ package logger_test
 import (
 	"encoding/json"
 	"errors"
-	"self-hosted-node/pkg/logger"
 	"testing"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/logger"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

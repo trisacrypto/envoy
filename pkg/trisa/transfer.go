@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

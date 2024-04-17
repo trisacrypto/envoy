@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/store"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/trisa/gds"
-	"self-hosted-node/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/trisa/gds"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"

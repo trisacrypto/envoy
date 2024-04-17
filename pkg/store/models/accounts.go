@@ -2,7 +2,8 @@ package models
 
 import (
 	"database/sql"
-	"self-hosted-node/pkg/store/errors"
+
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/trisa/pkg/ivms101"

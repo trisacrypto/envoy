@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"self-hosted-node/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
 
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 	gds "github.com/trisacrypto/trisa/pkg/trisa/gds/api/v1beta1"

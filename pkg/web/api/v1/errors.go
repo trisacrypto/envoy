@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"self-hosted-node/pkg"
+	"github.com/trisacrypto/envoy/pkg"
 )
 
 var (

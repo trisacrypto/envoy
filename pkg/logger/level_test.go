@@ -3,8 +3,9 @@ package logger_test
 import (
 	"encoding/json"
 	"fmt"
-	"self-hosted-node/pkg/logger"
 	"testing"
+
+	"github.com/trisacrypto/envoy/pkg/logger"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"

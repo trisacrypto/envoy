@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"self-hosted-node/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 )
 
 // Supported schemes by this package.

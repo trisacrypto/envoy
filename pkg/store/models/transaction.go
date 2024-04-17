@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/google/uuid"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"

@@ -6,10 +6,11 @@ import (
 	"io/fs"
 	"path/filepath"
 	"regexp"
-	"self-hosted-node/pkg"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"

@@ -3,9 +3,10 @@ package web
 import (
 	"errors"
 	"net/http"
-	dberr "self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/web/api/v1"
+
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

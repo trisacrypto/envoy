@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/stretchr/testify/require"
 )

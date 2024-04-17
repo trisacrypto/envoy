@@ -3,10 +3,10 @@ package network
 import (
 	"time"
 
-	"self-hosted-node/pkg/config"
-	directory "self-hosted-node/pkg/trisa/gds"
-	"self-hosted-node/pkg/trisa/keychain"
-	"self-hosted-node/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/config"
+	directory "github.com/trisacrypto/envoy/pkg/trisa/gds"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"github.com/trisacrypto/trisa/pkg/trust"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"self-hosted-node/pkg/web/auth/permissions"
+	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
 	"github.com/stretchr/testify/require"
 )
