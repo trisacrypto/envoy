@@ -3,7 +3,7 @@ package auth_test
 import (
 	"testing"
 
-	. "self-hosted-node/pkg/web/auth"
+	. "github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/stretchr/testify/require"
 )

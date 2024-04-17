@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/store"
-	dberr "self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"

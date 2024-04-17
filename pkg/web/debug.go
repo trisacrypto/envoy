@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
-	api "self-hosted-node/pkg/web/api/v1"
+
+	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
 )

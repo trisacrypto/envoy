@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"self-hosted-node/pkg/web/api/v1"
-	"self-hosted-node/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

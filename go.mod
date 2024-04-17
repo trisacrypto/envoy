@@ -1,4 +1,4 @@
-module self-hosted-node
+module github.com/trisacrypto/envoy
 
 go 1.21.5
 

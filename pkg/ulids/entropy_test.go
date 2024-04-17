@@ -1,9 +1,10 @@
 package ulids_test
 
 import (
-	"self-hosted-node/pkg/ulids"
 	"sync"
 	"testing"
+
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"

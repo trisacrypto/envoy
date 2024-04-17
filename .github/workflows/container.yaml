@@ -10,8 +10,8 @@ on:
       - main
 
 jobs:
-  # TRISA Self Hosted Node
-  trisad:
+  # TRISA Envoy Image Build
+  envoy:
     name: TRISA
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +32,9 @@ jobs:
           # this should be configured for each container built
           images: |
             trisa/trisa
+            trisa/envoy
             gcr.io/trisa-gds/trisa
+            gcr.io/trisa-gds/envoy
           tags: |
             type=semver,pattern={{raw}}
             type=semver,pattern={{version}}

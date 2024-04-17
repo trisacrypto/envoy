@@ -3,8 +3,9 @@ package auth
 import (
 	"context"
 	"fmt"
-	"self-hosted-node/pkg/store/models"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"

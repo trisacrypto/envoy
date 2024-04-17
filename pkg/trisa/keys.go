@@ -3,8 +3,8 @@ package trisa
 import (
 	"context"
 
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"

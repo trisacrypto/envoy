@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"self-hosted-node/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rotationalio/confire"

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	directory "self-hosted-node/pkg/trisa/gds"
-	"self-hosted-node/pkg/trisa/keychain"
-	"self-hosted-node/pkg/trisa/peers"
+	directory "github.com/trisacrypto/envoy/pkg/trisa/gds"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )

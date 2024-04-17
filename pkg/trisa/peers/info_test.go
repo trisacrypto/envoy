@@ -3,7 +3,7 @@ package peers_test
 import (
 	"testing"
 
-	"self-hosted-node/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	"github.com/stretchr/testify/require"
 )

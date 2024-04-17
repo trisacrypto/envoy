@@ -3,9 +3,9 @@ package gds
 import (
 	"errors"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/trisa/gds/mock"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

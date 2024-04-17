@@ -3,9 +3,9 @@ package web
 import (
 	"net/http"
 
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/web/auth"
-	"self-hosted-node/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 
 	"github.com/gin-gonic/gin"
 )

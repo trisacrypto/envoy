@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/store/models"
-	. "self-hosted-node/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	. "github.com/trisacrypto/envoy/pkg/web/auth"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"

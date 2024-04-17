@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/metrics"
-	"self-hosted-node/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/metrics"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"

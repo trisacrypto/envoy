@@ -12,7 +12,7 @@ ARG GIT_REVISION=""
 RUN update-ca-certificates
 
 # Use modules for dependencies
-WORKDIR $GOPATH/src/github.com/trisacrypto/self-hosted-node
+WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
 
 COPY go.mod .
 COPY go.sum .
@@ -28,7 +28,7 @@ COPY . .
 # Build binary
 ARG TARGETOS
 ARG TARGETARCH
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o /go/bin/trisad -ldflags="-X 'github.com/trisacrypto/self-hosted-node/pkg.GitVersion=${GIT_REVISION}'" ./cmd/trisad
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o /go/bin/envoy -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}'" ./cmd/envoy
 
 # Final Stage
 FROM --platform=${BUILDPLATFORM} ${FINAL_IMAGE} AS final
@@ -42,6 +42,6 @@ RUN set -x && apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary to the production image from the builder stage
-COPY --from=builder /go/bin/trisad /usr/local/bin/trisad
+COPY --from=builder /go/bin/envoy /usr/local/bin/envoy
 
-CMD [ "/usr/local/bin/trisad", "serve" ]
+CMD [ "/usr/local/bin/envoy", "serve" ]
