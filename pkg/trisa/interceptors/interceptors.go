@@ -1,7 +1,7 @@
 package interceptors
 
 import (
-	"self-hosted-node/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/config"
 
 	"google.golang.org/grpc"
 )

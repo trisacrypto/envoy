@@ -2,8 +2,9 @@ package peers
 
 import (
 	"errors"
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/trisa/peers/mock"
+
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers/mock"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

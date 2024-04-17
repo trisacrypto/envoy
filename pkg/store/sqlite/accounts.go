@@ -6,9 +6,9 @@ import (
 	"errors"
 	"time"
 
-	dberr "self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/ulids"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/trisa/interceptors"
-	"self-hosted-node/pkg/trisa/mock"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/trisa/interceptors"
+	"github.com/trisacrypto/envoy/pkg/trisa/mock"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"

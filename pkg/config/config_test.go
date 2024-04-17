@@ -4,10 +4,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"self-hosted-node/pkg/config"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/config"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"

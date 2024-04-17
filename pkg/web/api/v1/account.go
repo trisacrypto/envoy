@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	dberr "self-hosted-node/pkg/store/errors"
-	"self-hosted-node/pkg/store/models"
 	"time"
+
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"

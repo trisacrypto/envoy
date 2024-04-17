@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"self-hosted-node/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/stretchr/testify/require"
 )

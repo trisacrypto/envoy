@@ -3,9 +3,9 @@ package trisa
 import (
 	"net"
 
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/trisa/interceptors"
-	"self-hosted-node/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/trisa/interceptors"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
 	"github.com/rs/zerolog/log"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"self-hosted-node/pkg/trisa"
+	"github.com/trisacrypto/envoy/pkg/trisa"
 
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/trisa/pkg/ivms101"

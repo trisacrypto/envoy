@@ -3,8 +3,8 @@ package dsn_test
 import (
 	"testing"
 
-	"self-hosted-node/pkg/store/dsn"
-	"self-hosted-node/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 
 	"github.com/stretchr/testify/require"
 )

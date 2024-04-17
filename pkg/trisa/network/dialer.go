@@ -1,9 +1,9 @@
 package network
 
 import (
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
 	"github.com/trisacrypto/trisa/pkg/trust"

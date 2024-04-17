@@ -3,7 +3,7 @@ package peers
 import (
 	"time"
 
-	"self-hosted-node/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 )
 
 // Info provides detailed VASP counterparty information that can be looked up via the

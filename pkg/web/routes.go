@@ -3,11 +3,12 @@ package web
 import (
 	"io/fs"
 	"net/http"
-	"self-hosted-node/pkg/logger"
-	"self-hosted-node/pkg/metrics"
-	"self-hosted-node/pkg/web/auth"
-	permiss "self-hosted-node/pkg/web/auth/permissions"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/metrics"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
+	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

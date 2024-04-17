@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/url"
-	"self-hosted-node/pkg/store/models"
 	"strings"
 	"time"
+
+	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"

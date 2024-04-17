@@ -13,13 +13,15 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"self-hosted-node/pkg"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/node"
-	"self-hosted-node/pkg/store"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/web/auth"
-	permiss "self-hosted-node/pkg/web/auth/permissions"
+	"github.com/trisacrypto/envoy/pkg/node"
+	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
+	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
+
+	"github.com/trisacrypto/envoy/pkg/config"
+
+	"github.com/trisacrypto/envoy/pkg"
 
 	"github.com/joho/godotenv"
 	"github.com/oklog/ulid/v2"
@@ -36,20 +38,20 @@ func main() {
 	godotenv.Load()
 
 	app := cli.NewApp()
-	app.Name = "trisad"
-	app.Usage = "serve and manage the TRISA self-hosted node"
+	app.Name = "envoy"
+	app.Usage = "serve and manage the TRISA Envoy self-hosted node"
 	app.Version = pkg.Version()
 	app.Flags = []cli.Flag{}
 	app.Commands = []*cli.Command{
 		{
 			Name:     "serve",
-			Usage:    "serve the TRISA node server configured from the environment",
+			Usage:    "serve the TRISA Envoy node server configured from the environment",
 			Action:   serve,
 			Category: "server",
 		},
 		{
 			Name:     "config",
-			Usage:    "print TRISA node server configuration guide",
+			Usage:    "print TRISA Envoy node server configuration guide",
 			Category: "server",
 			Action:   usage,
 			Flags: []cli.Flag{

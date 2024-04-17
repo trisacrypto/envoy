@@ -1,15 +1,15 @@
 package directory_test
 
 import (
-	"self-hosted-node/pkg/bufconn"
-	"self-hosted-node/pkg/config"
-	"self-hosted-node/pkg/directory"
-	"self-hosted-node/pkg/store"
-	"self-hosted-node/pkg/store/models"
-	"self-hosted-node/pkg/trisa/gds"
-	mockgds "self-hosted-node/pkg/trisa/gds/mock"
-	"self-hosted-node/pkg/trisa/network"
-	"self-hosted-node/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/directory"
+	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/trisa/gds"
+	mockgds "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"testing"
 	"time"

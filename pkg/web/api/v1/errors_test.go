@@ -2,8 +2,9 @@ package api_test
 
 import (
 	"fmt"
-	"self-hosted-node/pkg/web/api/v1"
 	"testing"
+
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/stretchr/testify/require"
 )
