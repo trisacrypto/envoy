@@ -9,10 +9,25 @@
           </h1>
         </div>
         <!-- TODO: Make buttons same width -->
-        <form hx-post="/v1/transactions/send" hx-ext="json-enc" method="post">
+        <form 
+          _="on htmx:afterRequest
+              if event.detail.successful
+                remove @open from #preview_envelope
+                then reset() the #secure-envelope-form
+                then remove .ss-single from <div.ss-values/>" 
+          hx-post="/v1/transactions/send" 
+          hx-target="#secure-envelope-form" 
+          hx-swap="none" 
+          hx-ext="json-enc" 
+          method="post"
+          >
           <input type="hidden" id="travel_address" name="travel_address" value="{{ .Dump }}" />
           <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4 w-full">
-            <button type="submit" class="p-1 rounded bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Send</button>
+            <button 
+              type="submit" 
+              class="p-1 rounded bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">
+              Send
+            </button>
             <button type="button" onclick="preview_envelope.close()" class="p-1 rounded bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
             <button type="button" onclick="preview_envelope.close()" class="p-1 rounded bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
           </div>
