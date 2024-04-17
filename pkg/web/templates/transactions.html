@@ -42,4 +42,15 @@
 
 {{ define "appcode"}}
 <script src="/static/js/welcomeMsg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+<script>dayjs.extend(window.dayjs_plugin_relativeTime)</script>
+<script type="text/javascript">
+  document.body.addEventListener('htmx:afterSettle', () => {
+    document.querySelectorAll('.trans-last-update').forEach((e) => {
+      const humanizeLastUpdate = dayjs(e.textContent).fromNow();
+      e.textContent = humanizeLastUpdate;
+    });
+  });
+</script>
 {{ end }}
