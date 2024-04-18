@@ -15,7 +15,11 @@
             <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
             {{ end }}
             <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
+            {{ if eq .Source "remote" }}
             <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+            {{ else }}
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Close</button>
+            {{ end }}
           </div>
         </div>
           <!-- Modal body -->
