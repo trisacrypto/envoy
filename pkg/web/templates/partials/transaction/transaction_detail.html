@@ -9,11 +9,17 @@
           </h1>
           <span>Transaction ID: {{ .ID }}</span>
         </div>
-          <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4">
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Accept</button>
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-1/3 bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+          <div class="flex lg:w-1/3 gap-x-4">
+            {{ if eq .Source "remote" }}
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Accept</button>
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
+            {{ end }}
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
+            {{ if eq .Source "remote" }}
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+            {{ else }}
+            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Close</button>
+            {{ end }}
           </div>
         </div>
           <!-- Modal body -->
