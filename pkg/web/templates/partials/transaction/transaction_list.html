@@ -1,14 +1,14 @@
 <div>
   <table class="table overflow-auto">
     <thead class="font-bold text-base text-black">
-      <tr>
-        <th class="text-center">Type</th>
+      <tr class="text-center">
+        <th>Type</th>
         <th>Status</th>
         <th>Counterparty</th>
         <th>Originator</th>
         <th>Beneficiary</th>
-        <th class="text-center">Virtual Asset</th>
-        <th class="text-center">Amount</th>
+        <th>Virtual Asset</th>
+        <th>Amount</th>
         <th># of Envelopes</th>
         <th>Date Created</th>
         <th>Last Update</th>
@@ -18,8 +18,8 @@
     <tbody>
       {{ if .Transactions }}
       {{ range .Transactions }}
-      <tr>
-        <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
+      <tr class="text-center">
+        <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
           {{ if eq .Source "local" }}
           <div class="tooltip tooltip-right" data-tip="Outgoing transaction from local VASP">
             <button>
@@ -41,41 +41,41 @@
         {{ if .Status }}
           {{ if eq .Status "draft" }}
           <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
-            <div class="flex items-center gap-x-1">
+            <div class="flex justify-center items-center gap-x-1">
               <img src="/static/draftStatusIcon.svg" alt="" />
               <span class="text-gray-500">{{ .Status }}</span>
             </div>
           </td>
           {{ else if eq .Status "pending" }}
           <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
-            <div class="flex items-center gap-x-1">
+            <div class="flex justify-center items-center gap-x-1">
               <img src="/static/pendingStatusIcon.svg" alt="" />
               <span class="text-yellow-700">{{ .Status }}</span>
             </div>
           </td>
           {{ else if eq .Status "action required" }}
           <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
-            <div class="flex items-center gap-x-1">
+            <div class="flex justify-center items-center gap-x-1">
               <img src="/static/actionStatusIcon.svg" alt="" />
               <span class="text-blue-700">{{ .Status }}</span>
             </div>
           </td>
           {{ else if eq .Status "completed" }}
           <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
-            <div class="flex items-center gap-x-1">
+            <div class="flex justify-center items-center gap-x-1">
               <img src="/static/completeStatusIcon.svg" alt="" />
               <span class="text-green-700">{{ .Status }}</span>
             </div>
           </td>
           {{ else if eq .Status "archived" }}
           <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">
-            <div class="flex items-center gap-x-1">
+            <div class="flex justify-center items-center gap-x-1">
               <img src="/static/archiveStatusIcon.svg" alt="" />
               <span class="text-gray-700">{{ .Status }}</span>
             </div>
           </td>
           {{ else }}
-          <td class="px-8cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">&mdash;</td>
+          <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">&mdash;</td>
           {{ end }}
         {{ end }}
         <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Counterparty }}</td>
@@ -95,18 +95,21 @@
             </ul>
           </div>
         </td>
-        <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .VirtualAsset }}</td>
-        <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Amount }}</td>
-        <td class="cursor-pointer text-center" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .EnvelopeCount }}</td>
+        <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .VirtualAsset }}</td>
+        <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .Amount }}</td>
+        <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ .EnvelopeCount }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td class="cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ $created }}</td>
-        <td class="px-16 cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">&mdash;</td>
+        {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05" }}
+        <td class="trans-last-update cursor-pointer" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}" hx-target="#transaction_modal" hx-swap="innerHTML">{{ $lastUpdate }}</td>
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+              {{ if eq .Source "remote" }}
               <li><a>Accept</a></li>
               <li><a>Reject</a></li>
+              {{ end }}
               <li><a>Archive</a></li>
             </ul>
           </div>
