@@ -1,7 +1,12 @@
 version: "3"
 services:
   envoy:
-    image: trisa/trisa
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        GIT_REVISION: ${GIT_REVISION}
+    image: trisa/envoy
     init: true
     depends_on:
       - gds
@@ -10,23 +15,26 @@ services:
       - 8100:8100
     volumes:
       - ./tmp/envoy:/data
+    secrets:
+      - localhost.pem.gz
+      - server.pem.gz
     environment:
       - TRISA_MAINTENANCE=false
-      - TRISA_MODE=debug
+      - TRISA_MODE=release
       - TRISA_LOG_LEVEL=debug
       - TRISA_CONSOLE_LOG=true
       - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=localhost:8100
       - TRISA_WEB_ENABLED=true
       - TRISA_WEB_BIND_ADDR=:8000
       - TRISA_WEB_ORIGIN=http://localhost:8000
-      - TRISA_WEB_TRISA_ENDPOINT=localhost:8100
       - TRISA_WEB_AUDIENCE=http://localhost:8000
       - TRISA_WEB_ISSUER=http://localhost:8000
       - TRISA_WEB_AUTH_COOKIE_DOMAIN=localhost
       - TRISA_NODE_ENABLED=true
       - TRISA_NODE_BIND_ADDR=:8100
-      - TRISA_NODE_POOL
-      - TRISA_NODE_CERTS
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/server.pem.gz
       - TRISA_NODE_DIRECTORY_INSECURE=true
       - TRISA_NODE_DIRECTORY_ENDPOINT=gds:4433
       - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
@@ -97,3 +105,9 @@ services:
       - TRTL_REPLICA_GOSSIP_SIGMA=1500ms
       - TRTL_INSECURE=true
       - TRTL_BACKUP_ENABLED=false
+
+secrets:
+  localhost.pem.gz:
+    file: ./.secret/localhost.pem.gz
+  server.pem.gz:
+    file: ./.secret/server.pem.gz
