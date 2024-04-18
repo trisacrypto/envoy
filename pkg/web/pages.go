@@ -11,9 +11,8 @@ import (
 )
 
 // Home currently renders the primary landing page for the web ui.
-// TODO: replace with dashboard or redirect as necessary.
 func (s *Server) Home(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{"Version": pkg.Version()})
+	htmx.Redirect(c, http.StatusFound, "/transactions")
 }
 
 func (s *Server) LoginPage(c *gin.Context) {
