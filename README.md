@@ -7,7 +7,7 @@ Complete documentation for Envoy can be found at [https://trisa.dev/envoy](https
 
 ## Running Envoy Locally
 
-**NOTE**: development is happening rapidly on the node right now; if these instructions don't work correctly, please open an issue on GitHub so we can review the docs.
+**NOTE**: Development is happening rapidly on the node right now; if these instructions don't work correctly, please open an issue on GitHub so we can review the docs.
 
 Step 1: Generate localhost self-signed certificates:
 
