@@ -1,5 +1,37 @@
 version: "3"
 services:
+  envoy:
+    image: trisa/trisa
+    init: true
+    depends_on:
+      - gds
+    ports:
+      - 8000:8000
+      - 8100:8100
+    volumes:
+      - ./tmp/envoy:/data
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=debug
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:8000
+      - TRISA_WEB_ORIGIN=http://localhost:8000
+      - TRISA_WEB_TRISA_ENDPOINT=localhost:8100
+      - TRISA_WEB_AUDIENCE=http://localhost:8000
+      - TRISA_WEB_ISSUER=http://localhost:8000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=localhost
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:8100
+      - TRISA_NODE_POOL
+      - TRISA_NODE_CERTS
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+
   gds:
     image: trisa/gds
     init: true
