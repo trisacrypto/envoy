@@ -48,7 +48,8 @@
 <script type="text/javascript">
   document.body.addEventListener('htmx:afterSettle', () => {
     document.querySelectorAll('.trans-last-update').forEach((e) => {
-      const humanizeLastUpdate = dayjs(e.textContent).fromNow();
+      const transLastUpdate = e.textContent;
+      const humanizeLastUpdate = dayjs(transLastUpdate).fromNow();
       e.textContent = humanizeLastUpdate;
     });
   });
