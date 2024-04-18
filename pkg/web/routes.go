@@ -151,7 +151,7 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.POST("/send", authorize(permiss.TravelRuleManage), s.SendPreparedTransaction)
 
 			// Export method to export transactions to a CSV
-			transactions.GET("/csv", authorize(permiss.TravelRuleManage), s.ExportTransactions)
+			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
 
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")

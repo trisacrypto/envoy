@@ -46,7 +46,7 @@ func (s *Server) ExportTransactions(c *gin.Context) {
 
 	// Write the header to the CSV file
 	if err = writer.Write(TransactionsHeader); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("error writing heder to download stream: %w", err))
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("error writing header to download stream: %w", err))
 		return
 	}
 
