@@ -8,6 +8,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/secrets"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 
 	"github.com/google/uuid"
@@ -45,10 +46,21 @@ type Store interface {
 	APIKeyStore
 }
 
+// Secrets is a generic storage interface for storing secrets such as private key
+// material for identity and sealing certificates. It is separate from the generic store
+// since storage needs to be specialized for security.
+type Secrets interface {
+	io.Closer
+	CreateSecret(context.Context, *secrets.Secret) error
+	RetrieveSecret(context.Context, *secrets.Secret) error
+	DeleteSecret(context.Context, *secrets.Secret) error
+}
+
 // All Store implementations must implement the Store interface
 var (
-	_ Store = &mock.Store{}
-	_ Store = &sqlite.Store{}
+	_ Store   = &mock.Store{}
+	_ Store   = &sqlite.Store{}
+	_ Secrets = &secrets.GCP{}
 )
 
 // TransactionStore stores some lightweight information about specific transactions
