@@ -30,6 +30,7 @@ func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (out *mode
 	// TODO: handle pagination
 	out = &models.UserPage{
 		Users: make([]*models.User, 0),
+		Page:  models.PageInfoFrom(page),
 	}
 
 	// Fetch roles to map onto user information

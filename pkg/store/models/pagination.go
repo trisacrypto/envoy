@@ -2,6 +2,8 @@ package models
 
 import "github.com/oklog/ulid/v2"
 
+const DefaultPageSize = uint32(50)
+
 type PageInfo struct {
 	PageSize   uint32    `json:"page_size"`
 	NextPageID ulid.ULID `json:"next_page_id"`
@@ -41,4 +43,14 @@ type UserPage struct {
 type APIKeyPage struct {
 	APIKeys []*APIKey `json:"api_keys"`
 	Page    *PageInfo `json:"page"`
+}
+
+func PageInfoFrom(in *PageInfo) (out *PageInfo) {
+	out = &PageInfo{
+		PageSize: DefaultPageSize,
+	}
+	if in != nil && in.PageSize > 0 {
+		out.PageSize = in.PageSize
+	}
+	return out
 }
