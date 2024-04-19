@@ -83,7 +83,11 @@
           <div>
             <ul>
               <li>{{ .Originator }}</li>
-              <li class="mt-2 break-words">{{ .OriginatorAddress }}</li>
+              {{ if .OriginatorAddress }}
+              <li class="text-xs text-gray-600 break-words">{{ .OriginatorAddress }}</li>
+              {{ else }}
+              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              {{ end }}
             </ul>
           </div>
         </td>
@@ -91,7 +95,11 @@
           <div>
             <ul>
               <li>{{ .Beneficiary }}</li>
-              <li class="mt-2 text-xs break-words">{{ .BeneficiaryAddress }}</li>
+              {{ if .BeneficiaryAddress }}
+              <li class="text-xs text-gray-600 break-words">{{ .BeneficiaryAddress }}</li>
+              {{ else }}
+              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              {{ end }}
             </ul>
           </div>
         </td>
