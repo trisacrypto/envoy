@@ -49,8 +49,8 @@ addWalletBttn?.addEventListener('click', () => {
       <label for="network_${walletCount}" class="label-style">Network ${labelCount}</label>
       <div class="flex items-center gap-x-1">
         <select id="network_${walletCount}" name="network_${walletCount}"></select>
-        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()">
-          <i class="fa-solid fa-trash"><span class="sr-only">Delete wallet</span></i>
+        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" class="tooltip tooltip-left" data-tip="Delete wallet">
+          <i class="fa-solid fa-trash text-xs"><span class="sr-only">Delete wallet</span></i>
         </button>
       </div>
     </div>
