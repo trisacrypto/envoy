@@ -25,6 +25,7 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 	// TODO: handle pagination
 	out = &models.CounterpartyPage{
 		Counterparties: make([]*models.Counterparty, 0),
+		Page:           models.PageInfoFrom(page),
 	}
 
 	var rows *sql.Rows

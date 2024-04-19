@@ -26,6 +26,7 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (ou
 	// TODO: handle pagination
 	out = &models.TransactionPage{
 		Transactions: make([]*models.Transaction, 0),
+		Page:         models.PageInfoFrom(page),
 	}
 
 	var rows *sql.Rows
@@ -177,6 +178,7 @@ func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *m
 	// TODO: handle pagination
 	out = &models.SecureEnvelopePage{
 		Envelopes: make([]*models.SecureEnvelope, 0),
+		Page:      models.PageInfoFrom(page),
 	}
 
 	var rows *sql.Rows
