@@ -19,16 +19,19 @@
     </ul>
     <p>Note that your VASP must have an x.509 TRISA identity certificate issued through TRISA's Global Directory Service. You can request a certificate at <a href="https://vaspdirectory.net" target="_blank"><span class="text-[#0000EE] hover:underline">vaspdirectory.net</span></a>.</p>
   </section>
-  <section class="mb-12 md:flex items-center gap-x-6">
+  <section class="mb-12">
     <h1 class="font-bold text-2xl">Transaction Inbox</h1>
-    <div class="mt-3 md:mt-0 flex items-center gap-x-1">
-      <a href="/send-envelope" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Send New Secure Envelope</a>
-      <div class="tooltip tooltip-top md:tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
-        <button class="pt-2">
-          <img src="/static/infoicon.svg" alt="" />
-        </button> 
+    <div class="mt-6 flex justify-between items-center">
+      <div class="flex items-center gap-x-1">
+        <a href="/send-envelope" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/80">Send New Secure Envelope</a>
+        <div class="tooltip tooltip-top md:tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
+          <button class="pt-2">
+            <img src="/static/infoicon.svg" alt="" />
+          </button> 
+        </div>
       </div>
-    </div>
+      <a href="/v1/transactions/export" download class="btn btn-sm bg-black text-white hover:bg-black/80">Export Transactions</a>
+    </div>  
   </section>
   <section id="transactions" hx-get="/v1/transactions" hx-ext="json-enc" hx-trigger="load">
     <div class="text-center">
