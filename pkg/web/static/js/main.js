@@ -24,3 +24,21 @@ if (logoutBttn) {
     localStorage.removeItem(hideWelcomeMsg)
   })
 }
+
+document.body.addEventListener('htmx:responseError', (e) => {
+  // Close any open modals.
+  document.querySelector('.modal').close()
+
+  // Display error response to user.
+  const error = JSON.parse(e.detail.xhr.response)
+  document.getElementById('toast')
+  .insertAdjacentHTML('beforeend', `
+  <div class="alert alert-error">
+    <i class="fa-solid fa-circle-xmark"></i>
+    <span>${error.error}</span>
+  </div>`)
+
+  setTimeout(() => {
+    document.querySelector('.alert').remove()
+  }, 5000)
+})
