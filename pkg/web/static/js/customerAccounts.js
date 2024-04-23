@@ -31,26 +31,28 @@ document.body.addEventListener("htmx:configRequest", (e) => {
       }
     }
 
+    // Remove any empty objects from the crypto_addresses array.
+    data.crypto_addresses = data.crypto_addresses.filter((obj) => Object.keys(obj).length > 0)
+
     // Modify the outgoing request with the new data
     e.detail.parameters = data;
   }
 });
 
 addWalletBttn?.addEventListener('click', () => {
-  const labelCount = walletDiv?.children.length + 1
   const walletCount = walletDiv?.children.length * 1
   walletDiv?.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${labelCount}</label>
+      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address</label>
       <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
     </div>
     <div>
-      <label for="network_${walletCount}" class="label-style">Network ${labelCount}</label>
+      <label for="network_${walletCount}" class="label-style">Network</label>
       <div class="flex items-center gap-x-1">
         <select id="network_${walletCount}" name="network_${walletCount}"></select>
-        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()">
-          <i class="fa-solid fa-trash"><span class="sr-only">Delete wallet</span></i>
+        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" class="tooltip tooltip-left" data-tip="Delete wallet">
+          <i class="fa-solid fa-trash text-xs"><span class="sr-only">Delete wallet</span></i>
         </button>
       </div>
     </div>
