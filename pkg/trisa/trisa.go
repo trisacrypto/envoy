@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa/interceptors"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
@@ -25,14 +26,16 @@ type Server struct {
 	identity *trust.Provider
 	certPool trust.ProviderPool
 	network  network.Network
+	store    store.Store
 	echan    chan<- error
 }
 
 // Create a new TRISA server ready to handle gRPC requests.
-func New(conf config.TRISAConfig, network network.Network, echan chan<- error) (s *Server, err error) {
+func New(conf config.TRISAConfig, network network.Network, store store.Store, echan chan<- error) (s *Server, err error) {
 	s = &Server{
 		conf:    conf,
 		network: network,
+		store:   store,
 		echan:   echan,
 	}
 

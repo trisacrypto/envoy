@@ -55,6 +55,19 @@ type SecureEnvelope struct {
 	transaction   *Transaction        // The transaction this envelope is associated with
 }
 
+// PreparedTransaction allows you to manage the creation/modification of a transaction
+// w.r.t a secure envelope. It is unified in a single interface to allow backend stores
+// that have database transactions to perform all operations in a single transaction
+// without concurrency issues.
+type PreparedTransaction interface {
+	Created() bool                       // Returns true if the transaction was newly created, false if it already existed
+	Update(*Transaction) error           // Update the transaction with new information; e.g. data from decryption
+	AddCounterparty(*Counterparty) error // Add counterparty by database ULID, counterparty name, or registered directory ID; if the counterparty doesn't exist, it is created
+	AddEnvelope(*SecureEnvelope) error   // Associate a secure envelope with the prepared transaction
+	Rollback() error                     // Rollback the prepared transaction and conclude it
+	Commit() error                       // Commit the prepared transaction and conclude it
+}
+
 func (t *Transaction) Scan(scanner Scanner) error {
 	return scanner.Scan(
 		&t.ID,

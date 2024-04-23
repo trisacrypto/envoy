@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS counterparties (
     endpoint                TEXT NOT NULL,
     name                    TEXT NOT NULL,
     website                 TEXT,
-    country                 TEXT NOT NULL,
+    country                 TEXT,
     business_category       TEXT,
     vasp_categories         BLOB,
     verified_on             DATETIME,

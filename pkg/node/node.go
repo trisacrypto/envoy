@@ -84,7 +84,7 @@ func New(conf config.Config) (node *Node, err error) {
 		return nil, err
 	}
 
-	if node.trisa, err = trisa.New(conf.Node, node.network, node.errc); err != nil {
+	if node.trisa, err = trisa.New(conf.Node, node.network, node.store, node.errc); err != nil {
 		return nil, err
 	}
 
