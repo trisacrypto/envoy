@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"io"
 	"time"
 )
 
@@ -19,4 +20,25 @@ type Secret struct {
 	ContentType string    `json:"content_type"`
 	Data        []byte    `json:"data"`
 	Created     time.Time `json:"created,omitempty"`
+}
+
+// Iterator allows listing secrets from the key management store or database.
+type Iterator interface {
+	io.Closer
+	Next() bool
+	Err() error
+	Secret() *Secret
+}
+
+type NamespaceFactory func(name, contentType string, data []byte) *Secret
+
+func WithNamespace(namespace string) NamespaceFactory {
+	return func(name, contentType string, data []byte) *Secret {
+		return &Secret{
+			Namespace:   namespace,
+			Name:        name,
+			ContentType: contentType,
+			Data:        data,
+		}
+	}
 }

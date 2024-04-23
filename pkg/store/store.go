@@ -51,6 +51,7 @@ type Store interface {
 // since storage needs to be specialized for security.
 type Secrets interface {
 	io.Closer
+	ListSecrets(ctx context.Context, namespace string) (secrets.Iterator, error)
 	CreateSecret(context.Context, *secrets.Secret) error
 	RetrieveSecret(context.Context, *secrets.Secret) error
 	DeleteSecret(context.Context, *secrets.Secret) error
