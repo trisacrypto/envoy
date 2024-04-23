@@ -13,6 +13,10 @@
           _="on htmx:afterRequest
               if event.detail.successful
                 remove @open from #preview_envelope
+                then remove .hidden from #success-toast
+                then put 'Success! Secure envelope sent.' into #success-toast-msg
+                then wait 5s
+                then add .hidden to #success-toast
                 then reset() the #secure-envelope-form
                 then reload() the location of the window
                 then go to top of the body" 
