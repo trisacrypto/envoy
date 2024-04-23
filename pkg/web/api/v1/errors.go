@@ -9,6 +9,10 @@ import (
 	"github.com/trisacrypto/envoy/pkg"
 )
 
+//===========================================================================
+// Standard Error Handling
+//===========================================================================
+
 var (
 	Unsuccessful = Reply{Success: false, Version: pkg.Version()}
 	NotFound     = Reply{Success: false, Error: "resource not found", Version: pkg.Version()}
@@ -23,6 +27,19 @@ func Error(err interface{}) Reply {
 
 	rep := Reply{Success: false}
 	switch err := err.(type) {
+	case ValidationErrors:
+		if len(err) == 1 {
+			rep.Error = err.Error()
+		} else {
+			rep.Error = fmt.Sprintf("%d validation errors occurred", len(err))
+			rep.ErrorDetail = make(ErrorDetail, 0, len(err))
+			for _, verr := range err {
+				rep.ErrorDetail = append(rep.ErrorDetail, &DetailError{
+					Field: verr.field,
+					Error: verr.Error(),
+				})
+			}
+		}
 	case error:
 		rep.Error = err.Error()
 	case string:
@@ -41,6 +58,10 @@ func Error(err interface{}) Reply {
 
 	return rep
 }
+
+//===========================================================================
+// Status Errors
+//===========================================================================
 
 // StatusError decodes an error response from the TRISA API.
 type StatusError struct {
@@ -64,6 +85,21 @@ func ErrorStatus(err error) int {
 		return e.StatusCode
 	}
 }
+
+//===========================================================================
+// Detail Error
+//===========================================================================
+
+type ErrorDetail []*DetailError
+
+type DetailError struct {
+	Field string `json:"field"`
+	Error string `json:"error"`
+}
+
+//===========================================================================
+// Field Validation Errors
+//===========================================================================
 
 func MissingField(field string) *FieldError {
 	return &FieldError{verb: "missing", field: field, issue: "this field is required"}
@@ -101,6 +137,16 @@ func ValidationError(err error, errs ...*FieldError) error {
 	return verr
 }
 
+type FieldError struct {
+	verb  string
+	field string
+	issue string
+}
+
+func (e *FieldError) Error() string {
+	return fmt.Sprintf("%s %s: %s", e.verb, e.field, e.issue)
+}
+
 type ValidationErrors []*FieldError
 
 func (e ValidationErrors) Error() string {
@@ -114,14 +160,4 @@ func (e ValidationErrors) Error() string {
 	}
 
 	return fmt.Sprintf("%d validation errors occurred:\n  %s", len(e), strings.Join(errs, "\n  "))
-}
-
-type FieldError struct {
-	verb  string
-	field string
-	issue string
-}
-
-func (e *FieldError) Error() string {
-	return fmt.Sprintf("%s %s: %s", e.verb, e.field, e.issue)
 }

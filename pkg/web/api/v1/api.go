@@ -60,9 +60,10 @@ type Client interface {
 
 // Reply contains standard fields that are used for generic API responses and errors.
 type Reply struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error,omitempty"`
-	Version string `json:"version,omitempty"`
+	Success     bool        `json:"success"`
+	Error       string      `json:"error,omitempty"`
+	Version     string      `json:"version,omitempty"`
+	ErrorDetail ErrorDetail `json:"errors,omitempty"`
 }
 
 // Returned on status requests.
