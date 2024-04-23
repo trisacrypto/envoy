@@ -31,6 +31,9 @@ document.body.addEventListener("htmx:configRequest", (e) => {
       }
     }
 
+    // Remove any empty objects from the crypto_addresses array.
+    data.crypto_addresses = data.crypto_addresses.filter((obj) => Object.keys(obj).length > 0)
+
     // Modify the outgoing request with the new data
     e.detail.parameters = data;
   }
