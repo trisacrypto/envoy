@@ -28,6 +28,7 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 	// TODO: handle pagination
 	out = &models.AccountsPage{
 		Accounts: make([]*models.Account, 0),
+		Page:     models.PageInfoFrom(page),
 	}
 
 	var rows *sql.Rows
@@ -215,6 +216,7 @@ func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, pa
 	// TODO: handle pagination
 	out = &models.CryptoAddressPage{
 		CryptoAddresses: make([]*models.CryptoAddress, 0),
+		Page:            models.PageInfoFrom(page),
 	}
 
 	var rows *sql.Rows
