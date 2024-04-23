@@ -40,16 +40,15 @@ document.body.addEventListener("htmx:configRequest", (e) => {
 });
 
 addWalletBttn?.addEventListener('click', () => {
-  const labelCount = walletDiv?.children.length + 1
   const walletCount = walletDiv?.children.length * 1
   walletDiv?.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address ${labelCount}</label>
+      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address</label>
       <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
     </div>
     <div>
-      <label for="network_${walletCount}" class="label-style">Network ${labelCount}</label>
+      <label for="network_${walletCount}" class="label-style">Network</label>
       <div class="flex items-center gap-x-1">
         <select id="network_${walletCount}" name="network_${walletCount}"></select>
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" class="tooltip tooltip-left" data-tip="Delete wallet">
