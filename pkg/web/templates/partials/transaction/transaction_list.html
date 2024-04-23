@@ -1,12 +1,12 @@
 <div>
-  <table class="table overflow-auto">
+  <table class="table">
     <thead class="font-bold text-base text-black">
-      <tr class="text-center">
+      <tr class="text-center text-balance">
         <th>Type</th>
         <th>Status</th>
         <th>Counterparty</th>
-        <th>Originator</th>
-        <th>Beneficiary</th>
+        <th>Originator & Wallet Address</th>
+        <th>Beneficiary & Wallet Address</th>
         <th>Virtual Asset</th>
         <th>Amount</th>
         <th># of Envelopes</th>
@@ -83,7 +83,11 @@
           <div>
             <ul>
               <li>{{ .Originator }}</li>
-              <li class="mt-2 break-words">{{ .OriginatorAddress }}</li>
+              {{ if .OriginatorAddress }}
+              <li class="text-xs text-gray-600 break-words">{{ .OriginatorAddress }}</li>
+              {{ else }}
+              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              {{ end }}
             </ul>
           </div>
         </td>
@@ -91,7 +95,11 @@
           <div>
             <ul>
               <li>{{ .Beneficiary }}</li>
-              <li class="mt-2 break-words">{{ .BeneficiaryAddress }}</li>
+              {{ if .BeneficiaryAddress }}
+              <li class="text-xs text-gray-600 break-words">{{ .BeneficiaryAddress }}</li>
+              {{ else }}
+              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              {{ end }}
             </ul>
           </div>
         </td>
