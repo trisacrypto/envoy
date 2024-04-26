@@ -264,6 +264,11 @@ func (n *TRISANetwork) UnsealingKey(signature, commonName string) (privkey keys.
 	return n.keyChain.UnsealingKey(signature, commonName)
 }
 
+// Get the storage key associated with an unsealing key.
+func (n *TRISANetwork) StorageKey(signature, commonName string) (pubkey keys.PublicKey, err error) {
+	return n.keyChain.StorageKey(signature, commonName)
+}
+
 // Get the local public seal key to send to the remote in a key exchange so that
 // the remote Peer can seal envelopes being sent to this node.
 func (n *TRISANetwork) ExchangeKey(commonName string) (pubkey keys.PublicKey, err error) {

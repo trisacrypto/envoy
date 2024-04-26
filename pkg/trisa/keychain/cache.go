@@ -129,6 +129,38 @@ func (c *Cache) UnsealingKey(signature, commonName string) (privkey keys.Private
 	return privkey, nil
 }
 
+func (c *Cache) StorageKey(signature, commonName string) (pubkey keys.PublicKey, err error) {
+	c.RLock()
+	defer c.RUnlock()
+
+	// If a common name is supplied but not a signature look it up.
+	if signature == "" {
+		if signature, err = c.lookup(commonName, InternalSource); err != nil {
+			return nil, err
+		}
+	}
+
+	// If we don't have a signature at this point then there is no default key or it can't be looked up.
+	if signature == "" {
+		return nil, keyerr.KeyNotFound
+	}
+
+	// If the key has a TTL and it is after now then return expired (if no TTL, then key should not expire)
+	// NOTE: if the key is the default key it should not expire and be returned.
+	if signature != c.defaultKey {
+		if ttl, ok := c.ttl[signature]; ok && time.Now().After(ttl) {
+			return nil, keyerr.KeyExpired
+		}
+	}
+
+	var key keys.Key
+	if key, _, err = c.internal.Get(signature); err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
 // Get the local public seal key to send to the remote in a key exchange so that
 // the remote Peer can seal envelopes being sent to this node. If there is no keys
 // specified for the common name, the default keys are returned.
