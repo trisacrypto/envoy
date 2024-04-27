@@ -127,7 +127,7 @@ func TestSync(t *testing.T) {
 		require.Equal(t, "alice.vaspbot.net:443", vasp.Endpoint)
 		require.Equal(t, "AliceVASP", vasp.Name)
 		require.Equal(t, "https://alicevasp.com", vasp.Website.String)
-		require.Equal(t, "US", vasp.Country)
+		require.Equal(t, "US", vasp.Country.String)
 		require.Equal(t, "BUSINESS_ENTITY", vasp.BusinessCategory.String)
 		require.Len(t, vasp.VASPCategories, 2)
 		require.Equal(t, time.Date(2024, time.April, 2, 21, 53, 21, 0, time.UTC), vasp.VerifiedOn.Time)

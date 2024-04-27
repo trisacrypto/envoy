@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/crypto"
 	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
@@ -259,6 +261,47 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 	return model
 }
 
+// Helper method to update the transaction with the incoming record details
+func (i *Incoming) UpdateRecord() (err error) {
+	// Update counterparty information from remote peer info (e.g. from the certificates)
+	var info *peers.Info
+	if info, err = i.peer.Info(); err != nil {
+		return fmt.Errorf("could not identify counterparty in transaction: %w", err)
+	}
+
+	// If the transaction is new and is being created, add the counterparty
+	// TODO: Make sure it's the same counterparty or return an error
+	if i.db.Created() {
+		if err = i.db.AddCounterparty(info.Model()); err != nil {
+			return fmt.Errorf("could not identify or create counterparty in database: %w", err)
+		}
+	}
+
+	timestamp, _ := i.env.Timestamp()
+
+	// Update the transaction with available information
+	// TODO: identify if this is a completed transaction
+	transaction := &models.Transaction{
+		Status:     models.StatusPending,
+		LastUpdate: sql.NullTime{Valid: true, Time: timestamp},
+	}
+
+	if i.db.Created() {
+		transaction.Source = models.SourceRemote
+	}
+
+	if err = i.db.Update(transaction); err != nil {
+		return fmt.Errorf("could not update transaction in database: %w", err)
+	}
+
+	// Save the incoming envelope to disk
+	if err = i.db.AddEnvelope(i.Model()); err != nil {
+		return fmt.Errorf("could not store incoming secure envelope in database: %w", err)
+	}
+
+	return nil
+}
+
 //===========================================================================
 // Outgoing Message Definition
 //===========================================================================
@@ -366,7 +409,11 @@ func (s *Server) HandleIncoming(in *Incoming) (out *Outgoing, err error) {
 	// Rollback the prepared transaction if there are any errors.
 	defer in.db.Rollback()
 
-	// Create the transaction and handle the counterparty
+	// Handle storing basic transaction details and counterparty information
+	if err = in.UpdateRecord(); err != nil {
+		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store basic transaction details and counterparty information")
+		return nil, internalError
+	}
 
 	// Handle the envelope, depending on the incoming envelope state.
 	// NOTE: it is up to the handler to store the incoming secure envelope
@@ -389,6 +436,16 @@ func (s *Server) HandleIncoming(in *Incoming) (out *Outgoing, err error) {
 	}
 
 	// Store the outgoing message to the database
+	var outse *models.SecureEnvelope
+	if outse, err = out.Model(); err != nil {
+		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not create outgoing envelope for storage")
+		return nil, internalError
+	}
+
+	if err = in.db.AddEnvelope(outse); err != nil {
+		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing envelope")
+		return nil, internalError
+	}
 
 	// Commit the transaction to the database
 	if err = in.db.Commit(); err != nil {
@@ -469,6 +526,12 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 		return in.Error(reject)
 	}
 
+	// Update transaction with decrypted details if available
+	if err = in.db.Update(transactionFromPayload(payload)); err != nil {
+		in.log.Error().Err(err).Msg("could not update transaction in database with decrypted details")
+		return nil, internalError
+	}
+
 	// TODO: load auto approve/reject policies for counterparty to determine response
 	// TODO: send message to callback server on backend
 
@@ -497,18 +560,6 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 
 	// Create outgoing message
 	if out, err = in.Outgoing(msg); err != nil {
-		return nil, err
-	}
-
-	// Add local cryptography for outgoing message
-	var storageKey keys.PublicKey
-	if storageKey, err = s.network.StorageKey(in.PublicKeySignature(), in.peer.Name()); err != nil {
-		in.log.Error().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not identify storage key for envelope")
-		return nil, internalError
-	}
-
-	// Set local storage crypto and return the outgoing envelope
-	if err = out.SetStorageCrypto(storageKey, decrypted.Crypto()); err != nil {
 		return nil, err
 	}
 
@@ -575,6 +626,128 @@ func pendingPayload(in *api.Payload, envelopeID string) (out *api.Payload, err e
 		return nil, err
 	}
 	return out, nil
+}
+
+func transactionFromPayload(in *api.Payload) *models.Transaction {
+	var (
+		err                error
+		originator         string
+		originatorAddress  string
+		beneficiary        string
+		beneficiaryAddress string
+		virtualAsset       string
+		amount             float64
+	)
+
+	data := &generic.Transaction{}
+	if err = in.Transaction.UnmarshalTo(data); err == nil {
+		switch {
+		case data.Network != "" && data.AssetType != "":
+			virtualAsset = fmt.Sprintf("%s (%s)", data.Network, data.AssetType)
+		case data.Network != "":
+			virtualAsset = data.Network
+		case data.AssetType != "":
+			virtualAsset = data.AssetType
+		}
+
+		amount = data.Amount
+		originatorAddress = data.Originator
+		beneficiaryAddress = data.Beneficiary
+	}
+
+	identity := &ivms101.IdentityPayload{}
+	if err = in.Identity.UnmarshalTo(identity); err == nil {
+		if identity.Originator != nil {
+			originator = findName(identity.Originator.OriginatorPersons...)
+		}
+
+		if identity.Beneficiary != nil {
+			beneficiary = findName(identity.Beneficiary.BeneficiaryPersons...)
+		}
+
+		if originatorAddress == "" {
+			originatorAddress = findAccount(identity.Originator)
+		}
+
+		if beneficiaryAddress == "" {
+			beneficiaryAddress = findAccount(identity.Beneficiary)
+		}
+	}
+
+	return &models.Transaction{
+		Originator:         sql.NullString{Valid: originator != "", String: originator},
+		OriginatorAddress:  sql.NullString{Valid: originatorAddress != "", String: originatorAddress},
+		Beneficiary:        sql.NullString{Valid: beneficiary != "", String: beneficiary},
+		BeneficiaryAddress: sql.NullString{Valid: beneficiaryAddress != "", String: beneficiaryAddress},
+		VirtualAsset:       virtualAsset,
+		Amount:             amount,
+	}
+
+}
+
+func findName(persons ...*ivms101.Person) (name string) {
+	// Search all persons for the first legal name available. Use the last available
+	// non-zero name for any other name identifier types.
+	for _, person := range persons {
+		switch t := person.Person.(type) {
+		case *ivms101.Person_LegalPerson:
+			if t.LegalPerson.Name != nil {
+				for _, identifier := range t.LegalPerson.Name.NameIdentifiers {
+					// Set the name found to the current legal person name
+					if identifier.LegalPersonName != "" {
+						name = identifier.LegalPersonName
+
+						// If this is the legal name, short circuit and return it.
+						if identifier.LegalPersonNameIdentifierType == ivms101.LegalPersonLegal {
+							return name
+						}
+					}
+				}
+			}
+		case *ivms101.Person_NaturalPerson:
+			if t.NaturalPerson.Name != nil {
+				for _, identifier := range t.NaturalPerson.Name.NameIdentifiers {
+					// Set the name found to the current natural person name
+					if identifier.PrimaryIdentifier != "" {
+						name = strings.TrimSpace(fmt.Sprintf("%s %s", identifier.SecondaryIdentifier, identifier.PrimaryIdentifier))
+
+						// If this is the legal name of the person, short circuit and return it.
+						if identifier.NameIdentifierType == ivms101.NaturalPersonLegal {
+							return name
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	// Return whatever non-zero name we found, or empty string if we found nothing.
+	return name
+}
+
+func findAccount(person any) (account string) {
+	if person == nil {
+		return ""
+	}
+
+	switch t := person.(type) {
+	case *ivms101.Originator:
+		for _, account = range t.AccountNumbers {
+			if account != "" {
+				return account
+			}
+		}
+	case *ivms101.Beneficiary:
+		for _, account = range t.AccountNumbers {
+			if account != "" {
+				return account
+			}
+		}
+	}
+
+	// Return whatever non-zero account we found, or empty string if we found nothing.
+	return account
 }
 
 func streamClosed(err error) bool {

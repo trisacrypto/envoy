@@ -8,6 +8,10 @@ func (p *PreparedTransaction) Created() bool {
 	return false
 }
 
+func (p *PreparedTransaction) Fetch() (*models.Transaction, error) {
+	return nil, nil
+}
+
 func (p *PreparedTransaction) Update(*models.Transaction) error {
 	return nil
 }

@@ -409,17 +409,34 @@ func (p *PreparedTransaction) Created() bool {
 	return p.created
 }
 
+func (p *PreparedTransaction) Fetch() (transaction *models.Transaction, err error) {
+	transaction = &models.Transaction{}
+	if err = transaction.Scan(p.tx.QueryRow(retrieveTransactionSQL, sql.Named("id", p.envelopeID))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+	return transaction, nil
+}
+
 func (p *PreparedTransaction) Update(in *models.Transaction) (err error) {
 	// Ensure that the input transaction matches the prepared transaction
 	if in.ID != uuid.Nil && in.ID != p.envelopeID {
 		return dberr.ErrIDMismatch
 	}
 
-	// Set the input ID equal to the prepared transaction ID (overwrite nil)
-	in.ID = p.envelopeID
-	in.Modified = time.Now()
+	// Fetch the previous transaction and update from the input only non-zero values
+	var orig *models.Transaction
+	if orig, err = p.Fetch(); err != nil {
+		return err
+	}
 
-	if _, err = p.tx.Exec(updateTransactionSQL, in.Params()...); err != nil {
+	// Update orig with incoming values and updated modified timestamp
+	orig.Update(in)
+	orig.Modified = time.Now()
+
+	if _, err = p.tx.Exec(updateTransactionSQL, orig.Params()...); err != nil {
 		// TODO: handle constraint violations specially
 		return fmt.Errorf("could not update transaction: %w", err)
 	}

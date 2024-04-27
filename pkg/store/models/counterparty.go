@@ -13,6 +13,7 @@ import (
 const (
 	SourceDirectorySync = "gds"
 	SourceUserEntry     = "user"
+	SourcePeer          = "peer"
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
 )

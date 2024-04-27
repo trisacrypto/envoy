@@ -1,8 +1,10 @@
 package peers
 
 import (
+	"database/sql"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 )
 
@@ -41,5 +43,20 @@ func (i *Info) Counterparty() *api.Counterparty {
 		Name:                i.Name,
 		Country:             i.Country,
 		VerifiedOn:          i.VerifiedOn,
+	}
+}
+
+// Returns a counterparty model data structure for TRISA interactions
+func (i *Info) Model() *models.Counterparty {
+	return &models.Counterparty{
+		Source:              models.SourcePeer,
+		DirectoryID:         sql.NullString{Valid: i.ID != "", String: i.ID},
+		RegisteredDirectory: sql.NullString{Valid: i.RegisteredDirectory != "", String: i.RegisteredDirectory},
+		Protocol:            models.ProtocolTRISA,
+		CommonName:          i.CommonName,
+		Endpoint:            i.Endpoint,
+		Name:                i.Name,
+		Country:             sql.NullString{Valid: i.Country != "", String: i.Country},
+		VerifiedOn:          sql.NullTime{Valid: !i.VerifiedOn.IsZero(), Time: i.VerifiedOn},
 	}
 }

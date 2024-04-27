@@ -20,12 +20,13 @@ const (
 	StatusAction   = "action required"
 	StatusComplete = "completed"
 	StatusArchived = "archived"
+	StatusErrored  = "errored"
 )
 
 type Transaction struct {
 	ID                 uuid.UUID         // Transaction IDs are UUIDs not ULIDs per the TRISA spec, this is also used for the envelope ID
 	Source             string            // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
-	Status             string            // Can be "draft", "pending", "action required", "completed", "archived"
+	Status             string            // Can be "draft", "pending", "action required", "completed", "archived", "errored"
 	Counterparty       string            // The name of the counterparty in the transaction
 	CounterpartyID     ulids.NullULID    // A reference to the counterparty in the database, if any
 	Originator         sql.NullString    // Full name of the originator natural person or account
@@ -61,6 +62,7 @@ type SecureEnvelope struct {
 // without concurrency issues.
 type PreparedTransaction interface {
 	Created() bool                       // Returns true if the transaction was newly created, false if it already existed
+	Fetch() (*Transaction, error)        // Fetches the current transaction record from the database
 	Update(*Transaction) error           // Update the transaction with new information; e.g. data from decryption
 	AddCounterparty(*Counterparty) error // Add counterparty by database ULID, counterparty name, or registered directory ID; if the counterparty doesn't exist, it is created
 	AddEnvelope(*SecureEnvelope) error   // Associate a secure envelope with the prepared transaction
@@ -146,6 +148,59 @@ func (t *Transaction) SecureEnvelopes() ([]*SecureEnvelope, error) {
 
 func (t *Transaction) SetSecureEnvelopes(envelopes []*SecureEnvelope) {
 	t.envelopes = envelopes
+}
+
+// Update the transaction t with values from other if the field in other is non-zero;
+// e.g. if a nullable field is valid or an empty string is empty. This method skips the
+// ID and Modified fields.
+func (t *Transaction) Update(other *Transaction) {
+	if other.Source != "" {
+		t.Source = other.Source
+	}
+
+	if other.Status != "" {
+		t.Status = other.Status
+	}
+
+	if other.Counterparty != "" {
+		t.Counterparty = other.Counterparty
+	}
+
+	if other.CounterpartyID.Valid {
+		t.CounterpartyID = other.CounterpartyID
+	}
+
+	if other.Originator.Valid {
+		t.Originator = other.Originator
+	}
+
+	if other.OriginatorAddress.Valid {
+		t.OriginatorAddress = other.OriginatorAddress
+	}
+
+	if other.Beneficiary.Valid {
+		t.Beneficiary = other.Beneficiary
+	}
+
+	if other.BeneficiaryAddress.Valid {
+		t.BeneficiaryAddress = other.BeneficiaryAddress
+	}
+
+	if other.VirtualAsset != "" {
+		t.VirtualAsset = other.VirtualAsset
+	}
+
+	if other.Amount != 0.0 {
+		t.Amount = other.Amount
+	}
+
+	if other.LastUpdate.Valid {
+		t.LastUpdate = other.LastUpdate
+	}
+
+	if !other.Created.IsZero() {
+		t.Created = other.Created
+	}
 }
 
 func (e *SecureEnvelope) Scan(scanner Scanner) error {
