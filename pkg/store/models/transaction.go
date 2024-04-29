@@ -1,7 +1,9 @@
 package models
 
 import (
+	"crypto/rsa"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,18 +12,36 @@ import (
 
 	"github.com/google/uuid"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/crypto"
+	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
+	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 const (
-	SourceLocal    = "local"
-	SourceRemote   = "remote"
-	StatusDraft    = "draft"
-	StatusPending  = "pending"
-	StatusAction   = "action required"
-	StatusComplete = "completed"
-	StatusArchived = "archived"
-	StatusErrored  = "errored"
+	SourceLocal       = "local"
+	SourceRemote      = "remote"
+	StatusDraft       = "draft"
+	StatusPending     = "pending"
+	StatusAction      = "action required"
+	StatusComplete    = "completed"
+	StatusArchived    = "archived"
+	StatusErrored     = "errored"
+	DirectionOut      = "out"
+	DirectionOutgoing = DirectionOut
+	DirectionIn       = "in"
+	DirectionIncoming = DirectionIn
 )
+
+func ValidStatus(status string) bool {
+	status = strings.TrimSpace(strings.ToLower(status))
+	switch status {
+	case StatusDraft, StatusPending, StatusAction, StatusComplete, StatusArchived, StatusErrored:
+		return true
+	default:
+		return false
+	}
+}
 
 type Transaction struct {
 	ID                 uuid.UUID         // Transaction IDs are UUIDs not ULIDs per the TRISA spec, this is also used for the envelope ID
@@ -203,6 +223,59 @@ func (t *Transaction) Update(other *Transaction) {
 	}
 }
 
+func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
+	model := &SecureEnvelope{
+		Direction: "",
+		IsError:   env.IsError(),
+		Envelope:  env.Proto(),
+	}
+
+	model.EnvelopeID, _ = env.UUID()
+	model.EncryptionKey = model.Envelope.EncryptionKey
+	model.HMACSecret = model.Envelope.HmacSecret
+	model.Timestamp, _ = env.Timestamp()
+	model.PublicKey = model.Envelope.PublicKeySignature
+
+	return model
+}
+
+func (e *SecureEnvelope) Reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err error) {
+	// Set the public key signature of the storage key on the model
+	if e.PublicKey, err = storageKey.PublicKeySignature(); err != nil {
+		return err
+	}
+
+	// Create a cipher to seal the new storage keys
+	var (
+		pubkey interface{}
+		seal   crypto.Cipher
+	)
+
+	if pubkey, err = storageKey.SealingKey(); err != nil {
+		return err
+	}
+
+	switch t := pubkey.(type) {
+	case *rsa.PublicKey:
+		if seal, err = rsaoeap.New(t); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown key type %T", t)
+	}
+
+	// Encrypt the encryption key and hmac secret with the new cipher
+	if e.EncryptionKey, err = seal.Encrypt(sec.EncryptionKey()); err != nil {
+		return err
+	}
+
+	if e.HMACSecret, err = seal.Encrypt(sec.HMACSecret()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e *SecureEnvelope) Scan(scanner Scanner) error {
 	return scanner.Scan(
 		&e.ID,
@@ -246,14 +319,4 @@ func (e *SecureEnvelope) Transaction() (*Transaction, error) {
 
 func (e *SecureEnvelope) SetTransaction(tx *Transaction) {
 	e.transaction = tx
-}
-
-func ValidStatus(status string) bool {
-	status = strings.TrimSpace(strings.ToLower(status))
-	switch status {
-	case StatusDraft, StatusPending, StatusAction, StatusComplete, StatusArchived:
-		return true
-	default:
-		return false
-	}
 }

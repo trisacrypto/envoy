@@ -247,7 +247,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 	// Create the incoming secure envelope model
 	se := i.env.Proto()
 	model := &models.SecureEnvelope{
-		Direction:     "in",
+		Direction:     models.DirectionIncoming,
 		IsError:       i.env.IsError(),
 		EncryptionKey: se.EncryptionKey,
 		HMACSecret:    se.HmacSecret,
@@ -345,7 +345,7 @@ func (o *Outgoing) SetStorageCrypto(k keys.PublicKey, c crypto.Crypto) (err erro
 func (o *Outgoing) Model() (model *models.SecureEnvelope, err error) {
 	se := o.env.Proto()
 	model = &models.SecureEnvelope{
-		Direction:     "out",
+		Direction:     models.DirectionOutgoing,
 		IsError:       o.env.IsError(),
 		EncryptionKey: nil,
 		HMACSecret:    nil,
@@ -478,6 +478,13 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 		return in.Reject(api.InvalidKey, "unknown public key signature", true)
 	}
 
+	// Identify the local keys to store the outgoing envelope (usually the public key component of the unsealing key)
+	var storageKey keys.PublicKey
+	if storageKey, err = s.network.StorageKey(in.PublicKeySignature(), in.peer.Name()); err != nil {
+		in.log.Warn().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not identify storage key for envelope")
+		return in.Reject(api.InvalidKey, "unknown public key signature", true)
+	}
+
 	// Decryption and validation
 	var (
 		reject    *api.Error
@@ -560,6 +567,11 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 
 	// Create outgoing message
 	if out, err = in.Outgoing(msg); err != nil {
+		return nil, err
+	}
+
+	// Set the ougoing message cryptography
+	if err = out.SetStorageCrypto(storageKey, decrypted.Crypto()); err != nil {
 		return nil, err
 	}
 
