@@ -13,6 +13,7 @@ import (
 const (
 	SourceDirectorySync = "gds"
 	SourceUserEntry     = "user"
+	SourcePeer          = "peer"
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
 )
@@ -29,7 +30,7 @@ type Counterparty struct {
 	Endpoint            string               // the full endpoint to connect to the counterparty on
 	Name                string               // the counterparty's legal entity name
 	Website             sql.NullString       // website with more information about the counterparty
-	Country             string               // country the counterparty is associated with
+	Country             sql.NullString       // country the counterparty is associated with
 	BusinessCategory    sql.NullString       // the business category of the counterparty
 	VASPCategories      VASPCategories       // the categories of how the VASP handles crypto assets
 	VerifiedOn          sql.NullTime         // the datetime the VASP was verified in the directory (directory only)

@@ -74,17 +74,18 @@ func New(conf config.Config) (node *Node, err error) {
 		node.store.UseTravelAddressFactory(factory)
 	}
 
-	// Create the admin web ui server if it is enabled
-	if node.admin, err = web.New(conf.Web, node.store); err != nil {
-		return nil, err
-	}
-
-	// Create the TRISA API server
+	// Create the TRISA management system
 	if node.network, err = network.New(conf.Node); err != nil {
 		return nil, err
 	}
 
-	if node.trisa, err = trisa.New(conf.Node, node.network, node.errc); err != nil {
+	// Create the admin web ui server if it is enabled
+	if node.admin, err = web.New(conf.Web, node.store, node.network); err != nil {
+		return nil, err
+	}
+
+	// Create the TRISA API server
+	if node.trisa, err = trisa.New(conf.Node, node.network, node.store, node.errc); err != nil {
 		return nil, err
 	}
 

@@ -6,13 +6,14 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Create a new web server that serves the compliance and admin web user interface.
-func New(conf config.WebConfig, store store.Store) (s *Server, err error) {
+func New(conf config.WebConfig, store store.Store, network network.Network) (s *Server, err error) {
 	if err = conf.Validate(); err != nil {
 		return nil, err
 	}
@@ -59,8 +60,8 @@ func New(conf config.WebConfig, store store.Store) (s *Server, err error) {
 
 // Debug returns a server that uses the specified http server instead of creating one.
 // This function is primarily used to create test servers easily.
-func Debug(conf config.WebConfig, store store.Store, srv *http.Server) (s *Server, err error) {
-	if s, err = New(conf, store); err != nil {
+func Debug(conf config.WebConfig, store store.Store, network network.Network, srv *http.Server) (s *Server, err error) {
+	if s, err = New(conf, store, network); err != nil {
 		return nil, err
 	}
 

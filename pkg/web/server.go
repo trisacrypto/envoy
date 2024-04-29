@@ -14,6 +14,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,7 @@ type Server struct {
 	issuer  *auth.ClaimsIssuer
 	url     *url.URL
 	vasp    *models.Counterparty
+	trisa   network.Network
 	started time.Time
 	healthy bool
 	ready   bool

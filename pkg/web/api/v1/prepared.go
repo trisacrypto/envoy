@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type Prepare struct {
@@ -58,7 +61,6 @@ func (p *Prepare) Validate() error {
 	if strings.TrimSpace(p.TravelAddress) == "" {
 		return MissingField("travel_address")
 	}
-
 	return nil
 }
 
@@ -122,4 +124,19 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 			},
 		},
 	}
+}
+
+func (p *Prepared) Payload() (payload *trisa.Payload, err error) {
+	payload = &trisa.Payload{}
+
+	if payload.Identity, err = anypb.New(p.Identity); err != nil {
+		return nil, err
+	}
+
+	if payload.Transaction, err = anypb.New(p.Transaction); err != nil {
+		return nil, err
+	}
+
+	payload.SentAt = time.Now().UTC().Format(time.RFC3339)
+	return payload, nil
 }

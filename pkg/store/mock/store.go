@@ -42,6 +42,10 @@ func (s *Store) DeleteTransaction(context.Context, uuid.UUID) error {
 	return nil
 }
 
+func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error) {
+	return nil, nil
+}
+
 func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
 	return nil, nil
 }

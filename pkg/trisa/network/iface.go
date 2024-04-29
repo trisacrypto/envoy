@@ -39,6 +39,7 @@ type PeerManager interface {
 type KeyManager interface {
 	SealingKey(commonName string) (pubkey keys.PublicKey, err error)
 	UnsealingKey(signature, commonName string) (privkey keys.PrivateKey, err error)
+	StorageKey(signature, commonName string) (pubkey keys.PublicKey, err error)
 	ExchangeKey(commonName string) (pubkey keys.PublicKey, err error)
 	Cache(commonName string, pubkey keys.Key) error
 	KeyChain() (keychain.KeyChain, error)

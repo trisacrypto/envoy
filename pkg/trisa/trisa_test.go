@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa"
 	directory "github.com/trisacrypto/envoy/pkg/trisa/gds"
 	gdsmock "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
@@ -31,6 +32,7 @@ type trisaTestSuite struct {
 	svc     *trisa.Server
 	network network.Network
 	client  api.TRISANetworkClient
+	store   store.Store
 	echan   chan error
 }
 
@@ -58,7 +60,10 @@ func (s *trisaTestSuite) SetupSuite() {
 	s.network, err = network.NewMocked(&s.conf)
 	assert.NoError(err, "could not create TRISA network manager")
 
-	s.svc, err = trisa.New(s.conf, s.network, s.echan)
+	s.store, err = store.Open("mock:///")
+	assert.NoError(err, "could not create mock store")
+
+	s.svc, err = trisa.New(s.conf, s.network, s.store, s.echan)
 	assert.NoError(err, "could not create a new TRISA server")
 
 	// Run the TRISA server on the bufconn for tests

@@ -24,6 +24,11 @@ type KeyChain interface {
 	// envelope sealed by the remote.
 	UnsealingKey(signature, commonName string) (privkey keys.PrivateKey, err error)
 
+	// Get the storage key associated with the UnsealingKey (e.g. the public key
+	// component of the private key). This key is typically the same key as the exchange
+	// key but earlier versions can be retrieved via the signature.
+	StorageKey(signature, commonName string) (pubkey keys.PublicKey, err error)
+
 	// Get the local public seal key to send to the remote in a key exchange so that
 	// the remote Peer can seal envelopes being sent to this node.
 	ExchangeKey(commonName string) (pubkey keys.PublicKey, err error)

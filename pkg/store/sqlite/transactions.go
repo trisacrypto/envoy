@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -13,6 +14,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 )
+
+//===========================================================================
+// Transaction CRUD interface
+//==========================================================================
 
 const listTransactionsSQL = "SELECT id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, last_update, created, modified FROM transactions"
 
@@ -160,6 +165,10 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 
 	return tx.Commit()
 }
+
+//===========================================================================
+// Secure Envelopes CRUD Interface
+//===========================================================================
 
 const listSecureEnvelopesSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID"
 
@@ -341,4 +350,195 @@ func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID 
 	}
 
 	return tx.Commit()
+}
+
+//===========================================================================
+// Prepared Transactions
+//===========================================================================
+
+const (
+	transactionExistsSQL = "SELECT EXISTS(SELECT 1 FROM transactions WHERE id=:envelopeID) AS exists"
+)
+
+func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_ models.PreparedTransaction, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return nil, err
+	}
+
+	// Check if a transaction exists with the specified envelope ID
+	var exists bool
+	if err = tx.QueryRow(transactionExistsSQL, sql.Named("envelopeID", envelopeID)).Scan(&exists); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("transaction existence check failed: %w", err)
+	}
+
+	// If the transaction does not exist then create a stub transaction with the ID
+	// Fill in all not nullable fields with a default placeholder.
+	if !exists {
+		now := time.Now()
+		transaction := &models.Transaction{
+			ID:           envelopeID,
+			Source:       "unknown",
+			Status:       "initialized",
+			Counterparty: "unknown",
+			VirtualAsset: "UNK",
+			Amount:       0.0,
+			Created:      now,
+			Modified:     now,
+		}
+
+		if _, err = tx.Exec(createTransactionSQL, transaction.Params()...); err != nil {
+			// TODO: handle constraint violations
+			tx.Rollback()
+			return nil, fmt.Errorf("create transaction failed: %w", err)
+		}
+	}
+
+	// Create the prepared transaction for the user to interact with
+	return &PreparedTransaction{tx: tx, envelopeID: envelopeID, created: !exists}, nil
+}
+
+type PreparedTransaction struct {
+	tx         *sql.Tx
+	envelopeID uuid.UUID
+	created    bool
+}
+
+func (p *PreparedTransaction) Created() bool {
+	return p.created
+}
+
+func (p *PreparedTransaction) Fetch() (transaction *models.Transaction, err error) {
+	transaction = &models.Transaction{}
+	if err = transaction.Scan(p.tx.QueryRow(retrieveTransactionSQL, sql.Named("id", p.envelopeID))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+	return transaction, nil
+}
+
+func (p *PreparedTransaction) Update(in *models.Transaction) (err error) {
+	// Ensure that the input transaction matches the prepared transaction
+	if in.ID != uuid.Nil && in.ID != p.envelopeID {
+		return dberr.ErrIDMismatch
+	}
+
+	// Fetch the previous transaction and update from the input only non-zero values
+	var orig *models.Transaction
+	if orig, err = p.Fetch(); err != nil {
+		return err
+	}
+
+	// Update orig with incoming values and updated modified timestamp
+	orig.Update(in)
+	orig.Modified = time.Now()
+
+	if _, err = p.tx.Exec(updateTransactionSQL, orig.Params()...); err != nil {
+		// TODO: handle constraint violations specially
+		return fmt.Errorf("could not update transaction: %w", err)
+	}
+	return nil
+}
+
+const (
+	lookupTRISACounterpartySQL      = "SELECT * FROM counterparties WHERE registered_directory=:registeredDirectory AND directory_id=:directoryID"
+	lookupCounterpartyCommonNameSQL = "SELECT * FROM counterparties WHERE common_name=:commonName LIMIT 1"
+	updateTransferCounterpartySQL   = "UPDATE transactions SET counterparty=:counterparty, counterparty_id=:counterpartyID WHERE id=:txID"
+)
+
+// TODO: this method needs to be tested extensively!!
+func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err error) {
+	// Lookup counterparty information in the database
+	switch {
+	case !ulids.IsZero(in.ID):
+		// Populate the counterparty record from the database
+		if err = in.Scan(p.tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", in.ID))); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return dberr.ErrNotFound
+			}
+			return fmt.Errorf("unable to lookup counterparty by id: %w", err)
+		}
+	case in.RegisteredDirectory.String != "" && in.DirectoryID.String != "":
+		// Lookup the counterparty record by directory information in the database
+		if err = in.Scan(p.tx.QueryRow(lookupTRISACounterpartySQL, sql.Named("registeredDirectory", in.RegisteredDirectory), sql.Named("directoryID", in.DirectoryID))); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// NOTE: if a valid TRISA peer sends a message before directory sync,
+				// then this record will not be found; create the temporary TRISA record
+				// prior to sync just in case.
+				in.ID = ulids.New()
+				in.Created = time.Now()
+				in.Modified = in.Created
+
+				if _, err = p.tx.Exec(createCounterpartySQL, in.Params()...); err != nil {
+					// TODO: handle constraints specifically
+					return fmt.Errorf("unable to create counterparty with directory id: %w", err)
+				}
+			}
+			return fmt.Errorf("unable to lookup counterparty by directory id: %w", err)
+		}
+	case in.CommonName != "":
+		// Lookup the counterparty record by unique endpoint information
+		if err = in.Scan(p.tx.QueryRow(lookupCounterpartyCommonNameSQL, sql.Named("commonName", in.CommonName))); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return dberr.ErrNotFound
+			}
+			return fmt.Errorf("unable to lookup counterparty by common name: %w", err)
+		}
+	default:
+		// In this case, we're pretty sure the counterparty is not in the database
+		// so we should try to add the counterparty and hope for the best ...
+		in.ID = ulids.New()
+		in.Created = time.Now()
+		in.Modified = in.Created
+
+		if _, err = p.tx.Exec(createCounterpartySQL, in.Params()...); err != nil {
+			// TODO: handle constraints specifically
+			return fmt.Errorf("unable to create counterparty: %w", err)
+		}
+	}
+
+	// Update the transaction with the counterparty information
+	params := []any{
+		sql.Named("txID", p.envelopeID),
+		sql.Named("counterparty", in.Name),
+		sql.Named("counterpartyID", in.ID),
+	}
+
+	if _, err = p.tx.Exec(updateTransferCounterpartySQL, params...); err != nil {
+		// TODO: handle constraint violations if necessary
+		return fmt.Errorf("could not update transaction with counterparty info: %w", err)
+	}
+	return nil
+}
+
+func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error) {
+	if in.EnvelopeID != uuid.Nil && in.EnvelopeID != p.envelopeID {
+		return dberr.ErrIDMismatch
+	}
+
+	if !ulids.IsZero(in.ID) {
+		return dberr.ErrNoIDOnCreate
+	}
+
+	in.ID = ulids.New()
+	in.EnvelopeID = p.envelopeID
+	in.Created = time.Now()
+	in.Modified = in.Created
+
+	if _, err = p.tx.Exec(createSecureEnvelopeSQL, in.Params()...); err != nil {
+		// TODO: handle constraint violations specially
+		return fmt.Errorf("could not add secure envelope: %w", err)
+	}
+	return nil
+}
+
+func (p *PreparedTransaction) Rollback() error {
+	return p.tx.Rollback()
+}
+
+func (p *PreparedTransaction) Commit() error {
+	return p.tx.Commit()
 }

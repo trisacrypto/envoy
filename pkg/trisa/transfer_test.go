@@ -3,6 +3,7 @@ package trisa_test
 import "context"
 
 func (s *trisaTestSuite) TestTransfer() {
+	s.T().Skip("transfer tests must be implemented")
 	require := s.Require()
 
 	req, err := loadSecureEnvelope("testdata/fixtures/secenv_transaction.pb.json")

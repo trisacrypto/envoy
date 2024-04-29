@@ -14,5 +14,6 @@ var (
 	ErrNotImplemented     = errors.New("method not implemented for this storage backend")
 	ErrNoIDOnCreate       = errors.New("cannot create a resource with an established id")
 	ErrMissingID          = errors.New("missing id of resource")
+	ErrIDMismatch         = errors.New("id does not match id of prepared resource")
 	ErrNoEndpoint         = errors.New("cannot create travel address: no endpoint defined")
 )
