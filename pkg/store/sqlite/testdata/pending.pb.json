@@ -1,0 +1,16 @@
+{
+  "@type": "type.googleapis.com/trisa.data.generic.v1beta1.Pending",
+  "envelope_id": "f04d02cb-7b88-44d1-a6c8-ddb6cbbd2d25",
+  "received_by": "ZipWallet Compliance",
+  "received_at": "2024-03-29T16:54:14-05:00",
+  "message": "This transaction is under review by our compliance team.",
+  "reply_not_after": "2024-03-30T17:00:00-05:00",
+  "reply_not_before": "2024-03-29T18:00:00-05:00",
+  "transaction": {
+    "originator": "mhiSX6A2zjeueUpHqm4k4JswkBCZKmbCVF",
+    "beneficiary": "n3rmHXMc6czNFxYJ1todL53vJNbwzbq69h",
+    "amount": "201.25",
+    "network": "TRC",
+    "asset_type": "TRC"
+  }
+}

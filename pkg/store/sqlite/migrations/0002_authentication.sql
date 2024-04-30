@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- API Authentication using authorization bearer tokens and argon2 derived key secrets
 CREATE TABLE IF NOT EXISTS api_keys (
     id              TEXT PRIMARY KEY,
+    description     TEXT,
     client_id       TEXT NOT NULL UNIQUE,
     secret          TEXT NOT NULL UNIQUE,
     last_seen       DATETIME,

@@ -279,7 +279,7 @@ func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions 
 // APIKeys Store
 //===========================================================================
 
-const listAPIKeysSQL = "SELECT id, client_id, last_seen, created, modified FROM api_keys"
+const listAPIKeysSQL = "SELECT id, description, client_id, last_seen, created, modified FROM api_keys"
 
 func (s *Store) ListAPIKeys(ctx context.Context, page *models.PageInfo) (out *models.APIKeyPage, err error) {
 	var tx *sql.Tx
@@ -312,7 +312,7 @@ func (s *Store) ListAPIKeys(ctx context.Context, page *models.PageInfo) (out *mo
 }
 
 const (
-	createKeySQL     = "INSERT INTO api_keys (id, client_id, secret, last_seen, created, modified) VALUES (:id, :clientID, :secret, :lastSeen, :created, :modified)"
+	createKeySQL     = "INSERT INTO api_keys (id, description, client_id, secret, last_seen, created, modified) VALUES (:id, :description, :clientID, :secret, :lastSeen, :created, :modified)"
 	createKeyPermSQL = "INSERT INTO api_key_permissions (api_key_id, permission_id, created, modified) VALUES (:keyID, (SELECT id FROM permissions WHERE title=:permission), :created, :modified)"
 )
 
@@ -402,7 +402,7 @@ func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (key *m
 	return key, nil
 }
 
-const updateKeySQL = "UPDATE api_keys SET last_seen=:lastSeen, modified=:modified WHERE id=:id"
+const updateKeySQL = "UPDATE api_keys SET description=:description, last_seen=:lastSeen, modified=:modified WHERE id=:id"
 
 // NOTE: the only thing that can be updated on an api key right now is last_seen
 func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
