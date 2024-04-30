@@ -122,6 +122,8 @@ func (c *VASPCategories) Scan(src interface{}) error {
 	switch t := src.(type) {
 	case []byte:
 		source = t
+	case string:
+		source = []byte(t)
 	case nil:
 		return nil
 	default:

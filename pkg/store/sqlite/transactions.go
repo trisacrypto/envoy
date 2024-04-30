@@ -211,7 +211,7 @@ func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *m
 	}
 
 	tx.Commit()
-	return nil, nil
+	return out, nil
 }
 
 func (s *Store) listSecureEnvelopes(tx *sql.Tx, transaction *models.Transaction) (err error) {
@@ -357,7 +357,7 @@ func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID 
 //===========================================================================
 
 const (
-	transactionExistsSQL = "SELECT EXISTS(SELECT 1 FROM transactions WHERE id=:envelopeID) AS exists"
+	transactionExistsSQL = "SELECT EXISTS(SELECT 1 FROM transactions WHERE id=:envelopeID)"
 )
 
 func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_ models.PreparedTransaction, err error) {
@@ -476,8 +476,9 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 					// TODO: handle constraints specifically
 					return fmt.Errorf("unable to create counterparty with directory id: %w", err)
 				}
+			} else {
+				return fmt.Errorf("unable to lookup counterparty by directory id: %w", err)
 			}
-			return fmt.Errorf("unable to lookup counterparty by directory id: %w", err)
 		}
 	case in.CommonName != "":
 		// Lookup the counterparty record by unique endpoint information
