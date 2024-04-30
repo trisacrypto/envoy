@@ -20,6 +20,7 @@ type User struct {
 
 type APIKey struct {
 	Model
+	Description sql.NullString
 	ClientID    string
 	Secret      string
 	LastSeen    sql.NullTime
@@ -131,6 +132,7 @@ func (u *User) Params() []any {
 func (k *APIKey) Scan(scanner Scanner) error {
 	return scanner.Scan(
 		&k.ID,
+		&k.Description,
 		&k.ClientID,
 		&k.Secret,
 		&k.LastSeen,
@@ -142,6 +144,7 @@ func (k *APIKey) Scan(scanner Scanner) error {
 func (k *APIKey) ScanSummary(scanner Scanner) error {
 	return scanner.Scan(
 		&k.ID,
+		&k.Description,
 		&k.ClientID,
 		&k.LastSeen,
 		&k.Created,
@@ -152,6 +155,7 @@ func (k *APIKey) ScanSummary(scanner Scanner) error {
 func (k *APIKey) Params() []any {
 	return []any{
 		sql.Named("id", k.ID),
+		sql.Named("description", k.Description),
 		sql.Named("clientID", k.ClientID),
 		sql.Named("secret", k.Secret),
 		sql.Named("lastSeen", k.LastSeen),
