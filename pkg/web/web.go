@@ -21,6 +21,7 @@ func New(conf config.WebConfig, store store.Store, network network.Network) (s *
 	s = &Server{
 		conf:  conf,
 		store: store,
+		trisa: network,
 	}
 
 	// If not enabled, return just the server stub

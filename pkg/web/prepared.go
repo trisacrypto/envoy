@@ -19,6 +19,7 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
@@ -303,6 +304,9 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 		}
 	}
 
+	skey, _ := sealingKey.SealingKey()
+	seal, _ := rsaoeap.New(skey)
+
 	// Prepare outgoing envelope
 	if !outgoing.IsError() {
 		// Encrypt and seal the payload if this doesn't contain an error message
@@ -311,7 +315,7 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 			return outgoing, nil, fmt.Errorf("outgoing encryption error occurred: %w", err)
 		}
 
-		if outgoing, _, err = outgoing.Seal(envelope.WithSealingKey(sealingKey)); err != nil {
+		if outgoing, _, err = outgoing.Seal(envelope.WithSeal(seal)); err != nil {
 			log.Error().Err(err).Msg("could not seal the outgoing secure envelope")
 			return outgoing, nil, fmt.Errorf("outgoing public key encryption error occurred: %w", err)
 		}

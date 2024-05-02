@@ -252,7 +252,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		EncryptionKey: se.EncryptionKey,
 		HMACSecret:    se.HmacSecret,
 		ValidHMAC:     i.hmac,
-		PublicKey:     se.PublicKeySignature,
+		PublicKey:     sql.NullString{Valid: se.PublicKeySignature != "", String: se.PublicKeySignature},
 		Envelope:      se,
 	}
 
@@ -350,7 +350,7 @@ func (o *Outgoing) Model() (model *models.SecureEnvelope, err error) {
 		EncryptionKey: nil,
 		HMACSecret:    nil,
 		ValidHMAC:     sql.NullBool{Valid: true, Bool: se.Sealed},
-		PublicKey:     "",
+		PublicKey:     sql.NullString{Valid: false},
 		Envelope:      se,
 	}
 
@@ -362,9 +362,10 @@ func (o *Outgoing) Model() (model *models.SecureEnvelope, err error) {
 		}
 
 		// Store the public key signature used to encrypt the locally stored envelope
-		if model.PublicKey, err = o.storageKey.PublicKeySignature(); err != nil {
+		if model.PublicKey.String, err = o.storageKey.PublicKeySignature(); err != nil {
 			o.log.Error().Err(err).Msg("unknown storage key public key signature")
 		}
+		model.PublicKey.Valid = model.PublicKey.String != ""
 
 		if model.EncryptionKey, err = o.seal.Encrypt(o.crypto.EncryptionKey()); err != nil {
 			o.log.Error().Err(err).Msg("unable to encrypt locally stored envelope encryption key")
