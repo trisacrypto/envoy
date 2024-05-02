@@ -190,7 +190,7 @@ func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err e
 		Error:               model.Envelope.Error,
 		Timestamp:           model.Timestamp,
 		Sealed:              model.Envelope.Sealed,
-		PublicKeySignature:  model.PublicKey,
+		PublicKeySignature:  model.PublicKey.String,
 	}
 
 	if out.Original, err = proto.Marshal(model.Envelope); err != nil {

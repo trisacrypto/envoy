@@ -71,7 +71,7 @@ type SecureEnvelope struct {
 	HMACSecret    []byte              // The hmac secret, encrypted with the public key of the local node. Note that this may differ from the value in the envelope for outgoing messages
 	ValidHMAC     sql.NullBool        // If the hmac has been validated against the payload and non-repudiation properties are satisfied
 	Timestamp     time.Time           // The timestamp of the envelope as defined by the envelope
-	PublicKey     string              // The signature of the public key that sealed the encryption key and hmac secret, may differ from the value in the envelope for ougoing envelopes.
+	PublicKey     sql.NullString      // The signature of the public key that sealed the encryption key and hmac secret, may differ from the value in the envelope for ougoing envelopes.
 	Envelope      *api.SecureEnvelope // The secure envelope protocol buffer stored as a BLOB
 	transaction   *Transaction        // The transaction this envelope is associated with
 }
@@ -234,16 +234,19 @@ func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	model.EncryptionKey = model.Envelope.EncryptionKey
 	model.HMACSecret = model.Envelope.HmacSecret
 	model.Timestamp, _ = env.Timestamp()
-	model.PublicKey = model.Envelope.PublicKeySignature
+	model.PublicKey = sql.NullString{Valid: model.Envelope.PublicKeySignature != "", String: model.Envelope.PublicKeySignature}
 
 	return model
 }
 
 func (e *SecureEnvelope) Reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err error) {
 	// Set the public key signature of the storage key on the model
-	if e.PublicKey, err = storageKey.PublicKeySignature(); err != nil {
+	if e.PublicKey.String, err = storageKey.PublicKeySignature(); err != nil {
 		return err
 	}
+
+	// Ensure the null value is set to valid
+	e.PublicKey.Valid = e.PublicKey.String != ""
 
 	// Create a cipher to seal the new storage keys
 	var (

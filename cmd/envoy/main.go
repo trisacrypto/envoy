@@ -13,9 +13,13 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
@@ -59,6 +63,24 @@ func main() {
 					Name:    "list",
 					Aliases: []string{"l"},
 					Usage:   "print in list mode instead of table mode",
+				},
+			},
+		},
+		{
+			Name:     "remigrate",
+			Usage:    "attempt to re-apply the schema and recover the original data",
+			Category: "server",
+			Action:   remigrate,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "backup",
+					Aliases: []string{"b"},
+					Usage:   "backup location for database, defaults to same directory with .bak extension",
+				},
+				&cli.StringFlag{
+					Name:    "db",
+					Aliases: []string{"d"},
+					Usage:   "path to database, defaults to configured location",
 				},
 			},
 		},
@@ -157,6 +179,122 @@ func usage(c *cli.Context) error {
 	}
 
 	tabs.Flush()
+	return nil
+}
+
+func remigrate(c *cli.Context) (err error) {
+	var orig, back string
+	if orig = c.String("db"); orig == "" {
+		// Load the source from the envoy config
+		if conf, err = config.New(); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+		var uri *dsn.DSN
+		if uri, err = dsn.Parse(conf.DatabaseURL); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+		orig = uri.Path
+		if orig == "" {
+			return cli.Exit("cannot determine path to source database", 1)
+		}
+	}
+
+	if back = c.String("backup"); back == "" {
+		// Rename the existing database with the .bak extension
+		back = orig + ".bak"
+	}
+
+	// Copy the src to the destination
+	if err = os.Rename(orig, back); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	var (
+		srcdb, dstdb *sqlite.Store
+		srctx, dsttx *sql.Tx
+	)
+
+	// Connect to both databases
+	if srcdb, srctx, err = connectSqlite3(back); err != nil {
+		return cli.Exit(fmt.Errorf("could not connect to backup database: %w", err), 1)
+	}
+	defer srctx.Rollback()
+	defer srcdb.Close()
+
+	if dstdb, dsttx, err = connectSqlite3(orig); err != nil {
+		return cli.Exit(fmt.Errorf("could not connect to remigrated database: %w", err), 1)
+	}
+	defer dsttx.Rollback()
+	defer dstdb.Close()
+
+	// List all the tables that are in the src db
+	var tables []string
+	if tables, err = sqlite3Tables(srctx); err != nil {
+		return cli.Exit(fmt.Errorf("could not list tables from source database: %w", err), 1)
+	}
+
+	repairTable := func(table string) (err error) {
+		// Skip internally managed tables
+		if table == "migrations" || table == "permissions" || table == "roles" || table == "role_permissions" {
+			return nil
+		}
+
+		migrated, errored := 0, 0
+		query := fmt.Sprintf("SELECT * FROM %s", table)
+
+		var rows *sql.Rows
+		if rows, err = srctx.Query(query); err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		var columnNames []string
+		if columnNames, err = rows.Columns(); err != nil {
+			return err
+		}
+
+		insert := fmt.Sprintf(
+			"INSERT INTO %s (%s) VALUES (%s)",
+			table,
+			strings.Join(columnNames, ","),
+			strings.TrimRight(strings.Repeat("?,", len(columnNames)), ","),
+		)
+
+		for rows.Next() {
+			values := make([]interface{}, len(columnNames))
+			for i := range values {
+				values[i] = valueForColumn(table, columnNames[i])
+			}
+
+			if err = rows.Scan(values...); err != nil {
+				return err
+			}
+
+			if _, err = dsttx.Exec(insert, values...); err != nil {
+				fmt.Println(err.Error())
+				errored++
+				continue
+			}
+
+			migrated++
+		}
+
+		fmt.Printf("migrated %d rows from %s (%d errors)\n", migrated, table, errored)
+		return rows.Err()
+	}
+
+	for _, table := range tables {
+		if err = repairTable(table); err != nil {
+			return cli.Exit(fmt.Errorf("could not repair table %s: %w", table, err), 1)
+		}
+	}
+
+	// Commit the remigration
+	srctx.Commit()
+	dsttx.Commit()
+	fmt.Printf("envoy db remigrated from %s; backup saved at %s\n", orig, back)
 	return nil
 }
 
@@ -291,4 +429,137 @@ func closeDB(c *cli.Context) error {
 		}
 	}
 	return nil
+}
+
+func connectSqlite3(path string) (dbs *sqlite.Store, tx *sql.Tx, err error) {
+	var db store.Store
+	if db, err = store.Open("sqlite3:///" + path); err != nil {
+		return nil, nil, err
+	}
+
+	dbs = db.(*sqlite.Store)
+	if tx, err = dbs.BeginTx(context.Background(), nil); err != nil {
+		return nil, nil, err
+	}
+
+	return dbs, tx, nil
+}
+
+func sqlite3Tables(tx *sql.Tx) (tables []string, err error) {
+	tables = make([]string, 0)
+
+	var rows *sql.Rows
+	if rows, err = tx.Query("SELECT name FROM sqlite_master WHERE type='table'"); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var table string
+		if err = rows.Scan(&table); err != nil {
+			return nil, err
+		}
+		tables = append(tables, table)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return tables, nil
+}
+
+func valueForColumn(table, column string) interface{} {
+	if column == "created" || column == "modified" {
+		return &time.Time{}
+	}
+
+	if column == "id" {
+		if table == "transactions" {
+			return &uuid.UUID{}
+		}
+		return &ulid.ULID{}
+	}
+
+	switch table {
+	case "accounts":
+		switch column {
+		case "customer_id", "first_name", "last_name", "travel_address":
+			return &sql.NullString{}
+		case "ivms101":
+			var data []byte
+			return &data
+		}
+	case "crypto_addresses":
+		switch column {
+		case "account_id":
+			return &ulid.ULID{}
+		case "crypto_address", "network":
+			var s string
+			return &s
+		case "asset_type", "tag", "travel_address":
+			return &sql.NullString{}
+		}
+	case "users":
+		switch column {
+		case "name":
+			return &sql.NullString{}
+		case "email", "password":
+			var s string
+			return &s
+		case "role_id":
+			var i int64
+			return &i
+		case "last_login":
+			return &sql.NullTime{}
+		}
+	case "api_keys":
+		switch column {
+		case "description":
+			return &sql.NullString{}
+		case "client_id", "secret":
+			var s string
+			return &s
+		case "last_seen":
+			return &sql.NullTime{}
+		}
+	case "api_key_permissions":
+		switch column {
+		case "api_key_id":
+			var s string
+			return &s
+		case "permission_id":
+			var i int64
+			return &i
+		}
+	case "counterparties":
+		switch column {
+		case "source", "protocol", "common_name", "endpoint", "name":
+			var s string
+			return &s
+		case "directory_id", "registered_directory", "website", "country", "business_category":
+			return &sql.NullString{}
+		case "vasp_categories", "ivms101":
+			var data []byte
+			return &data
+		case "verified_on":
+			return &sql.NullTime{}
+		}
+	case "transactions":
+		switch column {
+		case "source", "status", "counterparty", "virtual_asset":
+			var s string
+			return &s
+		case "counterparty_id":
+			return &ulids.NullULID{}
+		case "originator", "originator_address", "beneficiary", "beneficiary_address":
+			return &sql.NullString{}
+		case "amount":
+			var f float64
+			return &f
+		case "last_update":
+			return &sql.NullTime{}
+		}
+	}
+
+	panic(fmt.Errorf("unknown type for %s.%s", table, column))
 }
