@@ -1,24 +1,28 @@
 # Dynamic Builds
 ARG XX_IMAGE=tonistiigi/xx
-ARG BUILDER_IMAGE=golang:1.21-alpine
+ARG BUILDER_IMAGE=golang:1.21-bullseye
 ARG FINAL_IMAGE=debian:bullseye-slim
 
 # Build stage
 FROM --platform=${BUILDPLATFORM} ${XX_IMAGE} AS xx
 FROM --platform=${BUILDPLATFORM} ${BUILDER_IMAGE} AS builder
 
-# Add compilers to alpine
-RUN apk add clang lld
-
 # Copy XX scripts to the build stage
 COPY --from=xx / /
 
 # Build Args
 ARG GIT_REVISION=""
+
+# Platform args
+ARG TARGETOS
+ARG TARGETARCH
 ARG TARGETPLATFORM
 
+# Ensure ca-certificates are up to date
+RUN update-ca-certificates
+
 # Prepare for cross-compilation
-RUN xx-apk add musl-dev gcc
+RUN xx-apt-get install -y musl-dev gcc clang lld
 
 # Use modules for dependencies
 WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
@@ -35,8 +39,6 @@ RUN go mod verify
 COPY . .
 
 # Build binary
-ARG TARGETOS
-ARG TARGETARCH
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -o /go/bin/envoy -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}'" ./cmd/envoy && xx-verify /go/bin/envoy
 
 # Final Stage
@@ -47,10 +49,12 @@ LABEL description="TRISA Self Hosted Node"
 
 # Ensure ca-certificates are up to date
 RUN set -x && apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates postgresql-client && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates sqlite3 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary to the production image from the builder stage
 COPY --from=builder /go/bin/envoy /usr/local/bin/envoy
+
+RUN /usr/local/bin/envoy -h
 
 CMD [ "/usr/local/bin/envoy", "serve" ]
