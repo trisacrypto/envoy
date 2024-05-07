@@ -22,7 +22,8 @@ ARG TARGETPLATFORM
 RUN update-ca-certificates
 
 # Prepare for cross-compilation
-RUN xx-apt-get install -y gcc clang lld
+RUN apt-get update && apt-get install -y clang lld
+RUN xx-apt install -y libc6-dev
 
 # Use modules for dependencies
 WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
