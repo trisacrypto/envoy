@@ -131,6 +131,9 @@ func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (e
 	// Update modified timestamp (in place).
 	t.Modified = time.Now()
 
+	// Update last update timestamp.
+	t.LastUpdate = sql.NullTime{Time: time.Now(), Valid: true}
+
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateTransactionSQL, t.Params()...); err != nil {
