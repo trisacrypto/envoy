@@ -22,7 +22,7 @@ ARG TARGETPLATFORM
 RUN update-ca-certificates
 
 # Prepare for cross-compilation
-RUN xx-apt-get install -y musl-dev gcc clang lld
+RUN xx-apt-get install -y gcc clang lld
 
 # Use modules for dependencies
 WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
@@ -54,7 +54,5 @@ RUN set -x && apt-get update && \
 
 # Copy the binary to the production image from the builder stage
 COPY --from=builder /go/bin/envoy /usr/local/bin/envoy
-
-RUN /usr/local/bin/envoy -h
 
 CMD [ "/usr/local/bin/envoy", "serve" ]
