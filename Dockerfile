@@ -23,7 +23,7 @@ RUN update-ca-certificates
 
 # Prepare for cross-compilation
 RUN apt-get update && apt-get install -y clang lld
-RUN xx-apt install -y libc6-dev
+RUN xx-apt install -y libc6-dev gcc
 
 # Use modules for dependencies
 WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
