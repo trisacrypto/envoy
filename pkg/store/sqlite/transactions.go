@@ -131,6 +131,8 @@ func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (e
 	// Update modified timestamp (in place).
 	t.Modified = time.Now()
 
+	// NOTE: do not update `LastUpdate` timestamp - this refers to when a secure envelope is sent/received.
+
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateTransactionSQL, t.Params()...); err != nil {

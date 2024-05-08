@@ -48,12 +48,14 @@
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
 <script>dayjs.extend(window.dayjs_plugin_relativeTime)</script>
 <script type="text/javascript">
-  document.body.addEventListener('htmx:afterSettle', () => {
-    document.querySelectorAll('.trans-last-update').forEach((e) => {
+  document.body.addEventListener('htmx:afterSettle', (event) => {
+    if (event.detail.requestConfig.path === '/v1/transactions' && event.detail.requestConfig.verb === 'get') {
+      document.querySelectorAll('.trans-last-update').forEach((e) => {
       const transLastUpdate = e.textContent;
       const humanizeLastUpdate = dayjs(transLastUpdate).fromNow();
       e.textContent = humanizeLastUpdate;
     });
+    }
   });
 </script>
 {{ end }}
