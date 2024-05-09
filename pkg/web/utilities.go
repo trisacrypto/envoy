@@ -4,14 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 )
-
-func (s *Server) TravelAddressUtility(c *gin.Context) {
-	c.HTML(http.StatusOK, "traveladdress.html", gin.H{"Version": pkg.Version()})
-}
 
 // Convert a URL or other data into a travel address.
 func (s *Server) EncodeTravelAddress(c *gin.Context) {
