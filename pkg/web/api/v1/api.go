@@ -52,6 +52,10 @@ type Client interface {
 	CounterpartyDetail(context.Context, ulid.ULID) (*Counterparty, error)
 	UpdateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	DeleteCounterparty(context.Context, ulid.ULID) error
+
+	// Utilities
+	EncodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
+	DecodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
 }
 
 //===========================================================================

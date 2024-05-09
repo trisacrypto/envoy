@@ -93,6 +93,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
+	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
@@ -170,6 +171,13 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
 			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
+		}
+
+		// Utilities
+		utils := v1.Group("/utilities", authenticate)
+		{
+			utils.POST("/travel-address/encode", s.EncodeTravelAddress)
+			utils.POST("/travel-address/decode", s.DecodeTravelAddress)
 		}
 	}
 

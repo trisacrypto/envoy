@@ -1,0 +1,137 @@
+{{ template "base" . }}
+{{ define "styles" }}
+  <link rel="stylesheet" href="/static/styles/traveladdress.css" />
+{{ end }}
+
+{{ define "content" }}
+
+<section class="mx-8 py-12">
+  <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">
+    Travel Address Encoder/Decoder
+  </h1>
+
+  <section class="my-2 md:mx-8">
+    <p class="mb-4 md:text-lg text-center text-balance">
+      Encode and Decode Travel Addresses as defined in the
+      <a href="https://gitlab.com/OpenVASP/travel-rule-protocol" target="_blank" class="underline hover:text-[#55ACD8]">OpenVASP specifications</a>.
+    </p>
+
+    <form id="traddr-encoder-form" class="mx-auto" action="/v1/utilities/travel-address/encode" method="POST">
+      <textarea id="input-content" name="decoded" nrows="3" placeholder="beneficiary.com/trisa?t=i"></textarea>
+      <div id="error-text" class="text-[#b91c1c] text-xs"></div>
+      <button type="submit" id="encode-decode-btn" class="btn bg-[#55ACD8] text-white font-semibold hover:bg-[#55ACD8]/90">
+        Encode
+      </button>
+      <div class="output-container">
+        <div id="output-label">
+          Output:
+        </div>
+        <div id="output-content"></div>
+      </div>
+    </form>
+
+  </section>
+
+</section>
+{{ end }}
+
+{{ define "appcode"}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="/static/js/traveladdress.js"></script>
+<script type="text/javascript">
+
+function debounce(fn, wait) {
+  var timeout;
+  return function() {
+    var _this = this;
+    var args = arguments;
+    var later = function() {
+      timeout = null;
+      fn.apply(_this, args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait || 100);
+  };
+};
+
+
+$(function() {
+    const btn = $("#encode-decode-btn");
+    const form = $("#traddr-encoder-form");
+    const input = $("#input-content");
+    const etext = $("#error-text");
+
+    const clearError = function() {
+      input.removeClass("errored");
+      etext.removeClass("error-text");
+      etext.empty();
+    };
+
+    const checkInput = function(e) {
+      clearError();
+      const val = input.val();
+      if (val.length > 2 && val.lastIndexOf("ta") === 0) {
+        // Swap to "decode" mode
+        form.attr("action", "/v1/utilities/travel-address/decode");
+        input.attr("name", "encoded");
+        btn.text("Decode");
+      } else {
+        // Swap to "encode mode
+        form.attr("action", "/v1/utilities/travel-address/encode");
+        input.attr("name", "decoded");
+        btn.text("Encode");
+      }
+    };
+
+    input.change(checkInput);
+    input.keyup(debounce(checkInput, 400));
+
+    form.submit(function(e) {
+      e.preventDefault();
+
+      // Disable the button and remove any error classes
+      btn.attr("disabled", "true");
+      clearError();
+
+      // Get the data from the form
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const endpoint = $(e.target).attr("action");
+
+      // Request the encoding/decoding from the server
+      $.ajax({
+        url: endpoint,
+        method: "POST",
+        data: JSON.stringify(data),
+        dataType: "json",
+        contentType: "application/json"
+      }).done(function(reply) {
+        console.log(reply);
+        const output = $("#output-content");
+
+        // Determine the type of response
+        if ("decoded" in data && "encoded" in reply) {
+          output.text(reply.encoded);
+        } else if ("encoded" in data && "decoded" in reply) {
+          output.text(reply.decoded);
+        } else {
+          console.error("could not determine output");
+        }
+      }).fail(function(jqXHR, status, error) {
+        input.addClass("errored");
+        etext.addClass("error-text");
+
+        if (jqXHR?.responseJSON.error) {
+          etext.text(jqXHR.responseJSON.error);
+        } else {
+          etext.text("could not encode/decode your input");
+        }
+
+      }).always(function() {
+        btn.removeAttr("disabled");
+      });
+
+      return false;
+    });
+});
+</script>
+{{ end }}
