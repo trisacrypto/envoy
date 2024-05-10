@@ -366,6 +366,28 @@ func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error
 }
 
 //===========================================================================
+// Utilities Resource
+//===========================================================================
+
+const utilitiesEndpoint = "/v1/utilities"
+
+func (s *APIv1) EncodeTravelAddress(ctx context.Context, in *TravelAddress) (out *TravelAddress, err error) {
+	endpoint, _ := url.JoinPath(utilitiesEndpoint, "encode")
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DecodeTravelAddress(ctx context.Context, in *TravelAddress) (out *TravelAddress, err error) {
+	endpoint, _ := url.JoinPath(utilitiesEndpoint, "decode")
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+//===========================================================================
 // Client Utility Methods
 //===========================================================================
 

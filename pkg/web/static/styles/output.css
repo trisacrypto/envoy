@@ -2952,6 +2952,11 @@ html {
   color: rgb(0 0 238 / var(--tw-text-opacity));
 }
 
+.text-\[\#b91c1c\] {
+  --tw-text-opacity: 1;
+  color: rgb(185 28 28 / var(--tw-text-opacity));
+}
+
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
@@ -3005,6 +3010,10 @@ html {
 .text-yellow-700 {
   --tw-text-opacity: 1;
   color: rgb(161 98 7 / var(--tw-text-opacity));
+}
+
+.underline {
+  text-decoration-line: underline;
 }
 
 .shadow {
@@ -3186,6 +3195,11 @@ body main {
   background-color: rgb(185 28 28 / 0.8);
 }
 
+.hover\:text-\[\#55ACD8\]:hover {
+  --tw-text-opacity: 1;
+  color: rgb(85 172 216 / var(--tw-text-opacity));
+}
+
 .hover\:underline:hover {
   text-decoration-line: underline;
 }
@@ -3224,6 +3238,11 @@ body main {
   .md\:mx-0 {
     margin-left: 0px;
     margin-right: 0px;
+  }
+
+  .md\:mx-8 {
+    margin-left: 2rem;
+    margin-right: 2rem;
   }
 
   .md\:mb-0 {
