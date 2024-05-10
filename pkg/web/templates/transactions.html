@@ -40,6 +40,55 @@
   </section>
 
   <dialog id="transaction_modal" class="modal"></dialog>
+
+  <!-- Reject transaction modal -->
+<dialog id="transaction_rejection_modal" class="modal">
+  <div class="modal-box">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-xl">Reject Transaction</h3>
+      <button onclick="transaction_rejection_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <div class="my-4">
+      <form method="dialog" hx-post="">
+        <div class="my-4">
+          <label for="transaction-rejection" class="label-style">Select a reason for rejecting the transaction:</label>
+          <select id="transaction-rejection" name="code" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <option value="REJECTED">Rejected</option>
+            <option value="UNKNOWN_WALLET_ADDRESS">Unknown Wallet Address</option>
+            <option value="UNKNOWN_IDENTITY">Unknown Identity</option>
+            <option value="UNKNOWN_ORIGINATOR">Unknown Originator</option>
+            <option value="UNKNOWN_BENEFICIARY">Unknown Beneficiary</option>
+            <option value="UNSUPPORTED_CURRENCY">Unsupported Currency</option>
+            <option value="EXCEEDED_TRADING_VOLUME">Exceeded Trading Volume</option>
+            <option value="COMPLIANCE_CHECK_FAIL">Compliance Check Fail</option>
+            <option value="NO_COMPLIANCE">No Compliance</option>
+            <option value="HIGH_RISK">High Risk</option>
+            <option value="OUT_OF_NETWORK">Out of Network</option>
+            <option value="UNPARSEABLE_IDENTITY">Unable to parse identity record</option>
+            <option value="UNPARSEABLE_TRANSACTION">Unable to parse transaction data record</option>
+            <option value="MISSING_FIELDS">Missing required fields in transaction data</option>
+            <option value="INCOMPLETE_IDENTITY">Identity record is not complete</option>
+          </select>
+        </div>
+        <div class="my-4">
+          <label for="notes" class="label-style">Notes</label>
+          <textarea id="notes" name="notes" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+        <div class="flex items-center gap-x-1 mb-4">
+          <label for="retry" class="ms-2 text-gray-900">Allow retry?</label>
+          <input type="checkbox" id="retry" name="retry" value="true" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2">
+        </div>
+        <div class="flex justify-center">
+          <button class="btn w-44 font-semibold bg-red-700 text-lg text-white hover:bg-red-700/80">Reject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</dialog>
+
 </section>
 {{ end }}
 

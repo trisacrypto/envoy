@@ -120,7 +120,7 @@
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
               {{ if eq .Source "remote" }}
               <li><a>Accept</a></li>
-              <li><a>Reject</a></li>
+              <li><a onclick="transaction_rejection_modal.showModal()">Reject</a></li>
               {{ end }}
               <li><a>Archive</a></li>
             </ul>
