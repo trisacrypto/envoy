@@ -150,6 +150,44 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	})
 }
 
+func (s *Server) TransactionAcceptDetail(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		transaction   *models.Transaction
+		out           *api.Transaction
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if out, err = api.NewTransaction(transaction); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_accept.html",
+	})
+}
+
 func (s *Server) UpdateTransaction(c *gin.Context) {
 	var (
 		err           error

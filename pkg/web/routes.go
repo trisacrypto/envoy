@@ -147,6 +147,7 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/:id", authorize(permiss.TravelRuleView), s.TransactionDetail)
 			transactions.PUT("/:id", authorize(permiss.TravelRuleManage), s.UpdateTransaction)
 			transactions.DELETE("/:id", authorize(permiss.TravelRuleDelete), s.DeleteTransaction)
+			transactions.GET("/:id/accept", authorize(permiss.TravelRuleView), s.TransactionAcceptDetail)
 
 			// Primarily UI methods but are also API Helper Methods
 			transactions.POST("/prepare", authorize(permiss.TravelRuleManage), s.PrepareTransaction)
