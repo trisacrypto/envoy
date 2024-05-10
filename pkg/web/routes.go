@@ -90,6 +90,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/transactions", authenticate, s.Transactions)
+	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
@@ -146,6 +147,7 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/:id", authorize(permiss.TravelRuleView), s.TransactionDetail)
 			transactions.PUT("/:id", authorize(permiss.TravelRuleManage), s.UpdateTransaction)
 			transactions.DELETE("/:id", authorize(permiss.TravelRuleDelete), s.DeleteTransaction)
+			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
 
 			// Primarily UI methods but are also API Helper Methods
 			transactions.POST("/prepare", authorize(permiss.TravelRuleManage), s.PrepareTransaction)
