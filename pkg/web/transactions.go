@@ -150,7 +150,7 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	})
 }
 
-func (s *Server) TransactionAcceptDetail(c *gin.Context) {
+func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	var (
 		err           error
 		transactionID uuid.UUID
