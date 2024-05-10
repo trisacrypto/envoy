@@ -31,6 +31,10 @@ func (s *Server) Transactions(c *gin.Context) {
 	c.HTML(http.StatusOK, "transactions.html", gin.H{"Version": pkg.Version()})
 }
 
+func (s *Server) TransactionsAccept(c *gin.Context) {
+	c.HTML(http.StatusOK, "transactions_accept.html", gin.H{"Version": pkg.Version()})
+}
+
 func (s *Server) Accounts(c *gin.Context) {
 	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
 }

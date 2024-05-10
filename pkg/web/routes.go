@@ -90,6 +90,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/transactions", authenticate, s.Transactions)
+	s.router.GET("/transactions/accept/:id", authenticate, s.TransactionsAccept)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
