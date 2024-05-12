@@ -21,21 +21,21 @@ import (
 //===========================================================================
 
 type Transaction struct {
-	ID                 uuid.UUID `json:"id"`
-	Source             string    `json:"source"`
-	Status             string    `json:"status"`
-	Counterparty       string    `json:"counterparty"`
-	CounterpartyID     ulid.ULID `json:"counterparty_id,omitempty"`
-	Originator         string    `json:"originator,omitempty"`
-	OriginatorAddress  string    `json:"orginator_address,omitempty"`
-	Beneficiary        string    `json:"beneficiary,omitempty"`
-	BeneficiaryAddress string    `json:"beneficiary_address,omitempty"`
-	VirtualAsset       string    `json:"virtual_asset"`
-	Amount             float64   `json:"amount"`
-	LastUpdate         time.Time `json:"last_update,omitempty"`
-	EnvelopeCount      int64     `json:"envelope_count,omitempty"`
-	Created            time.Time `json:"created"`
-	Modified           time.Time `json:"modified"`
+	ID                 uuid.UUID  `json:"id"`
+	Source             string     `json:"source"`
+	Status             string     `json:"status"`
+	Counterparty       string     `json:"counterparty"`
+	CounterpartyID     ulid.ULID  `json:"counterparty_id,omitempty"`
+	Originator         string     `json:"originator,omitempty"`
+	OriginatorAddress  string     `json:"orginator_address,omitempty"`
+	Beneficiary        string     `json:"beneficiary,omitempty"`
+	BeneficiaryAddress string     `json:"beneficiary_address,omitempty"`
+	VirtualAsset       string     `json:"virtual_asset"`
+	Amount             float64    `json:"amount"`
+	LastUpdate         *time.Time `json:"last_update,omitempty"`
+	EnvelopeCount      int64      `json:"envelope_count,omitempty"`
+	Created            time.Time  `json:"created"`
+	Modified           time.Time  `json:"modified"`
 }
 
 type SecureEnvelope struct {
@@ -88,7 +88,7 @@ type EnvelopesList struct {
 }
 
 func NewTransaction(model *models.Transaction) (*Transaction, error) {
-	return &Transaction{
+	tx := &Transaction{
 		ID:                 model.ID,
 		Source:             model.Source,
 		Status:             model.Status,
@@ -100,11 +100,16 @@ func NewTransaction(model *models.Transaction) (*Transaction, error) {
 		BeneficiaryAddress: model.BeneficiaryAddress.String,
 		VirtualAsset:       model.VirtualAsset,
 		Amount:             model.Amount,
-		LastUpdate:         model.LastUpdate.Time,
 		EnvelopeCount:      model.NumEnvelopes(),
 		Created:            model.Created,
 		Modified:           model.Modified,
-	}, nil
+	}
+
+	// If last update is not NULL in the database, then add it to the response.
+	if model.LastUpdate.Valid {
+		tx.LastUpdate = &model.LastUpdate.Time
+	}
+	return tx, nil
 }
 
 func NewTransactionList(page *models.TransactionPage) (out *TransactionsList, err error) {
@@ -168,7 +173,10 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 		BeneficiaryAddress: sql.NullString{String: c.BeneficiaryAddress, Valid: c.BeneficiaryAddress != ""},
 		VirtualAsset:       c.VirtualAsset,
 		Amount:             c.Amount,
-		LastUpdate:         sql.NullTime{Time: c.LastUpdate, Valid: !c.LastUpdate.IsZero()},
+	}
+
+	if c.LastUpdate != nil {
+		model.LastUpdate = sql.NullTime{Valid: !c.LastUpdate.IsZero(), Time: *c.LastUpdate}
 	}
 
 	return model, nil
