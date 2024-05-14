@@ -8,9 +8,10 @@
         <span>Transaction ID: {{ .ID }}</span>
       </div>
       <div class="flex gap-x-4">
-           <!-- TODO: Add conditional for transaction type back -->
+        {{ if eq .Source "remote" }}
         <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-green-700 font-semibold text-white text-center md:p-2 hover:bg-green-700/80">Accept</a>
         <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-32 bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Reject</button>
+        {{ end }}
         <button class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
         <a href="/transactions" class="p-1 rounded w-32 bg-black font-semibold text-white text-center md:p-2 hover:bg-black/80">Back</a>
       </div>
