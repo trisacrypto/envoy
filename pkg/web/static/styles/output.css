@@ -2559,6 +2559,10 @@ html {
   width: 50%;
 }
 
+.w-32 {
+  width: 8rem;
+}
+
 .w-4 {
   width: 1rem;
 }
@@ -2751,6 +2755,11 @@ html {
   background-color: rgb(219 59 0 / var(--tw-bg-opacity));
 }
 
+.bg-\[\#E7EAEC\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(231 234 236 / var(--tw-bg-opacity));
+}
+
 .bg-black {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity));
@@ -2887,6 +2896,10 @@ html {
 
 .pb-3 {
   padding-bottom: 0.75rem;
+}
+
+.pb-4 {
+  padding-bottom: 1rem;
 }
 
 .pt-16 {
@@ -3363,9 +3376,21 @@ body main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .lg\:items-center {
+    align-items: center;
+  }
+
+  .lg\:justify-between {
+    justify-content: space-between;
+  }
+
   .lg\:gap-x-8 {
     -moz-column-gap: 2rem;
          column-gap: 2rem;
+  }
+
+  .lg\:pb-0 {
+    padding-bottom: 0px;
   }
 
   .lg\:text-2xl {
