@@ -2671,6 +2671,10 @@ html {
   text-wrap: balance;
 }
 
+.text-pretty {
+  text-wrap: pretty;
+}
+
 .break-words {
   overflow-wrap: break-word;
 }
@@ -2782,6 +2786,11 @@ html {
   background-color: rgb(185 28 28 / var(--tw-bg-opacity));
 }
 
+.bg-gray-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity));
+}
+
 .p-1 {
   padding: 0.25rem;
 }
@@ -2865,6 +2874,11 @@ html {
 .py-9 {
   padding-top: 2.25rem;
   padding-bottom: 2.25rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .pb-2 {

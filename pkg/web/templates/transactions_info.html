@@ -1,0 +1,12 @@
+{{ template "base" . }}
+{{ define "content" }}
+
+<section class="mx-8 my-14">
+  <section hx-get="/v1/transactions/{{ .ID }}/info" hx-trigger="load">
+    <div class="text-center">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  </section>
+</section>
+
+{{ end }}
