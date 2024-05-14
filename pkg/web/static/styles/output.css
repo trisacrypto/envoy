@@ -2805,6 +2805,10 @@ html {
   background-color: rgb(185 28 28 / var(--tw-bg-opacity));
 }
 
+.bg-\[\$D9D9D9\] {
+  background-color: $D9D9D9;
+}
+
 .p-1 {
   padding: 0.25rem;
 }
@@ -3230,6 +3234,10 @@ body main {
 
 .hover\:bg-red-700\/80:hover {
   background-color: rgb(185 28 28 / 0.8);
+}
+
+.hover\:bg-gray-300\/80:hover {
+  background-color: rgb(209 213 219 / 0.8);
 }
 
 .hover\:text-\[\#55ACD8\]:hover {

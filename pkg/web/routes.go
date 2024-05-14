@@ -149,7 +149,6 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.PUT("/:id", authorize(permiss.TravelRuleManage), s.UpdateTransaction)
 			transactions.DELETE("/:id", authorize(permiss.TravelRuleDelete), s.DeleteTransaction)
 			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
-			// TODO: Remove endpoint and call transaction detail on the transaction detail page.
 			transactions.GET("/:id/info", authorize(permiss.TravelRuleView), s.TransactionInfo)
 
 			// Primarily UI methods but are also API Helper Methods
