@@ -1,90 +1,100 @@
-<!-- TODO: Move modal to another partial and dusplay transaction details for transaction detail page in this partial -->
-
-<div class="modal-box mx-auto relative p-4 w-full max-w-7xl max-h-full">
-  <!-- Modal content -->
-    <div>
-      <!-- Modal header -->
-      <div class="md:flex items-center justify-between p-4 border border-black bg-[#D9D9D9]">
-        <div class="mb-4 md:mb-0">
-          <h1 class="text-xl mb-1 font-bold text-gray-900 lg:text-2xl">
-            Secure Envelope Details
-          </h1>
-          <span>Transaction ID: {{ .ID }}</span>
-        </div>
-          <div class="flex lg:w-1/3 gap-x-4">
-            {{ if eq .Source "remote" }}
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Accept</button>
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
-            {{ end }}
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
-            {{ if eq .Source "remote" }}
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
-            {{ else }}
-            <button onclick="transaction_modal.close()" class="p-1 rounded w-full bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Close</button>
-            {{ end }}
-          </div>
-        </div>
-          <!-- Modal body -->
-        <div class="w-full py-4 lg:grid lg:grid-cols-2 lg:gap-x-8">
-          <!-- Transfer details -->
-          <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
-            <table>
-              <tr>
-                <th scope="col" colspan="2" class="envelope-header pb-2">TRANSFER DETAILS</th>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Status</th>
-                {{ if .Status }}
-                <td class="envelope-data">{{ .Status }}</td>
-                {{ else }}
-                <td class="envelope-data">-</td>
-                {{ end }}
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Date Created</th>
-                {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
-                <td class="envelope-data text-balance" id="date-created">{{ $created }}</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Network</th>
-                <td class="envelope-data" id="transfer-network">{{ .VirtualAsset }}</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Transfer Amount</th>
-                <td class="envelope-data" id="transfer-amt">{{ .Amount }}</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Memo/Tag</th>
-                <td class="envelope-data text-balance" id="transfer-tag">-</td>
-              </tr>
-            </table>
-          </section>
-          <!-- Identity details -->
-          <section class="p-2 md:p-6 border border-black rounded bg-[#D9D9D9]">
-            <table>
-              <tr>
-                <th scope="col" class="envelope-header pb-2">IDENTITY DETAILS</th>
-                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">ORIGINATOR</th>
-                <th scope="col" class="envelope-header pb-2 px-2 md:px-6">BENEFICIARY</th>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">VASP Name</th>
-                <td class="envelope-data" id="orig-name">{{ .Counterparty }}</td>
-                <td class="envelope-data" id="benf-name">&mdash;</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Name</th>
-                <td class="envelope-data" id="orig-name">{{ .Originator }}</td>
-                <td class="envelope-data" id="benf-name">{{ .Beneficiary }}</td>
-              </tr>
-              <tr>
-                <th scope="row" class="envelope-header">Wallet Address</th>
-                <td class="envelope-data" id="orig-wallet-addr">{{ .OriginatorAddress }}</td>
-                <td class="envelope-data" id="benf-wallet-addr">{{ .BeneficiaryAddress }}</td>
-              </tr>
-            </table>
-          </section>
-        </div>
+<div class="w-full">
+  <div>
+    <div class="md:flex items-center justify-between p-4 border border-black bg-[#D9D9D9]">
+      <div class="mb-4 md:mb-0">
+        <h1 class="text-xl mb-1 font-bold text-gray-900 lg:text-2xl">
+          Transaction Details
+        </h1>
+        <span>Transaction ID: {{ .ID }}</span>
+      </div>
+      <div class="flex gap-x-4">
+           <!-- TODO: Add conditional for transaction type back -->
+        <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-green-700 font-semibold text-white text-center md:p-2 hover:bg-green-700/80">Accept</a>
+        <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-32 bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Reject</button>
+        <button class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
+        <a href="/transactions" class="p-1 rounded w-32 bg-black font-semibold text-white text-center md:p-2 hover:bg-black/80">Back</a>
       </div>
     </div>
+    <section class="my-8">
+      <div class="mb-2 bg-gray-200 p-2 rounded-md">
+        <h2 class="font-bold text-lg">Transfer Details</h2>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Transaction ID</dd>
+        <dt>{{ .ID }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Type</dd>
+        <dt>{{ .Source }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Status</dd>
+        <dt>{{ .Status }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Network</dd>
+        <dt>{{ .VirtualAsset }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Amount</dd>
+        <dt>{{ .Amount }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Number of Envelopes</dd>
+        <dt>{{ .EnvelopeCount }}</dt>
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Created</dd>
+        {{ if .Created }}
+        {{ $created := .Created.Format "January 2, 2006 3:04:05 PM" }}
+        <dt>{{ $created }}</dt>
+        {{ else }}
+        <dt>&mdash;</dt>
+        {{ end }}
+      </div>
+      <div class="grid grid-cols-2 p-2">
+        <dd class="font-bold">Last Update</dd>
+        {{ if .LastUpdate }}
+        {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 3:04:05 PM" }}
+        <dt>{{ $lastUpdate }}</dt>
+        {{ else }}
+        <dt>&mdash;</dt>
+        {{ end }}
+      </div>
+    </section>
+    <section class="my-8">
+      <div class="mb-2 bg-gray-200 p-2 rounded-md">
+        <h2 class="font-bold text-lg">Identity Details</h2>
+      </div>
+      <section>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Counterparty VASP</dd>
+          <dt>{{ .Counterparty }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Counterparty ID</dd>
+          <dt>{{ .CounterpartyID }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Originator Name</dd>
+          <dt>{{ .Originator }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Originator Wallet Address</dd>
+          {{ if eq .OriginatorAddress "" }}
+          <dt>&mdash;</dt>
+          {{ else }}
+          <dt>{{ .OriginatorAddress }}</dt>
+          {{ end }}
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Beneficiary Name</dd>
+          <dt>{{ .Beneficiary }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Beneficiary Wallet Address</dd>
+          <dt>{{ .BeneficiaryAddress }}</dt>
+        </div>
+      </section>
+    </section>
 </div>
