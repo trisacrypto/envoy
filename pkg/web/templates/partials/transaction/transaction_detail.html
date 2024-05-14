@@ -19,50 +19,52 @@
       <div class="mb-2 bg-[#D9D9D9] p-2 rounded-md">
         <h2 class="font-bold text-lg">Transfer Details</h2>
       </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Type</dd>
-        <dt>{{ .Source }}</dt>
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Status</dd>
-        <dt>{{ .Status }}</dt>
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Network</dd>
-        <dt>{{ .VirtualAsset }}</dt>
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Amount</dd>
-        <dt>{{ .Amount }}</dt>
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Number of Envelopes</dd>
-        <dt>{{ .EnvelopeCount }}</dt>
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Created</dd>
-        {{ if .Created }}
-        {{ $created := .Created.Format "January 2, 2006 3:04:05 PM" }}
-        <dt>{{ $created }}</dt>
-        {{ else }}
-        <dt>&mdash;</dt>
-        {{ end }}
-      </div>
-      <div class="grid grid-cols-2 p-2">
-        <dd class="font-bold">Last Update</dd>
-        {{ if .LastUpdate }}
-        {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 3:04:05 PM" }}
-        <dt>{{ $lastUpdate }}</dt>
-        {{ else }}
-        <dt>&mdash;</dt>
-        {{ end }}
-      </div>
+      <dl>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Type</dd>
+          <dt>{{ .Source }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Status</dd>
+          <dt>{{ .Status }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Network</dd>
+          <dt>{{ .VirtualAsset }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Amount</dd>
+          <dt>{{ .Amount }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Number of Envelopes</dd>
+          <dt>{{ .EnvelopeCount }}</dt>
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Created</dd>
+          {{ if .Created }}
+          {{ $created := .Created.Format "January 2, 2006 3:04:05 PM" }}
+          <dt>{{ $created }}</dt>
+          {{ else }}
+          <dt>&mdash;</dt>
+          {{ end }}
+        </div>
+        <div class="grid grid-cols-2 p-2">
+          <dd class="font-bold">Last Update</dd>
+          {{ if .LastUpdate }}
+          {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 3:04:05 PM" }}
+          <dt>{{ $lastUpdate }}</dt>
+          {{ else }}
+          <dt>&mdash;</dt>
+          {{ end }}
+        </div>
+      </dl>
     </section>
     <section class="my-8">
       <div class="mb-2 bg-[#D9D9D9] p-2 rounded-md">
         <h2 class="font-bold text-lg">Identity Details</h2>
       </div>
-      <section>
+      <dl>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Counterparty VASP</dd>
           <dt>{{ .Counterparty }}</dt>
@@ -91,6 +93,6 @@
           <dd class="font-bold">Beneficiary Wallet Address</dd>
           <dt>{{ .BeneficiaryAddress }}</dt>
         </div>
-      </section>
+      </dl>
     </section>
 </div>
