@@ -1,3 +1,79 @@
-<div>{{ .ID }}</div>
-<div>{{ .Counterparty }}</div>
-<div>{{ .Originator }}</div>
+<section>
+  <section class="lg:flex lg:justify-between lg:items-center">
+    <div class="pb-4 flex items-center gap-x-1 lg:pb-0">
+      <dt class="font-bold text-lg">Transaction ID:</dt>
+      <dd>{{ .ID }}</dd>
+    </div>
+    <div class="flex items-center gap-x-2">
+      {{ if eq .Source "remote "}}
+      <button class="p-1 rounded w-32 bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
+      <button class="p-1 rounded w-32 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Accept</button>
+      {{ end }}
+      <a href="/transactions" class="p-1 rounded w-32 bg-black font-semibold text-white text-center md:p-2 hover:bg-black/80">Back</a>
+    </div>
+  </section>
+  <section class="my-4">
+    <div class="mb-2 bg-[#E7EAEC] p-2 rounded">
+      <h2 class="font-bold text-lg">Transaction Details</h2>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Status:</dt>
+      <dd>{{ .Status }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Counterparty:</dt>
+      <dd>{{ .Counterparty }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Counterparty ID:</dt>
+      <dd>{{ .CounterpartyID }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Originator:</dt>
+      <dd>{{ .Originator }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Originator Address:</dt>
+      {{ if eq .OriginatorAddress "" }}
+      <dd class="">&mdash;</dd>
+      {{ else }}
+      <dd>{{ .OriginatorAddress }}</dd>
+      {{ end }}
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Beneficiary:</dt>
+      <dd>{{ .Beneficiary }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Beneficiary Address:</dt>
+      {{ if eq .BeneficiaryAddress "" }}
+      <dd>&mdash;</dd>
+      {{ else }}
+      <dd>{{ .BeneficiaryAddress }}</dd>
+      {{ end }}
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Virtual Asset:</dt>
+      <dd>{{ .VirtualAsset }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Amount:</dt>
+      <dd>{{ .Amount }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Created:</dt>
+      {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
+      <dd>{{ $created }}</dd>
+    </div>
+    <div class="grid grid-cols-2 p-2">
+      <dt class="font-bold">Last Update:</dt>
+      {{ if .LastUpdate.IsZero }}
+      <dd>&mdash;</dd>
+      {{ else }}
+      {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05" }}
+      <dd>{{ $lastUpdate }}</dd>
+      {{ end }}
+    </div>
+  </section>
+  <!-- TODO: Display ivms101 Data -->
+</section>
