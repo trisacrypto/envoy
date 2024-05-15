@@ -1,12 +1,4 @@
-<div class="modal-box max-w-3xl">
-  <div class="flex justify-between items-center">
-    <h1 class="font-bold text-xl">Edit Counterparty VASP</h1>
-    <button onclick="cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
-      <i class="fa-solid fa-x"></i>
-      <span class="sr-only">Close modal</span>
-    </button>
-  </div>
-  <p class="py-4">Edit counterparty VASP details.</p>
+<div class="my-6">
   <div>
     <form id="edit-cparty-form">
       <div class="mb-4 grid gap-6 md:grid-cols-2">
@@ -27,6 +19,13 @@
         <div>
           <label for="endpoint" class="label-style">Endpoint</label>
           <input type="text" id="endpoint" name="endpoint" class="input-style" value="{{ .Endpoint }}" />
+        </div>
+      </div>
+      <div class="mb-4">
+        <div>
+          <label for="country-preview" class="label-style">Country</label>
+          <select id="country-preview" name="country"></select>
+          <input type="hidden" id="country" value="{{ .Country }}" />
         </div>
       </div>
       <div class="mb-4">
@@ -73,7 +72,7 @@
           </select>
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-6">
         <label for="tag" class="label-style">Notes</label>
         <textarea id="tag" name="tag" value="" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
       </div>
@@ -83,3 +82,4 @@
     </form>
   </div>
 </div>
+<div id="country-preview-list"></div>

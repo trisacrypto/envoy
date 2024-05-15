@@ -93,6 +93,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
+	s.router.GET("/counterparty/:id/edit", authenticate, s.CounterpartyUpdate)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
