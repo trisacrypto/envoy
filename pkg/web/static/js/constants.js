@@ -1,4 +1,4 @@
-export const countries = {
+const countries = {
   AF: 'Afghanistan',
   AX: 'Aland Islands',
   AL: 'Albania',
@@ -245,3 +245,5 @@ export const countries = {
   ZM: 'Zambia',
   ZW: 'Zimbabwe'
 };
+
+export const countriesArray = Object.entries(countries).map(([value, text]) => ({ text, value }));

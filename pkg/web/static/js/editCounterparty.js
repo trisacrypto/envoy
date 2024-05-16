@@ -1,4 +1,4 @@
-import { countries } from './countriesList.js';
+import { countriesArray } from './constants.js';
 
 // Use SlimSelect after the counterparty preview partial has been swapped and settled into the DOM.
 document.body.addEventListener('htmx:afterSettle', () => {
@@ -13,7 +13,7 @@ document.body.addEventListener('htmx:afterSettle', () => {
   const cpartyCountry = document.getElementById('selected-country');
   const cpartySelectedCountry = cpartyCountry.value;
 
-  const countriesArray = Object.entries(countries).map(([value, text]) => ({ text, value }));
+  // Add the country data and set the currently selected country.
   countrySelect.setData(countriesArray);
   countrySelect.setSelected(cpartySelectedCountry);
 });
