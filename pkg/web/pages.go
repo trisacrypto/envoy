@@ -37,6 +37,12 @@ func (s *Server) TransactionsAcceptPreview(c *gin.Context) {
 	c.HTML(http.StatusOK, "transactions_accept.html", gin.H{"Version": pkg.Version(), "ID": id})
 }
 
+func (s *Server) TransactionsInfo(c *gin.Context) {
+	// Get the transaction ID from the URL path and make available to the template.
+	id := c.Param("id")
+	c.HTML(http.StatusOK, "transactions_info.html", gin.H{"Version": pkg.Version(), "ID": id})
+}
+
 func (s *Server) Accounts(c *gin.Context) {
 	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
 }
