@@ -2741,11 +2741,6 @@ html {
   border-top-color: rgb(0 0 0 / var(--tw-border-opacity));
 }
 
-.bg-\[\#2F4858\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(47 72 88 / var(--tw-bg-opacity));
-}
-
 .bg-\[\#517994\] {
   --tw-bg-opacity: 1;
   background-color: rgb(81 121 148 / var(--tw-bg-opacity));
@@ -3069,6 +3064,11 @@ body {
 
 body main {
   margin-bottom: auto;
+}
+
+.tooltip {
+  --tooltip-color: black;
+  --tooltip-text-color: white;
 }
 
 .input-style {
