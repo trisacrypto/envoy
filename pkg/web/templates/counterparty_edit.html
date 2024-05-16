@@ -1,0 +1,23 @@
+{{ define "styles" }}
+<link href="https://unpkg.com/slim-select@latest/dist/slimselect.css" rel="stylesheet"></link>
+{{ end }}
+
+{{ template "base" . }}
+{{ define "content" }}
+
+<section class="mx-8 py-9">
+  <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Edit Counterparty VASP</h1>
+  <section class="my-4 md:m-8">
+    <div class="pb-2 border-b border-b-black">
+      <p class="md:text-lg">Edit counterparty VASP details.</p>
+    </div>
+    <section hx-get="/v1/counterparties/{{ .ID }}/edit" hx-trigger="load"></section>
+  </section>
+</section>
+
+{{ end }}
+
+{{ define "appcode" }}
+<script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
+<script type="module" src="/static/js/editCounterparty.js"></script>
+{{ end }}
