@@ -1,11 +1,17 @@
 // Display a searchable dropdown for countries.
 const origCountrySelect = new SlimSelect({
   select: '#orig_countries',
+  settings: {
+    contentLocation: document.getElementById('orig-countries-content'),
+  }
 });
 
 // Can more than one country be selected?
 const benfCountrySelect = new SlimSelect({
   select: '#benf_countries',
+  settings: {
+    contentLocation: document.getElementById('benf-countries-content'),
+  }
 });
 
 const countries = {
