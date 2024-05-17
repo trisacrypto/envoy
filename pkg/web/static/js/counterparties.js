@@ -1,12 +1,3 @@
-// Move div with country list from below footer to inside the add counterparty modal on load.
-document.body.addEventListener('htmx:afterSwap', () => {
-  const addCpartyModal = document.getElementById('add_cparty_modal');
-  const countryList = document.querySelector('.ss-content');
-  if (addCpartyModal && countryList) {
-    addCpartyModal.appendChild(countryList);
-  }
-}); 
-
 document.body.addEventListener('htmx:afterRequest', (e) => {
   const addCpartyForm = 'new-cparty-form';
   // Check if the request to add a new counterparty was successful.
@@ -30,6 +21,9 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
 
 const countrySelect = new SlimSelect({
   select: '#countries',
+  settings: {
+    contentLocation: document.getElementById('country-content'),
+  },
 });
 
 const countries = {
