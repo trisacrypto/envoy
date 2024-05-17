@@ -116,8 +116,8 @@
         {{ end }}
         <td>
           <div class="dropdown">
-            <div tabindex="0" role="button" class="btn btn-ghost fobt-bold text-xl">&hellip;</div>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-[#2F4858] font-semibold text-white rounded-box">
+            <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
               <li><a onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}/info" hx-target="#transaction_modal">Preview</a></li>
               {{ if eq .Source "remote" }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
