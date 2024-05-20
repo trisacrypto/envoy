@@ -108,11 +108,11 @@
         <td>{{ .EnvelopeCount }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
-        {{ if .LastUpdate.IsZero  }}
-        <td>&mdash;</td>
-        {{ else }}
+        {{ if .LastUpdate }}
         {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05" }}
         <td class="trans-last-update">{{ $lastUpdate }}</td>
+        {{ else }}
+        <td>&mdash;</td>
         {{ end }}
         <td>
           <div class="dropdown">
