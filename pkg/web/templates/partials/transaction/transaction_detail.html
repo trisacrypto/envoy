@@ -5,7 +5,7 @@
         <h1 class="text-xl mb-1 font-bold text-gray-900 lg:text-2xl">
           Transaction Details
         </h1>
-        <span>Transaction ID: {{ .ID }}</span>
+        <span class="md:text-lg">Transaction ID: {{ .ID }}</span>
       </div>
       <div class="flex gap-x-4">
         {{ if eq .Source "remote" }}
