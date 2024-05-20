@@ -2806,6 +2806,31 @@ html {
   background-color: rgb(185 28 28 / var(--tw-bg-opacity));
 }
 
+.bg-\[\#E3F5FB\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(227 245 251 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#C3E5F3\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(195 229 243 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#D0EAF6\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(208 234 246 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#E0F2FA\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 242 250 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#DCF0F9\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 240 249 / var(--tw-bg-opacity));
+}
+
 .p-1 {
   padding: 0.25rem;
 }
