@@ -2432,6 +2432,11 @@ html {
   margin: auto;
 }
 
+.mx-3 {
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
 .mx-8 {
   margin-left: 2rem;
   margin-right: 2rem;
@@ -2475,21 +2480,6 @@ html {
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
-}
-
-.mx-4 {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
-
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-
-.mx-3 {
-  margin-left: 0.75rem;
-  margin-right: 0.75rem;
 }
 
 .mb-1 {
@@ -2756,29 +2746,9 @@ html {
   border-top-color: rgb(0 0 0 / var(--tw-border-opacity));
 }
 
-.border-t-gray-600 {
-  --tw-border-opacity: 1;
-  border-top-color: rgb(75 85 99 / var(--tw-border-opacity));
-}
-
-.border-t-gray-500 {
-  --tw-border-opacity: 1;
-  border-top-color: rgb(107 114 128 / var(--tw-border-opacity));
-}
-
-.border-t-gray-300 {
-  --tw-border-opacity: 1;
-  border-top-color: rgb(209 213 219 / var(--tw-border-opacity));
-}
-
 .border-t-gray-400 {
   --tw-border-opacity: 1;
   border-top-color: rgb(156 163 175 / var(--tw-border-opacity));
-}
-
-.border-t-\[\#D1CCC8\] {
-  --tw-border-opacity: 1;
-  border-top-color: rgb(209 204 200 / var(--tw-border-opacity));
 }
 
 .bg-\[\#517994\] {
@@ -2799,11 +2769,6 @@ html {
 .bg-\[\#DB3B00\] {
   --tw-bg-opacity: 1;
   background-color: rgb(219 59 0 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#E7EAEC\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(231 234 236 / var(--tw-bg-opacity));
 }
 
 .bg-black {
@@ -2932,10 +2897,6 @@ html {
 
 .pb-3 {
   padding-bottom: 0.75rem;
-}
-
-.pb-4 {
-  padding-bottom: 1rem;
 }
 
 .pt-16 {
@@ -3078,11 +3039,6 @@ html {
 .text-yellow-700 {
   --tw-text-opacity: 1;
   color: rgb(161 98 7 / var(--tw-text-opacity));
-}
-
-.text-gray-800 {
-  --tw-text-opacity: 1;
-  color: rgb(31 41 55 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -3435,18 +3391,9 @@ body main {
          column-gap: 2rem;
   }
 
-  .lg\:pb-0 {
-    padding-bottom: 0px;
-  }
-
   .lg\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
-  }
-
-  .lg\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
   }
 }
 
