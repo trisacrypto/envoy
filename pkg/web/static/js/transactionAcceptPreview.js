@@ -8,10 +8,9 @@ document.body.addEventListener('htmx:afterSettle', () => {
     }
   })
 
+  // Set the list of options in the network dropdown and display the value selected by the requester.
   const networkEl = document.getElementById('selected-network');
   const networkValue = networkEl.value;
-
-
   transactionNetwork.setData(networksArray);
   transactionNetwork.setSelected(networkValue);
 })
