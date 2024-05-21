@@ -2634,8 +2634,16 @@ html {
   flex-direction: column;
 }
 
+.items-start {
+  align-items: flex-start;
+}
+
 .items-center {
   align-items: center;
+}
+
+.justify-start {
+  justify-content: flex-start;
 }
 
 .justify-center {
@@ -2905,6 +2913,14 @@ html {
 
 .pt-2 {
   padding-top: 0.5rem;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.\!text-left {
+  text-align: left !important;
 }
 
 .text-center {

@@ -23,7 +23,22 @@
       <dl>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Type</dd>
-          <dt>{{ .Source }}</dt>
+          {{ if eq .Source "local" }}
+          <div class="flex items-center gap-x-1">
+            <i class="fa-solid fa-file-export" title="Outgoing transaction from local VASP"></i>
+            <dt>Outgoing</dt>
+          </div>
+          {{ else if eq .Source "remote" }}
+          <div class="flex items-center gap-x-1">
+            <i class="fa-solid fa-file-import" title="Incoming transaction from remote VASP"></i>
+            <dt>Incoming</dt>
+          </div>
+          {{ else }}
+          <div class="flex items-center gap-x-1">
+            <i class="fa-solid fa-question" title="Unknown transaction type"></i>
+            <dt>Unknown</dt>
+          </div>
+          {{ end }}
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Status</dd>
