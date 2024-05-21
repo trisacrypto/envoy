@@ -10,6 +10,31 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 )
 
+func (s *storeTestSuite) TestListTransactions() {
+	require := s.Require()
+	ctx := context.Background()
+
+	page, err := s.store.ListTransactions(ctx, nil)
+	require.NoError(err, "could not list transactions from database")
+	require.NotNil(page, "a nil page was returned without transactions")
+	require.Len(page.Transactions, 4, "expected transactions to be returned in list")
+	require.Empty(page.Page.NextPageID, "expected next page ID to be empty")
+	require.Empty(page.Page.PrevPageID, "expected prev page Id to be empty")
+	require.Equal(uint32(50), page.Page.PageSize, "expected the default page size to be returned")
+
+	// Ensure secure envelopes are counted correctly
+	for i, tx := range page.Transactions {
+		switch i {
+		case 1, 3:
+			require.Equal(int64(2), tx.NumEnvelopes())
+		case 2:
+			require.Equal(int64(4), tx.NumEnvelopes())
+		case 0:
+			require.Equal(int64(0), tx.NumEnvelopes())
+		}
+	}
+}
+
 func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	defer s.ResetDB()
 	require := s.Require()
