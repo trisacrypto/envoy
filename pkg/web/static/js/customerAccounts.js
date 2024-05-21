@@ -1,3 +1,5 @@
+import { networksArray } from "./constants.js";
+
 const addWalletBttn = document.getElementById('add-wallet-bttn')
 const extractWalletRE = /(crypto_address|network)_(\d+)/g;
 const newAcctModal = document.getElementById('new_acct_modal')
