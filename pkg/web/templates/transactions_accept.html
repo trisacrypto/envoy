@@ -1,3 +1,7 @@
+{{ define "styles" }}
+<link href="https://unpkg.com/slim-select@latest/dist/slimselect.css" rel="stylesheet"></link>
+{{ end }}
+
 {{ template "base" . }}
 {{ define "content" }}
 
@@ -7,6 +11,13 @@
       <span class="loading loading-spinner loading-lg"></span>
     </div>
   </div>
+
+  <div id="network-content"></div>
 </section>
 
+{{ end }}
+
+{{ define "appcode" }}
+<script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
+<script type="module" src="/static/js/transactionAcceptPreview.js"></script>
 {{ end }}
