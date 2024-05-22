@@ -46,13 +46,13 @@
             
             <div class="mb-2">
               <span class="font-semibold">Originator:</span>
-              {{ $originator := (index .Identity.Originator.OriginatorPersons 0) }}
-              {{ $originatorName := $originator.Person.NaturalPerson.Name.NameIdentifiers }}
+              {{ $originator := (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson }}
+              {{ $originatorName := $originator.Name.NameIdentifiers }}
               {{ range $originatorName }}
               <div>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</div>
               <div>{{ .NameIdentifierType }}</div>
               {{ end }}
-              {{ $originatorAddress := $originator.Person.NaturalPerson.GeographicAddresses }}
+              {{ $originatorAddress := $originator.GeographicAddresses }}
               {{ range $originatorAddress }}
               <div>{{ .AddressType }}</div>
               {{ range .AddressLine }}
@@ -60,28 +60,29 @@
               {{ end }}
               <div>{{ .Country }}</div>
               {{ end }}
-              <div>{{ $originator.Person.NaturalPerson.CountryOfResidence }}</div>
-              <div>{{ $originator.Person.NaturalPerson.CustomerIdentification }}</div>
+              <div>{{ $originator.CountryOfResidence }}</div>
+              <div>{{ $originator.CustomerIdentification }}</div>
               {{ range .Identity.Originator.AccountNumbers }}
               <div>{{ . }}</div>
               {{ end }}
             </div>
 
             <div class="mb-2">Originating VASP:</div>
-            {{ $legalPerson :=  .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.Name }}
-            {{ range $legalPerson.NameIdentifiers }}
+            {{ $originatingVasp := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson }}
+            {{ $originatingLegalPerson :=  $originatingVasp.Name }}
+            {{ range $originatingLegalPerson.NameIdentifiers }}
             <div>{{ .LegalPersonName }}</div>
             <div>{{ .LegalPersonNameIdentifierType }}</div>
             {{ end }}
-            {{ range $legalPerson.LocalNameIdentifiers }}
+            {{ range $originatingLegalPerson.LocalNameIdentifiers }}
             <div>{{ .LegalPersonName }}</div>
             <div>{{ .LegalPersonNameIdentifierType }}</div>
             {{ end }}
-            {{ range $legalPerson.PhoneticNameIdentifiers }}
+            {{ range $originatingLegalPerson.PhoneticNameIdentifiers }}
             <div>{{ .LegalPersonName }}</div>
             <div>{{ .LegalPersonNameIdentifierType }}</div>
             {{ end }}
-            {{ range .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.GeographicAddresses }}
+            {{ range $originatingVasp.GeographicAddresses }}
             <div>{{ .AddressType }}</div>
             {{ range .AddressLine }}
             <div>{{ . }}</div>
@@ -89,20 +90,21 @@
             <div>{{ .Country }}</div>
             {{ end }}
 
-            {{ $nationalIdentification := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.NationalIdentification }}
+            {{ $nationalIdentification := $originatingVasp.NationalIdentification }}
             <div>{{ $nationalIdentification.NationalIdentifier }}</div>
             <div>{{ $nationalIdentification.NationalIdentifierType }}</div>
             <div>{{ $nationalIdentification.CountryOfIssue }}</div>
             <div>{{ $nationalIdentification.RegistrationAuthority }}</div>
-            <div>{{ .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.CountryOfRegistration }}</div>
+            <div>{{ $originatingVasp.CountryOfRegistration }}</div>
 
             <div>Beneficiary Vasp</div>
-            {{ range .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson.Name.NameIdentifiers }}
+            {{ $beneficiaryVasp := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson }}
+            {{ range $beneficiaryVasp.Name.NameIdentifiers }}
             <div>{{ .LegalPersonName }}</div>
             <div>{{ .LegalPersonNameIdentifierType }}</div>
             {{ end }}
 
-            {{ range .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson.GeographicAddresses }}
+            {{ range $beneficiaryVasp.GeographicAddresses }}
             <div class="font-bold">{{ .AddressType }}</div>
             <div class="font-bold">{{ .StreetName }}</div>
             <div>{{ .BuildingNumber }}</div>
@@ -110,21 +112,23 @@
             <div>{{ .Country }}</div>
             {{ end }}
 
-            {{ $beneficiaryNationalIdentifier := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson.NationalIdentification }}
+            {{ $beneficiaryNationalIdentifier := $beneficiaryVasp.NationalIdentification }}
             <div>{{ $beneficiaryNationalIdentifier.NationalIdentifier }}</div>
             <div>{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</div>
             <div>{{ $beneficiaryNationalIdentifier.CountryOfIssue }}</div>
             <div>{{ $beneficiaryNationalIdentifier.RegistrationAuthority }}</div>
-            <div>{{ .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson.CountryOfRegistration }}</div>
+
+            <div>{{ $beneficiaryVasp.CountryOfRegistration }}</div>
 
             <div class="mb-2"><span class="font-semibold">Beneficiary:</span></div>
-            {{ $beneficiaryName := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.Name.NameIdentifiers }}
+            {{ $beneficiary := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson }}
+            {{ $beneficiaryName := $beneficiary.Name.NameIdentifiers }}
             {{ range $beneficiaryName }}
             <div>{{ .PrimaryIdentifier }} {{ .SecondaryIdentifier }}</div>
             <div>{{ .NameIdentifierType }}</div>
             {{ end }}
 
-            {{ $beneficiaryAddress := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.GeographicAddresses }}
+            {{ $beneficiaryAddress := $beneficiary.GeographicAddresses }}
             {{ range $beneficiaryAddress }}
             <div>{{ .AddressType }}</div>
             {{ range .AddressLine }}
@@ -132,7 +136,7 @@
             {{ end }}
             <div>{{ .Country }}</div>
             {{ end }}
-            <div>{{ (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.CountryOfResidence }}</div>
+            <div>{{ $beneficiary.CountryOfResidence }}</div>
             {{ range .Identity.Beneficiary.AccountNumbers }}
             <div>{{ . }}</div>
             {{ end }}
