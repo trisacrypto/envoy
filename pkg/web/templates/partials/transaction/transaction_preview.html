@@ -37,13 +37,77 @@
           <!-- Modal body -->
         <div class="w-full py-4">
           <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
-            <!-- TODO: Display relevant data in the preview -->
             <div class="mb-2"><span class="font-semibold">Travel Address: </span>{{ .TravelAddress }}</div>
-            <div class="mb-2"><span class="font-semibold">Transaction:</span>{{ .Transaction }}</div>
-            <div class="mb-2"><span class="font-semibold">Originator:</span>{{ .Identity.Originator }}</div>
-            <div class="mb-2"><span class="font-semibold">Originating VASP:</span>{{ .Identity.OriginatingVasp }}</div>
-            <div class="mb-2"><span class="font-semibold">Beneficiary VASP:</span>{{ .Identity.BeneficiaryVasp }}</div>
-            <div class="mb-2"><span class="font-semibold">Beneficiary:</span>{{ .Identity.Beneficiary }}</div>
+            <div>Transaction Details:</div>
+            <div>{{ .Transaction.Originator }}</div>
+            <div>{{ .Transaction.Beneficiary }}</div>
+            <div>{{ .Transaction.Amount }}</div>
+            <div>{{ .Transaction.Network }}</div>
+            <div class="mb-2">
+              <span class="font-semibold">Originator:</span>
+              {{ $name := (index (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson.Name.NameIdentifiers 0) }}
+              {{ $address := (index (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson.GeographicAddresses 0) }}
+              <div>{{ $name.SecondaryIdentifier }} {{ $name.PrimaryIdentifier }}</div>
+              <div>{{ $name.NameIdentifierType }}</div>
+              <div>{{ $address.AddressType }}</div>
+              {{ range $address.AddressLine }}
+              <div>{{ . }}</div>
+              {{ end }}
+            </div>
+
+            <div class="mb-2">Originating VASP:</div>
+            {{ $legalPerson :=  .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.Name }}
+            {{ range $legalPerson.NameIdentifiers }}
+            <div>{{ .LegalPersonName }}</div>
+            <div>{{ .LegalPersonNameIdentifierType }}</div>
+            {{ end }}
+            {{ range $legalPerson.LocalNameIdentifiers }}
+            <div>{{ .LegalPersonName }}</div>
+            <div>{{ .LegalPersonNameIdentifierType }}</div>
+            {{ end }}
+            {{ range $legalPerson.PhoneticNameIdentifiers }}
+            <div>{{ .LegalPersonName }}</div>
+            <div>{{ .LegalPersonNameIdentifierType }}</div>
+            {{ end }}
+            {{ range .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.GeographicAddresses }}
+            <div>{{ .AddressType }}</div>
+            {{ range .AddressLine }}
+            <div>{{ . }}</div>
+            {{ end }}
+            <div>{{ .Country }}</div>
+            {{ end }}
+
+            {{ $nationalIdentification := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson.NationalIdentification }}
+            <div>{{ $nationalIdentification.NationalIdentifier }}</div>
+            <div>{{ $nationalIdentification.NationalIdentifierType }}</div>
+            <div>{{ $nationalIdentification.CountryOfIssue }}</div>
+            <div>{{ $nationalIdentification.RegistrationAuthority }}</div>
+
+            <div>Beneficiary Vasp</div>
+            {{ range .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson.Name.NameIdentifiers }}
+            <div>{{ .LegalPersonName }}</div>
+            <div>{{ .LegalPersonNameIdentifierType }}</div>
+            {{ end }}
+
+            <div class="mb-2"><span class="font-semibold">Beneficiary:</span></div>
+            {{ $beneficiaryName := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.Name.NameIdentifiers }}
+            {{ range $beneficiaryName }}
+            <div>{{ .PrimaryIdentifier }} {{ .SecondaryIdentifier }}</div>
+            <div>{{ .NameIdentifierType }}</div>
+            {{ end }}
+
+            {{ $beneficiaryAddress := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.GeographicAddresses }}
+            {{ range $beneficiaryAddress }}
+            <div>{{ .AddressType }}</div>
+            {{ range .AddressLine }}
+            <div>{{ . }}</div>
+            {{ end }}
+            <div>{{ .Country }}</div>
+            {{ end }}
+            <div>{{ (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson.CountryOfResidence }}</div>
+            {{ range .Identity.Beneficiary.AccountNumbers }}
+            <div>{{ . }}</div>
+            {{ end }}
           </section>
         </div>
       </div>
