@@ -17,7 +17,7 @@ var (
 	ErrNotAuthorized     = errors.New("user does not have permission to perform this operation")
 	ErrNoAuthUser        = errors.New("could not identify authenticated user in request")
 	ErrParseBearer       = errors.New("could not parse Bearer token from Authorization header")
-	ErrNoAuthorization   = errors.New("no authorization header in request")
+	ErrNoAuthorization   = errors.New("no authorization header or cookies in request")
 	ErrNoRefreshToken    = errors.New("cannot reauthenticate no refresh token in request")
 	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 )

@@ -152,9 +152,15 @@ func SetAuthCookies(c *gin.Context, accessToken, refreshToken, domain string) (e
 		return err
 	}
 
+	// Secure is true unless the domain is localhost
+	secure := true
+	if domain == "localhost" {
+		secure = false
+	}
+
 	// Set the access token cookie: httpOnly is true; cannot be accessed by Javascript
 	accessMaxAge := int((time.Until(accessExpires.Add(CookieMaxAgeBuffer))).Seconds())
-	c.SetCookie(AccessTokenCookie, accessToken, accessMaxAge, "/", domain, true, true)
+	c.SetCookie(AccessTokenCookie, accessToken, accessMaxAge, "/", domain, secure, true)
 
 	// Parse refresh token to get expiration time
 	var refreshExpires time.Time
@@ -164,7 +170,7 @@ func SetAuthCookies(c *gin.Context, accessToken, refreshToken, domain string) (e
 
 	// Set the refresh token cookie: httpOnly is false; can be accessed by Javascript
 	refreshMaxAge := int((time.Until(refreshExpires.Add(CookieMaxAgeBuffer))).Seconds())
-	c.SetCookie(RefreshTokenCookie, refreshToken, refreshMaxAge, "/", domain, true, false)
+	c.SetCookie(RefreshTokenCookie, refreshToken, refreshMaxAge, "/", domain, secure, false)
 	return nil
 }
 
