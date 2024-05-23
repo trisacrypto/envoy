@@ -16,6 +16,10 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+//===========================================================================
+// Transactions REST Resource
+//===========================================================================
+
 func (s *Server) ListTransactions(c *gin.Context) {
 	var (
 		err   error
@@ -150,44 +154,6 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	})
 }
 
-func (s *Server) AcceptTransactionPreview(c *gin.Context) {
-	var (
-		err           error
-		transactionID uuid.UUID
-		transaction   *models.Transaction
-		out           *api.Transaction
-	)
-
-	// Parse the transactionID passed in from the URL
-	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	if out, err = api.NewTransaction(transaction); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_accept.html",
-	})
-}
-
 func (s *Server) UpdateTransaction(c *gin.Context) {
 	var (
 		err           error
@@ -289,6 +255,102 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 		HTMLName: "transaction_delete.html",
 	})
 }
+
+//===========================================================================
+// Transaction Detail Actions
+//===========================================================================
+
+func (s *Server) AcceptTransactionPreview(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		transaction   *models.Transaction
+		out           *api.Transaction
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if out, err = api.NewTransaction(transaction); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_accept.html",
+	})
+}
+
+func (s *Server) TransactionInfo(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		transaction   *models.Transaction
+		out           *api.Transaction
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if out, err = api.NewTransaction(transaction); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_info.html",
+	})
+}
+
+func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
+	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
+}
+
+func (s *Server) AcceptTransaction(c *gin.Context) {
+	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
+}
+
+func (s *Server) RejectTransaction(c *gin.Context) {
+	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
+}
+
+//===========================================================================
+// Secure Envelopes REST Resource
+//===========================================================================
 
 func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	var (
@@ -412,6 +474,10 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 	})
 }
 
+//===========================================================================
+// Helpers
+//===========================================================================
+
 func CheckUUIDMatch(id, target uuid.UUID) error {
 	if id == uuid.Nil {
 		return ulids.ErrMissingID
@@ -422,42 +488,4 @@ func CheckUUIDMatch(id, target uuid.UUID) error {
 	}
 
 	return nil
-}
-
-func (s *Server) TransactionInfo(c *gin.Context) {
-	var (
-		err           error
-		transactionID uuid.UUID
-		transaction   *models.Transaction
-		out           *api.Transaction
-	)
-
-	// Parse the transactionID passed in from the URL
-	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	if out, err = api.NewTransaction(transaction); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_info.html",
-	})
 }

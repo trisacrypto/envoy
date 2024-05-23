@@ -57,12 +57,18 @@ type SecureEnvelope struct {
 	Original            []byte       `json:"original,omitempty"`
 }
 
-type DecryptedEnvelope struct {
+type Envelope struct {
 	Identity    *ivms101.IdentityPayload `json:"identity,omitempty"`
 	Transaction *generic.Transaction     `json:"transaction,omitempty"`
 	Pending     *generic.Pending         `json:"pending,omitempty"`
 	SentAt      time.Time                `json:"sent_at"`
 	ReceivedAt  time.Time                `json:"received_at,omitempty"`
+}
+
+type Rejection struct {
+	Code         string `json:"code"`
+	Message      string `json:"message"`
+	RequestRetry bool   `json:"request_retry"`
 }
 
 type EnvelopeQuery struct {
@@ -81,10 +87,10 @@ type TransactionsList struct {
 }
 
 type EnvelopesList struct {
-	Page               *PageQuery           `json:"page"`
-	IsDecrypted        bool                 `json:"is_decrypted"`
-	SecureEnvelopes    []*SecureEnvelope    `json:"secure_envelopes,omitempty"`
-	DecryptedEnvelopes []*DecryptedEnvelope `json:"decrypted_envelopes,omitempty"`
+	Page               *PageQuery        `json:"page"`
+	IsDecrypted        bool              `json:"is_decrypted"`
+	SecureEnvelopes    []*SecureEnvelope `json:"secure_envelopes,omitempty"`
+	DecryptedEnvelopes []*Envelope       `json:"decrypted_envelopes,omitempty"`
 }
 
 func NewTransaction(model *models.Transaction) (*Transaction, error) {

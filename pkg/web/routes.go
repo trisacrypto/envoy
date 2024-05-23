@@ -106,13 +106,12 @@ func (s *Server) setupRoutes() (err error) {
 	)))
 
 	// API Routes (Including Content Negotiated Partials)
-	// TODO: add authentication to these endpoints
 	v1 := s.router.Group("/v1")
 	{
 		// Status/Heartbeat endpoint
 		v1.GET("/status", s.Status)
 
-		// TODO: remove, this is for debugging only
+		// NOTE: uncomment this for debugging only
 		// v1.POST("/debug", s.Debug)
 
 		// Authentication endpoints
@@ -149,8 +148,6 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/:id", authorize(permiss.TravelRuleView), s.TransactionDetail)
 			transactions.PUT("/:id", authorize(permiss.TravelRuleManage), s.UpdateTransaction)
 			transactions.DELETE("/:id", authorize(permiss.TravelRuleDelete), s.DeleteTransaction)
-			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
-			transactions.GET("/:id/info", authorize(permiss.TravelRuleView), s.TransactionInfo)
 
 			// Primarily UI methods but are also API Helper Methods
 			transactions.POST("/prepare", authorize(permiss.TravelRuleManage), s.PrepareTransaction)
@@ -158,6 +155,13 @@ func (s *Server) setupRoutes() (err error) {
 
 			// Export method to export transactions to a CSV
 			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
+
+			// Transaction specific actions
+			transactions.GET("/:id/info", authorize(permiss.TravelRuleView), s.TransactionInfo)
+			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
+			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
+			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)
+			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
 
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")
