@@ -45,3 +45,7 @@ body main {
 .ss-placeholder {
   @apply !text-gray-900;
 }
+
+.transaction-preview-label {
+  @apply mb-2 flex justify-between;
+}
