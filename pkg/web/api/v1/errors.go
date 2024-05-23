@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -17,6 +18,10 @@ var (
 	Unsuccessful = Reply{Success: false, Version: pkg.Version()}
 	NotFound     = Reply{Success: false, Error: "resource not found", Version: pkg.Version()}
 	NotAllowed   = Reply{Success: false, Error: "method not allowed", Version: pkg.Version()}
+)
+
+var (
+	ErrInvalidTimestamp = errors.New("payload timestamp has invalid string format")
 )
 
 // Construct a new response for an error or simply return unsuccessful.
@@ -113,6 +118,27 @@ func ReadOnlyField(field string) *FieldError {
 	return &FieldError{verb: "read-only field", field: field, issue: "this field cannot be written by the user"}
 }
 
+func OneOfMissing(fields ...string) *FieldError {
+	var fieldstr string
+	switch len(fields) {
+	case 0:
+		panic("no fields specified for one of")
+	case 1:
+		return MissingField(fields[0])
+	default:
+		fieldstr = fieldList(fields...)
+	}
+
+	return &FieldError{verb: "missing one of", field: fieldstr, issue: "at most one of these fields is required"}
+}
+
+func OneOfTooMany(fields ...string) *FieldError {
+	if len(fields) < 2 {
+		panic("must specify at least two fields for one of too many")
+	}
+	return &FieldError{verb: "specify only one of", field: fieldList(fields...), issue: "at most one of these fields may be specified"}
+}
+
 func ValidationError(err error, errs ...*FieldError) error {
 	var verr ValidationErrors
 	if err == nil {
@@ -160,4 +186,18 @@ func (e ValidationErrors) Error() string {
 	}
 
 	return fmt.Sprintf("%d validation errors occurred:\n  %s", len(e), strings.Join(errs, "\n  "))
+}
+
+func fieldList(fields ...string) string {
+	switch len(fields) {
+	case 0:
+		return ""
+	case 1:
+		return fields[0]
+	case 2:
+		return fmt.Sprintf("%s or %s", fields[0], fields[1])
+	default:
+		last := len(fields) - 1
+		return fmt.Sprintf("%s, or %s", strings.Join(fields[0:last], ", "), fields[last])
+	}
 }

@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -13,7 +14,10 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 //===========================================================================
@@ -57,12 +61,19 @@ type SecureEnvelope struct {
 	Original            []byte       `json:"original,omitempty"`
 }
 
-type DecryptedEnvelope struct {
+type Envelope struct {
+	Error       *trisa.Error             `json:"error,omitempty"`
 	Identity    *ivms101.IdentityPayload `json:"identity,omitempty"`
 	Transaction *generic.Transaction     `json:"transaction,omitempty"`
 	Pending     *generic.Pending         `json:"pending,omitempty"`
-	SentAt      time.Time                `json:"sent_at"`
-	ReceivedAt  time.Time                `json:"received_at,omitempty"`
+	SentAt      *time.Time               `json:"sent_at"`
+	ReceivedAt  *time.Time               `json:"received_at,omitempty"`
+}
+
+type Rejection struct {
+	Code         string `json:"code"`
+	Message      string `json:"message"`
+	RequestRetry bool   `json:"request_retry"`
 }
 
 type EnvelopeQuery struct {
@@ -81,10 +92,10 @@ type TransactionsList struct {
 }
 
 type EnvelopesList struct {
-	Page               *PageQuery           `json:"page"`
-	IsDecrypted        bool                 `json:"is_decrypted"`
-	SecureEnvelopes    []*SecureEnvelope    `json:"secure_envelopes,omitempty"`
-	DecryptedEnvelopes []*DecryptedEnvelope `json:"decrypted_envelopes,omitempty"`
+	Page               *PageQuery        `json:"page"`
+	IsDecrypted        bool              `json:"is_decrypted"`
+	SecureEnvelopes    []*SecureEnvelope `json:"secure_envelopes,omitempty"`
+	DecryptedEnvelopes []*Envelope       `json:"decrypted_envelopes,omitempty"`
 }
 
 func NewTransaction(model *models.Transaction) (*Transaction, error) {
@@ -223,4 +234,127 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 	}
 
 	return out, nil
+}
+
+func NewEnvelope(env *envelope.Envelope) (out *Envelope, err error) {
+	switch state := env.State(); state {
+	case envelope.Error:
+		return &Envelope{Error: env.Error()}, nil
+	case envelope.Clear:
+		break
+	default:
+		return nil, fmt.Errorf("envelope is in an unhandled state: %s", state)
+	}
+
+	out = &Envelope{}
+
+	var payload *trisa.Payload
+	if payload, err = env.Payload(); err != nil {
+		return nil, err
+	}
+
+	out.Identity = &ivms101.IdentityPayload{}
+	if err = payload.Identity.UnmarshalTo(out.Identity); err != nil {
+		return nil, err
+	}
+
+	switch payload.Transaction.TypeUrl {
+	case "type.googleapis.com/trisa.data.generic.v1beta1.Transaction":
+		out.Transaction = &generic.Transaction{}
+		if err = payload.Transaction.UnmarshalTo(out.Transaction); err != nil {
+			return nil, err
+		}
+	case "type.googleapis.com/trisa.data.generic.v1beta1.Pending":
+		out.Pending = &generic.Pending{}
+		if err = payload.Transaction.UnmarshalTo(out.Pending); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("unknown transaction protobuf type: %q", payload.Transaction.TypeUrl)
+	}
+
+	if out.SentAt, err = parseTimestamp(payload.SentAt); err != nil {
+		return nil, fmt.Errorf("could not parse sent at timestamp: %s", err)
+	}
+
+	if out.ReceivedAt, err = parseTimestamp(payload.ReceivedAt); err != nil {
+		return nil, fmt.Errorf("could not parse received at timestamp: %s", err)
+	}
+
+	return out, nil
+}
+
+func (e *Envelope) Validate() (err error) {
+	// Perform lightweight validation of the payload
+	if e.Error != nil {
+		if e.Identity != nil || e.Transaction != nil || e.Pending != nil {
+			return ValidationError(OneOfTooMany("error", "identity"))
+		}
+		return nil
+	}
+
+	if e.Identity == nil {
+		err = ValidationError(err, MissingField("identity"))
+	}
+
+	if e.Transaction == nil && e.Pending == nil {
+		err = ValidationError(err, OneOfMissing("transaction", "pending"))
+	}
+
+	if e.Transaction != nil && e.Pending != nil {
+		err = ValidationError(err, OneOfTooMany("transaction", "pending"))
+	}
+
+	return err
+}
+
+func (e *Envelope) Payload() (payload *trisa.Payload, err error) {
+	payload = &trisa.Payload{}
+
+	if payload.Identity, err = anypb.New(e.Identity); err != nil {
+		return nil, err
+	}
+
+	var data protoreflect.ProtoMessage
+	switch {
+	case e.Transaction != nil:
+		data = e.Transaction
+	case e.Pending != nil:
+		data = e.Pending
+	default:
+		return nil, OneOfMissing("transaction", "pending")
+	}
+
+	if payload.Transaction, err = anypb.New(data); err != nil {
+		return nil, err
+	}
+
+	if e.SentAt != nil && !e.SentAt.IsZero() {
+		payload.SentAt = e.SentAt.Format(time.RFC3339)
+	} else {
+		payload.SentAt = time.Now().UTC().Format(time.RFC3339)
+	}
+
+	if e.ReceivedAt != nil {
+		payload.ReceivedAt = e.ReceivedAt.Format(time.RFC3339)
+	}
+
+	return payload, nil
+}
+
+func parseTimestamp(ts string) (_ *time.Time, err error) {
+	ts = strings.TrimSpace(ts)
+	if ts == "" {
+		return nil, nil
+	}
+
+	layouts := []string{time.RFC3339, time.RFC3339Nano}
+	for _, layout := range layouts {
+		var t time.Time
+		if t, err = time.Parse(layout, ts); err == nil {
+			return &t, nil
+		}
+	}
+
+	return nil, ErrInvalidTimestamp
 }

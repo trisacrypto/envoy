@@ -73,6 +73,59 @@ func TestValidationErrors(t *testing.T) {
 		}
 	})
 
+	t.Run("OneOfMissing", func(t *testing.T) {
+		testCases := []struct {
+			fields   []string
+			expected string
+		}{
+			{
+				[]string{"foo"},
+				"missing foo: this field is required",
+			},
+			{
+				[]string{"foo", "bar"},
+				"missing one of foo or bar: at most one of these fields is required",
+			},
+			{
+				[]string{"foo", "bar", "zap"},
+				"missing one of foo, bar, or zap: at most one of these fields is required",
+			},
+			{
+				[]string{"foo", "bar", "zap", "baz"},
+				"missing one of foo, bar, zap, or baz: at most one of these fields is required",
+			},
+		}
+
+		for i, tc := range testCases {
+			err := api.OneOfMissing(tc.fields...)
+			require.EqualError(t, err, tc.expected, "test case %d failed", i)
+		}
+	})
+
+	t.Run("OneOfTooMany", func(t *testing.T) {
+		testCases := []struct {
+			fields   []string
+			expected string
+		}{
+			{
+				[]string{"foo", "bar"},
+				"specify only one of foo or bar: at most one of these fields may be specified",
+			},
+			{
+				[]string{"foo", "bar", "zap"},
+				"specify only one of foo, bar, or zap: at most one of these fields may be specified",
+			},
+			{
+				[]string{"foo", "bar", "zap", "baz"},
+				"specify only one of foo, bar, zap, or baz: at most one of these fields may be specified",
+			},
+		}
+
+		for i, tc := range testCases {
+			err := api.OneOfTooMany(tc.fields...)
+			require.EqualError(t, err, tc.expected, "test case %d failed", i)
+		}
+	})
 }
 
 func ExampleValidationErrors() {
