@@ -1,3 +1,5 @@
+import { IDENTIFIER_TYPE } from './constants.js';
+
 const previewEnvelopeBttn = document.getElementById('preview-envelope-bttn')
 const secureEnvelopeForm = document.getElementById('secure-envelope-form')
 
@@ -56,4 +58,16 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     e.detail.parameters = data;
   }
 });
+
+// Use human readable identifier types in the transaction preview.
+document.body.addEventListener('htmx:afterSettle', (e) => {
+  if (e.detail.requestConfig.path === '/v1/transactions/prepare' && e.detail.requestConfig.verb === 'post') {
+    const identifierTypes = document.querySelectorAll('.identifier-type');
+    identifierTypes.forEach((identifierType) => {
+      const identifierCode = identifierType.textContent;
+      const readableIdentifierType = IDENTIFIER_TYPE[identifierCode];
+      identifierType.textContent = readableIdentifierType || identifierCode;
+    });
+  }
+})
 

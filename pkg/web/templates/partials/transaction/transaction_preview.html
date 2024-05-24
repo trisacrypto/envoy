@@ -82,7 +82,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifier Type</dt>
-                <div>{{ .NameIdentifierType }}</div>
+                <dd class="identifier-type">{{ .NameIdentifierType }}</dd>
                 {{ end }}
               </div>
 
@@ -98,7 +98,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd>{{ .AddressType }}</dd>
+                <dd class="identifier-type">{{ .AddressType }}</dd>
               </div>
               {{ end }}
 
@@ -130,11 +130,11 @@
 
                 {{ range $beneficiaryName }}
                 <dt class="font-semibold">Name</dt>
-                <dd>{{ .PrimaryIdentifier }} {{ .SecondaryIdentifier }}</dd>
+                <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifier Type</dt>
-                <dd> {{ .NameIdentifierType }}</dd>
+                <dd class="identifier-type">{{ .NameIdentifierType }}</dd>
                 {{ end }}
               </div>
 
@@ -151,7 +151,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd>{{ .AddressType }}</dd>
+                <dd class="identifier-type">{{ .AddressType }}</dd>
                 {{ end }}
               </div>
 
@@ -185,7 +185,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -196,7 +196,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -207,7 +207,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -224,7 +224,7 @@
               <div>
                 <div class="transaction-preview-container">
                   <dt class="font-semibold">Address Type</dt>
-                  <dd>{{ .AddressType }}</dd>
+                  <dd class="identifier-type">{{ .AddressType }}</dd>
                 </div>
               </div>
               {{ end}}
@@ -236,7 +236,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identifier Type</dt>
-                <dd>{{ $nationalIdentification.NationalIdentifierType }}</dd>
+                <dd class="identifier-type">{{ $nationalIdentification.NationalIdentifierType }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
@@ -266,7 +266,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -281,7 +281,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd>{{ .AddressType }}</dd>
+                <dd class="identifier-type">{{ .AddressType }}</dd>
                 {{ end }}
               </div>
 
@@ -292,7 +292,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identifier Type</dt>
-                <dd>{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</dd>
+                <dd class="identifier-type">{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
