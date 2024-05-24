@@ -17,7 +17,7 @@
         <td>{{ .Name }}</td>
         <td>{{ .Website }}</td>
         <td>{{ .Protocol }}</td>
-        <td>{{ .TravelAddress }}</td>
+        <td class="max-w-sm break-words">{{ .TravelAddress }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
         <td>
