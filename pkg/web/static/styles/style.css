@@ -45,3 +45,7 @@ body main {
 .ss-placeholder {
   @apply !text-gray-900;
 }
+
+.transaction-preview-container {
+  @apply mb-4;
+}

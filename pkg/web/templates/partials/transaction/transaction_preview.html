@@ -1,6 +1,6 @@
-<div id="preview-envelope-container" class="modal-box mx-auto relative p-4 w-full max-w-7xl max-h-full">
+<div id="preview-envelope-container" class="modal-box mx-auto relative p-4 max-w-5xl">
   <!-- Modal content -->
-    <div>
+    <div class="max-h-[450px] overflow-y-auto">
       <!-- Modal header -->
       <div class="md:flex items-center justify-between p-4 border border-black bg-[#D9D9D9]">
         <div class="mb-4 md:mb-0">
@@ -8,8 +8,7 @@
             Secure Envelope Details: Preview
           </h1>
         </div>
-        <!-- TODO: Make buttons same width -->
-        <form
+        <form 
           _="on htmx:afterRequest
               if event.detail.successful
                 remove @open from #preview_envelope
@@ -27,23 +26,281 @@
           method="post"
           >
           <input type="hidden" id="travel_address" name="travel_address" value="{{ .Dump }}" />
-          <div class="flex flex-row md:w-1/3 gap-x-2 md:gap-4 w-full">
-            <button type="submit" class="p-1 rounded bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Send</button>
-            <button type="button" onclick="preview_envelope.close()" class="p-1 rounded bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
-            <button type="button" onclick="preview_envelope.close()" class="p-1 rounded bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+          <div class="flex flex-row gap-x-2 md:gap-4">
+            <button type="submit" class="p-1 w-32 rounded bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">Send</button>
+            <button type="button" onclick="preview_envelope.close()" class="p-1 w-32 rounded bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
+            <button type="button" onclick="preview_envelope.close()" class="p-1 w-32 rounded bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
           </div>
         </form>
       </div>
-          <!-- Modal body -->
-        <div class="w-full py-4">
+      <!-- Modal content -->
+        <div class="py-4">
           <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
-            <!-- TODO: Display relevant data in the preview -->
-            <div class="mb-2"><span class="font-semibold">Travel Address: </span>{{ .TravelAddress }}</div>
-            <div class="mb-2"><span class="font-semibold">Transaction:</span>{{ .Transaction }}</div>
-            <div class="mb-2"><span class="font-semibold">Originator:</span>{{ .Identity.Originator }}</div>
-            <div class="mb-2"><span class="font-semibold">Originating VASP:</span>{{ .Identity.OriginatingVasp }}</div>
-            <div class="mb-2"><span class="font-semibold">Beneficiary VASP:</span>{{ .Identity.BeneficiaryVasp }}</div>
-            <div class="mb-2"><span class="font-semibold">Beneficiary:</span>{{ .Identity.Beneficiary }}</div>
+            <div class="my-2">
+              <dl>
+                <div class="transaction-preview-container">
+                  <dt class="text-lg font-semibold">Travel Address</dt>
+                  <dd class="break-words">{{ .TravelAddress }}</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="my-6">
+              <h2 class="mb-2 text-lg font-bold">TRANSACTION DETAILS:</h2>
+              <dl>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Originator</dt>
+                  <dd>{{ .Transaction.Originator }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Beneficiary</dt>
+                  <dd>{{ .Transaction.Beneficiary }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Amount</dt>
+                  <dd>{{ .Transaction.Amount }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Network</dt>
+                  <dd>{{ .Transaction.Network }}</dd>
+                </div>  
+              </dl>
+            </div>
+            <div class="my-4">
+              <h2 class="mb-2 text-lg font-bold">ORIGINATOR:</h2>
+              {{ $originator := (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson }}
+              {{ $originatorName := $originator.Name.NameIdentifiers }}
+              {{ $originatorAddress := $originator.GeographicAddresses }}
+
+              <dl>
+                <div class="transaction-preview-container">
+                  {{ range $originatorName }}
+                  <dt class="font-semibold">Originator Name</dt>
+                  <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Name Identifier Type</dt>
+                  <div>{{ .NameIdentifierType }}</div>
+                  {{ end }}
+                </div>
+
+                {{ range $originatorAddress }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address</dt>
+                  <div>
+                    {{ range .AddressLine }}
+                  <dd>{{ . }}</dd>
+                  {{ end }}
+                  <dd>{{ .Country }}</dd>
+                  </div>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address Type</dt>
+                  <dd>{{ .AddressType }}</dd>
+                </div>
+                {{ end }}
+
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Residence</dt>
+                  <dd>{{ $originator.CountryOfResidence }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Customer Identification</dt>
+                  <div>{{ $originator.CustomerIdentification }}</div>
+                </div>
+
+                <!-- TODO: Add length check to display number or numbers -->
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Account Number</dt>
+                  {{ range .Identity.Originator.AccountNumbers }}
+                <div>{{ . }}</div>
+                {{ end }}
+                </div>
+
+              </dl>
+            </div>
+              
+            <div class="my-6">
+              <h2 class="mb-2 text-lg font-bold">ORIGINATING VASP:</h2>
+              <dl>
+                {{ $originatingVasp := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson }}
+                {{ $originatingLegalPerson :=  $originatingVasp.Name }}
+
+                {{ range $originatingLegalPerson.NameIdentifiers }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name</dt>
+                  <dd>{{ .LegalPersonName }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name Identifier Type</dt>
+                  <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                </div>
+                {{ end }}
+
+                {{ range $originatingLegalPerson.LocalNameIdentifiers }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name</dt>
+                  <dd>{{ .LegalPersonName }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name Identifier Type</dt>
+                  <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                </div>
+                {{ end }}
+
+                {{ range $originatingLegalPerson.PhoneticNameIdentifiers }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name</dt>
+                  <dd>{{ .LegalPersonName }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name Identifier Type</dt>
+                  <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                </div>
+                {{ end }}
+
+                <div class="transaction-preview-container">
+                  {{ range $originatingVasp.GeographicAddresses }}
+                  <dt class="font-semibold">Address</dt>
+                  <div>
+                    {{ range .AddressLine }}
+                    <dd>{{ . }}</dd>
+                    {{ end }}
+                    <dd>{{ .Country }}</dd>
+                  </div>
+                </div>
+                <div>
+                  <div class="transaction-preview-container">
+                    <dt class="font-semibold">Address Type</dt>
+                    <dd>{{ .AddressType }}</dd>
+                  </div>
+                </div>
+                {{ end}}
+
+                {{ $nationalIdentification := $originatingVasp.NationalIdentification }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">National Identifier</dt>
+                  <dd>{{ $nationalIdentification.NationalIdentifier }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">National Identifier Type</dt>
+                  <dd>{{ $nationalIdentification.NationalIdentifierType }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Issue</dt>
+                  <dd>{{ $nationalIdentification.CountryOfIssue }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Registration Authority</dt>
+                  <dd>{{ $nationalIdentification.RegistrationAuthority }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Registration</dt>
+                  <dd>{{ $originatingVasp.CountryOfRegistration }}</dd>
+                </div>
+
+              </dl>
+            </div>
+
+            <div class="my-6">
+              <h2 class="mb-2 text-lg font-bold">BENEFICIARY VASP:</h2>
+              {{ $beneficiaryVasp := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson }}
+              <dl>
+                {{ range $beneficiaryVasp.Name.NameIdentifiers }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Name Identifier</dt>
+                  <dd>{{ .LegalPersonName }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Legal Person Name Identifier Type</dt>
+                  <dd>{{ .LegalPersonNameIdentifierType }}</dd>
+                </div>
+                {{ end }}
+
+                {{ range $beneficiaryVasp.GeographicAddresses }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address</dt>
+                  <div>
+                    <dd>{{ .BuildingNumber }} {{ .StreetName }}</dd>
+                    <dd>{{ .PostCode }} {{ .TownName }}</dd>
+                    <dd>{{ .Country }}</dd>
+                  </div>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address Type</dt>
+                  <dd>{{ .AddressType }}</dd>
+                  {{ end }}
+                </div>
+
+                {{ $beneficiaryNationalIdentifier := $beneficiaryVasp.NationalIdentification }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">National Identifier</dt>
+                  <dd>{{ $beneficiaryNationalIdentifier.NationalIdentifier }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">National Identifier Type</dt>
+                  <dd>{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Issue</dt>
+                  <dd>{{ $beneficiaryNationalIdentifier.CountryOfIssue }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Registration Authority</dt>
+                  <dd>{{ $beneficiaryNationalIdentifier.RegistrationAuthority }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Registration</dt>
+                  <dd>{{ $beneficiaryVasp.CountryOfRegistration }}</dd>
+                </div>
+  
+            </dl> 
+          </div>
+
+            <div class="my-6">
+              <h2 class="mb-2 text-lg font-bold">BENEFICIARY:</h2>
+              <dl>
+                <div class="transaction-preview-container">
+                  {{ $beneficiary := (index .Identity.Beneficiary.BeneficiaryPersons 0).Person.NaturalPerson }}
+                  {{ $beneficiaryName := $beneficiary.Name.NameIdentifiers }}
+                  {{ range $beneficiaryName }}
+                  <dt class="font-semibold">Name</dt>
+                  <dd>{{ .PrimaryIdentifier }} {{ .SecondaryIdentifier }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Name Identifier Type</dt>
+                  <dd> {{ .NameIdentifierType }}</dd>
+                  {{ end }}
+                </div>
+                {{ $beneficiaryAddress := $beneficiary.GeographicAddresses }}
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address</dt>
+                  {{ range $beneficiaryAddress }}
+                  <div>
+                    {{ range .AddressLine }}
+                    <dd>{{ . }}</dd>
+                    {{ end }}
+                    <dd>{{ .Country }}</dd>
+                  </div>
+                </div>
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Address Type</dt>
+                  <dd>{{ .AddressType }}</dd>
+                  {{ end }}
+                </div>
+                
+                <div class="transaction-preview-container">
+                  <dt class="font-semibold">Country of Residence</dt>
+                  <dd>{{ $beneficiary.CountryOfResidence }}</dd>
+                </div>
+                <div class="transaction-preview-container">
+                  <!-- TODO: Check length to display number or numbers-->
+                  <dt class="font-semibold">Account Number</dt>
+                  {{ range .Identity.Beneficiary.AccountNumbers }}
+                  <dd>{{ . }}</dd>
+                  {{ end }}
+                </div>
+              </dl>
+            </div>
           </section>
         </div>
       </div>
