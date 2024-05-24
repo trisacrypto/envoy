@@ -49,3 +49,7 @@ body main {
 .transaction-preview-container {
   @apply mb-4;
 }
+
+.badge-style {
+  @apply mt-1 badge badge-info badge-lg text-gray-900;
+}

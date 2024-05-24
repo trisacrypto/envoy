@@ -10,6 +10,11 @@ module.exports = {
   plugins: [require("daisyui")],
   daisyui: {
     themes: [
+      {
+        envoyTheme: {
+          "info": "#55ACD8",
+        },
+      },
       "light",
     ]
   }

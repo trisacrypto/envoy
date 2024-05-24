@@ -77,12 +77,12 @@
             <dl>
               <div class="transaction-preview-container">
                 {{ range $originatorName }}
-                <dt class="font-semibold">Name</dt>
+                <dt class="font-semibold">Name Identifiers</dt>
                 <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .NameIdentifierType }}</dd>
+                <dt class="font-semibold">Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style">{{ .NameIdentifierType }}</dd>
                 {{ end }}
               </div>
 
@@ -98,7 +98,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd class="identifier-type">{{ .AddressType }}</dd>
+                <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
               </div>
               {{ end }}
 
@@ -129,12 +129,12 @@
                 {{ $beneficiaryName := $beneficiary.Name.NameIdentifiers }}
 
                 {{ range $beneficiaryName }}
-                <dt class="font-semibold">Name</dt>
+                <dt class="font-semibold">Name Identifiers</dt>
                 <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .NameIdentifierType }}</dd>
+                <dt class="font-semibold">Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style badge-style">{{ .NameIdentifierType }}</dd>
                 {{ end }}
               </div>
 
@@ -151,7 +151,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd class="identifier-type">{{ .AddressType }}</dd>
+                <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
                 {{ end }}
               </div>
 
@@ -180,34 +180,34 @@
 
               {{ range $originatingLegalPerson.NameIdentifiers }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name</dt>
+                <dt class="font-semibold">Name Identifiers</dt>
                 <dd>{{ .LegalPersonName }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
+                <dt class="font-semibold">Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
               {{ range $originatingLegalPerson.LocalNameIdentifiers }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name</dt>
+                <dt class="font-semibold">Local Name Identifiers</dt>
                 <dd>{{ .LegalPersonName }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
+                <dt class="font-semibold">Local Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
               {{ range $originatingLegalPerson.PhoneticNameIdentifiers }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name</dt>
+                <dt class="font-semibold">Phonetic Name Identifiers</dt>
                 <dd>{{ .LegalPersonName }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
+                <dt class="font-semibold">Phonetic Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -224,19 +224,19 @@
               <div>
                 <div class="transaction-preview-container">
                   <dt class="font-semibold">Address Type</dt>
-                  <dd class="identifier-type">{{ .AddressType }}</dd>
+                  <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
                 </div>
               </div>
               {{ end}}
 
               {{ $nationalIdentification := $originatingVasp.NationalIdentification }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">National Identifier</dt>
+                <dt class="font-semibold">National Identification</dt>
                 <dd>{{ $nationalIdentification.NationalIdentifier }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">National Identifier Type</dt>
-                <dd class="identifier-type">{{ $nationalIdentification.NationalIdentifierType }}</dd>
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $nationalIdentification.NationalIdentifierType }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
@@ -261,12 +261,12 @@
             <dl>
               {{ range $beneficiaryVasp.Name.NameIdentifiers }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Name Identifier</dt>
+                <dt class="font-semibold">Name Identifiers</dt>
                 <dd>{{ .LegalPersonName }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Legal Person Name Identifier Type</dt>
-                <dd class="identifier-type">{{ .LegalPersonNameIdentifierType }}</dd>
+                <dt class="font-semibold">Name Identifiers Type</dt>
+                <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
 
@@ -281,18 +281,18 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
-                <dd class="identifier-type">{{ .AddressType }}</dd>
+                <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
                 {{ end }}
               </div>
 
               {{ $beneficiaryNationalIdentifier := $beneficiaryVasp.NationalIdentification }}
               <div class="transaction-preview-container">
-                <dt class="font-semibold">National Identifier</dt>
+                <dt class="font-semibold">National Identification</dt>
                 <dd>{{ $beneficiaryNationalIdentifier.NationalIdentifier }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">National Identifier Type</dt>
-                <dd class="identifier-type">{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</dd>
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $beneficiaryNationalIdentifier.NationalIdentifierType }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
@@ -314,5 +314,4 @@
       </section>
     </div>
   </div>
-</div>
 </div>
