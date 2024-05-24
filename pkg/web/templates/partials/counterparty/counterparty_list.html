@@ -5,8 +5,7 @@
         <th>Name</th>
         <th>Website</th>
         <th>Protocol</th>
-        <th>Optional Signing Key</th>
-        <th>Auto Accept</th>
+        <td>Travel Address</td>
         <th>Date Added</th>
         <th>Action</th>
       </tr>
@@ -18,8 +17,7 @@
         <td>{{ .Name }}</td>
         <td>{{ .Website }}</td>
         <td>{{ .Protocol }}</td>
-        <td class="px-16">-</td>
-        <td class="px-16">-</td>
+        <td class="max-w-sm break-words">{{ .TravelAddress }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
         <td>
@@ -29,7 +27,7 @@
               {{ if eq .Source "user"}}
               <li><a href="/counterparty/{{ .ID }}/edit">Edit</a></li>
               {{ end }}
-              <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}" hx-target="#cparty_modal" hx-swap="innerHTML">View</a></li>
+              <li><a>View</a></li>
             </ul>
           </div>
         </td>

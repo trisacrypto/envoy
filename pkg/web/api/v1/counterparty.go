@@ -12,6 +12,7 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 )
 
 //===========================================================================
@@ -26,6 +27,7 @@ type Counterparty struct {
 	Protocol            string    `json:"protocol"`
 	CommonName          string    `json:"common_name"`
 	Endpoint            string    `json:"endpoint"`
+	TravelAddress       string    `json:"travel_address"`
 	Name                string    `json:"name"`
 	Website             string    `json:"website"`
 	Country             string    `json:"country"`
@@ -69,6 +71,9 @@ func NewCounterparty(model *models.Counterparty) (out *Counterparty, err error) 
 			out.IVMSRecord = string(data)
 		}
 	}
+
+	// Compute the travel address from the endpoint (ignore errors)
+	out.TravelAddress, _ = EndpointTravelAddress(model.Endpoint, model.Protocol)
 
 	return out, nil
 }
@@ -177,4 +182,15 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 	}
 
 	return model, nil
+}
+
+func EndpointTravelAddress(endpoint, protocol string) (string, error) {
+	params := make(url.Values)
+	params.Set("t", "i")
+	if protocol != "" {
+		params.Set("mode", protocol)
+	}
+
+	uri := &url.URL{Host: endpoint, RawQuery: params.Encode()}
+	return traddr.Encode(strings.TrimPrefix(uri.String(), "//"))
 }
