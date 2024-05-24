@@ -46,6 +46,6 @@ body main {
   @apply !text-gray-900;
 }
 
-.transaction-preview-label {
-  @apply mb-2 flex justify-between;
+.transaction-preview-container {
+  @apply mb-4 md:flex md:justify-between;
 }

@@ -2638,8 +2638,8 @@ html {
   max-width: 48rem;
 }
 
-.max-w-4xl {
-  max-width: 56rem;
+.max-w-5xl {
+  max-width: 64rem;
 }
 
 .max-w-7xl {
@@ -2716,6 +2716,10 @@ html {
 
 .overflow-y-auto {
   overflow-y: auto;
+}
+
+.text-wrap {
+  text-wrap: wrap;
 }
 
 .text-balance {
@@ -3210,13 +3214,16 @@ body main {
   color: rgb(17 24 39 / var(--tw-text-opacity)) !important;
 }
 
-.transaction-preview-label {
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
+.transaction-preview-container {
+  margin-bottom: 1rem;
 }
 
 @media (min-width: 768px) {
+  .transaction-preview-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .md\:tooltip-right:before {
     transform: translateY(-50%);
     top: 50%;
