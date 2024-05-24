@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"io"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
@@ -26,10 +27,21 @@ type Client interface {
 	UpdateTransaction(context.Context, *Transaction) (*Transaction, error)
 	DeleteTransaction(context.Context, uuid.UUID) error
 
+	// Transaction Actions
+	Prepare(context.Context, *Prepare) (*Prepared, error)
+	SendPrepared(context.Context, *Prepared) (*Transaction, error)
+	Export(context.Context, io.Writer) error
+
+	// Transaction Detail Actions
+	Preview(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
+	SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
+	Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
+	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)
+
 	// SecureEnvelopes Resource
 	ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (*EnvelopesList, error)
 	SecureEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (*SecureEnvelope, error)
-	DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (*DecryptedEnvelope, error)
+	DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (*Envelope, error)
 	DeleteSecureEnvelope(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) error
 
 	// Accounts Resource

@@ -239,6 +239,20 @@ func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	return model
 }
 
+func FromOutgoingEnvelope(env *envelope.Envelope) *SecureEnvelope {
+	out := FromEnvelope(env)
+	out.Direction = DirectionOutgoing
+	out.ValidHMAC = sql.NullBool{Valid: true, Bool: true}
+	return out
+}
+
+func FromIncomingEnvelope(env *envelope.Envelope) *SecureEnvelope {
+	in := FromEnvelope(env)
+	in.Direction = DirectionOutgoing
+	in.ValidHMAC = sql.NullBool{Valid: true, Bool: in.Envelope.Sealed}
+	return in
+}
+
 func (e *SecureEnvelope) Reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err error) {
 	// Set the public key signature of the storage key on the model
 	if e.PublicKey.String, err = storageKey.PublicKeySignature(); err != nil {

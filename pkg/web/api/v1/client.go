@@ -173,6 +173,109 @@ func (s *APIv1) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 }
 
 //===========================================================================
+// Transaction Actions
+//===========================================================================
+
+const prepareEP = "prepare"
+
+func (s *APIv1) Prepare(ctx context.Context, in *Prepare) (out *Prepared, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, prepareEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const sendPreparedEP = "send"
+
+func (s *APIv1) SendPrepared(ctx context.Context, in *Prepared) (out *Transaction, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, sendPreparedEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const exportEP = "export"
+
+func (s *APIv1) Export(ctx context.Context, w io.Writer) (err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, exportEP)
+
+	// Create a new authenticated request with the correct headers
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return err
+	}
+
+	// Execute the request directly with the client so we can stream the response
+	var rep *http.Response
+	if rep, err = s.client.Do(req); err != nil {
+		return fmt.Errorf("could not execute export request: %w", err)
+	}
+	defer rep.Body.Close()
+
+	// Check the status to ensure we can start reading
+	if rep.StatusCode != http.StatusOK {
+		serr := &StatusError{StatusCode: rep.StatusCode}
+		if err = json.NewDecoder(rep.Body).Decode(&serr.Reply); err != nil {
+			serr.Reply = Unsuccessful
+			serr.Reply.Error = http.StatusText(rep.StatusCode)
+		}
+		return serr
+	}
+
+	// Copy the body of the response into the writer
+	if _, err := io.Copy(w, rep.Body); err != nil {
+		return fmt.Errorf("could not copy csv export to writer: %w", err)
+	}
+	return nil
+}
+
+//===========================================================================
+// Transaction Detail Actions
+//===========================================================================
+
+const previewEP = "preview"
+
+func (s *APIv1) Preview(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), previewEP)
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const sendEP = "send"
+
+func (s *APIv1) SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), sendEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const acceptEP = "accept"
+
+func (s *APIv1) Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), acceptEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const rejectEP = "reject"
+
+func (s *APIv1) Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), rejectEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+//===========================================================================
 // Secure and Decrypted Envelopes Resource
 //===========================================================================
 
@@ -216,7 +319,7 @@ func (s *APIv1) SecureEnvelopeDetail(ctx context.Context, transactionID uuid.UUI
 	return out, nil
 }
 
-func (s *APIv1) DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (out *DecryptedEnvelope, err error) {
+func (s *APIv1) DecryptedEnvelopeDetail(ctx context.Context, transactionID uuid.UUID, envID ulid.ULID) (out *Envelope, err error) {
 	var params url.Values
 	if params, err = query.Values(&EnvelopeQuery{Decrypt: true}); err != nil {
 		return nil, fmt.Errorf("could not encode envelope query: %w", err)
