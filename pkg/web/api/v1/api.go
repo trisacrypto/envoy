@@ -35,7 +35,7 @@ type Client interface {
 	// Transaction Detail Actions
 	Preview(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
 	SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
-	Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
+	Accept(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
 	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)
 
 	// SecureEnvelopes Resource

@@ -24,6 +24,11 @@ import (
 // Transaction Resource
 //===========================================================================
 
+const (
+	DetailFull    = "full"
+	DetailPreview = "preview"
+)
+
 type Transaction struct {
 	ID                 uuid.UUID  `json:"id"`
 	Source             string     `json:"source"`
@@ -76,6 +81,10 @@ type Rejection struct {
 	RequestRetry bool   `json:"request_retry"`
 }
 
+type TransactionQuery struct {
+	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
+}
+
 type EnvelopeQuery struct {
 	Decrypt  bool `json:"decrypt" url:"decrypt,omitempty" form:"decrypt"`
 	Archives bool `json:"archives" url:"archives,omitempty" form:"archives"`
@@ -97,6 +106,10 @@ type EnvelopesList struct {
 	SecureEnvelopes    []*SecureEnvelope `json:"secure_envelopes,omitempty"`
 	DecryptedEnvelopes []*Envelope       `json:"decrypted_envelopes,omitempty"`
 }
+
+//===========================================================================
+// Transactions
+//===========================================================================
 
 func NewTransaction(model *models.Transaction) (*Transaction, error) {
 	tx := &Transaction{
@@ -193,6 +206,10 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	return model, nil
 }
 
+//===========================================================================
+// SecureEnvelopes
+//===========================================================================
+
 func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err error) {
 	out = &SecureEnvelope{
 		ID:                  model.ID,
@@ -235,6 +252,10 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 
 	return out, nil
 }
+
+//===========================================================================
+// Envelopes
+//===========================================================================
 
 func NewEnvelope(env *envelope.Envelope) (out *Envelope, err error) {
 	switch state := env.State(); state {
@@ -341,6 +362,27 @@ func (e *Envelope) Payload() (payload *trisa.Payload, err error) {
 
 	return payload, nil
 }
+
+//===========================================================================
+// Transaction Query
+//===========================================================================
+
+func (q *TransactionQuery) Validate() (err error) {
+	// Handle parsing and default values
+	q.Detail = strings.ToLower(strings.TrimSpace(q.Detail))
+	if q.Detail == "" {
+		q.Detail = DetailFull
+	}
+
+	if q.Detail != DetailFull && q.Detail != DetailPreview {
+		err = ValidationError(err, IncorrectField("detail", "should either be 'full' or 'preview'"))
+	}
+	return err
+}
+
+//===========================================================================
+// Helper Utilities
+//===========================================================================
 
 func parseTimestamp(ts string) (_ *time.Time, err error) {
 	ts = strings.TrimSpace(ts)

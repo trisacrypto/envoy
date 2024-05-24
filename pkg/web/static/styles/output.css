@@ -2586,6 +2586,10 @@ html {
   height: 1rem;
 }
 
+.max-h-\[450px\] {
+  max-height: 450px;
+}
+
 .max-h-full {
   max-height: 100%;
 }
@@ -2632,6 +2636,10 @@ html {
 
 .max-w-3xl {
   max-width: 48rem;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
 }
 
 .max-w-7xl {
@@ -3202,6 +3210,10 @@ body main {
   color: rgb(17 24 39 / var(--tw-text-opacity)) !important;
 }
 
+.transaction-preview-container {
+  margin-bottom: 1rem;
+}
+
 @media (min-width: 768px) {
   .md\:tooltip-right:before {
     transform: translateY(-50%);
@@ -3317,10 +3329,6 @@ body main {
 
   .md\:flex {
     display: flex;
-  }
-
-  .md\:w-1\/3 {
-    width: 33.333333%;
   }
 
   .md\:w-44 {
