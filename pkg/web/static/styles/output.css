@@ -2718,10 +2718,6 @@ html {
   overflow-y: auto;
 }
 
-.text-wrap {
-  text-wrap: wrap;
-}
-
 .text-balance {
   text-wrap: balance;
 }
@@ -3219,11 +3215,6 @@ body main {
 }
 
 @media (min-width: 768px) {
-  .transaction-preview-container {
-    display: flex;
-    justify-content: space-between;
-  }
-
   .md\:tooltip-right:before {
     transform: translateY(-50%);
     top: 50%;

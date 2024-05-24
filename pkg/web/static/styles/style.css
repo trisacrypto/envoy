@@ -47,5 +47,5 @@ body main {
 }
 
 .transaction-preview-container {
-  @apply mb-4 md:flex md:justify-between;
+  @apply mb-4;
 }
