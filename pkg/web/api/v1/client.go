@@ -186,7 +186,7 @@ func (s *APIv1) Prepare(ctx context.Context, in *Prepare) (out *Prepared, err er
 	return out, nil
 }
 
-const sendPreparedEP = "send"
+const sendPreparedEP = "send-prepared"
 
 func (s *APIv1) SendPrepared(ctx context.Context, in *Prepared) (out *Transaction, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, sendPreparedEP)
@@ -257,9 +257,9 @@ func (s *APIv1) SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *E
 
 const acceptEP = "accept"
 
-func (s *APIv1) Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
+func (s *APIv1) Accept(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), acceptEP)
-	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+	if err = s.Create(ctx, endpoint, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

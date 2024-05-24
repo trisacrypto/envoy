@@ -18,11 +18,11 @@
                 then add .hidden to #success-toast
                 then reset() the #secure-envelope-form
                 then reload() the location of the window
-                then go to top of the body" 
-          hx-post="/v1/transactions/send" 
-          hx-target="#secure-envelope-form" 
-          hx-swap="none" 
-          hx-ext="json-enc" 
+                then go to top of the body"
+          hx-post="/v1/transactions/send-prepared"
+          hx-target="#secure-envelope-form"
+          hx-swap="none"
+          hx-ext="json-enc"
           method="post"
           >
           <input type="hidden" id="travel_address" name="travel_address" value="{{ .Dump }}" />

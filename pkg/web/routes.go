@@ -151,13 +151,12 @@ func (s *Server) setupRoutes() (err error) {
 
 			// Primarily UI methods but are also API Helper Methods
 			transactions.POST("/prepare", authorize(permiss.TravelRuleManage), s.PrepareTransaction)
-			transactions.POST("/send", authorize(permiss.TravelRuleManage), s.SendPreparedTransaction)
+			transactions.POST("/send-prepared", authorize(permiss.TravelRuleManage), s.SendPreparedTransaction)
 
 			// Export method to export transactions to a CSV
 			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
 
 			// Transaction specific actions
-			transactions.GET("/:id/info", authorize(permiss.TravelRuleView), s.TransactionInfo)
 			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
 			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
 			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)
