@@ -5,8 +5,6 @@
         <th>Name</th>
         <th>Website</th>
         <th>Protocol</th>
-        <th>Optional Signing Key</th>
-        <th>Auto Accept</th>
         <th>Date Added</th>
         <th>Action</th>
       </tr>
@@ -18,8 +16,6 @@
         <td>{{ .Name }}</td>
         <td>{{ .Website }}</td>
         <td>{{ .Protocol }}</td>
-        <td class="px-16">-</td>
-        <td class="px-16">-</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
         <td>
