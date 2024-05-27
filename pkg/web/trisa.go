@@ -175,3 +175,7 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 
 	return cp, nil
 }
+
+func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err error) {
+	return out, nil
+}
