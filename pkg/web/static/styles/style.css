@@ -51,5 +51,5 @@ body main {
 }
 
 .badge-style {
-  @apply mt-1 badge badge-info badge-lg;
+  @apply mt-1 badge badge-primary badge-lg text-white;
 }
