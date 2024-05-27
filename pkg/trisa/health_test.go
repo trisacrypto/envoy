@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/bufconn"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 )
 
@@ -11,7 +12,7 @@ func (s *trisaTestSuite) TestStatus() {
 	require := s.Require()
 
 	// Create a new TRISAHealth service client
-	creds, err := loadClientCredentials("bufnet", "testdata/certs/client.trisatest.dev.pem")
+	creds, err := loadClientCredentials(bufconn.Endpoint, "testdata/certs/client.trisatest.dev.pem")
 	require.NoError(err, "could not load client credentiasls")
 
 	cc, err := s.conn.Connect(context.Background(), creds)

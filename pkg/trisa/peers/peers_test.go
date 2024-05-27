@@ -13,7 +13,13 @@ import (
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/resolver"
 )
+
+func init() {
+	// Required for buffconn testing.
+	resolver.SetDefaultScheme("passthrough")
+}
 
 func TestPeers(t *testing.T) {
 	_, err := peers.New(&peers.Info{})
@@ -55,7 +61,7 @@ func TestPeers(t *testing.T) {
 }
 
 func TestPeerTransfer(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.Transfer(context.TODO(), &api.SecureEnvelope{})
@@ -74,7 +80,7 @@ func TestPeerTransfer(t *testing.T) {
 }
 
 func TestPeerTransferStream(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.TransferStream(context.TODO())
@@ -98,7 +104,7 @@ func TestPeerTransferStream(t *testing.T) {
 }
 
 func TestPeerKeyExchange(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.KeyExchange(context.TODO(), &api.SigningKey{})
@@ -117,7 +123,7 @@ func TestPeerKeyExchange(t *testing.T) {
 }
 
 func TestPeerConfirmAddress(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.ConfirmAddress(context.TODO(), &api.Address{})
@@ -130,13 +136,13 @@ func TestPeerConfirmAddress(t *testing.T) {
 
 	// Should be able to make confirm address request to bufconn remote
 	rep, err := peer.ConfirmAddress(context.TODO(), &api.Address{})
-	require.NoError(t, err, "could not make confirma ddress request to remote peer")
+	require.NoError(t, err, "could not make confirm address request to remote peer")
 	require.NotNil(t, rep, "received unexpected response from remote peer")
 	require.Equal(t, 1, mrp.Calls[mock.ConfirmAddressRPC], "mock remote peer should have been called")
 }
 
 func TestPeerStatus(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.Status(context.TODO(), &api.HealthCheck{})

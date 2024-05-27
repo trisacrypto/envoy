@@ -85,7 +85,7 @@ func (g *GDS) connectDirectory(opts ...grpc.DialOption) (cc *grpc.ClientConn, er
 		}
 	}
 
-	if cc, err = grpc.Dial(g.conf.Directory.Endpoint, opts...); err != nil {
+	if cc, err = grpc.NewClient(g.conf.Directory.Endpoint, opts...); err != nil {
 		return nil, fmt.Errorf("could not connect to %s: %s", g.conf.Directory.Endpoint, err)
 	}
 	return cc, nil
@@ -116,7 +116,7 @@ func (g *GDS) connectMembers(opts ...grpc.DialOption) (cc *grpc.ClientConn, err 
 		}
 	}
 
-	if cc, err = grpc.Dial(g.conf.Directory.MembersEndpoint, opts...); err != nil {
+	if cc, err = grpc.NewClient(g.conf.Directory.MembersEndpoint, opts...); err != nil {
 		return nil, fmt.Errorf("could not connect to %s: %s", g.conf.Directory.MembersEndpoint, err)
 	}
 	return cc, nil
