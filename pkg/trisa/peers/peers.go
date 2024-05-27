@@ -90,7 +90,7 @@ func (p *TRISAPeer) Connect(opts ...grpc.DialOption) (err error) {
 		return err
 	}
 
-	if p.conn, err = grpc.Dial(p.info.Endpoint, opts...); err != nil {
+	if p.conn, err = grpc.NewClient(p.info.Endpoint, opts...); err != nil {
 		return err
 	}
 

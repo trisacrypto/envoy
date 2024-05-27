@@ -68,7 +68,7 @@ func TestFromContext(t *testing.T) {
 
 	// Connect a TRISANetwork client to the authenticated mock
 	opts = append(opts, grpc.WithContextDialer(bufnet.Dialer))
-	cc, err := grpc.Dial("alice.vaspbot.net", opts...)
+	cc, err := grpc.NewClient("alice.vaspbot.net", opts...)
 	require.NoError(t, err, "could not dial authenticated remote peer mock")
 
 	// Setup to get the context from the remote dialer

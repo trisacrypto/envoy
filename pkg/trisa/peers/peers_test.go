@@ -13,7 +13,13 @@ import (
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/resolver"
 )
+
+func init() {
+	// Required for buffconn testing.
+	resolver.SetDefaultScheme("passthrough")
+}
 
 func TestPeers(t *testing.T) {
 	_, err := peers.New(&peers.Info{})
@@ -130,7 +136,7 @@ func TestPeerConfirmAddress(t *testing.T) {
 
 	// Should be able to make confirm address request to bufconn remote
 	rep, err := peer.ConfirmAddress(context.TODO(), &api.Address{})
-	require.NoError(t, err, "could not make confirma ddress request to remote peer")
+	require.NoError(t, err, "could not make confirm address request to remote peer")
 	require.NotNil(t, rep, "received unexpected response from remote peer")
 	require.Equal(t, 1, mrp.Calls[mock.ConfirmAddressRPC], "mock remote peer should have been called")
 }

@@ -21,9 +21,15 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
 	"github.com/trisacrypto/trisa/pkg/trust"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+func init() {
+	// Required for buffconn testing.
+	resolver.SetDefaultScheme("passthrough")
+}
 
 type trisaTestSuite struct {
 	suite.Suite
