@@ -18,7 +18,7 @@
     <tbody>
       {{ if .Transactions }}
       {{ range .Transactions }}
-      <tr class="text-center">
+      <tr class="hover text-center">
         <td>
           {{ if eq .Source "local" }}
           <div class="tooltip tooltip-right" data-tip="Outgoing transaction from local VASP">
