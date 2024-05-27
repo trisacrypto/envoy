@@ -8,11 +8,11 @@
       </button>
     </div>
     <div class="my-4">
-      <form method="dialog" hx-post="">
+      <form id="transaction-reject-form" method="dialog">
         <div class="my-4">
           <label for="transaction-rejection" class="label-style">Select a reason for rejecting the transaction:</label>
-          <select id="transaction-rejection" name="code"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <select id="transaction-rejection" name="code"
+            class="!bg-gray-50 border !border-gray-300 !text-gray-900 rounded-lg focus:!ring-blue-500 focus:!border-blue-500 block w-full p-2.5">
             <option value="REJECTED">Rejected</option>
             <option value="UNKNOWN_WALLET_ADDRESS">Unknown Wallet Address</option>
             <option value="UNKNOWN_IDENTITY">Unknown Identity</option>
@@ -32,14 +32,14 @@
         </div>
         <div class="my-4">
           <label for="notes" class="label-style">Notes</label>
-          <textarea id="notes" name="message" rows="4"
+          <textarea id="notes" name="message" rows="4" required
             class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
         </div>
         <div class="flex items-center gap-x-1.5 mb-4">
-          <input type="checkbox" id="retry" name="retry" value="true"
+          <input type="checkbox" id="request_retry" name="request_retry" value="true"
             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
           <div class="flex items-center gap-x-1">
-            <label for="retry" class="text-gray-900">Request repair?</label>
+            <label for="request_retry" class="text-gray-900">Request repair?</label>
             <div class="tooltip tooltip-top md:tooltip-right"
               data-tip="Select this checkbox to send a repair message to the originating VASP to try again if more information is required or something went wrong while handling the travel rule information exchange.">
               <button class="pt-2">

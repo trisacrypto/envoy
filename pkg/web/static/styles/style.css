@@ -17,6 +17,7 @@ body main {
   --tooltip-text-color: white;
 }
 
+/* Form styles */
 .input-style {
   @apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5;
 }
@@ -25,15 +26,16 @@ body main {
   @apply mb-1 block font-bold;
 }
 
-.envelope-header {
-  @apply text-balance text-sm text-left sm:text-base;
+#transaction-rejection {
+  background: url("data:image/svg+xml,<svg height='10px' width='10px' viewBox='0 0 24 24' fill='black' stroke-width='1.5' stroke='currentColor' class='size-6' xmlns='http://www.w3.org/2000/svg'>=<path stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /></svg>") no-repeat;
+  background-position: calc(100% - 0.75rem) center !important;
+  -moz-appearance:none !important;
+  -webkit-appearance: none !important; 
+  appearance: none !important;
+  padding-right: 2rem !important;
 }
 
-.envelope-data {
-  @apply text-sm sm:text-base p-2 md:px-6 md:py-4 max-w-44 break-words;
-}
-
-/* Select network styles */
+/* Slim select styles */
 .ss-main {
   @apply !bg-gray-50 !border-gray-300 !text-gray-900 !text-sm !rounded-lg focus:!ring-blue-500 focus:!border-blue-500 !w-full !p-2.5;
 }
@@ -46,6 +48,14 @@ body main {
   @apply !text-gray-900;
 }
 
+.envelope-header {
+  @apply text-balance text-sm text-left sm:text-base;
+}
+
+.envelope-data {
+  @apply text-sm sm:text-base p-2 md:px-6 md:py-4 max-w-44 break-words;
+}
+
 .transaction-preview-container {
   @apply mb-4;
 }
@@ -53,3 +63,4 @@ body main {
 .badge-style {
   @apply mt-1 badge badge-primary badge-lg text-white;
 }
+
