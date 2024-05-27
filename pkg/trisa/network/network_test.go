@@ -267,5 +267,5 @@ func TestString(t *testing.T) {
 	require.NoError(t, err, "could not create mocked trisa network")
 	defer trisa.Close()
 
-	require.Equal(t, trisa.String(), "bufnet", "stringer should return conf.Directory.Network()")
+	require.Equal(t, "bufnet", trisa.String(), "stringer should return conf.Directory.Network()")
 }

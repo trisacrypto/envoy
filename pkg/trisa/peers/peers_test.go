@@ -61,7 +61,7 @@ func TestPeers(t *testing.T) {
 }
 
 func TestPeerTransfer(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.Transfer(context.TODO(), &api.SecureEnvelope{})
@@ -80,7 +80,7 @@ func TestPeerTransfer(t *testing.T) {
 }
 
 func TestPeerTransferStream(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.TransferStream(context.TODO())
@@ -104,7 +104,7 @@ func TestPeerTransferStream(t *testing.T) {
 }
 
 func TestPeerKeyExchange(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.KeyExchange(context.TODO(), &api.SigningKey{})
@@ -123,7 +123,7 @@ func TestPeerKeyExchange(t *testing.T) {
 }
 
 func TestPeerConfirmAddress(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.ConfirmAddress(context.TODO(), &api.Address{})
@@ -142,7 +142,7 @@ func TestPeerConfirmAddress(t *testing.T) {
 }
 
 func TestPeerStatus(t *testing.T) {
-	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: "bufnet"})
+	peer, err := peers.New(&peers.Info{CommonName: "bufnet", Endpoint: bufconn.Endpoint})
 	require.NoError(t, err, "could not create new bufnet peer")
 
 	_, err = peer.Status(context.TODO(), &api.HealthCheck{})

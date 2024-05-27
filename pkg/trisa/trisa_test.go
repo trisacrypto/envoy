@@ -57,8 +57,8 @@ func (s *trisaTestSuite) SetupSuite() {
 		KeyExchangeCacheTTL: 60 * time.Second,
 		Directory: config.DirectoryConfig{
 			Insecure:        true,
-			Endpoint:        "bufnet",
-			MembersEndpoint: "bufnet",
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
 		},
 	}
 
@@ -76,7 +76,7 @@ func (s *trisaTestSuite) SetupSuite() {
 	go s.svc.Run(s.conn.Sock())
 
 	// Load client credentials
-	creds, err := loadClientCredentials("bufnet", "testdata/certs/client.trisatest.dev.pem")
+	creds, err := loadClientCredentials(bufconn.Endpoint, "testdata/certs/client.trisatest.dev.pem")
 	assert.NoError(err, "could not load client credentials")
 
 	// Create the network client for testing (health client created seperately)
