@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 
@@ -422,27 +424,31 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		return
 	}
 
+	// TODO: update transaction state based on response from counterparty
 	if err = db.Commit(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("transfer sent but unable to store secure envelopes locally"))
 		return
 	}
 
-	// TODO: update transaction state based on response from counterparty
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page.
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+		detailURL, _ := url.JoinPath("/v1/transactions", transaction.ID.String())
+		htmx.Redirect(c, http.StatusFound, detailURL)
+		return
+	}
 
 	// TODO: we need to get the incoming envelope in order for this to work!
-	// Convert the incoming envelope into something readable for the end user
+	// If the content request is JSON (e.g. the API) then render the incoming envelope
+	// as the response by decrypting it and sending it back to the user.
 	if out, err = api.NewEnvelope(incoming); err != nil {
 		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "envelope_sent.html",
-	})
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) AcceptTransaction(c *gin.Context) {
@@ -531,27 +537,31 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
+	// TODO: update transaction state based on response from counterparty
 	if err = db.Commit(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("transfer sent but unable to store secure envelopes locally"))
 		return
 	}
 
-	// TODO: update transaction state based on response from counterparty
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page.
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+		detailURL, _ := url.JoinPath("/v1/transactions", transaction.ID.String())
+		htmx.Redirect(c, http.StatusFound, detailURL)
+		return
+	}
 
 	// TODO: we need to get the incoming envelope in order for this to work!
-	// Convert the incoming envelope into something readable for the end user
+	// If the content request is JSON (e.g. the API) then render the incoming envelope
+	// as the response by decrypting it and sending it back to the user.
 	if out, err = api.NewEnvelope(incoming); err != nil {
 		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "envelope_sent.html",
-	})
+	c.JSON(http.StatusOK, out)
 }
 
 //===========================================================================
