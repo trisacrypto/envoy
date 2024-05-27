@@ -434,7 +434,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		detailURL, _ := url.JoinPath("/v1/transactions", transaction.ID.String())
+		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
 		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
@@ -547,7 +547,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		detailURL, _ := url.JoinPath("/v1/transactions", transaction.ID.String())
+		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
 		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
