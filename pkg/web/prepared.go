@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -13,7 +12,6 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
-	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 func (s *Server) PrepareTransaction(c *gin.Context) {
@@ -110,7 +108,6 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		counterparty *models.Counterparty
 		payload      *trisa.Payload
 		outgoing     *envelope.Envelope
-		incoming     *envelope.Envelope
 	)
 
 	in = &api.Prepared{}
@@ -162,43 +159,10 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	}
 
 	// Send the secure envelope and get secure envelope response
-	// TODO: determine if this is a TRISA or TRP transfer and send TRP
-	if outgoing, incoming, err = s.SendTRISATransfer(c.Request.Context(), outgoing, counterparty); err != nil {
+	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
+	if err = s.SendEnvelope(c.Request.Context(), outgoing, counterparty, db); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty"))
-		return
-	}
-
-	// TODO: unify secure envelope database storage code (See SendEnvelopeForTransaction)
-	// Save outgoing envelope to the database
-	storeOutgoing := models.FromOutgoingEnvelope(outgoing)
-
-	// Fetch the public key for storing the outgoing envelope
-	var storageKey keys.PublicKey
-	if storageKey, err = s.trisa.StorageKey(incoming.Proto().PublicKeySignature, counterparty.CommonName); err != nil {
-		c.Error(fmt.Errorf("could not fetch storage key: %w", err))
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete send transfer request"))
-		return
-	}
-
-	// Update the cryptography on the outgoing message for storage
-	if err = storeOutgoing.Reseal(storageKey, outgoing.Crypto()); err != nil {
-		c.Error(fmt.Errorf("could not encrypt outgoing message for storage: %w", err))
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete send transfer request"))
-		return
-	}
-
-	if err = db.AddEnvelope(storeOutgoing); err != nil {
-		c.Error(fmt.Errorf("could not store outgoing message: %w", err))
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete send transfer request"))
-		return
-	}
-
-	// Saving incoming envelope to the database
-	storeIncoming := models.FromIncomingEnvelope(incoming)
-	if err = db.AddEnvelope(storeIncoming); err != nil {
-		c.Error(fmt.Errorf("could not store incoming message: %w", err))
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete send transfer request"))
 		return
 	}
 
@@ -215,6 +179,8 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete send transfer request"))
 		return
 	}
+
+	// TODO: update transaction state based on response from counterparty
 
 	// Create the API response to send back to the user
 	if out, err = api.NewTransaction(model); err != nil {
