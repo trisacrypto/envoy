@@ -19,15 +19,13 @@
   const requestRetry = document.getElementById('request_retry')
   const transactionID = "{{ .ID }}"
   document.body.addEventListener('htmx:configRequest', (e) => {
-      if (e.detail.path === `/v1/transactions/${transactionID}/reject` && e.detail.verb === 'post') {
-        const retryTransaction = requestRetry?.checked;
-        e.detail.parameters = {
-          ...e.detail.parameters,
-          request_retry: retryTransaction,
-        };
+    if (e.detail.path === `/v1/transactions/${transactionID}/reject` && e.detail.verb === 'post') {
+      const retryTransaction = requestRetry?.checked;
+      e.detail.parameters = {
+        ...e.detail.parameters,
+        request_retry: retryTransaction,
       };
-
-      console.log(e);
+    };
   });
 </script>
 {{ end }}

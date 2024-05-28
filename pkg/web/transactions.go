@@ -553,6 +553,12 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_reject.html",
+	})
+
 	// TODO: we need to get the incoming envelope in order for this to work!
 	// If the content request is JSON (e.g. the API) then render the incoming envelope
 	// as the response by decrypting it and sending it back to the user.
@@ -561,12 +567,6 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
 	}
-
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_reject.html",
-	})
 
 	c.JSON(http.StatusOK, out)
 }
