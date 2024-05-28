@@ -289,7 +289,6 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	var (
 		err           error
 		transactionID uuid.UUID
-		transaction   *models.Transaction
 		env           *models.SecureEnvelope
 		decrypted     *envelope.Envelope
 		out           *api.Envelope
@@ -301,23 +300,11 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	// Retrieve the transaction from the database, ensuring it exists
+	// Retrieve the latest secure envelope for the transaction from the database
 	ctx := c.Request.Context()
-	if transaction, err = s.store.RetrieveTransaction(ctx, transactionID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Retrieve the latest secure envelope from the database
 	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("latest secure envelope not found"))
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
 		}
 
@@ -339,21 +326,10 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	// Create the web response, which also includes the transaction details.
-	webData := gin.H{
-		"envelope":    out,
-		"transaction": nil,
-	}
-
-	if webData["transaction"], err = api.NewTransaction(transaction); err != nil {
-		c.Error(err)
-	}
-
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "transaction_accept.html",
-		HTMLData: webData,
 	})
 }
 
