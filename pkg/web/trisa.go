@@ -175,3 +175,37 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 
 	return cp, nil
 }
+
+func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err error) {
+	// TODO: do we need the counterparty common name?
+	var unsealingKey keys.PrivateKey
+	if unsealingKey, err = s.trisa.UnsealingKey(in.PublicKey.String, ""); err != nil {
+		return nil, err
+	}
+
+	var unseal interface{}
+	if unseal, err = unsealingKey.UnsealingKey(); err != nil {
+		return nil, err
+	}
+
+	// If the direction is outgoing, update the keys on the envelope
+	if in.Direction == models.DirectionOutgoing {
+		in.Envelope.EncryptionKey = in.EncryptionKey
+		in.Envelope.HmacSecret = in.HMACSecret
+	}
+
+	// Wrap the secure envelope and unseal then decrypt it
+	if out, err = envelope.Wrap(in.Envelope); err != nil {
+		return nil, err
+	}
+
+	if out, _, err = out.Unseal(envelope.WithUnsealingKey(unseal)); err != nil {
+		return nil, err
+	}
+
+	if out, _, err = out.Decrypt(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}

@@ -46,6 +46,10 @@ func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedT
 	return nil, nil
 }
 
+func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+	return nil, nil
+}
+
 func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
 	return nil, nil
 }

@@ -31,6 +31,7 @@ const (
 	DirectionOutgoing = DirectionOut
 	DirectionIn       = "in"
 	DirectionIncoming = DirectionIn
+	DirectionAny      = "any"
 )
 
 func ValidStatus(status string) bool {

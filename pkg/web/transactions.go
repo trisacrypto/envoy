@@ -286,12 +286,12 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) AcceptTransactionPreview(c *gin.Context) {
-	// TODO: also return the latest secure envelope for processing.
 	var (
 		err           error
 		transactionID uuid.UUID
-		transaction   *models.Transaction
-		out           *api.Transaction
+		env           *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Envelope
 	)
 
 	// Parse the transactionID passed in from the URL
@@ -300,7 +300,9 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+	// Retrieve the latest secure envelope for the transaction from the database
+	ctx := c.Request.Context()
+	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -311,7 +313,14 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	if out, err = api.NewTransaction(transaction); err != nil {
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(decrypted); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
