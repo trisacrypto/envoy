@@ -43,8 +43,8 @@ func TestGDSConnect(t *testing.T) {
 	conf := config.TRISAConfig{
 		Directory: config.DirectoryConfig{
 			Insecure:        true,
-			Endpoint:        "bufnet",
-			MembersEndpoint: "bufnet",
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
 		},
 	}
 
@@ -77,8 +77,8 @@ func TestGDSDefaultConnect(t *testing.T) {
 	conf := config.TRISAConfig{
 		Directory: config.DirectoryConfig{
 			Insecure:        false,
-			Endpoint:        "bufnet",
-			MembersEndpoint: "bufnet",
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
 		},
 	}
 
@@ -227,8 +227,8 @@ func createMockGDS(t *testing.T) (mgds *mockgds.GDS, directory *gds.GDS) {
 	conf := config.TRISAConfig{
 		Directory: config.DirectoryConfig{
 			Insecure:        true,
-			Endpoint:        "bufnet",
-			MembersEndpoint: "bufnet",
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
 		},
 	}
 

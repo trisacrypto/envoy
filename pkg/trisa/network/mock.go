@@ -3,6 +3,7 @@ package network
 import (
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	directory "github.com/trisacrypto/envoy/pkg/trisa/gds"
 	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
@@ -28,8 +29,8 @@ func NewMocked(conf *config.TRISAConfig) (_ Network, err error) {
 			KeyExchangeCacheTTL: 1 * time.Second,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,
-				Endpoint:        "bufnet",
-				MembersEndpoint: "bufnet",
+				Endpoint:        bufconn.Endpoint,
+				MembersEndpoint: bufconn.Endpoint,
 			},
 		}
 	}

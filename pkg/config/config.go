@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -201,6 +202,13 @@ func (c DirectoryConfig) Network() string {
 	endpoint := c.Endpoint
 	if endpoint == "" {
 		return ""
+	}
+
+	// Strip off any scheme if present
+	if uri, err := url.Parse(c.Endpoint); err == nil {
+		if uri.Host != "" {
+			endpoint = uri.Host
+		}
 	}
 
 	endpoint = strings.Split(endpoint, ":")[0] // strip the port from the endpoint

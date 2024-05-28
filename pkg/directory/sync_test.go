@@ -29,8 +29,8 @@ func TestStartStop(t *testing.T) {
 			KeyExchangeCacheTTL: 24 * time.Hour,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,
-				Endpoint:        "bufnet",
-				MembersEndpoint: "bufnet",
+				Endpoint:        bufconn.Endpoint,
+				MembersEndpoint: bufconn.Endpoint,
 			},
 		},
 		DirectorySync: config.DirectorySyncConfig{
@@ -90,8 +90,8 @@ func TestSync(t *testing.T) {
 			KeyExchangeCacheTTL: 24 * time.Hour,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,
-				Endpoint:        "bufnet",
-				MembersEndpoint: "bufnet",
+				Endpoint:        bufconn.Endpoint,
+				MembersEndpoint: bufconn.Endpoint,
 			},
 		},
 		DirectorySync: config.DirectorySyncConfig{
