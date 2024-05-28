@@ -17,9 +17,11 @@
 {{ define "appcode" }}
 <script>
   const requestRetry = document.getElementById('request_retry')
-  const transactionID = "{{ .ID }}"
+  const rejectEP = "/v1/transactions/{{ .ID }}/reject"
+
+  // Determine if the request repair checkbox is checked and add to the request parameters.
   document.body.addEventListener('htmx:configRequest', (e) => {
-    if (e.detail.path === `/v1/transactions/${transactionID}/reject` && e.detail.verb === 'post') {
+    if (e.detail.path === rejectEP && e.detail.verb === 'post') {
       const retryTransaction = requestRetry?.checked;
       e.detail.parameters = {
         ...e.detail.parameters,
@@ -27,5 +29,13 @@
       };
     };
   });
+
+  // Reset the reject transaction form if the request is successful.
+  document.body.addEventListener('htmx:afterRequest', (e) => {
+    if (e.detail.requestConfig.path === rejectEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+      const transactionRejectForm = document.getElementById('transaction-reject-form')
+      transactionRejectForm.reset()
+    }
+  })
 </script>
 {{ end }}
