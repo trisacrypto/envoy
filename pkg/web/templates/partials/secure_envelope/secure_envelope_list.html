@@ -1,1 +1,9 @@
-<div></div>
+<section>
+  <h2 class="text-xl font-bold">Secure Envelopes</h2>
+  {{ if .SecureEnvelopes }}
+  <h3>Envelopes</h3>
+  {{ else }}
+  <p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
+  <!-- TODO: Style secure envelope list and call the secure envelope detail for each envelope-->
+  {{ end }}
+</section>

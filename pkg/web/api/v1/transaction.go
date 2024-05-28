@@ -8,6 +8,8 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
@@ -204,6 +206,10 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	}
 
 	return model, nil
+}
+
+func (c *Transaction) TitleStatus() string {
+	return cases.Title(language.English).String(c.Status)
 }
 
 //===========================================================================
