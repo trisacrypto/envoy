@@ -553,13 +553,11 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
-	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page.
-	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
-		htmx.Redirect(c, http.StatusFound, detailURL)
-		return
-	}
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_reject.html",
+	})
 
 	// TODO: we need to get the incoming envelope in order for this to work!
 	// If the content request is JSON (e.g. the API) then render the incoming envelope

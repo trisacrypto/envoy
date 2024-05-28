@@ -1,4 +1,4 @@
-document.body.addEventListener('htmx:configRequest', function(e) {
+document.body.addEventListener('htmx:configRequest', (e) => {
   e.detail.headers['Accept'] = 'text/html'
 });
 
@@ -30,15 +30,17 @@ document.body.addEventListener('htmx:responseError', (e) => {
   document.querySelector('.modal').close()
 
   // Display error response to user.
-  const error = JSON.parse(e.detail.xhr.response)
-  document.getElementById('toast')
-  .insertAdjacentHTML('beforeend', `
-  <div class="alert alert-error">
-    <i class="fa-solid fa-circle-xmark"></i>
-    <span>${error.error}</span>
-  </div>`)
+  if (e.detail.xhr.response !== '') {
+    const error = JSON.parse(e.detail.xhr.response)
+    document.getElementById('toast')
+      .insertAdjacentHTML('beforeend', `
+      <div class="alert alert-error">
+        <i class="fa-solid fa-circle-xmark"></i>
+        <span>${error.error}</span>
+      </div>`)
 
-  setTimeout(() => {
-    document.querySelector('.alert').remove()
-  }, 5000)
+    setTimeout(() => {
+      document.querySelector('.alert').remove()
+    }, 5000)
+  }
 })
