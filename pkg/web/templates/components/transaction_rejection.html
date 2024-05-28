@@ -8,7 +8,7 @@
       </button>
     </div>
     <div class="my-4">
-      <form id="transaction-reject-form" method="dialog">
+      <form id="transaction-reject-form" method="dialog" hx-post="/v1/transactions/{{ .ID }}/reject" hx-ext="json-enc" hx-swap="none">
         <div class="my-4">
           <label for="transaction-rejection" class="label-style">Select a reason for rejecting the transaction:</label>
             <select id="transaction-rejection" name="code"
@@ -36,7 +36,7 @@
             class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
         </div>
         <div class="flex items-center gap-x-1.5 mb-4">
-          <input type="checkbox" id="request_retry" name="request_retry" value="true"
+          <input type="checkbox" id="request_retry" name="request_retry"
             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
           <div class="flex items-center gap-x-1">
             <label for="request_retry" class="text-gray-900">Request repair?</label>
