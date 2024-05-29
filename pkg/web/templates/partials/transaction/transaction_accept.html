@@ -45,21 +45,22 @@
         </div>
         <div>
           <label for="orig_secondary_identifier" class="label-style">Secondary Identifier</label>
-          <input type="text" id="orig_secondary_identifier" name="orig_secondary_identifier" value="{{ .SecondaryIdentifier }}"
-            class="input-style" />
+          <input type="text" id="orig_secondary_identifier" name="orig_secondary_identifier"
+            value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
         <!-- TODO: Replace input with select -->
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <input type="text" id="orig_name_identifier_type" name="orig_name_identifier_type" value="{{ .NameIdentifierType }}"
-            class="input-style" />
+          <input type="text" id="orig_name_identifier_type" name="orig_name_identifier_type"
+            value="{{ .NameIdentifierType }}" class="input-style" />
         </div>
         {{ end }}
 
         {{ range $originatorAddress }}
         <div>
           <label for="orig_street_name" class="label-style">Street Address</label>
-          <input type="text" id="orig_street_name" name="orig_street_name" value="{{ .StreetName }}" class="input-style" />
+          <input type="text" id="orig_street_name" name="orig_street_name" value="{{ .StreetName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="orig_building_number" class="label-style">Building Number</label>
@@ -72,7 +73,8 @@
         </div>
         <div>
           <label for="orig_district_name" class="label-style">Region/Province/State</label>
-          <input type="text" id="orig_district_name" name="orig_district_name" value="{{ .DistrictName }}" class="input-style" />
+          <input type="text" id="orig_district_name" name="orig_district_name" value="{{ .DistrictName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="orig_post_code" class="label-style">Postal Code</label>
@@ -85,7 +87,8 @@
         </div>
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
-          <input type="text" id="orig_address_type" name="orig_address_type" value="{{ .AddressType }}" class="input-style" />
+          <input type="text" id="orig_address_type" name="orig_address_type" value="{{ .AddressType }}"
+            class="input-style" />
         </div>
         {{ end }}
 
@@ -103,7 +106,8 @@
         {{ range .Envelope.Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="orig_account_numbers" value="{{ . }}" class="input-style" />
+          <input type="text" id="orig_account_numbers" name="orig_account_numbers" value="{{ . }}"
+            class="input-style" />
         </div>
         {{ end }}
       </div>
@@ -122,21 +126,22 @@
         </div>
         <div>
           <label for="benf_secondary_identifier" class="label-style">Secondary Identifier</label>
-          <input type="text" id="benf_secondary_identifier" name="benf_secondary_identifier" value="{{ .SecondaryIdentifier }}"
-            class="input-style" />
+          <input type="text" id="benf_secondary_identifier" name="benf_secondary_identifier"
+            value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
         <!-- TODO: Replace input with select -->
         <div>
           <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <input type="text" id="benf_name_identifier_type" name="benf_name_identifier_type" value="{{ .NameIdentifierType }}"
-            class="input-style" />
+          <input type="text" id="benf_name_identifier_type" name="benf_name_identifier_type"
+            value="{{ .NameIdentifierType }}" class="input-style" />
         </div>
         {{ end }}
 
         {{ range $beneficiaryAddress }}
         <div>
           <label for="benf_street_name" class="label-style">Street Address</label>
-          <input type="text" id="benf_street_name" name="benf_street_name" value="{{ .StreetName }}" class="input-style" />
+          <input type="text" id="benf_street_name" name="benf_street_name" value="{{ .StreetName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="benf_building_number" class="label-style">Building Number</label>
@@ -149,7 +154,8 @@
         </div>
         <div>
           <label for="benf_district_name" class="label-style">Region/Province/State</label>
-          <input type="text" id="benf_district_name" name="benf_district_name" value="{{ .DistrictName }}" class="input-style" />
+          <input type="text" id="benf_district_name" name="benf_district_name" value="{{ .DistrictName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="benf_post_code" class="label-style">Postal Code</label>
@@ -162,7 +168,8 @@
         </div>
         <div>
           <label for="benf_address_type" class="label-style">Address Type</label>
-          <input type="text" id="benf_address_type" name="benf_address_type" value="{{ .AddressType }}" class="input-style" />
+          <input type="text" id="benf_address_type" name="benf_address_type" value="{{ .AddressType }}"
+            class="input-style" />
         </div>
         {{ end }}
 
@@ -180,7 +187,8 @@
         {{ range .Envelope.Identity.Beneficiary.AccountNumbers }}
         <div>
           <label for="benf_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="benf_account_numbers" name="benf_account_numbers" value="{{ . }}" class="input-style" />
+          <input type="text" id="benf_account_numbers" name="benf_account_numbers" value="{{ . }}"
+            class="input-style" />
         </div>
         {{ end }}
       </div>
@@ -194,35 +202,38 @@
         {{ range $originatingLegalPerson.NameIdentifiers }}
         <div>
           <label for="orig_vasp_legal_person_name" class="label-style">Legal Person Name</label>
-          <input type="text" id="orig_vasp_legal_person_name" name="orig_vasp_legal_person_name" value="{{ .LegalPersonName }}"
-            class="input-style" />
+          <input type="text" id="orig_vasp_legal_person_name" name="orig_vasp_legal_person_name"
+            value="{{ .LegalPersonName }}" class="input-style" />
         </div>
         <div>
-          <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-          <input type="text" id="orig_vasp_legal_person_name_identifier_type" name="orig_vasp_legal_person_name_identifier_type"
-            value="{{ .LegalPersonNameIdentifierType }}" class="input-style" />
+          <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
+            Type</label>
+          <input type="text" id="orig_vasp_legal_person_name_identifier_type"
+            name="orig_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}"
+            class="input-style" />
         </div>
         {{ end }}
 
         {{ range $originatingLegalPerson.LocalNameIdentifiers }}
         <div>
           <label for="orig_vasp_local_legal_name" class="label-style">Local Name Primary Identifier</label>
-          <input type="text" id="orig_vasp_local_legal_name" name="orig_vasp_local_legal_name" value="{{ .LegalPersonName }}"
-            class="input-style" />
+          <input type="text" id="orig_vasp_local_legal_name" name="orig_vasp_local_legal_name"
+            value="{{ .LegalPersonName }}" class="input-style" />
         </div>
         <!-- TODO: Replace identifier type input with select -->
         <div>
           <label for="orig_vasp_local_legal_name_identifier_type" class="label-style">Local Name Identifier Type</label>
-          <input type="text" id="orig_vasp_local_legal_name_identifier_type" name="orig_vasp_local_legal_name_identifier_type"
-            value="{{ .LegalPersonNameIdentifierType }}" class="input-style" />
+          <input type="text" id="orig_vasp_local_legal_name_identifier_type"
+            name="orig_vasp_local_legal_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}"
+            class="input-style" />
         </div>
         {{ end }}
 
         {{ range $originatingVasp.GeographicAddresses }}
         <div>
           <label for="orig_vasp_street_name" class="label-style">Street Address</label>
-          <input type="text" id="orig_vasp_street_name" name="orig_vasp_street_name"
-            value="{{ .StreetName }}" class="input-style" />
+          <input type="text" id="orig_vasp_street_name" name="orig_vasp_street_name" value="{{ .StreetName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="orig_vasp_building_number" class="label-style">Building Number</label>
@@ -236,8 +247,8 @@
         </div>
         <div>
           <label for="orig_vasp_district_name" class="label-style">Region/Province/State</label>
-          <input type="text" id="orig_vasp_district_name" name="orig_vasp_district_name"
-            value="{{ .DistrictName }}" class="input-style" />
+          <input type="text" id="orig_vasp_district_name" name="orig_vasp_district_name" value="{{ .DistrictName }}"
+            class="input-style" />
         </div>
         <div>
           <label for="orig_vasp_post_code" class="label-style">Postal Code</label>
@@ -252,8 +263,8 @@
         </div>
         <div>
           <label for="orig_vasp_address_type" class="label-style">Address Type</label>
-          <input type="text" id="orig_vasp_address_type" name="orig_vasp_address_type"
-            value="{{ .AddressType }}" class="input-style" />
+          <input type="text" id="orig_vasp_address_type" name="orig_vasp_address_type" value="{{ .AddressType }}"
+            class="input-style" />
         </div>
         {{ end }}
 
