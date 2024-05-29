@@ -26,17 +26,7 @@
         </div>
       </div>
       <div class="collapse-content">
-        <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load">
-          {{ if .SecureEnvelope.Payload }}
-          {{ range .SecureEnvelope.Payload }}
-          <div>{{ . }}</div>
-          {{ end }}
-          {{ end }}
-
-          {{ if .SecureEnvelope.Error }}
-          <p>{{ .SecureEnvelope.Error }}</p>
-          {{ end }}      
-        </div>
+        <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
       </div>
     </div>
   </div>
