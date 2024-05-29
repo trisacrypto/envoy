@@ -11,9 +11,15 @@ import (
 	gds "github.com/trisacrypto/trisa/pkg/trisa/gds/api/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+func init() {
+	// Required for buffconn testing.
+	resolver.SetDefaultScheme("passthrough")
+}
 
 const (
 	LookupRPC  = "trisa.gds.api.v1beta1.TRISADirectory/Lookup"

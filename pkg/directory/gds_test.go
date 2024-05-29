@@ -28,8 +28,8 @@ func TestPaginatedMembersIterator(t *testing.T) {
 	conf := config.TRISAConfig{
 		Directory: config.DirectoryConfig{
 			Insecure:        true,
-			Endpoint:        "bufnet",
-			MembersEndpoint: "bufnet",
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
 		},
 	}
 

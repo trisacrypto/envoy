@@ -31,6 +31,7 @@ const (
 	DirectionOutgoing = DirectionOut
 	DirectionIn       = "in"
 	DirectionIncoming = DirectionIn
+	DirectionAny      = "any"
 )
 
 func ValidStatus(status string) bool {
@@ -88,6 +89,13 @@ type PreparedTransaction interface {
 	AddEnvelope(*SecureEnvelope) error   // Associate a secure envelope with the prepared transaction
 	Rollback() error                     // Rollback the prepared transaction and conclude it
 	Commit() error                       // Commit the prepared transaction and conclude it
+}
+
+// EnvelopeStorage is a subset of the PreparedTransaction interface that focuses on
+// the database interactions with SecureEnvelopes. This sub-interface makes it easier to
+// write tests, though in practice the PreparedTransaction is passed in for this.
+type EnvelopeStorage interface {
+	AddEnvelope(*SecureEnvelope) error
 }
 
 func (t *Transaction) Scan(scanner Scanner) error {

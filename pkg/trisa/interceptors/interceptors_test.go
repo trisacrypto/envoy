@@ -5,7 +5,13 @@ import (
 	"testing"
 
 	"github.com/trisacrypto/envoy/pkg/logger"
+	"google.golang.org/grpc/resolver"
 )
+
+func init() {
+	// Required for buffconn testing.
+	resolver.SetDefaultScheme("passthrough")
+}
 
 func TestMain(m *testing.M) {
 	logger.Discard()

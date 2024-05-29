@@ -19,41 +19,60 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
-func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (cp *models.Counterparty, err error) {
-	var (
-		dst    string
-		dstURI *traddr.URL
-	)
-
-	if dst, err = traddr.Decode(address); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse the travel address"))
-		return nil, err
-	}
-
-	if dstURI, err = traddr.Parse(dst); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse travel address url"))
-		return nil, err
-	}
-
-	if cp, err = s.store.LookupCounterparty(c.Request.Context(), dstURI.Hostname()); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from travel address"))
-			return nil, err
+// SendEnvelope performs the bulk of the work to send a TRISA or TRP transaction to the
+// counterparty specified and storing both the outgoing and incoming secure envelopes in
+// the database. This method is used to send the prepared transaction, to send envelopes
+// for a transaction, and in the accept/reject workflows.
+func (s *Server) SendEnvelope(ctx context.Context, outgoing *envelope.Envelope, counterparty *models.Counterparty, db models.EnvelopeStorage) (err error) {
+	// Step 1: Determine if this is a TRISA or TRP transaction and use the correct handler
+	// to send the outgoing message (which might be updated during the send process) and to
+	// receive the incoming reply from the counterparty.
+	var incoming *envelope.Envelope
+	switch counterparty.Protocol {
+	case models.ProtocolTRISA:
+		if outgoing, incoming, err = s.SendTRISATransfer(ctx, outgoing, counterparty); err != nil {
+			return err
 		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
-		return nil, err
+	case models.ProtocolTRP:
+		// TODO: handle TRP transfers
+		return errors.New("the outgoing TRP send protocol is not implemented yet but is coming soon")
+	default:
+		return fmt.Errorf("could not send secure envelope: unknown protocol %q", counterparty.Protocol)
 	}
 
-	return cp, nil
+	// Step 2: Prepare to store the outgoing envelope by fetching the public key used to
+	// seal the incoming envelope from key storage.
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey(incoming.Proto().PublicKeySignature, counterparty.CommonName); err != nil {
+		// TODO: use the default keys if the incoming key is not known
+		return fmt.Errorf("could not fetch storage key: %w", err)
+	}
+
+	// Create the secure envelope model for the outgoing message
+	storeOutgoing := models.FromOutgoingEnvelope(outgoing)
+
+	// Update the cryptography on the outgoing message for storage (it needs to be
+	// stored with local keys since it was encrypted for the recipient).
+	if err = storeOutgoing.Reseal(storageKey, outgoing.Crypto()); err != nil {
+		return fmt.Errorf("could not encrypt outgoing message for storage: %w", err)
+	}
+
+	// Save the outgoing envelope to the database
+	if err = db.AddEnvelope(storeOutgoing); err != nil {
+		return fmt.Errorf("could not store outgoing message: %w", err)
+	}
+
+	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
+	// sent during the key exchange process of the transfer).
+	storeIncoming := models.FromIncomingEnvelope(incoming)
+	if err = db.AddEnvelope(storeIncoming); err != nil {
+		return fmt.Errorf("could not store incoming message: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envelope, counterparty *models.Counterparty) (_, incoming *envelope.Envelope, err error) {
-	// TODO: generalize the input and output context like we have to receive TRISA envelopes
-
 	// Get the peer from the specified counterparty
 	var peer peers.Peer
 	if peer, err = s.trisa.LookupPeer(ctx, counterparty.CommonName, ""); err != nil {
@@ -123,4 +142,70 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 	}
 
 	return outgoing, incoming, nil
+}
+
+func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (cp *models.Counterparty, err error) {
+	var (
+		dst    string
+		dstURI *traddr.URL
+	)
+
+	if dst, err = traddr.Decode(address); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse the travel address"))
+		return nil, err
+	}
+
+	if dstURI, err = traddr.Parse(dst); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse travel address url"))
+		return nil, err
+	}
+
+	if cp, err = s.store.LookupCounterparty(c.Request.Context(), dstURI.Hostname()); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from travel address"))
+			return nil, err
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return nil, err
+	}
+
+	return cp, nil
+}
+
+func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err error) {
+	// TODO: do we need the counterparty common name?
+	var unsealingKey keys.PrivateKey
+	if unsealingKey, err = s.trisa.UnsealingKey(in.PublicKey.String, ""); err != nil {
+		return nil, err
+	}
+
+	var unseal interface{}
+	if unseal, err = unsealingKey.UnsealingKey(); err != nil {
+		return nil, err
+	}
+
+	// If the direction is outgoing, update the keys on the envelope
+	if in.Direction == models.DirectionOutgoing {
+		in.Envelope.EncryptionKey = in.EncryptionKey
+		in.Envelope.HmacSecret = in.HMACSecret
+	}
+
+	// Wrap the secure envelope and unseal then decrypt it
+	if out, err = envelope.Wrap(in.Envelope); err != nil {
+		return nil, err
+	}
+
+	if out, _, err = out.Unseal(envelope.WithUnsealingKey(unseal)); err != nil {
+		return nil, err
+	}
+
+	if out, _, err = out.Decrypt(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }

@@ -387,6 +387,36 @@ func (q *TransactionQuery) Validate() (err error) {
 }
 
 //===========================================================================
+// Rejection
+//===========================================================================
+
+func (r *Rejection) Validate() (err error) {
+	// Check that the error code is valid
+	r.Code = strings.ToUpper(strings.TrimSpace(r.Code))
+	if _, ok := trisa.Error_Code_value[r.Code]; !ok {
+		err = ValidationError(err, IncorrectField("code", "not a valid TRISA error code as defined by the TRISA protocol buffers"))
+	}
+
+	// A rejection message is required from the user
+	r.Message = strings.TrimSpace(r.Message)
+	if r.Message == "" {
+		err = ValidationError(err, MissingField("message"))
+	}
+
+	return err
+}
+
+func (r *Rejection) Proto() *trisa.Error {
+	// Convert the Code into a TRISA error code; if it fails, use Unhandled. Ensure the
+	// Rejection message is validated before calling this method to catch errors.
+	return &trisa.Error{
+		Code:    trisa.Error_Code(trisa.Error_Code_value[r.Code]),
+		Message: r.Message,
+		Retry:   r.RequestRetry,
+	}
+}
+
+//===========================================================================
 // Helper Utilities
 //===========================================================================
 

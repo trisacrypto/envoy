@@ -19,6 +19,10 @@
   },
   "tags": [
     {
+      "name": "authentication",
+      "description": "Allow for authentication against Envoy node."
+    },
+    {
       "name": "account",
       "description": "Stored information about your user/customer accounts."
     },
@@ -69,6 +73,101 @@
         }
       }
     },
+    "/v1/authenticate": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Authenticate",
+        "operationId": "authenticate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "client_secret": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "invalid api credentials"
+          }
+        }
+      }
+    },
+    "/v1/reauthenticate": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Reauthenticate with refresh token",
+        "operationId": "reauthenticate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "invalid reauthentication credentials"
+          }
+        }
+      }
+    },
     "/v1/transactions": {
       "get": {
         "tags": [
@@ -77,6 +176,11 @@
         "summary": "List transactions",
         "description": "Paginated list of all transactions",
         "operationId": "listTransactions",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -97,6 +201,11 @@
         "summary": "Create transaction",
         "description": "Create a new transaction",
         "operationId": "createTransaction",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "requestBody": {
           "description": "Create a new transaction",
           "content": {
@@ -136,6 +245,11 @@
         "summary": "Find transaction by ID",
         "description": "Returns a single transaction if found",
         "operationId": "transactionDetail",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transactionID",
@@ -171,6 +285,11 @@
         "summary": "Updates a transaction record",
         "description": "Update a transaction record (does not patch, all fields are required)",
         "operationId": "updateTransaction",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transactionID",
@@ -209,6 +328,11 @@
         "summary": "Deletes a transaction",
         "description": "Deletes a transaction",
         "operationId": "deleteTransaction",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transactionID",
@@ -246,6 +370,11 @@
         "summary": "List secure envelopes for transaction",
         "description": "Paginated list of all secure envelopes for the specified transaction",
         "operationId": "listSecureEnvelopes",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transactionID",
@@ -280,6 +409,11 @@
         "summary": "Lookup a specific secure envelope",
         "description": "Returns detailed information about the specified secure envelope",
         "operationId": "envelopeDetail",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transactionID",
@@ -327,6 +461,11 @@
         "summary": "List customer accounts",
         "description": "Paginated list of all stored customer accounts",
         "operationId": "listAccounts",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -347,6 +486,11 @@
         "summary": "Create customer account",
         "description": "Create a new customer account",
         "operationId": "createAccount",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "requestBody": {
           "description": "Create a new customer account",
           "content": {
@@ -386,6 +530,11 @@
         "summary": "Find account by ID",
         "description": "Returns a single account if found",
         "operationId": "accountDetail",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -421,6 +570,11 @@
         "summary": "Updates an account record",
         "description": "Update an account record (does not patch, all fields are required)",
         "operationId": "updateAccount",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -459,6 +613,11 @@
         "summary": "Deletes an account",
         "description": "Deletes an account and associated crypto addresses",
         "operationId": "deleteAccount",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -496,6 +655,11 @@
         "summary": "list all crypto addresses for account",
         "description": "returns a paginated list of all crypto addresses associated with the account",
         "operationId": "listCryptoAddresses",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -531,6 +695,11 @@
         "summary": "Create crypto address",
         "description": "Create a crypto address associated with the specified account",
         "operationId": "createCryptoAddress",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -583,6 +752,11 @@
         "summary": "Lookup a specific crypto address",
         "description": "Returns detailed information about the specified crypto address",
         "operationId": "cryptoAddressesDetail",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -628,6 +802,11 @@
         "summary": "Update a crypto address",
         "description": "Update a crypto address record (does not patch, all fields are required)",
         "operationId": "updateCryptoAddresses",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -685,6 +864,11 @@
         "summary": "Delete a crypto address",
         "description": "Delete a crypto address record associated with account",
         "operationId": "deleteCryptoAddresses",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "accountID",
@@ -732,6 +916,11 @@
         "summary": "List counterparties",
         "description": "Paginated list of all stored counterparties",
         "operationId": "listCounterparties",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -752,6 +941,11 @@
         "summary": "Create counterparty",
         "description": "Create a new counterparty",
         "operationId": "createCounterparty",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "requestBody": {
           "description": "Create a new counterparty",
           "content": {
@@ -791,6 +985,11 @@
         "summary": "Find counterparty by ID",
         "description": "Returns a single counterparty if found",
         "operationId": "counterpartyDetail",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "counterpartyID",
@@ -826,6 +1025,11 @@
         "summary": "Updates a counterparty record",
         "description": "Update a counterparty record (does not patch, all fields are required)",
         "operationId": "updateCounterparty",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "counterpartyID",
@@ -864,6 +1068,11 @@
         "summary": "Deletes a counterparty",
         "description": "Deletes a counterparty",
         "operationId": "deleteCounterparty",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
         "parameters": [
           {
             "name": "counterpartyID",
@@ -1336,10 +1545,10 @@
       }
     },
     "securitySchemes": {
-      "api_key": {
-        "type": "apiKey",
-        "name": "api_key",
-        "in": "header"
+      "bearer-auth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   },

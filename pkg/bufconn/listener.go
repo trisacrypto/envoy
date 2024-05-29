@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
+const Endpoint = "passthrough://bufnet"
+
 const bufsize = 1024 * 1024
 
 type Listener struct {
@@ -30,7 +32,7 @@ func (l *Listener) Close() error {
 
 func (l *Listener) Connect(ctx context.Context, opts ...grpc.DialOption) (cc *grpc.ClientConn, err error) {
 	opts = append([]grpc.DialOption{grpc.WithContextDialer(l.Dialer)}, opts...)
-	if cc, err = grpc.DialContext(ctx, "bufnet", opts...); err != nil {
+	if cc, err = grpc.NewClient(Endpoint, opts...); err != nil {
 		return nil, err
 	}
 	return cc, nil
