@@ -105,7 +105,7 @@
 
         {{ range .Envelope.Identity.Originator.AccountNumbers }}
         <div>
-          <label for="orig_account_numbers">Account Number</label>
+          <label for="orig_account_numbers" class="label-style">Account Number</label>
           <input type="text" id="orig_account_numbers" name="orig_account_numbers" value="{{ . }}"
             class="input-style" />
         </div>
@@ -286,12 +286,12 @@
             value="{{ $nationalIdentification.CountryOfIssue }}" class="input-style" />
         </div>
         <div>
-          <label for="orig_vasp_registration_authority">Registration Authority</label>
+          <label for="orig_vasp_registration_authority" class="label-style">Registration Authority</label>
           <input type="text" id="orig_vasp_registration_authority" name="orig_vasp_registration_authority"
             value="{{ $nationalIdentification.RegistrationAuthority }}" class="input-style" />
         </div>
         <div>
-          <label for="orig_vasp_country_of_registration">Country of Registration</label>
+          <label for="orig_vasp_country_of_registration" class="label-style">Country of Registration</label>
           <input type="text" id="orig_vasp_country_of_registration" name="orig_vasp_country_of_registration"
             value="{{ $originatingVasp.CountryOfRegistration }}" />
         </div>
@@ -374,12 +374,12 @@
             value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" class="input-style" />
         </div>
         <div>
-          <label for="benf_vasp_registration_authority">Registration Authority</label>
+          <label for="benf_vasp_registration_authority" class="label-style">Registration Authority</label>
           <input type="text" id="benf_vasp_registration_authority" name="benf_vasp_registration_authority"
             value="{{ $beneficiaryNationalIdentification.RegistrationAuthority }}" class="input-style" />
         </div>
         <div>
-          <label for="benf_vasp_country_of_registration">Country of Registration</label>
+          <label for="benf_vasp_country_of_registration" class="label-style">Country of Registration</label>
           <input type="text" id="benf_vasp_country_of_registration" name="benf_vasp_country_of_registration"
             value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
         </div>
