@@ -26,20 +26,19 @@
       <dl>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Type</dd>
-          <!-- TODO: Add tooltip style to icons -->
           {{ if eq .Source "local" }}
-          <div class="flex items-center gap-x-1">
-            <i class="fa-solid fa-file-export" title="Outgoing transaction from local VASP"></i>
+          <div class="flex tooltip" data-tip="Outgoing transaction from local VASP">
+            <button><i class="fa-solid fa-file-export"></i></button>
             <dt class="sr-only">Outgoing</dt>
           </div>
           {{ else if eq .Source "remote" }}
-          <div class="flex items-center gap-x-1">
-            <i class="fa-solid fa-file-import" title="Incoming transaction from remote VASP"></i>
+          <div class="flex tooltip" data-tip="Incoming transaction from remote VASP">
+            <button><i class="fa-solid fa-file-import"></i></button>
             <dt class="sr-only">Incoming</dt>
           </div>
           {{ else }}
-          <div class="flex items-center gap-x-1">
-            <i class="fa-solid fa-question" title="Unknown transaction type"></i>
+          <div class="flex tooltip" data-tip="Unknown transaction type">
+            <button><i class="fa-solid fa-question"></i></button>
             <dt class="sr-only">Unknown</dt>
           </div>
           {{ end }}
