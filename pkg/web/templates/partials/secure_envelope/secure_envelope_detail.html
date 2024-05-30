@@ -1,1 +1,9 @@
-<div></div>
+{{ if .SecureEnvelope.Payload }}
+{{ range .SecureEnvelope.Payload }}
+<div>{{ . }}</div>
+{{ end }}
+{{ end }}
+
+{{ if .SecureEnvelope.Error }}
+<p>{{ .SecureEnvelope.Error }}</p>
+{{ end }}
