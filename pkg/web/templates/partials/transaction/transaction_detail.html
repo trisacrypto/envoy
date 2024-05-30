@@ -118,9 +118,10 @@
     </section>
   </div>
 </div>
-<section class="p-4">
+
+<section class="my-4 p-4">
   <h2 class="text-xl font-bold">Secure Envelopes ({{ .EnvelopeCount }})</h2>
-  <div class="my-4" hx-get="/v1/transactions/{{ .ID }}/secure-envelopes" hx-trigger="load" hx-swap="beforeend">
+  <div class="my-4" hx-get="/v1/transactions/{{ .ID }}/secure-envelopes" hx-trigger="load">
     <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div>

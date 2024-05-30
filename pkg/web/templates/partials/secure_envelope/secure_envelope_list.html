@@ -12,7 +12,6 @@
     <span class="font-semibold">Received at:</span>
     {{ if .ReceivedAt}} {{ $receivedAt }} {{ else }} N/A {{ end }}
   </p>
-  {{ end }}
 </div>
 <section>
   <h3>On-chain Transaction Info</h3>
@@ -56,7 +55,8 @@
     </div>
   </dl>
 </section>
-<div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
+<!-- TODO: Call the transaction detail content and style -->
+<!-- <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div> -->
 {{ end }}
 {{ else }}
 <p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
