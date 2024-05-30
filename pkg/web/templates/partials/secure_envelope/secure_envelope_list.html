@@ -1,20 +1,63 @@
-<section class="p-4">
-  <h2 class="text-xl font-bold">Secure Envelopes</h2>
-  {{ if .SecureEnvelopes }}
-  {{ range .SecureEnvelopes }}
-  <div class="join join-vertical w-full">
-    <div class="collapse collapse-plus join-item border border-base-300">
-      <input type="radio" name="my-accordion-4" checked="checked" />
-      <div class="collapse-title text-xl font-medium">
-        <div class="flex items-center gap-x-1">
-          <p>Envelope ID: {{ .EnvelopeID }}</p>
-        </div>
-      </div>
-      <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
-    </div>
-  </div>
+{{ if .DecryptedEnvelopes }}
+{{ range .DecryptedEnvelopes }}
+<p>Envelope ID: {{ .Envelope.Pending.EnvelopeID }}</p>
+<div class="flex items-center">
+  {{ $sentAt := .SentAt.Format "January 2, 2006 3:04:05 PM" }}
+  {{ $receivedAt := .ReceivedAt.Format "January 2, 2006 3:04:05 PM" }}
+  <p>
+    <span class="font-semibold">Sent at:</span>
+    {{ if .SentAt }} {{ $sentAt }} {{ else }} N/A {{ end }}
+  </p>
+  <p>
+    <span class="font-semibold">Received at:</span>
+    {{ if .ReceivedAt}} {{ $receivedAt }} {{ else }} N/A {{ end }}
+  </p>
   {{ end }}
-  {{ else }}
-  <p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
+</div>
+<section>
+  <h3>On-chain Transaction Info</h3>
+  <dl>
+    <div class="grid grid-cols-2">
+      <dt>Blockchain Tx ID</dt>
+      {{ $txid := .Envelope.Transaction.Txid }}
+      <dd>{{ if $txid }} {{ $txid }} {{ else }} &mdash; {{ end }}</dd>
+    </div>
+    <div class="grid grid-cols-2">
+      <dt>Originator Wallet Address</dt>
+      {{ $originator := .Envelope.Transaction.Originator }}
+      <dd>{{ if $originator }} {{ $originator}} {{ else }} &mdash; {{ end }}</dd>
+    </div>
+    <div class="grid grid-cols-2">
+      <dt>Beneficiary Wallet Address</dt>
+      {{ $beneficiary := .Envelope.Transaction.Beneficiary }}
+      <dd>{{ if $beneficiary }} {{ $beneficiary }} {{ else }} &mdash; {{ end }}</dd>
+    </div>
+    <div class="flex items-center">
+      <div class="grid grid-cols-2">
+        <dt>Network</dt>
+        {{ $network := .Envelope.Transaction.Network }}
+        <dd>{{ if $network }} {{ $network }} {{ else }} &mdash; {{ end }}</dd>
+      </div>
+      <div class="grid grid-cols-2">
+        <dt>Asset Type</dt>
+        {{ $assetType := .Envelope.Transaction.AssetType }}
+        <dd>{{ if $assetType }} {{ $assetType }} {{ else }} &mdash; {{ end }}</dd>
+      </div>
+    </div>
+    <div class="grid grid-cols-2">
+      <dt>Transfer Amount</dt>
+      {{ $amount := .Envelope.Transaction.Amount }}
+      <dd>{{ if $amount }} {{ $amount }} {{ else }} &mdash; {{ end }}</dd>
+    </div>
+    <div class="grid grid-cols-2">
+      <dt>Destination Tag/Memo</dt>
+      {{ $tag := .Envelope.Transaction.Tag }}
+      <dd>{{ if $tag }} {{ $tag }} {{ else }} &mdash; {{ end }}</dd>
+    </div>
+  </dl>
 </section>
+<div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
+{{ end }}
+{{ else }}
+<p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
 {{ end }}
