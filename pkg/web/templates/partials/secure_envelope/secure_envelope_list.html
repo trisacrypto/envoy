@@ -1,4 +1,4 @@
-<section>
+<section class="p-4">
   <h2 class="text-xl font-bold">Secure Envelopes</h2>
   {{ if .SecureEnvelopes }}
   {{ range .SecureEnvelopes }}
@@ -7,27 +7,10 @@
       <input type="radio" name="my-accordion-4" checked="checked" />
       <div class="collapse-title text-xl font-medium">
         <div class="flex items-center gap-x-1">
-          {{ if eq .Direction "in" }}
-          <div class="tooltip tooltip-right" data-tip="Incoming secure envelope">
-            <button>
-              <i class="fa-solid fa-file-import" title="Incoming secure envelope"></i>
-            </button>
-          </div>
-          {{ else }}
-          <div class="tooltip tooltip-right" data-tip="Outgoing secure envelope">
-            <button>
-              <i class="fa-solid fa-file-export" title="Outgoing envelope"></i>
-            </button>
-          </div>
-          {{ end }}
-          <h3 class="text-lg"><span class="font-semibold">Envelope ID:</span>{{ .EnvelopeID }}</h3>
-          {{ $timeStamp := .TimeStamp.Format "January 2, 2006 15:04:05" }}
-          <span>{{ $timeStamp }}</span>
+          <p>Envelope ID: {{ .EnvelopeID }}</p>
         </div>
       </div>
-      <div class="collapse-content">
-        <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
-      </div>
+      <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div>
     </div>
   </div>
   {{ end }}
