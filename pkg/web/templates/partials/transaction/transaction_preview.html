@@ -92,16 +92,22 @@
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address</dt>
                 <div>
-                  {{ range .AddressLine }}
-                  <dd>{{ . }}</dd>
+                  {{ if index .AddressLine 0 }}
+                  <dd>{{ index .AddressLine 0 }}</dd>
+                  <dd>{{ index .AddressLine 1 }}</dd>
+                  <dd>{{ index .AddressLine 2 }}</dd>
+                  {{ else }}
+                  <dd>N/A</dd>
                   {{ end }}
                   <dd>{{ .Country }}</dd>
                 </div>
               </div>
+              {{ if index .AddressLine 0 }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
                 <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
               </div>
+              {{ end }}
               {{ end }}
 
               <div class="transaction-preview-container">
@@ -153,17 +159,23 @@
                 <dt class="font-semibold">Address</dt>
                 {{ range $beneficiaryAddress }}
                 <div>
-                  {{ range .AddressLine }}
-                  <dd>{{ . }}</dd>
+                  {{ if index .AddressLine 0 }}
+                  <dd>{{ index .AddressLine 0 }}</dd>
+                  <dd>{{ index .AddressLine 1 }}</dd>
+                  <dd>{{ index .AddressLine 2 }}</dd>
+                  {{ else }}
+                  <dd>N/A</dd>
                   {{ end }}
                   <dd>{{ .Country }}</dd>
                 </div>
               </div>
+              {{ if index .AddressLine 0 }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
                 <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
-                {{ end }}
               </div>
+              {{ end }}
+              {{ end }}
 
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Residence</dt>
@@ -235,7 +247,7 @@
                 <dt class="font-semibold">Address</dt>
                 <div>
                   {{ range .AddressLine }}
-                  <dd>{{ . }}</dd>
+                  <dd id="orig-vasp-addr-line">{{ . }}</dd>
                   {{ end }}
                   <dd>{{ .Country }}</dd>
                 </div>
@@ -294,18 +306,23 @@
               {{ range $beneficiaryVasp.GeographicAddresses }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address</dt>
+                {{ if or .BuildingNumber .StreetName }} 
                 <div>
                   <dd>{{ .BuildingNumber }} {{ .StreetName }}</dd>
                   <dd>{{ .PostCode }} {{ .TownName }}</dd>
                   <dd>{{ .Country }}</dd>
                 </div>
+                {{ else }}
+                <dd>N/A</dd>
+                {{ end }}
               </div>
-              <!-- TODO: If there isn't an address do not display the type. -->
+              {{ if or .BuildingNumber .StreetName }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
                 <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
-                {{ end }}
               </div>
+              {{ end }}
+              {{ end }}
 
               {{ $beneficiaryNationalIdentifier := $beneficiaryVasp.NationalIdentification }}
               <div class="transaction-preview-container">
