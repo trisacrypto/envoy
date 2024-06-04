@@ -39,25 +39,26 @@
             <div class="grid md:grid-cols-2">
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Originator</dt>
-                <dd>{{ .Transaction.Originator }}</dd>
+                <dd>{{ if .Transaction.Originator }} {{ .Transaction.Originator }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Beneficiary</dt>
-                <dd>{{ .Transaction.Beneficiary }}</dd>
+                <dd>{{ if .Transaction.Beneficiary }} {{ .Transaction.Beneficiary }} {{ else }} N/A {{ end }}</dd>
               </div>
             </div>
             <div class="grid md:grid-cols-2">
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Amount</dt>
-                <dd>{{ .Transaction.Amount }}</dd>
+                <dd>{{ if .Transaction.Amount }} {{ .Transaction.Amount }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Network</dt>
-                <dd>{{ .Transaction.Network }}</dd>
+                <dd>{{ if .Transaction.Network }} {{ .Transaction.Network }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Travel Address</dt>
-                <dd class="max-w-sm break-words">{{ .TravelAddress }}</dd>
+                <dd class="max-w-sm break-words">
+                  {{ if .TravelAddress }} {{ .TravelAddress }} {{ else }} N/A {{ end }}</dd>
               </div>
             </div>
           </dl>
@@ -74,13 +75,18 @@
               <div class="transaction-preview-container">
                 {{ range $originatorName }}
                 <dt class="font-semibold">Name Identifiers</dt>
-                <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
+                <dd>
+                  {{ if .SecondaryIdentifier }} {{ .SecondaryIdentifier }} {{ end }}
+                  {{ if .PrimaryIdentifier }} {{ .PrimaryIdentifier }} {{ else }} <span>N/A</span>{{ end }}
+                </dd>
               </div>
+              {{ if or .PrimaryIdentifier .SecondaryIdentifier }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style">{{ .NameIdentifierType }}</dd>
-                {{ end }}
               </div>
+              {{ end }}
+              {{ end }}
 
               {{ range $originatorAddress }}
               <div class="transaction-preview-container">
@@ -100,18 +106,21 @@
 
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Residence</dt>
-                <dd>{{ $originator.CountryOfResidence }}</dd>
+                <dd>{{ if $originator.CountryOfResidence }} {{ $originator.CountryOfResidence }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Customer Identification</dt>
-                <div>{{ $originator.CustomerIdentification }}</div>
+                <div>{{ if $originator.CustomerIdentification }} {{ $originator.CustomerIdentification }} {{ else }} N/A {{ end }}</div>
               </div>
 
-              <!-- TODO: Add length check to display number or numbers -->
               <div class="transaction-preview-container">
+                {{ if gt (len .Identity.Originator.AccountNumbers) 1 }}
+                <dt class="font-semibold">Account Numbers</dt>
+                {{ else }}
                 <dt class="font-semibold">Account Number</dt>
+                {{ end }}
                 {{ range .Identity.Originator.AccountNumbers }}
-                <div>{{ . }}</div>
+                <div>{{ if . }} {{ . }} {{ else }} N/A {{ end }}</div>
                 {{ end }}
               </div>
             </dl>
@@ -126,13 +135,18 @@
 
                 {{ range $beneficiaryName }}
                 <dt class="font-semibold">Name Identifiers</dt>
-                <dd>{{ .SecondaryIdentifier }} {{ .PrimaryIdentifier }}</dd>
+                <dd>
+                  {{ if .SecondaryIdentifier }} {{ .SecondaryIdentifier }} {{ end }} 
+                  {{ if .PrimaryIdentifier }} {{ .PrimaryIdentifier }} {{ else }} N/A {{ end }}
+                </dd>
               </div>
+              {{ if or .PrimaryIdentifier .SecondaryIdentifier }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style badge-style">{{ .NameIdentifierType }}</dd>
-                {{ end }}
               </div>
+              {{ end }}
+              {{ end }}
 
               {{ $beneficiaryAddress := $beneficiary.GeographicAddresses }}
               <div class="transaction-preview-container">
@@ -153,13 +167,16 @@
 
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Residence</dt>
-                <dd>{{ $beneficiary.CountryOfResidence }}</dd>
+                <dd>{{ if $beneficiary.CountryOfResidence }} {{ $beneficiary.CountryOfResidence }} {{ else }} N/A {{ end }} </dd>
               </div>
               <div class="transaction-preview-container">
-                <!-- TODO: Check length to display number or numbers-->
+                {{ if gt (len .Identity.Beneficiary.AccountNumbers) 1 }}
+                <dt class="font-semibold">Account Numbers</dt>
+                {{ else }}
                 <dt class="font-semibold">Account Number</dt>
+                {{ end }}
                 {{ range .Identity.Beneficiary.AccountNumbers }}
-                <dd>{{ . }}</dd>
+                <dd>{{ if . }} {{ . }} {{ else }} N/A {{ end }}</dd>
                 {{ end }}
               </div>
 
@@ -177,34 +194,40 @@
               {{ range $originatingLegalPerson.NameIdentifiers }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers</dt>
-                <dd>{{ .LegalPersonName }}</dd>
+                <dd>{{ if .LegalPersonName }} {{ .LegalPersonName }} {{ else }} N/A {{ end }}</dd>
               </div>
+              {{ if .LegalPersonName }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
+              {{ end }}
 
               {{ range $originatingLegalPerson.LocalNameIdentifiers }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Local Name Identifiers</dt>
-                <dd>{{ .LegalPersonName }}</dd>
+                <dd>{{ if .LegalPersonName }} {{ .LegalPersonName }} {{ else }} N/A {{ end }}</dd>
               </div>
+              {{ if .LegalPersonName }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Local Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
               {{ end }}
+              {{ end }}
 
               {{ range $originatingLegalPerson.PhoneticNameIdentifiers }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Phonetic Name Identifiers</dt>
-                <dd>{{ .LegalPersonName }}</dd>
+                <dd>{{ if .LegalPersonName }} {{ .LegalPersonName }} {{ else }} N/A {{ end }}</dd>
               </div>
+              {{ if .LegalPersonName }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Phonetic Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
+              {{ end }}
               {{ end }}
 
               <div class="transaction-preview-container">
@@ -228,7 +251,7 @@
               {{ $nationalIdentification := $originatingVasp.NationalIdentification }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identification</dt>
-                <dd>{{ $nationalIdentification.NationalIdentifier }}</dd>
+                <dd>{{ if $nationalIdentification.NationalIdentifier }} {{ $nationalIdentification.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identification Type</dt>
@@ -236,15 +259,15 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
-                <dd>{{ $nationalIdentification.CountryOfIssue }}</dd>
+                <dd>{{ if $nationalIdentification.CountryOfIssue }} {{ $nationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Registration Authority</dt>
-                <dd>{{ $nationalIdentification.RegistrationAuthority }}</dd>
+                <dd>{{ if $nationalIdentification.RegistrationAuthority }} {{ $nationalIdentification.RegistrationAuthority }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Registration</dt>
-                <dd>{{ $originatingVasp.CountryOfRegistration }}</dd>
+                <dd>{{ if $originatingVasp.CountryOfRegistration }} {{ $originatingVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</dd>
               </div>
 
             </dl>
@@ -258,12 +281,14 @@
               {{ range $beneficiaryVasp.Name.NameIdentifiers }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers</dt>
-                <dd>{{ .LegalPersonName }}</dd>
+                <dd>{{ if .LegalPersonName }} {{ .LegalPersonName }} {{ else }} N/A {{ end }}</dd>
               </div>
+              {{ if .LegalPersonName }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Name Identifiers Type</dt>
                 <dd class="identifier-type badge-style">{{ .LegalPersonNameIdentifierType }}</dd>
               </div>
+              {{ end }}
               {{ end }}
 
               {{ range $beneficiaryVasp.GeographicAddresses }}
@@ -275,6 +300,7 @@
                   <dd>{{ .Country }}</dd>
                 </div>
               </div>
+              <!-- TODO: If there isn't an address do not display the type. -->
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address Type</dt>
                 <dd class="identifier-type badge-style">{{ .AddressType }}</dd>
@@ -284,7 +310,7 @@
               {{ $beneficiaryNationalIdentifier := $beneficiaryVasp.NationalIdentification }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identification</dt>
-                <dd>{{ $beneficiaryNationalIdentifier.NationalIdentifier }}</dd>
+                <dd>{{ if $beneficiaryNationalIdentifier.NationalIdentifier }} {{ $beneficiaryNationalIdentifier.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">National Identification Type</dt>
@@ -292,15 +318,15 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Issue</dt>
-                <dd>{{ $beneficiaryNationalIdentifier.CountryOfIssue }}</dd>
+                <dd>{{ if $beneficiaryNationalIdentifier.CountryOfIssue }} {{ $beneficiaryNationalIdentifier.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Registration Authority</dt>
-                <dd>{{ $beneficiaryNationalIdentifier.RegistrationAuthority }}</dd>
+                <dd>{{ if $beneficiaryNationalIdentifier.RegistrationAuthority }} {{ $beneficiaryNationalIdentifier.RegistrationAuthority }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Country of Registration</dt>
-                <dd>{{ $beneficiaryVasp.CountryOfRegistration }}</dd>
+                <dd>{{ if $beneficiaryVasp.CountryOfRegistration }} {{ $beneficiaryVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</dd>
               </div>
 
             </dl>
