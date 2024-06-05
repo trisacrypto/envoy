@@ -19,10 +19,10 @@
           <input type="text" id="beneficiary" name="beneficiary" value="{{ .Transaction.Beneficiary }}"
             class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="network" class="label-style">Network</label>
-          <input type="text" id="network" name="network" value="{{ .Transaction.Network }}" />
+          <select id="network" name="network"></select>
+          <input type="hidden" id="selected-network" value="{{ .Transaction.Network }}" />
         </div>
         <div>
           <label for="amount" class="label-style">Amount</label>

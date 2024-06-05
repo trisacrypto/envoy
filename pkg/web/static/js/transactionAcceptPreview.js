@@ -2,7 +2,7 @@ import { networksArray } from "./constants.js";
 
 document.body.addEventListener('htmx:afterSettle', () => {
   const transactionNetwork = new SlimSelect({
-    select: "#transaction-networks",
+    select: "#network",
     settings: {
       contentLocation: document.getElementById('network-content')
     }
