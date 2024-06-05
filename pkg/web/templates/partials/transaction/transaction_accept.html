@@ -19,10 +19,10 @@
           <input type="text" id="beneficiary" name="beneficiary" value="{{ .Transaction.Beneficiary }}"
             class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="network" class="label-style">Network</label>
-          <input type="text" id="network" name="network" value="{{ .Transaction.Network }}" />
+          <select id="network" name="network"></select>
+          <input type="hidden" id="selected-network" value="{{ .Transaction.Network }}" />
         </div>
         <div>
           <label for="amount" class="label-style">Amount</label>
@@ -79,10 +79,10 @@
           <label for="orig_post_code" class="label-style">Postal Code</label>
           <input type="text" id="orig_post_code" name="orig_post_code" value="{{ .PostCode }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select element -->
         <div>
           <label for="orig_country" class="label-style">Country</label>
-          <input type="text" id="orig_country" name="orig_country" value="{{ .Country }}" class="input-style" />
+          <select id="orig_country" name="orig_country" class="countries"></select>
+          <input type="hidden" class="orig_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
@@ -93,8 +93,8 @@
 
         <div>
           <label for="orig_country_of_residence" class="label-style">Country of Residence</label>
-          <input type="text" id="orig_country_of_residence" name="orig_country_of_residence"
-            value="{{ $originator.CountryOfResidence }}" class="input-style" />
+          <select id="orig_country_of_residence" name="orig_country_of_residence" class="countries"></select>
+          <input type="hidden" class="orig_country_of_residence" value="{{ $originator.CountryOfResidence }}" />
         </div>
         <div>
           <label for="orig_customer_identification" class="label-style">Customer Identification</label>
@@ -160,10 +160,10 @@
           <label for="benf_post_code" class="label-style">Postal Code</label>
           <input type="text" id="benf_post_code" name="benf_post_code" value="{{ .PostCode }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select element -->
         <div>
           <label for="benf_country" class="label-style">Country</label>
-          <input type="text" id="benf_country" name="benf_country" value="{{ .Country }}" class="input-style" />
+          <select id="benf_country" id="benf_country" class="countries"></select>
+          <input type="hidden" class="benf_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="benf_address_type" class="label-style">Address Type</label>
@@ -174,8 +174,8 @@
 
         <div>
           <label for="benf_country_of_residence" class="label-style">Country of Residence</label>
-          <input type="text" id="benf_country_of_residence" name="benf_country_of_residence"
-            value="{{ $beneficiary.CountryOfResidence }}" class="input-style" />
+          <select id="benf_country_of_residence" name="benf_country_of_residence" class="countries"></select>
+          <input type="hidden" class="benf_country_of_residence" value="{{ $beneficiary.CountryOfResidence }}" />
         </div>
         <div>
           <label for="benf_customer_identification" class="label-style">Customer Identification</label>
@@ -254,11 +254,10 @@
           <input type="text" id="orig_vasp_post_code" name="orig_vasp_post_code" value="{{ .PostCode }}"
             class="input-style" />
         </div>
-        <!-- TODO: Replace input with select element -->
         <div>
           <label for="orig_vasp_country" class="label-style">Country</label>
-          <input type="text" id="orig_vasp_country" name="orig_vasp_country" value="{{ .Country }}"
-            class="input-style" />
+          <select id="orig_vasp_country" name="orig_vasp_country" class="countries"></select>
+          <input type="hidden" class="orig_vasp_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="orig_vasp_address_type" class="label-style">Address Type</label>
@@ -278,11 +277,10 @@
           <input type="text" id="orig_vasp_national_identifier_type" name="orig_vasp_national_identifier_type"
             value="{{ $nationalIdentification.NationalIdentifierType }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="orig_vasp_country_of_issue" class="label-style">Country of Issue</label>
-          <input type="text" id="orig_vasp_country_of_issue" name="orig_vasp_country_of_issue"
-            value="{{ $nationalIdentification.CountryOfIssue }}" class="input-style" />
+          <select id="orig_vasp_country_of_issue" name="orig_vasp_country_of_issue" class="countries"></select>
+          <input type="hidden" class="orig_vasp_country_of_issue" value="{{ $nationalIdentification.CountryOfIssue }}" />
         </div>
         <div>
           <label for="orig_vasp_registration_authority" class="label-style">Registration Authority</label>
@@ -291,8 +289,8 @@
         </div>
         <div>
           <label for="orig_vasp_country_of_registration" class="label-style">Country of Registration</label>
-          <input type="text" id="orig_vasp_country_of_registration" name="orig_vasp_country_of_registration"
-            value="{{ $originatingVasp.CountryOfRegistration }}" />
+          <select id="orig_vasp_country_of_registration" name="orig_vasp_country_of_registration" class="countries"></select>
+          <input type="hidden" class="orig_vasp_country_of_registration" value="{{ $originatingVasp.CountryOfRegistration }}" />
         </div>
       </div>
     </section>
@@ -342,11 +340,10 @@
           <input type="text" id="benf_vasp_post_code" name="benf_vasp_post_code" value="{{ .PostCode }}"
             class="input-style" />
         </div>
-        <!-- TODO: Replace input with select element -->
         <div>
           <label for="benf_vasp_country" class="label-style">Country</label>
-          <input type="text" id="benf_vasp_country" name="benf_vasp_country" value="{{ .Country }}"
-            class="input-style" />
+          <select id="benf_vasp_country" name="benf_vasp_country" class="countries"></select>
+          <input type="hidden" class="benf_vasp_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="benf_vasp_address_type" class="label-style">Address Type</label>
@@ -366,11 +363,10 @@
           <input type="text" id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type"
             value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="benf_vasp_country_of_issue" class="label-style">Country of Issue</label>
-          <input type="text" id="benf_vasp_country_of_issue" name="benf_vasp_country_of_issue"
-            value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" class="input-style" />
+          <select id="benf_vasp_country_of_issue" name="benf_vasp_country_of_issue" class="countries"></select>
+          <input type="hidden" class="benf_vasp_country_of_issue" value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
         <div>
           <label for="benf_vasp_registration_authority" class="label-style">Registration Authority</label>
@@ -379,8 +375,8 @@
         </div>
         <div>
           <label for="benf_vasp_country_of_registration" class="label-style">Country of Registration</label>
-          <input type="text" id="benf_vasp_country_of_registration" name="benf_vasp_country_of_registration"
-            value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
+          <select id="benf_vasp_country_of_registration" name="benf_vasp_country_of_registration" class="countries"></select>
+          <input type="hidden" class="benf_vasp_country_of_registration" value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
         </div>
       </div>
     </section>
