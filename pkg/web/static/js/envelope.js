@@ -47,11 +47,11 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     e.detail.parameters = data;
   }
 
-  if (e.detail.path === '/v1/transactions/send' && e.detail.verb === 'post') {
-    params = e.detail.parameters;
+  if (e.detail.path === '/v1/transactions/send-prepared' && e.detail.verb === 'post') {
+    const params = e.detail.parameters;
 
     // Parse JSON data and remove dump property.
-    const data = JSON.parse(params.travel_address);
+    let data = JSON.parse(params.prepared_payload);
     delete data.dump;
 
     // Modify outgoing request with parsed JSON data.

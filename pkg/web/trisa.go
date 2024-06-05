@@ -151,7 +151,7 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 	)
 
 	if dst, err = traddr.Decode(address); err != nil {
-		c.Error(err)
+		c.Error(fmt.Errorf("could not decode travel address %q: %w", address, err))
 		c.JSON(http.StatusBadRequest, api.Error("could not parse the travel address"))
 		return nil, err
 	}
@@ -164,6 +164,7 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 
 	if cp, err = s.findCounterparty(c.Request.Context(), dstURI); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
+			c.Error(fmt.Errorf("could not identify counterparty for %s or %s", dstURI.Hostname(), dstURI.Host))
 			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from travel address"))
 			return nil, err
 		}
