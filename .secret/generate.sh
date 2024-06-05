@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Remove old keys if they exist
-keyFiles=("server.gz" "client.gz" "localhost.gz")
+keyFiles=("server.gz" "counterparty.gz" "client.gz" "localhost.gz")
 for keyfile in ${keyFiles}[@]}; do
     if [ -f $keyfile ]; then
         rm $keyfile
@@ -21,6 +21,11 @@ openssl req -new -newkey rsa:4096 \
     -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
 
 openssl req -new -newkey rsa:4096 \
+    -nodes -keyout counterparty.key.pem -out counterparty.csr \
+    -subj "/C=DE/ST=Hesse/L=Frankfurt/O=Counterparty/OU=Testing/CN=localhost" \
+    -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
+
+openssl req -new -newkey rsa:4096 \
     -nodes -keyout client.key.pem -out client.csr \
     -subj "/C=US/ST=Georgia/L=Atlanta/O=Client/OU=Testing/CN=localhost" \
     -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
@@ -33,6 +38,11 @@ openssl x509 -req -days 10950 \
 
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
+    -in counterparty.csr -out counterparty.pem \
+    -copy_extensions copyall
+
+openssl x509 -req -days 10950 \
+    -CA ca.crt -CAkey ca.key \
     -in client.csr -out client.pem \
     -copy_extensions copyall
 
@@ -40,6 +50,10 @@ openssl x509 -req -days 10950 \
 cat ca.crt >> server.pem
 cat server.key.pem >> server.pem
 gzip server.pem
+
+cat ca.crt >> counterparty.pem
+cat counterparty.key.pem >> counterparty.pem
+gzip counterparty.pem
 
 cat ca.crt >> client.pem
 cat client.key.pem >> client.pem
@@ -50,5 +64,6 @@ gzip localhost.pem
 
 # Cleanup
 rm server.csr server.key.pem
+rm counterparty.csr counterparty.key.pem
 rm client.csr client.key.pem
 rm ca.key

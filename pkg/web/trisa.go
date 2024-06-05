@@ -162,7 +162,7 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 		return nil, err
 	}
 
-	if cp, err = s.store.LookupCounterparty(c.Request.Context(), dstURI.Hostname()); err != nil {
+	if cp, err = s.findCounterparty(c.Request.Context(), dstURI); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from travel address"))
 			return nil, err
@@ -173,6 +173,29 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 		return nil, err
 	}
 
+	return cp, nil
+}
+
+func (s *Server) findCounterparty(ctx context.Context, uri *traddr.URL) (cp *models.Counterparty, err error) {
+	// Lookup counterparty by hostname first (e.g. the common name).
+	if cp, err = s.store.LookupCounterparty(ctx, uri.Hostname()); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			// If we couldn't find it, try again by endpoint
+			// NOTE: this is primarily to assist with lookups for localhost where the
+			// port number is the only differentiating aspect of the node.
+			if cp, err = s.store.LookupCounterparty(ctx, uri.Host); err != nil {
+				return nil, dberr.ErrNotFound
+			}
+
+			// Found! Short-circuit the error handling by returning early!
+			return cp, err
+		}
+
+		// Return the internal error
+		return nil, err
+	}
+
+	// Found on first try!
 	return cp, nil
 }
 
