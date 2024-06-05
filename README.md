@@ -40,8 +40,10 @@ $ docker compose up
 Step 4: Initialize the GDS with data about the localhost network.
 
 ```
-$
+$ go run ./cmd/fsi init-gds
 ```
+
+Note this requires you to have [Go](https://go.dev/doc/install) installed on your computer. If you cannot install Go, let us know by creating an issue and we can build a binary for your OS that you can download and run.
 
 Step 5: Create an admin user to login to the localhost with
 
