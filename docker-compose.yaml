@@ -88,7 +88,7 @@ services:
       - GDS_DIRECTORY_ID=trisatest.dev
       - GDS_SECRET_KEY=supersecretsquirrel
       - GDS_MAINTENANCE=false
-      - GDS_LOG_LEVEL=debug
+      - GDS_LOG_LEVEL=info
       - GDS_CONSOLE_LOG=true
       - GDS_API_ENABLED=false
       - GDS_BIND_ADDR=:4433
@@ -97,7 +97,7 @@ services:
       - GDS_MEMBERS_ENABLED=true
       - GDS_MEMBERS_BIND_ADDR=:4435
       - GDS_MEMBERS_INSECURE=true
-      - GDS_DATABASE_URL=leveldb:///tmp/gds/db
+      - GDS_DATABASE_URL=leveldb:////data/db
       - GDS_DATABASE_REINDEX_ON_BOOT=false
       - GDS_DATABASE_INSECURE=true
       - SECTIGO_TESTING=true

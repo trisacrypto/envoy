@@ -43,6 +43,14 @@ func main() {
 			After:    closeDB,
 			Category: "localhost",
 		},
+		{
+			Name:     "inspect",
+			Usage:    "check the contents of the local GDS",
+			Action:   inspectGDS,
+			Before:   connectDB,
+			After:    closeDB,
+			Category: "localhost",
+		},
 	}
 
 	app.Run(os.Args)
@@ -180,6 +188,19 @@ func counterpartyVASP() *pb.VASP {
 		CertificateWebhook:  "",
 		NoEmailDelivery:     true,
 	}
+}
+
+func inspectGDS(c *cli.Context) (err error) {
+	iter := db.ListVASPs(context.Background())
+	for iter.Next() {
+		vasp, err := iter.VASP()
+		if err != nil {
+			return cli.Exit(err, 1)
+		}
+		fmt.Printf("%s %s\n", vasp.CommonName, vasp.VerificationStatus)
+	}
+
+	return nil
 }
 
 //===========================================================================
