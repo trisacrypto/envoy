@@ -1,4 +1,3 @@
-version: "3"
 services:
   envoy:
     build:
@@ -40,11 +39,45 @@ services:
       - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
       - TRISA_DIRECTORY_SYNC_ENABLED=true
 
+  counterparty:
+    image: trisa/envoy
+    init: true
+    depends_on:
+      - gds
+      - envoy
+    ports:
+      - 9000:9000
+      - 9100:9100
+    volumes:
+      - ./tmp/counterparty:/data
+    secrets:
+      - localhost.pem.gz
+      - counterparty.pem.gz
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=release
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=localhost:9100
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:9000
+      - TRISA_WEB_ORIGIN=http://localhost:9000
+      - TRISA_WEB_AUDIENCE=http://localhost:9000
+      - TRISA_WEB_ISSUER=http://localhost:9000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=localhost
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:9100
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/counterparty.pem.gz
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+
   gds:
     image: trisa/gds
     init: true
-    depends_on:
-      - trtl
     ports:
       - 4433:4433
       - 4434:4434
@@ -55,7 +88,7 @@ services:
       - GDS_DIRECTORY_ID=trisatest.dev
       - GDS_SECRET_KEY=supersecretsquirrel
       - GDS_MAINTENANCE=false
-      - GDS_LOG_LEVEL=debug
+      - GDS_LOG_LEVEL=info
       - GDS_CONSOLE_LOG=true
       - GDS_API_ENABLED=false
       - GDS_BIND_ADDR=:4433
@@ -64,7 +97,7 @@ services:
       - GDS_MEMBERS_ENABLED=true
       - GDS_MEMBERS_BIND_ADDR=:4435
       - GDS_MEMBERS_INSECURE=true
-      - GDS_DATABASE_URL=trtl://trtl:4436/
+      - GDS_DATABASE_URL=leveldb:////data/db
       - GDS_DATABASE_REINDEX_ON_BOOT=false
       - GDS_DATABASE_INSECURE=true
       - SECTIGO_TESTING=true
@@ -80,34 +113,10 @@ services:
       - GDS_ACTIVITY_ENABLED=false
       - GDS_SECRETS_TESTING=true
 
-  trtl:
-    image: trisa/trtl
-    init: true
-    ports:
-      - 4436:4436
-      - 7777:7777
-    volumes:
-      - ./tmp/gds:/data
-    environment:
-      - TRTL_MAINTENANCE=false
-      - TRTL_BIND_ADDR=:4436
-      - TRTL_METRICS_ADDR=:7777
-      - TRTL_METRICS_ENABLED=false
-      - TRTL_LOG_LEVEL=debug
-      - TRTL_CONSOLE_LOG=true
-      - TRTL_DATABASE_URL=leveldb:////data/db
-      - TRTL_DATABASE_REINDEX_ON_BOOT=false
-      - TRTL_REPLICA_ENABLED=false
-      - TRTL_REPLICA_PID=8
-      - TRTL_REPLICA_REGION=docker
-      - TRTL_REPLICA_NAME=docker-8
-      - TRTL_REPLICA_GOSSIP_INTERVAL=10s
-      - TRTL_REPLICA_GOSSIP_SIGMA=1500ms
-      - TRTL_INSECURE=true
-      - TRTL_BACKUP_ENABLED=false
-
 secrets:
   localhost.pem.gz:
     file: ./.secret/localhost.pem.gz
   server.pem.gz:
     file: ./.secret/server.pem.gz
+  counterparty.pem.gz:
+    file: ./.secret/counterparty.pem.gz

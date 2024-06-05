@@ -151,7 +151,7 @@ func (s *Server) Localparty(ctx context.Context) (_ *models.Counterparty, err er
 		}
 
 		// Lookup VASP information from counterparty database
-		if s.vasp, err = s.store.LookupCounterparty(ctx, commonName); err != nil {
+		if s.vasp, err = s.findCounterparty(ctx, uri); err != nil {
 			log.Warn().Err(err).Msg("could not lookup local vasp information")
 			if errors.Is(err, dberr.ErrNotFound) {
 				return nil, ErrNoLocalparty
