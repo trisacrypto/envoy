@@ -26,6 +26,7 @@ const countrySelect = new SlimSelect({
   },
 });
 
+// TODO: Remove and import the countries array from constants.js
 const countries = {
   AF: 'Afghanistan',
   AX: 'Aland Islands',

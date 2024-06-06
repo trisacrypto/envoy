@@ -47,11 +47,10 @@
           <input type="text" id="orig_secondary_identifier" name="orig_secondary_identifier"
             value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <input type="text" id="orig_name_identifier_type" name="orig_name_identifier_type"
-            value="{{ .NameIdentifierType }}" class="input-style" />
+          <select id="orig_name_identifier_type" name="orig_name_identifier_type" class="identifier-types"></select>
+          <input type="hidden" class="orig_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
         </div>
         {{ end }}
 
@@ -86,8 +85,8 @@
         </div>
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
-          <input type="text" id="orig_address_type" name="orig_address_type" value="{{ .AddressType }}"
-            class="input-style" />
+          <select id="orig_address_type" name="orig_address_type" class="identifier-types"></select>
+          <input type="hidden" class="orig_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -128,11 +127,10 @@
           <input type="text" id="benf_secondary_identifier" name="benf_secondary_identifier"
             value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
-        <!-- TODO: Replace input with select -->
         <div>
           <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <input type="text" id="benf_name_identifier_type" name="benf_name_identifier_type"
-            value="{{ .NameIdentifierType }}" class="input-style" />
+          <select id="benf_name_identifier_type" name="benf_name_identifier_type" class="identifier-types"></select>
+          <input type="hidden" class="benf_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
         </div>
         {{ end }}
 
@@ -167,8 +165,8 @@
         </div>
         <div>
           <label for="benf_address_type" class="label-style">Address Type</label>
-          <input type="text" id="benf_address_type" name="benf_address_type" value="{{ .AddressType }}"
-            class="input-style" />
+          <select id="benf_address_type" name="benf_address_type" class="identifier-types"></select>
+          <input type="hidden" class="benf_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -205,11 +203,9 @@
             value="{{ .LegalPersonName }}" class="input-style" />
         </div>
         <div>
-          <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
-            Type</label>
-          <input type="text" id="orig_vasp_legal_person_name_identifier_type"
-            name="orig_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}"
-            class="input-style" />
+          <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
+          <selected id="orig_vasp_legal_person_name_identifier_type" name="orig_vasp_legal_person_name_identifier_type" class="identifier-types"></selected>
+          <input type="hidden" class="orig_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
         </div>
         {{ end }}
 
@@ -219,12 +215,10 @@
           <input type="text" id="orig_vasp_local_legal_name" name="orig_vasp_local_legal_name"
             value="{{ .LegalPersonName }}" class="input-style" />
         </div>
-        <!-- TODO: Replace identifier type input with select -->
         <div>
           <label for="orig_vasp_local_legal_name_identifier_type" class="label-style">Local Name Identifier Type</label>
-          <input type="text" id="orig_vasp_local_legal_name_identifier_type"
-            name="orig_vasp_local_legal_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}"
-            class="input-style" />
+          <select id="orig_vasp_local_legal_name_identifier_type" name="orig_vasp_local_legal_name_identifier_type" class="identifier-types"></select>
+          <input type="hidden" class="orig_vasp_local_legal_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
         </div>
         {{ end }}
 
@@ -261,8 +255,8 @@
         </div>
         <div>
           <label for="orig_vasp_address_type" class="label-style">Address Type</label>
-          <input type="text" id="orig_vasp_address_type" name="orig_vasp_address_type" value="{{ .AddressType }}"
-            class="input-style" />
+          <select id="orig_vasp_address_type" name="orig_vasp_address_type" class="identifier-types"></select>
+          <input type="hidden" class="orig_vasp_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -274,8 +268,8 @@
         </div>
         <div>
           <label for="orig_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-          <input type="text" id="orig_vasp_national_identifier_type" name="orig_vasp_national_identifier_type"
-            value="{{ $nationalIdentification.NationalIdentifierType }}" class="input-style" />
+          <select id="orig_vasp_national_identifier_type" name="orig_vasp_national_identifier_type" class="identifier-types"></select>
+          <input type="hidden" class="orig_vasp_national_identifier_type" value="{{ $nationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
         </div>
         <div>
           <label for="orig_vasp_country_of_issue" class="label-style">Country of Issue</label>
@@ -306,11 +300,9 @@
             value="{{ .LegalPersonName }}" class="input-style" />
         </div>
         <div>
-          <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
-            Type</label>
-          <input type="text" id="benf_vasp_legal_person_name_identifier_type"
-            name="benf_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}"
-            class="input-style" />
+          <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
+          <select id="benf_vasp_legal_person_name_identifier_type" name="benf_vasp_legal_person_name_identifier_type" class="identifier-types"></select>
+          <input type="hideen" class="benf_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
         </div>
         {{ end }}
 
@@ -347,8 +339,8 @@
         </div>
         <div>
           <label for="benf_vasp_address_type" class="label-style">Address Type</label>
-          <input type="text" id="benf_vasp_address_type" name="benf_vasp_address_type" value="{{ .AddressType }}"
-            class="input-style" />
+          <select id="benf_vasp_address_type" name="benf_vasp_address_type" class="identifier-types"></select>
+          <input type="hidden" class="benf_vasp_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -360,8 +352,8 @@
         </div>
         <div>
           <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-          <input type="text" id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type"
-            value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" class="input-style" />
+          <select id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type" class="identifier-types"></select>
+          <input type="hidden" class="benf_vasp_national_identifier_type" value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
         </div>
         <div>
           <label for="benf_vasp_country_of_issue" class="label-style">Country of Issue</label>
