@@ -69,6 +69,7 @@ type SecureEnvelope struct {
 }
 
 type Envelope struct {
+	EnvelopeID  string                   `json:"envelope_id,omitempty"`
 	Error       *trisa.Error             `json:"error,omitempty"`
 	Identity    *ivms101.IdentityPayload `json:"identity,omitempty"`
 	Transaction *generic.Transaction     `json:"transaction,omitempty"`
@@ -264,16 +265,17 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 //===========================================================================
 
 func NewEnvelope(env *envelope.Envelope) (out *Envelope, err error) {
+	out = &Envelope{EnvelopeID: env.ID()}
+
 	switch state := env.State(); state {
 	case envelope.Error:
-		return &Envelope{Error: env.Error()}, nil
+		out.Error = env.Error()
+		return out, nil
 	case envelope.Clear:
 		break
 	default:
 		return nil, fmt.Errorf("envelope is in an unhandled state: %s", state)
 	}
-
-	out = &Envelope{}
 
 	var payload *trisa.Payload
 	if payload, err = env.Payload(); err != nil {
