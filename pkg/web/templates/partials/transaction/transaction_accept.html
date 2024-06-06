@@ -1,10 +1,10 @@
 <section class="my-4">
   <section>
     <div class="mb-4 md:mb-0">
-      <span class="font-semibold">Transaction ID: {{ .EnvelopeId }}</span>
+      <span class="font-semibold">Transaction ID: {{ .EnvelopeID }}</span>
     </div>
   </section>
-  <form id="transaction-accept" hx-post="/v1/transactions/{{ .EnvelopeId }}/send" hx-swap="none"
+  <form id="transaction-accept" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-swap="none"
     method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
