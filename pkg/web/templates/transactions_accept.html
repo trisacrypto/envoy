@@ -23,4 +23,53 @@
 {{ define "appcode" }}
 <script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
 <script type="module" src="/static/js/transactionAcceptPreview.js"></script>
+<script>
+  const id = "{{ .ID }}"; 
+  const transactionSendEP = `/v1/transactions/${id}/send`;
+  // Transform transaction accept form data and pass to the htmx request.
+document.body.addEventListener('htmx:configRequest', (e) => {
+  if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+    const params = e.detail.parameters;
+
+    let data = {
+      identity: {
+        originator: {},
+        beneficiary: {},
+        originatingVASP: {},
+        beneficiaryVASP: {},
+      },
+      transaction: {},
+    };
+
+    for (const key in params) {
+      if (key.startsWith('og_')) {
+        // Add key/value pairs to the originator object and remove the og_ prefix.
+        data.identity.originator[key.replace('og_', '')] = params[key];
+      }
+
+      if (key.startsWith('bf_')) {
+        // Add key/value pairs to the beneficiary object and remove the bf_ prefix.
+        data.identity.beneficiary[key.replace('bf_', '')] = params[key];
+      }
+
+      if (key.startsWith('orig_vasp_')) {
+        // Add key/value pairs to the originatingVASP object and remove the orig_vasp_ prefix.
+        data.identity.originatingVASP[key.replace('orig_vasp_', '')] = params[key];
+      }
+      
+      if (key.startsWith('benf_vasp_')) {
+        // Add key/value pairs to the beneficiaryVASP object and remove the benf_vasp_ prefix.
+        data.identity.beneficiaryVASP[key.replace('benf_vasp_', '')] = params[key];
+      }
+
+      if (key.startsWith('transaction_')) {
+        data.transaction[key.replace('transaction_', '')] = params[key];
+      }
+    }
+
+    // Modify the outgoing request with the new data.
+    e.detail.parameters = data;
+  }
+})
+</script>
 {{ end }}
