@@ -30,19 +30,19 @@
         </div>
         <div>
           <label for="amount" class="label-style">Amount</label>
-          <input id="amount" name="transaction_amount" value="{{ .Transaction.Amount }}" class="input-style" />
+          <input type="text" id="amount" name="transaction_amount" value="{{ .Transaction.Amount }}" class="input-style" />
         </div>
         {{ if .Transaction.AssetType }}
         <div>
           <label for="asset_type" class="label-style">Asset Type</label>
-          <input id="asset_type" name="transaction_asset_type" value="{{ .Transaction.AssetType }}" class="input-style" />
+          <input type="text" id="asset_type" name="transaction_asset_type" value="{{ .Transaction.AssetType }}" class="input-style" />
         </div>
         {{ end }}
 
         {{ if .Transaction.Tag }}
         <div>
           <label for="tag" class="label-style">Tag</label>
-          <input id="tag" name="transaction_tag" value="{{ .Transaction.Tag }}" class="input-style" />
+          <input type="text" id="tag" name="transaction_tag" value="{{ .Transaction.Tag }}" class="input-style" />
         </div>
         {{ end }}
       </div>
