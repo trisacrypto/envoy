@@ -5,6 +5,7 @@ const extractWalletRE = /(crypto_address|network)_(\d+)/g;
 const newAcctModal = document.getElementById('new_acct_modal')
 const walletDiv = document.getElementById('crypto-wallets')
 
+// Modify the crypto wallet addresses to be sent as an array of objects in the request.
 document.body.addEventListener("htmx:configRequest", (e) => {
   // Check if this is a POST request for the accounts form.
   if (e.detail.path == "/v1/accounts" && e.detail.verb == "post") {
@@ -41,6 +42,7 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   }
 });
 
+// Add a new wallet address and network field to the new customer account form modal on click.
 addWalletBttn?.addEventListener('click', () => {
   const walletCount = walletDiv?.children.length * 1
   walletDiv?.insertAdjacentHTML('beforeend', `
@@ -61,6 +63,7 @@ addWalletBttn?.addEventListener('click', () => {
   </div>
   `)
 
+  // TODO: Does a new div need to be created for each network select?
   // Create a div to ensure content appears in the modal and not the document body.
   newAcctModal.appendChild(document.createElement('div')).id = `network_list_${walletCount}`
 
@@ -76,6 +79,7 @@ addWalletBttn?.addEventListener('click', () => {
   additionalNetworkSelect.setData(networksArray);
 })
 
+// Close the new customer account modal and reset the form values on success.
 document.body.addEventListener('htmx:afterRequest', (e) => {
   const newAcctForm = 'new-acct-form'
   // Check if the request to register a new customer account was successful.
@@ -92,12 +96,13 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
   }
 });
 
+// Set the network value in the edit customer account modal form.
 document.body.addEventListener('htmx:afterSettle', (e) => {
   const acctID = document.getElementById('acct_id')
   const acctPreviewEP = `/v1/accounts/${acctID?.value}/edit`;
 
   if (e.detail.requestConfig.path === acctPreviewEP && e.detail.requestConfig.verb === 'get') {
-    // Initialize network select for each crypto wallet.
+    // Initialize SlimSelect for each crypto wallet network.
     const walletNetworks = document.querySelectorAll('.acct-networks')
     walletNetworks.forEach((network) => {
       new SlimSelect({
@@ -121,6 +126,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
 // Set the network options and selected value in a SlimSelect dropdown for each network.
 function setNetworkData(el, value) {
+  // Add network options to the select element.
   el.slim.setData(networksArray);
   el.slim.setSelected(value);
 }
