@@ -1,4 +1,4 @@
-import { networksArray } from "./constants.js";
+import { networksArray, legalPersonNameTypeArray, addressTypeArray, nationalIdentifierTypeArray, naturalPersonNameTypeArray } from "./constants.js";
 
 document.body.addEventListener('htmx:afterSettle', () => {
   // Initialize a SlimSelect dropdown for the transaction network.
@@ -28,14 +28,51 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
     if (selectedCountry) {
       const countryValue = selectedCountry.value
-      setSlimData(country, countryValue)
+      setCountryData(country, countryValue)
     }
 
+  })
+
+  // Initialize a SlimSelect dropdown for each identifier type selection in the form.
+  const identifierTypes = document.querySelectorAll('.identifier-types')
+  identifierTypes.forEach((identifier) => {
+    new SlimSelect({
+      select: identifier,
+    })
+
+    const identifierID = identifier.id
+    const selectedIdentifier = document.querySelector(`.${identifierID}`)
+    if (selectedIdentifier) {
+      setIdentifierData(identifier, selectedIdentifier)
+    }
   })
 })
 
 // Set the country options and selected value in a SlimSelect dropdown for each country selection.
-function setSlimData(el, value) {
+function setCountryData(el, value) {
   el.slim.setData(countriesArray)
   el.slim.setSelected(value)
+}
+
+// Set the identifier type options and selected value in the SlimSelect dropdown for each identifier selection.
+function setIdentifierData(el, identifier) {
+  const identifierDataID = identifier.dataset.id
+  switch (identifierDataID) {
+    case 'legal-person-name-type':
+      el.slim.setData(legalPersonNameTypeArray)
+      el.slim.setSelected(identifier.value)
+      break;
+    case 'address-identifier-type':
+      el.slim.setData(addressTypeArray)
+      el.slim.setSelected(identifier.value)
+      break;
+    case 'national-identifier-type':
+      el.slim.setData(nationalIdentifierTypeArray)
+      el.slim.setSelected(identifier.value)
+      break;
+    case 'natural-person-name-type':
+      el.slim.setData(naturalPersonNameTypeArray)
+      el.slim.setSelected(identifier.value)
+      break;
+  }
 }

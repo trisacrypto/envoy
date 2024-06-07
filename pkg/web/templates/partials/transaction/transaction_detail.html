@@ -36,19 +36,19 @@
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Status</dd>
-          <dt>{{ .TitleStatus }}</dt>
+          <dt>{{ if .Status }} {{ .TitleStatus }} {{ else }} Unknown {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Network</dd>
-          <dt>{{ .VirtualAsset }}</dt>
+          <dt>{{ if .VirtualAsset }} {{ .VirtualAsset }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Amount</dd>
-          <dt>{{ .Amount }}</dt>
+          <dt>{{ if .Amount }} {{ .Amount }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Number of Envelopes</dd>
-          <dt>{{ .EnvelopeCount }}</dt>
+          <dt>{{ if .EnvelopeCount }} {{ .EnvelopeCount }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Created</dd>
@@ -56,7 +56,7 @@
           {{ $created := .Created.Format "January 2, 2006 3:04:05 PM" }}
           <dt>{{ $created }}</dt>
           {{ else }}
-          <dt>&mdash;</dt>
+          <dt>N/A</dt>
           {{ end }}
         </div>
         <div class="grid grid-cols-2 p-2">
@@ -65,7 +65,7 @@
           {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 3:04:05 PM" }}
           <dt>{{ $lastUpdate }}</dt>
           {{ else }}
-          <dt>&mdash;</dt>
+          <dt>N/A</dt>
           {{ end }}
         </div>
       </dl>
@@ -78,31 +78,27 @@
       <dl>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Counterparty VASP</dd>
-          <dt>{{ .Counterparty }}</dt>
+          <dt>{{ if .Counterparty }} {{ .Counterparty }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Counterparty ID</dd>
-          <dt>{{ .CounterpartyID }}</dt>
+          <dt>{{ if .CounterpartyID }} {{ .CounterpartyID }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Originator Name</dd>
-          <dt>{{ .Originator }}</dt>
+          <dt>{{ if .Originator }} {{ .Originator }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Originator Wallet Address</dd>
-          {{ if eq .OriginatorAddress "" }}
-          <dt>&mdash;</dt>
-          {{ else }}
-          <dt>{{ .OriginatorAddress }}</dt>
-          {{ end }}
+          <dt>{{ if .OriginatorAddress}} {{ .OriginatorAddress }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Beneficiary Name</dd>
-          <dt>{{ .Beneficiary }}</dt>
+          <dt>{{ if .Beneficiary }} {{ .Beneficiary }} {{ else }} N/A {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Beneficiary Wallet Address</dd>
-          <dt>{{ .BeneficiaryAddress }}</dt>
+          <dt>{{ if .BeneficiaryAddress }} {{ .BeneficiaryAddress }} {{ else }} N/A {{ end }}</dt>
         </div>
       </dl>
     </section>

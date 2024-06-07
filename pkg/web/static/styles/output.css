@@ -2557,10 +2557,6 @@ html {
   height: 1rem;
 }
 
-.h-full {
-  height: 100%;
-}
-
 .max-h-\[450px\] {
   max-height: 450px;
 }
@@ -2623,10 +2619,6 @@ html {
 
 .max-w-sm {
   max-width: 24rem;
-}
-
-.max-w-4xl {
-  max-width: 56rem;
 }
 
 .transform {
@@ -2730,10 +2722,6 @@ html {
   border-width: 2px;
 }
 
-.border-b {
-  border-bottom-width: 1px;
-}
-
 .border-t {
   border-top-width: 1px;
 }
@@ -2755,11 +2743,6 @@ html {
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
-}
-
-.border-b-black {
-  --tw-border-opacity: 1;
-  border-bottom-color: rgb(0 0 0 / var(--tw-border-opacity));
 }
 
 .border-t-black {
