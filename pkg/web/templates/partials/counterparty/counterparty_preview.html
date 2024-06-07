@@ -1,4 +1,13 @@
-<div class="my-6">
+<div class="modal-box max-w-3xl">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-xl">Edit Counterparty VASP</h1>
+    <button onclick="cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <p class="py-4">Edit counterparty VASP details.</p>
+  <input type="hidden" id="cparty_id" value="{{ .ID }}" />
   <div>
     <!-- TODO: Add hx request to update counterparty -->
     <form id="edit-cparty-form">
@@ -78,10 +87,9 @@
         <textarea id="tag" name="tag" value="" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
       </div>
       <div class="flex justify-center items-center gap-x-2">
-        <button type="submit" class="w-32 md:w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+        <button type="submit" class="w-32 md:w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Save</button>
         <a href="/counterparty" class="w-32 md:w-44 btn bg-red-700 font-semibold text-lg text-white hover:bg-red-700/80">Cancel</a>
       </div>
     </form>
   </div>
 </div>
-<div id="country-list"></div>

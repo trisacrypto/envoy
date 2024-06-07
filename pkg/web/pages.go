@@ -51,11 +51,6 @@ func (s *Server) CounterpartyVasps(c *gin.Context) {
 	c.HTML(http.StatusOK, "counterparty.html", gin.H{"Version": pkg.Version()})
 }
 
-func (s *Server) CounterpartyUpdate(c *gin.Context) {
-	id := c.Param("id")
-	c.HTML(http.StatusOK, "counterparty_edit.html", gin.H{"Version": pkg.Version(), "ID": id})
-}
-
 func (s *Server) SendEnvelopeForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "send_envelope.html", gin.H{"Version": pkg.Version()})
 }
