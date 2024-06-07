@@ -302,3 +302,21 @@ export const IDENTIFIER_TYPE = {
   NATURAL_PERSON_NAME_TYPE_CODE_MAID: 'Maiden',
   NATURAL_PERSON_NAME_TYPE_CODE_LEGL: 'Legal',
 };
+
+// Create arrays for each identifier type category from the IDENTIFIER_TYPE object.
+export const addressTypeArray = Object.entries(IDENTIFIER_TYPE)
+  .filter(([key]) => key.includes('ADDRESS_TYPE_CODE'))
+  .map(([value, text]) => ({ text, value }));
+
+export const legalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
+  .filter(([key]) => key.includes('LEGAL_PERSON_NAME_TYPE_CODE'))
+  .map(([value, text]) => ({ text, value }));
+
+export const nationalIdentifierTypeArray = Object.entries(IDENTIFIER_TYPE)
+  .filter(([key]) => key.includes('NATIONAL_IDENTIFIER_TYPE_CODE'))
+  .map(([value, text]) => ({ text, value }));
+
+export const naturalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
+  .filter(([key]) => key.includes('NATURAL_PERSON_NAME_TYPE_CODE'))
+  .map(([value, text]) => ({ text, value }));
+
