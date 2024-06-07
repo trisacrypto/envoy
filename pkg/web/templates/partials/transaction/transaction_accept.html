@@ -1,33 +1,50 @@
 <section class="my-4">
   <section>
     <div class="mb-4 md:mb-0">
-      <span class="font-semibold">Transaction ID: {{ .Transaction.Txid }}</span>
+      <span class="font-semibold">Transaction ID: {{ .EnvelopeID }}</span>
     </div>
   </section>
-  <form id="transaction-accept" hx-post="/v1/transactions/{{ .Transaction.Txid }}/send" hx-swap="none"
+  <form id="transaction-accept" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-swap="none"
     method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
+          <label for="txid" class="label-style">Txid</label>
+          <input type="text" id="txid" name="transaction_txid" value="{{ .Transaction.Txid }}" class="input-style" />
+        </div>
+        <div>
           <label for="originator" class="label-style">Originator Address</label>
-          <input type="text" id="originator" name="originator" value="{{ .Transaction.Originator }}"
+          <input type="text" id="originator" name="transaction_originator" value="{{ .Transaction.Originator }}"
             class="input-style" />
         </div>
         <div>
           <label for="beneficiary" class="label-style">Beneficiary Address</label>
-          <input type="text" id="beneficiary" name="beneficiary" value="{{ .Transaction.Beneficiary }}"
+          <input type="text" id="beneficiary" name="transaction_beneficiary" value="{{ .Transaction.Beneficiary }}"
             class="input-style" />
         </div>
         <div>
           <label for="network" class="label-style">Network</label>
-          <select id="network" name="network"></select>
+          <select id="network" name="transaction_network"></select>
           <input type="hidden" id="selected-network" value="{{ .Transaction.Network }}" />
         </div>
         <div>
           <label for="amount" class="label-style">Amount</label>
-          <input id="amount" name="amount" value="{{ .Transaction.Amount }}" class="input-style" />
+          <input type="text" id="amount" name="transaction_amount" value="{{ .Transaction.Amount }}" class="input-style" />
         </div>
+        {{ if .Transaction.AssetType }}
+        <div>
+          <label for="asset_type" class="label-style">Asset Type</label>
+          <input type="text" id="asset_type" name="transaction_asset_type" value="{{ .Transaction.AssetType }}" class="input-style" />
+        </div>
+        {{ end }}
+
+        {{ if .Transaction.Tag }}
+        <div>
+          <label for="tag" class="label-style">Tag</label>
+          <input type="text" id="tag" name="transaction_tag" value="{{ .Transaction.Tag }}" class="input-style" />
+        </div>
+        {{ end }}
       </div>
     </section>
     <section class="py-2 border-t border-t-black">
@@ -39,17 +56,17 @@
         {{ range $originatorName }}
         <div>
           <label for="orig_primary_identifier" class="label-style">Primary Identifier</label>
-          <input type="text" id="orig_primary_identifier" name="orig_primary_identifier" value="{{ .PrimaryIdentifier}}"
+          <input type="text" id="orig_primary_identifier" name="og_primary_identifier" value="{{ .PrimaryIdentifier}}"
             class="input-style" />
         </div>
         <div>
           <label for="orig_secondary_identifier" class="label-style">Secondary Identifier</label>
-          <input type="text" id="orig_secondary_identifier" name="orig_secondary_identifier"
+          <input type="text" id="orig_secondary_identifier" name="og_secondary_identifier"
             value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <select id="orig_name_identifier_type" name="orig_name_identifier_type" class="identifier-types"></select>
+          <select id="orig_name_identifier_type" name="og_name_identifier_type" class="identifier-types"></select>
           <input type="hidden" class="orig_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
         </div>
         {{ end }}
@@ -57,54 +74,54 @@
         {{ range $originatorAddress }}
         <div>
           <label for="orig_street_name" class="label-style">Street Address</label>
-          <input type="text" id="orig_street_name" name="orig_street_name" value="{{ .StreetName }}"
+          <input type="text" id="orig_street_name" name="og_street_name" value="{{ .StreetName }}"
             class="input-style" />
         </div>
         <div>
           <label for="orig_building_number" class="label-style">Building Number</label>
-          <input type="text" id="orig_building_number" name="orig_building_number" value="{{ .BuildingNumber }}"
+          <input type="text" id="orig_building_number" name="og_building_number" value="{{ .BuildingNumber }}"
             class="input-style" />
         </div>
         <div>
           <label for="orig_town_name" class="label-style">City/Municipality</label>
-          <input type="text" id="orig_town_name" name="orig_town_name" value="{{ .TownName }}" class="input-style" />
+          <input type="text" id="orig_town_name" name="og_town_name" value="{{ .TownName }}" class="input-style" />
         </div>
         <div>
           <label for="orig_district_name" class="label-style">Region/Province/State</label>
-          <input type="text" id="orig_district_name" name="orig_district_name" value="{{ .DistrictName }}"
+          <input type="text" id="orig_district_name" name="og_district_name" value="{{ .DistrictName }}"
             class="input-style" />
         </div>
         <div>
           <label for="orig_post_code" class="label-style">Postal Code</label>
-          <input type="text" id="orig_post_code" name="orig_post_code" value="{{ .PostCode }}" class="input-style" />
+          <input type="text" id="orig_post_code" name="og_post_code" value="{{ .PostCode }}" class="input-style" />
         </div>
         <div>
           <label for="orig_country" class="label-style">Country</label>
-          <select id="orig_country" name="orig_country" class="countries"></select>
+          <select id="orig_country" name="og_country" class="countries"></select>
           <input type="hidden" class="orig_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
-          <select id="orig_address_type" name="orig_address_type" class="identifier-types"></select>
+          <select id="orig_address_type" name="og_address_type" class="identifier-types"></select>
           <input type="hidden" class="orig_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
         <div>
           <label for="orig_country_of_residence" class="label-style">Country of Residence</label>
-          <select id="orig_country_of_residence" name="orig_country_of_residence" class="countries"></select>
+          <select id="orig_country_of_residence" name="og_country_of_residence" class="countries"></select>
           <input type="hidden" class="orig_country_of_residence" value="{{ $originator.CountryOfResidence }}" />
         </div>
         <div>
           <label for="orig_customer_identification" class="label-style">Customer Identification</label>
-          <input type="text" id="orig_customer_identification" name="orig_customer_identification"
+          <input type="text" id="orig_customer_identification" name="og_customer_identification"
             value="{{ $originator.CustomerIdentification }}" class="input-style" />
         </div>
 
         {{ range .Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="orig_account_numbers" value="{{ . }}"
+          <input type="text" id="orig_account_numbers" name="og_account_numbers" value="{{ . }}"
             class="input-style" />
         </div>
         {{ end }}
@@ -119,17 +136,17 @@
         {{ range $beneficiaryName }}
         <div>
           <label for="benf_primary_identifier" class="label-style">Primary Identifier</label>
-          <input type="text" id="benf_primary_identifier" name="benf_primary_identifier" value="{{ .PrimaryIdentifier}}"
+          <input type="text" id="benf_primary_identifier" name="bf_primary_identifier" value="{{ .PrimaryIdentifier}}"
             class="input-style" />
         </div>
         <div>
           <label for="benf_secondary_identifier" class="label-style">Secondary Identifier</label>
-          <input type="text" id="benf_secondary_identifier" name="benf_secondary_identifier"
+          <input type="text" id="benf_secondary_identifier" name="bf_secondary_identifier"
             value="{{ .SecondaryIdentifier }}" class="input-style" />
         </div>
         <div>
           <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <select id="benf_name_identifier_type" name="benf_name_identifier_type" class="identifier-types"></select>
+          <select id="benf_name_identifier_type" name="bf_name_identifier_type" class="identifier-types"></select>
           <input type="hidden" class="benf_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
         </div>
         {{ end }}
@@ -137,54 +154,54 @@
         {{ range $beneficiaryAddress }}
         <div>
           <label for="benf_street_name" class="label-style">Street Address</label>
-          <input type="text" id="benf_street_name" name="benf_street_name" value="{{ .StreetName }}"
+          <input type="text" id="benf_street_name" name="bf_street_name" value="{{ .StreetName }}"
             class="input-style" />
         </div>
         <div>
           <label for="benf_building_number" class="label-style">Building Number</label>
-          <input type="text" id="benf_building_number" name="benf_building_number" value="{{ .BuildingNumber }}"
+          <input type="text" id="benf_building_number" name="bf_building_number" value="{{ .BuildingNumber }}"
             class="input-style" />
         </div>
         <div>
           <label for="benf_town_name" class="label-style">City/Municipality</label>
-          <input type="text" id="benf_town_name" name="benf_town_name" value="{{ .TownName }}" class="input-style" />
+          <input type="text" id="benf_town_name" name="bf_town_name" value="{{ .TownName }}" class="input-style" />
         </div>
         <div>
           <label for="benf_district_name" class="label-style">Region/Province/State</label>
-          <input type="text" id="benf_district_name" name="benf_district_name" value="{{ .DistrictName }}"
+          <input type="text" id="benf_district_name" name="bf_district_name" value="{{ .DistrictName }}"
             class="input-style" />
         </div>
         <div>
           <label for="benf_post_code" class="label-style">Postal Code</label>
-          <input type="text" id="benf_post_code" name="benf_post_code" value="{{ .PostCode }}" class="input-style" />
+          <input type="text" id="benf_post_code" name="bf_post_code" value="{{ .PostCode }}" class="input-style" />
         </div>
         <div>
           <label for="benf_country" class="label-style">Country</label>
-          <select id="benf_country" id="benf_country" class="countries"></select>
+          <select id="benf_country" id="benf_country" name="bf_country" class="countries"></select>
           <input type="hidden" class="benf_country" value="{{ .Country }}" />
         </div>
         <div>
           <label for="benf_address_type" class="label-style">Address Type</label>
-          <select id="benf_address_type" name="benf_address_type" class="identifier-types"></select>
+          <select id="benf_address_type" name="bf_address_type" class="identifier-types"></select>
           <input type="hidden" class="benf_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
 
         <div>
           <label for="benf_country_of_residence" class="label-style">Country of Residence</label>
-          <select id="benf_country_of_residence" name="benf_country_of_residence" class="countries"></select>
+          <select id="benf_country_of_residence" name="bf_country_of_residence" class="countries"></select>
           <input type="hidden" class="benf_country_of_residence" value="{{ $beneficiary.CountryOfResidence }}" />
         </div>
         <div>
           <label for="benf_customer_identification" class="label-style">Customer Identification</label>
-          <input type="text" id="benf_customer_identification" name="benf_customer_identification"
+          <input type="text" id="benf_customer_identification" name="bf_customer_identification"
             value="{{ $beneficiary.CustomerIdentification }}" class="input-style" />
         </div>
 
         {{ range .Identity.Beneficiary.AccountNumbers }}
         <div>
           <label for="benf_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="benf_account_numbers" name="benf_account_numbers" value="{{ . }}"
+          <input type="text" id="benf_account_numbers" name="bf_account_numbers" value="{{ . }}"
             class="input-style" />
         </div>
         {{ end }}
