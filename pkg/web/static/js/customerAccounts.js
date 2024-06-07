@@ -91,3 +91,36 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     }
   }
 });
+
+document.body.addEventListener('htmx:afterSettle', (e) => {
+  const acctID = document.getElementById('acct_id')
+  const acctPreviewEP = `/v1/accounts/${acctID?.value}/edit`;
+
+  if (e.detail.requestConfig.path === acctPreviewEP && e.detail.requestConfig.verb === 'get') {
+    // Initialize network select for each crypto wallet.
+    const walletNetworks = document.querySelectorAll('.acct-networks')
+    walletNetworks.forEach((network) => {
+      new SlimSelect({
+        select: network,
+        settings: {
+          contentLocation: document.getElementById('acct_modal')
+        }
+      });
+
+      // Get each network value selected by the requester from the hidden input field.
+      const networkID = network.id;
+      const selectedNetwork = document.querySelector(`.${networkID}`);
+
+      if (selectedNetwork) {
+        const networkValue = selectedNetwork.value;
+        setNetworkData(network, networkValue);
+      };
+    });
+  };
+});
+
+// Set the network options and selected value in a SlimSelect dropdown for each network.
+function setNetworkData(el, value) {
+  el.slim.setData(networksArray);
+  el.slim.setSelected(value);
+}

@@ -1,4 +1,13 @@
-<div class="my-6">
+<div class="modal-box max-w-3xl">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-xl">Edit Counterparty VASP</h1>
+    <button onclick="cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <p class="py-4">Edit counterparty VASP details.</p>
+  <input type="hidden" id="cparty_id" value="{{ .ID }}" />
   <div>
     <!-- TODO: Add hx request to update counterparty -->
     <form id="edit-cparty-form">
@@ -84,4 +93,3 @@
     </form>
   </div>
 </div>
-<div id="country-list"></div>

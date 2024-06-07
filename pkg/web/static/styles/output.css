@@ -2472,11 +2472,6 @@ html {
   margin-bottom: 1.25rem;
 }
 
-.my-6 {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
@@ -2562,6 +2557,10 @@ html {
   height: 1rem;
 }
 
+.h-full {
+  height: 100%;
+}
+
 .max-h-\[450px\] {
   max-height: 450px;
 }
@@ -2624,6 +2623,10 @@ html {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-4xl {
+  max-width: 56rem;
 }
 
 .transform {

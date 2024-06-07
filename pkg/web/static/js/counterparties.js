@@ -26,6 +26,7 @@ const countrySelect = new SlimSelect({
   },
 });
 
+// TODO: Remove object and import countries array from constants.js
 const countries = {
   AF: 'Afghanistan',
   AX: 'Aland Islands',
@@ -277,3 +278,26 @@ const countries = {
 const countriesArray = Object.entries(countries).map(([value, text]) => ({ text, value }));
 countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
 countrySelect.setData(countriesArray);
+
+// Set the country value selected when a counterparty was added.
+document.body.addEventListener('htmx:afterSettle', (e) => {
+  const cpartyID = document.getElementById('cparty_id');
+  const cpartyPreviewEP = `/v1/counterparties/${cpartyID?.value}/edit`;
+
+  if (e.detail.requestConfig.path === cpartyPreviewEP && e.detail.requestConfig.verb === 'get') {
+    const countrySelect = new SlimSelect({
+      select: '#country',
+      settings: {
+        contentLocation: document.getElementById('cparty_modal'),
+      },
+    });
+
+    // Get the selected country value.
+    const cpartyCountry = document.getElementById('selected-country');
+    const cpartySelectedCountry = cpartyCountry.value;
+
+    // Add the country data and set the currently selected country.
+    countrySelect.setData(countriesArray);
+    countrySelect.setSelected(cpartySelectedCountry);
+  };
+});
