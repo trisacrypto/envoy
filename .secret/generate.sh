@@ -17,13 +17,13 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 10950 \
 # Create certificate requests for the server and the client
 openssl req -new -newkey rsa:4096 \
     -nodes -keyout server.key.pem -out server.csr \
-    -subj "/C=US/ST=Minnesota/L=Minneapolis/O=Localhost/OU=Testing/CN=localhost" \
-    -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
+    -subj "/C=US/ST=Minnesota/L=Minneapolis/O=Localhost/OU=Testing/CN=envoy.local" \
+    -addext "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:envoy.local,IP:127.0.0.1"
 
 openssl req -new -newkey rsa:4096 \
     -nodes -keyout counterparty.key.pem -out counterparty.csr \
-    -subj "/C=DE/ST=Hesse/L=Frankfurt/O=Counterparty/OU=Testing/CN=localhost" \
-    -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
+    -subj "/C=DE/ST=Hesse/L=Frankfurt/O=Counterparty/OU=Testing/CN=counterparty.local" \
+    -addext "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:counterparty.local,IP:127.0.0.1"
 
 openssl req -new -newkey rsa:4096 \
     -nodes -keyout client.key.pem -out client.csr \

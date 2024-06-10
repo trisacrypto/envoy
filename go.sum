@@ -390,8 +390,8 @@ github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFd
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/trisacrypto/directory v1.7.7 h1:0GldfeB3fGYpqoEeGdmE97dQSpSDWOjxQmFjSUSG9UI=
 github.com/trisacrypto/directory v1.7.7/go.mod h1:JSIMzr3J79h3+Y+17ghtvsb0hUEHzo+islfpecrQfpk=
-github.com/trisacrypto/trisa v1.1.0 h1:mU2zIcdqJt0AbJ8rk5+5Lb97+M1DP2dcQr9i9Zebg74=
-github.com/trisacrypto/trisa v1.1.0/go.mod h1:WNmr03uBE5+jItYIVBXgU1+9nJkDb3tZWzZ8PWqnZxY=
+github.com/trisacrypto/trisa v1.1.1 h1:sf4qs6JyD58eo29wYOsJatUsTqM5daK1FmUW0jlPzns=
+github.com/trisacrypto/trisa v1.1.1/go.mod h1:WNmr03uBE5+jItYIVBXgU1+9nJkDb3tZWzZ8PWqnZxY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=

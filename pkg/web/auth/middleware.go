@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -20,6 +21,11 @@ const (
 	RefreshTokenCookie = "refresh_token"
 	ContextUserClaims  = "user_claims"
 	CookieMaxAgeBuffer = 600 * time.Second
+)
+
+const (
+	localhost = "localhost"
+	localTLD  = ".local"
 )
 
 // used to extract the access token from the authorization header
@@ -152,11 +158,8 @@ func SetAuthCookies(c *gin.Context, accessToken, refreshToken, domain string) (e
 		return err
 	}
 
-	// Secure is true unless the domain is localhost
-	secure := true
-	if domain == "localhost" {
-		secure = false
-	}
+	// Secure is true unless the domain is localhost or ends in .local
+	secure := !IsLocalhost(domain)
 
 	// Set the access token cookie: httpOnly is true; cannot be accessed by Javascript
 	accessMaxAge := int((time.Until(accessExpires.Add(CookieMaxAgeBuffer))).Seconds())
@@ -179,4 +182,8 @@ func SetAuthCookies(c *gin.Context, accessToken, refreshToken, domain string) (e
 func ClearAuthCookies(c *gin.Context, domain string) {
 	c.SetCookie(AccessTokenCookie, "", -1, "/", domain, true, true)
 	c.SetCookie(RefreshTokenCookie, "", -1, "/", domain, true, false)
+}
+
+func IsLocalhost(domain string) bool {
+	return domain == localhost || strings.HasSuffix(domain, localTLD)
 }

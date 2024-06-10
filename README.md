@@ -37,6 +37,23 @@ Step 3: Run the services (including Envoy and GDS):
 $ docker compose up
 ```
 
+**Localhost Networking**: to ensure that the services can reach other internally to the docker compose network environment, the nodes are launched as `envoy.local` and `counterparty.local` respectively. It is likely that if you're developing, you'll have to add these domains to your `/etc/hosts` file as follows:
+
+```
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting. Do not change this entry.
+##
+127.0.0.1       localhost
+255.255.255.255 broadcasthost
+::1             localhost
+
+127.0.0.1 envoy.local
+127.0.0.1 counterparty.local
+```
+
 Step 4: Initialize the GDS with data about the localhost network.
 
 ```
@@ -51,7 +68,7 @@ Step 5: Create an admin user to login to the localhost with
 $ docker compose exec envoy envoy createuser -e [email] -r admin
 ```
 
-Now open a browser at [http://localhost:8000](http://localhost:8000) and you should be able to access the envoy node with the email and password created in the previous step!
+Now open a browser at [http://localhost:8000](http://localhost:8000) (or at [http://envoy.local:8000](http://envoy.local:8000) if you have edited your hosts file) and you should be able to access the envoy node with the email and password created in the previous step!
 
 Step 6: Optionally create an admin user to login to the local counterparty with. The counterparty is intended to allow you to have two Envoy nodes to send transfers back and forth to.
 
@@ -59,6 +76,6 @@ Step 6: Optionally create an admin user to login to the local counterparty with.
 $ docker compose exec counterparty envoy createuser -e [email] -r admin
 ```
 
-You can access the counterparty at [http://localhost:9000](http://localhost:9000).
+You can access the counterparty at [http://localhost:9000](http://localhost:9000) or at [http://counterparty.local:9000](http://counterparty.local:9000) if you have edited your hosts file.
 
 > **NOTE**: Due to the way cookie domains work with the credentials, you can only be logged into either the envoy development node or the counterparty development node at the same time. It's annoying, but you'll have to login again when switching between nodes unfortunately.
