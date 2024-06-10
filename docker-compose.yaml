@@ -1,5 +1,5 @@
 services:
-  envoy:
+  envoy.local:
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -8,7 +8,7 @@ services:
     image: trisa/envoy
     init: true
     depends_on:
-      - gds
+      - gds.local
     ports:
       - 8000:8000
       - 8100:8100
@@ -23,28 +23,28 @@ services:
       - TRISA_LOG_LEVEL=debug
       - TRISA_CONSOLE_LOG=true
       - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
-      - TRISA_ENDPOINT=localhost:8100
+      - TRISA_ENDPOINT=envoy.local:8100
       - TRISA_WEB_ENABLED=true
       - TRISA_WEB_BIND_ADDR=:8000
-      - TRISA_WEB_ORIGIN=http://localhost:8000
-      - TRISA_WEB_AUDIENCE=http://localhost:8000
-      - TRISA_WEB_ISSUER=http://localhost:8000
-      - TRISA_WEB_AUTH_COOKIE_DOMAIN=localhost
+      - TRISA_WEB_ORIGIN=http://envoy.local:8000
+      - TRISA_WEB_AUDIENCE=http://envoy.local:8000
+      - TRISA_WEB_ISSUER=http://envoy.local:8000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=envoy.local
       - TRISA_NODE_ENABLED=true
       - TRISA_NODE_BIND_ADDR=:8100
       - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
       - TRISA_NODE_CERTS=/run/secrets/server.pem.gz
       - TRISA_NODE_DIRECTORY_INSECURE=true
-      - TRISA_NODE_DIRECTORY_ENDPOINT=gds:4433
-      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
       - TRISA_DIRECTORY_SYNC_ENABLED=true
 
-  counterparty:
+  counterparty.local:
     image: trisa/envoy
     init: true
     depends_on:
-      - gds
-      - envoy
+      - gds.local
+      - envoy.local
     ports:
       - 9000:9000
       - 9100:9100
@@ -59,23 +59,23 @@ services:
       - TRISA_LOG_LEVEL=debug
       - TRISA_CONSOLE_LOG=true
       - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
-      - TRISA_ENDPOINT=localhost:9100
+      - TRISA_ENDPOINT=counterparty.local:9100
       - TRISA_WEB_ENABLED=true
       - TRISA_WEB_BIND_ADDR=:9000
-      - TRISA_WEB_ORIGIN=http://localhost:9000
-      - TRISA_WEB_AUDIENCE=http://localhost:9000
-      - TRISA_WEB_ISSUER=http://localhost:9000
-      - TRISA_WEB_AUTH_COOKIE_DOMAIN=localhost
+      - TRISA_WEB_ORIGIN=http://counterparty.local:9000
+      - TRISA_WEB_AUDIENCE=http://counterparty.local:9000
+      - TRISA_WEB_ISSUER=http://counterparty.local:9000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=counterparty.local
       - TRISA_NODE_ENABLED=true
       - TRISA_NODE_BIND_ADDR=:9100
       - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
       - TRISA_NODE_CERTS=/run/secrets/counterparty.pem.gz
       - TRISA_NODE_DIRECTORY_INSECURE=true
-      - TRISA_NODE_DIRECTORY_ENDPOINT=gds:4433
-      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds:4435
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
       - TRISA_DIRECTORY_SYNC_ENABLED=true
 
-  gds:
+  gds.local:
     image: trisa/gds
     init: true
     ports:
@@ -90,7 +90,7 @@ services:
       - GDS_MAINTENANCE=false
       - GDS_LOG_LEVEL=info
       - GDS_CONSOLE_LOG=true
-      - GDS_API_ENABLED=false
+      - GDS_API_ENABLED=true
       - GDS_BIND_ADDR=:4433
       - GDS_ADMIN_ENABLED=false
       - GDS_ADMIN_BIND_ADDR=:4434
