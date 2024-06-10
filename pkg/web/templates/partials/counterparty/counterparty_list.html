@@ -25,7 +25,7 @@
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
               {{ if eq .Source "user"}}
-              <li><a href="/counterparty/{{ .ID }}/edit">Edit</a></li>
+              <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">Edit</a></li>
               {{ end }}
               <li><a>View</a></li>
             </ul>
