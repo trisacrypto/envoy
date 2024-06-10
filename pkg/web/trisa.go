@@ -130,7 +130,13 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 
 	// If the response is sealed, unseal and decrypt it (validating the HMAC signature)
 	if incoming.State() == envelope.Sealed {
-		if incoming, _, err = incoming.Unseal(); err != nil {
+		var privateKey interface{}
+		if privateKey, err = unsealingKey.UnsealingKey(); err != nil {
+			log.Error().Err(err).Msg("no private key available for unsealing")
+			return outgoing, nil, fmt.Errorf("no private key available: %w", err)
+		}
+
+		if incoming, _, err = incoming.Unseal(envelope.WithUnsealingKey(privateKey)); err != nil {
 			log.Error().Err(err).Msg("unable to unseal incoming secure envelope response from remote peer")
 			return outgoing, nil, fmt.Errorf("unable to unseal secure envelope from peer: %w", err)
 		}

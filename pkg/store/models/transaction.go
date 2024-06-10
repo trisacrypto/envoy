@@ -256,8 +256,12 @@ func FromOutgoingEnvelope(env *envelope.Envelope) *SecureEnvelope {
 
 func FromIncomingEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	in := FromEnvelope(env)
-	in.Direction = DirectionOutgoing
+	in.Direction = DirectionIncoming
 	in.ValidHMAC = sql.NullBool{Valid: true, Bool: in.Envelope.Sealed}
+
+	in.PublicKey.String = env.Proto().PublicKeySignature
+	in.PublicKey.Valid = in.PublicKey.String != ""
+
 	return in
 }
 
