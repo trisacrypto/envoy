@@ -59,5 +59,33 @@
 <!-- <div hx-get="/v1/transactions/{{ .ID }}/secure-envelopes/{{ .EnvelopeID }}" hx-trigger="load"></div> -->
 {{ end }}
 {{ else }}
+{{ if .SecureEnvelopes }}
+{{ range .SecureEnvelopes }}
+<!-- TODO: Toggle collapse-close/collapse-open on click. The accordion should be collapsed on close. -->
+<div class="my-4">
+  <div class="collapse collapse-arrow collapse-close bg-base-200">
+    <input type="radio" name="my-accordion-1" checked="checked" /> 
+    <div class="collapse-title text-xl font-medium">
+      <h3>ID: {{ .ID }}</h3>
+    </div>
+    <div class="collapse-content">
+      <h2>Secure Envelope Meta Data</h2>
+      {{ if .Sealed}}
+      <p>State: Sealed</p>
+      {{ else }}
+      <p>State: Unsealed</p>
+      {{ end }}
+      {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05" }}
+      <p>Envelope Timestamp: {{ $timestamp }}</p>
+      <!-- TODO: Hide the signature and make it visible on icon click -->
+      <p>Public Key Signature: {{ .PublicKeySignature }}</p>
+      <p>HMAC Valid: {{ .ValidHMAC }} </p>
+      <p>Encryption Algorithm: {{ .EncryptionAlgorithm }}</p>
+      <p>HMAC Algorithm: {{ .HMACAlgorithm }}</p> 
+    </div>
+  </div>
+</div>
+{{ end }}
+{{ end }}
 <p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
 {{ end }}
