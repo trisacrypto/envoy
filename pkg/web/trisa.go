@@ -82,14 +82,6 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 	log := logger.Tracing(ctx).With().Str("peer", peer.Name()).Str("envelope_id", outgoing.ID()).Logger()
 	log.Debug().Msg("started outgoing TRISA transfer")
 
-	// Load the unsealing key to unseal the response after transfer; this also has the
-	// effect of checking that we have public keys to exchange with the remote peer.
-	var unsealingKey keys.PrivateKey
-	if unsealingKey, err = s.trisa.UnsealingKey("", peer.Name()); err != nil {
-		log.Error().Err(err).Msg("cannot start transfer without unsealing keys")
-		return nil, nil, fmt.Errorf("local unsealing keys unavailable: %w", err)
-	}
-
 	// Fetch cached sealing keys, if not available, perform a key exchange
 	var sealingKey keys.PublicKey
 	if sealingKey, err = s.trisa.SealingKey(peer.Name()); err != nil {
@@ -123,6 +115,13 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 		return outgoing, nil, fmt.Errorf("unexpected error returned from remote peer on transfer: %w", err)
 	}
 
+	// Load the unsealing key to unseal the response after transfer
+	var unsealingKey keys.PrivateKey
+	if unsealingKey, err = s.trisa.UnsealingKey(reply.PublicKeySignature, peer.Name()); err != nil {
+		log.Error().Err(err).Str("pks", reply.PublicKeySignature).Msg("cannot identify unsealing keys used by remote")
+		return nil, nil, fmt.Errorf("unsealing keys unavailable: %w", err)
+	}
+
 	if incoming, err = envelope.Wrap(reply, envelope.WithUnsealingKey(unsealingKey)); err != nil {
 		log.Error().Err(err).Msg("unable to handle incoming secure envelope response from remote peer")
 		return outgoing, nil, fmt.Errorf("unable to handle secure envelope from peer: %w", err)
@@ -130,6 +129,8 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 
 	// If the response is sealed, unseal and decrypt it (validating the HMAC signature)
 	if incoming.State() == envelope.Sealed {
+		unsealingKey.(keys.KeyIdentifier).PublicKeySignature()
+
 		var privateKey interface{}
 		if privateKey, err = unsealingKey.UnsealingKey(); err != nil {
 			log.Error().Err(err).Msg("no private key available for unsealing")
@@ -147,6 +148,9 @@ func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envel
 		}
 	}
 
+	// HACK: Make sure the public key signature is on the incoming envelope
+	// TODO: ensure that envelope package doesn't erase public key signature from envelope!
+	incoming.Proto().PublicKeySignature = reply.PublicKeySignature
 	return outgoing, incoming, nil
 }
 

@@ -566,6 +566,10 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 		return nil, internalError
 	}
 
+	// Ensure the public key signature is set on the outgoing message
+	msg.PublicKeySignature, _ = sealingKey.PublicKeySignature()
+	in.log.Debug().Str("pks", msg.PublicKeySignature).Msg("outgoing envelope sealed")
+
 	// Create outgoing message
 	if out, err = in.Outgoing(msg); err != nil {
 		return nil, err
