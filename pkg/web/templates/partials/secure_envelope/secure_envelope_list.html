@@ -87,7 +87,7 @@
               <dd>
                 <div class="tooltip" data-tip="Sealed envelope">
                   <button>
-                    <i class="fa-solid fa-envelope-circle-check"></i>
+                    <i class="fa-solid fa-envelope-circle-check text-lg"></i>
                   </button>
                 </div>
               </dd>
@@ -95,7 +95,7 @@
               <dd>
                 <div class="tooltip" data-tip="Unsealed envelope">
                   <button>
-                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <i class="fa-solid fa-envelope-open-text text-lg"></i>
                   </button>
                 </div>
               </dd>
@@ -103,7 +103,17 @@
             </div>
             <div class="py-1 grid grid-cols-2">
               <dt>HMAC Valid</dt>
-              <dd>{{ .ValidHMAC }}</dd>
+              <dd>
+                {{ if .ValidHMAC }}
+                <div class="tooltip" data-tip="HMAC is valid">
+                  <i class="fa-solid fa-circle-check text-lg text-green-700"></i>
+                </div>
+                {{ else }}
+                <div class="tooltip" data-tip="HMAC is not valid">
+                  <i class="fa-solid fa-circle-xmark text-lg text-red-700"></i>
+                </div>
+                {{ end }}
+              </dd>
             </div>
             <div class="py-1 grid grid-cols-2">
               <dt>Encryption Algorithm</dt>
