@@ -24,7 +24,7 @@
     <div class="grid grid-cols-2">
       <dt>Originator Wallet Address</dt>
       {{ $originator := .Envelope.Transaction.Originator }}
-      <dd>{{ if $originator }} {{ $originator}} {{ else }} &mdash; {{ end }}</dd>
+      <dd>{{ if $originator }} {{ $originator }} {{ else }} &mdash; {{ end }}</dd>
     </div>
     <div class="grid grid-cols-2">
       <dt>Beneficiary Wallet Address</dt>
@@ -63,29 +63,61 @@
 {{ range .SecureEnvelopes }}
 <!-- TODO: Toggle collapse-close/collapse-open on click. The accordion should be collapsed on close. -->
 <div class="my-4">
-  <div class="collapse collapse-arrow collapse-close bg-base-200">
-    <input type="radio" name="my-accordion-1" checked="checked" /> 
-    <div class="collapse-title text-xl font-medium">
-      <h3>ID: {{ .ID }}</h3>
-    </div>
-    <div class="collapse-content">
-      <h2>Secure Envelope Meta Data</h2>
-      {{ if .Sealed}}
-      <p>State: Sealed</p>
+  <div class="envelope-accordion collapse collapse-close collapse-arrow bg-base-200">
+    <input type="radio" name="my-accordion-1" checked="checked" />
+    {{ if .IsError }}
+    <div class="collapse-title bg-red-200 text-xl font-medium">
       {{ else }}
-      <p>State: Unsealed</p>
-      {{ end }}
-      {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05" }}
-      <p>Envelope Timestamp: {{ $timestamp }}</p>
-      <!-- TODO: Hide the signature and make it visible on icon click -->
-      <p>Public Key Signature: {{ .PublicKeySignature }}</p>
-      <p>HMAC Valid: {{ .ValidHMAC }} </p>
-      <p>Encryption Algorithm: {{ .EncryptionAlgorithm }}</p>
-      <p>HMAC Algorithm: {{ .HMACAlgorithm }}</p> 
+      <div class="collapse-title bg-green-200 text-xl font-medium">
+        {{ end }}
+        <h3 class="font-semibold text-lg">ID: {{ .ID }}</h3>
+      </div>
+      <div class="collapse-content">
+        <div class="mt-4">
+          <h3 class="font-semibold">Secure Envelope Meta Data</h3>
+          <dl class="mt-2">
+            <div class="py-1 grid grid-cols-2">
+              <dt>Envelope Timestamp</dt>
+              {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05" }}
+              <dd>{{ $timestamp }}</dd>
+            </div>
+            <div class="py-1 grid grid-cols-2">
+              <dt>Status</dt>
+              {{ if .Sealed}}
+              <dd>
+                <div class="tooltip" data-tip="Sealed envelope">
+                  <button>
+                    <i class="fa-solid fa-envelope-circle-check"></i>
+                  </button>
+                </div>
+              </dd>
+              {{ else }}
+              <dd>
+                <div class="tooltip" data-tip="Unsealed envelope">
+                  <button>
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                  </button>
+                </div>
+              </dd>
+              {{ end }}
+            </div>
+            <div class="py-1 grid grid-cols-2">
+              <dt>HMAC Valid</dt>
+              <dd>{{ .ValidHMAC }}</dd>
+            </div>
+            <div class="py-1 grid grid-cols-2">
+              <dt>Encryption Algorithm</dt>
+              <dd>{{ .EncryptionAlgorithm }}</dd>
+            </div>
+            <div class="py-1 grid grid-cols-2">
+              <dt>HMAC Algorithm</dt>
+              <dd>{{ .HMACAlgorithm }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-{{ end }}
-{{ end }}
-<p class="my-8 text-center">There are no secure envelopes for this transaction.</p>
-{{ end }}
+  {{ end }}
+  {{ end }}
+  {{ end }}
