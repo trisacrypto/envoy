@@ -65,7 +65,7 @@ Note this requires you to have [Go](https://go.dev/doc/install) installed on you
 Step 5: Create an admin user to login to the localhost with
 
 ```
-$ docker compose exec envoy envoy createuser -e [email] -r admin
+$ docker compose exec envoy.local envoy createuser -e [email] -r admin
 ```
 
 Now open a browser at [http://localhost:8000](http://localhost:8000) (or at [http://envoy.local:8000](http://envoy.local:8000) if you have edited your hosts file) and you should be able to access the envoy node with the email and password created in the previous step!
@@ -73,7 +73,7 @@ Now open a browser at [http://localhost:8000](http://localhost:8000) (or at [htt
 Step 6: Optionally create an admin user to login to the local counterparty with. The counterparty is intended to allow you to have two Envoy nodes to send transfers back and forth to.
 
 ```
-$ docker compose exec counterparty envoy createuser -e [email] -r admin
+$ docker compose exec counterparty.local envoy createuser -e [email] -r admin
 ```
 
 You can access the counterparty at [http://localhost:9000](http://localhost:9000) or at [http://counterparty.local:9000](http://counterparty.local:9000) if you have edited your hosts file.
