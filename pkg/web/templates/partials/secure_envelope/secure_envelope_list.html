@@ -106,11 +106,15 @@
               <dd>
                 {{ if .ValidHMAC }}
                 <div class="tooltip" data-tip="HMAC is valid">
-                  <i class="fa-solid fa-circle-check text-lg text-green-700"></i>
+                  <button>
+                    <i class="fa-solid fa-circle-check text-lg text-green-700"></i>
+                  </button>
                 </div>
                 {{ else }}
                 <div class="tooltip" data-tip="HMAC is not valid">
-                  <i class="fa-solid fa-circle-xmark text-lg text-red-700"></i>
+                  <button>
+                    <i class="fa-solid fa-circle-xmark text-lg text-red-700"></i>
+                  </button>
                 </div>
                 {{ end }}
               </dd>

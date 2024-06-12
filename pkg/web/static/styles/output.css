@@ -3194,6 +3194,10 @@ details.collapse summary::-webkit-details-marker {
   padding-top: 0.5rem;
 }
 
+.pt-1 {
+  padding-top: 0.25rem;
+}
+
 .text-center {
   text-align: center;
 }

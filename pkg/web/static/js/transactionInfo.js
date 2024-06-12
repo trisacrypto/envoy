@@ -26,10 +26,11 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 });
 
 // Add code to amend the request parameters before the request is sent.
+const rejectEP = `/v1/transactions/${transactionID?.value}/reject`
+
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Determine if the request repair checkbox is checked and add to the request parameters.
   const isRetryChecked = document.getElementById('request_retry')
-  const rejectEP = `/v1/transactions/${transactionID?.value}/reject`
   if (e.detail.path === rejectEP && e.detail.verb === 'post') {
     const retryTransaction = isRetryChecked?.checked;
     e.detail.parameters = {
