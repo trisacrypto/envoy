@@ -1,7 +1,8 @@
+const transactionID = document.getElementById('transaction-id');
+
 
 // Add code to run after HTMX settles the DOM once a swap occurs.
 document.body.addEventListener('htmx:afterSettle', (e) => {
-  const transactionID = document.getElementById('transaction-id');
   const envelopeListEP = `/v1/transactions/${transactionID?.value}/secure-envelopes`
   if (e.detail.requestConfig.path === envelopeListEP && e.detail.requestConfig.verb === 'get') {
     // Toggle the collapse-close class when an accordion is clicked.
@@ -22,4 +23,26 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
     // TODO: Add code to toggle show/hide for PKS.
   }
-})
+});
+
+// Add code to amend the request parameters before the request is sent.
+document.body.addEventListener('htmx:configRequest', (e) => {
+  // Determine if the request repair checkbox is checked and add to the request parameters.
+  const isRetryChecked = document.getElementById('request_retry')
+  const rejectEP = `/v1/transactions/${transactionID?.value}/reject`
+  if (e.detail.path === rejectEP && e.detail.verb === 'post') {
+    const retryTransaction = isRetryChecked?.checked;
+    e.detail.parameters = {
+      ...e.detail.parameters,
+      request_retry: retryTransaction,
+    };
+  };
+});
+
+// Reset the reject transaction form if the request is successful.
+document.body.addEventListener('htmx:afterRequest', (e) => {
+  if (e.detail.requestConfig.path === rejectEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    const transactionRejectForm = document.getElementById('transaction-reject-form')
+    transactionRejectForm.reset()
+  }
+});
