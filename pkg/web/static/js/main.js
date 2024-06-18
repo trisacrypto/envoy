@@ -27,7 +27,7 @@ if (logoutBttn) {
 
 document.body.addEventListener('htmx:responseError', (e) => {
   // Close any open modals.
-  document.querySelector('.modal').close()
+  document.querySelector('.modal')?.close()
 
   // Display error response to user.
   if (e.detail.xhr.response !== '') {
