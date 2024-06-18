@@ -169,8 +169,8 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 }
 
 const (
-	latestSecEnvSQL            = "SELECT * FROM secure_envelopes WHERE id=:envelopeID ORDER BY timestamp DESC LIMIT 1"
-	latestSecEnvByDirectionSQL = "SELECT * FROM secure_envelopes WHERE id=:envelopeID AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
+	latestSecEnvSQL            = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID ORDER BY timestamp DESC LIMIT 1"
+	latestSecEnvByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
 )
 
 func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
