@@ -21,7 +21,7 @@ var testEnv = map[string]string{
 	"TRISA_CONSOLE_LOG":                     "true",
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
-	"TRISA_WEB_ENABLED":                     "true",
+	"TRISA_WEB_ENABLED":                     "false",
 	"TRISA_WEB_API_ENABLED":                 "false",
 	"TRISA_WEB_UI_ENABLED":                  "false",
 	"TRISA_WEB_BIND_ADDR":                   ":4000",
@@ -60,7 +60,7 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
 	require.True(t, conf.Web.Maintenance)
-	require.True(t, conf.Web.Enabled)
+	require.False(t, conf.Web.Enabled)
 	require.False(t, conf.Web.APIEnabled)
 	require.False(t, conf.Web.UIEnabled)
 	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)
