@@ -41,7 +41,7 @@ type Server struct {
 // Serve the compliance and administrative user interfaces in its own go routine.
 func (s *Server) Serve(errc chan<- error) (err error) {
 	if !s.conf.Enabled {
-		log.Warn().Bool("enabled", s.conf.Enabled).Msg("web ui is not enabled")
+		log.Warn().Bool("enabled", s.conf.Enabled).Msg("web API and UI are not enabled")
 		return nil
 	}
 
