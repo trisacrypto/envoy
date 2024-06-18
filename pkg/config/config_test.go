@@ -21,7 +21,9 @@ var testEnv = map[string]string{
 	"TRISA_CONSOLE_LOG":                     "true",
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
-	"TRISA_WEB_ENABLED":                     "true",
+	"TRISA_WEB_ENABLED":                     "false",
+	"TRISA_WEB_API_ENABLED":                 "false",
+	"TRISA_WEB_UI_ENABLED":                  "false",
 	"TRISA_WEB_BIND_ADDR":                   ":4000",
 	"TRISA_WEB_ORIGIN":                      "https://example.com",
 	"TRISA_WEB_AUTH_KEYS":                   "foo:/path/to/foo.pem,bar:/path/to/bar.pem",
@@ -58,7 +60,9 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
 	require.True(t, conf.Web.Maintenance)
-	require.True(t, conf.Web.Enabled)
+	require.False(t, conf.Web.Enabled)
+	require.False(t, conf.Web.APIEnabled)
+	require.False(t, conf.Web.UIEnabled)
 	require.Equal(t, testEnv["TRISA_WEB_BIND_ADDR"], conf.Web.BindAddr)
 	require.Equal(t, testEnv["TRISA_WEB_ORIGIN"], conf.Web.Origin)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Web.TRISAEndpoint)
@@ -89,12 +93,43 @@ func TestWebConfig(t *testing.T) {
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		conf := config.WebConfig{
-			Enabled:  true,
-			BindAddr: "127.0.0.1:0",
-			Origin:   "http://localhost",
+		testCases := []config.WebConfig{
+			{
+				Enabled: false,
+			},
+			{
+				Enabled:    true,
+				APIEnabled: true,
+				UIEnabled:  true,
+				BindAddr:   "127.0.0.1:0",
+				Origin:     "http://localhost",
+			},
+			{
+				Enabled:    true,
+				APIEnabled: false,
+				UIEnabled:  true,
+				BindAddr:   "127.0.0.1:0",
+				Origin:     "http://localhost",
+			},
+			{
+				Enabled:    true,
+				APIEnabled: true,
+				UIEnabled:  false,
+				BindAddr:   "127.0.0.1:0",
+				Origin:     "http://localhost",
+			},
+			{
+				Enabled:    false,
+				APIEnabled: false,
+				UIEnabled:  false,
+				BindAddr:   "127.0.0.1:0",
+				Origin:     "http://localhost",
+			},
 		}
-		require.NoError(t, conf.Validate(), "expected valid config to be valid")
+
+		for _, conf := range testCases {
+			require.NoError(t, conf.Validate(), "expected valid config to be valid")
+		}
 	})
 
 	t.Run("Invalid", func(t *testing.T) {
@@ -104,17 +139,31 @@ func TestWebConfig(t *testing.T) {
 		}{
 			{
 				conf: config.WebConfig{
-					Enabled: true,
-					Origin:  "http://localhost",
+					Enabled:    true,
+					APIEnabled: true,
+					UIEnabled:  true,
+					Origin:     "http://localhost",
 				},
 				errString: "invalid configuration: bindaddr is required",
 			},
 			{
 				conf: config.WebConfig{
-					Enabled:  true,
-					BindAddr: "127.0.0.1:0",
+					Enabled:    true,
+					APIEnabled: true,
+					UIEnabled:  true,
+					BindAddr:   "127.0.0.1:0",
 				},
 				errString: "invalid configuration: origin is required",
+			},
+			{
+				conf: config.WebConfig{
+					Enabled:    true,
+					APIEnabled: false,
+					UIEnabled:  false,
+					BindAddr:   "127.0.0.1:0",
+					Origin:     "http://localhost",
+				},
+				errString: "invalid configuration: if enabled, either the api, ui, or both need to be enabled",
 			},
 		}
 
