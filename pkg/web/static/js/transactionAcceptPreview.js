@@ -1,4 +1,4 @@
-import { networksArray, legalPersonNameTypeArray, addressTypeArray, nationalIdentifierTypeArray, naturalPersonNameTypeArray } from "./constants.js";
+import { countriesArray, networksArray, legalPersonNameTypeArray, addressTypeArray, nationalIdentifierTypeArray, naturalPersonNameTypeArray } from "./constants.js";
 
 document.body.addEventListener('htmx:afterSettle', () => {
   // Initialize a SlimSelect dropdown for the transaction network.
