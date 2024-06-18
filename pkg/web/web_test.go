@@ -131,6 +131,7 @@ func TestServerEnabled(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNotFound, code)
 
+		// Test Not Found route when not enabled
 		code, err = statusForUIRequest("/v1/foo", http.MethodGet)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusServiceUnavailable, code)
@@ -140,6 +141,7 @@ func TestServerEnabled(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusMethodNotAllowed, code)
 
+		// Test Not Allowed route when not enabled
 		code, err = statusForUIRequest("/v1/login", http.MethodDelete)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusServiceUnavailable, code)
@@ -219,22 +221,24 @@ func TestServerEnabled(t *testing.T) {
 		}
 
 		// Test Not Found route
-		code, err := statusForAPIRequest("/v1/foo", http.MethodGet)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusServiceUnavailable, code)
-
-		code, err = statusForUIRequest("/v1/foo", http.MethodGet)
+		code, err := statusForUIRequest("/v1/foo", http.MethodGet)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNotFound, code)
 
-		// Test Not Allowed route
-		code, err = statusForAPIRequest("/v1/login", http.MethodDelete)
+		// Test Not Found when not enabled
+		code, err = statusForAPIRequest("/v1/foo", http.MethodGet)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusServiceUnavailable, code)
 
+		// Test Not Allowed route
 		code, err = statusForUIRequest("/v1/login", http.MethodDelete)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusMethodNotAllowed, code)
+
+		// Test Not Allowed when not enabled
+		code, err = statusForAPIRequest("/v1/login", http.MethodDelete)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusServiceUnavailable, code)
 	})
 
 }
