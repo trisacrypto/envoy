@@ -42,6 +42,8 @@ type Config struct {
 type WebConfig struct {
 	Maintenance   bool       `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
 	Enabled       bool       `default:"true" desc:"if false, the web UI server will not be run"`
+	APIEnabled    bool       `default:"true" split_words:"true" desc:"if false, the API server will return unavailable when accessed; subordinate to the enabled flag"`
+	UIEnabled     bool       `default:"true" split_words:"true" desc:"if false, the UI server will return unavailable when accessed; subordinate to the enabled flag"`
 	BindAddr      string     `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
 	Origin        string     `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
 	TRISAEndpoint string     `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
@@ -130,6 +132,11 @@ func (c WebConfig) Validate() (err error) {
 	// If not enabled, do not validate the config.
 	if !c.Enabled {
 		return nil
+	}
+
+	// If enabled but neither UI or API is enabled, return a warning
+	if c.Enabled && !c.APIEnabled && !c.UIEnabled {
+		return errors.New("invalid configuration: if enabled, either the api, ui, or both need to be enabled")
 	}
 
 	if c.BindAddr == "" {
