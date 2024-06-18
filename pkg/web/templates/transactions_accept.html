@@ -67,6 +67,9 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       }
     }
 
+    // Convert the transaction amount to a float.
+    data.transaction.amount = parseFloat(data.transaction.amount);
+
     // Modify the outgoing request with the new data.
     e.detail.parameters = data;
   }

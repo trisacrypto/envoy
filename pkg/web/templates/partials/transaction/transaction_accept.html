@@ -4,7 +4,7 @@
       <span class="font-semibold">Transaction ID: {{ .EnvelopeID }}</span>
     </div>
   </section>
-  <form id="transaction-accept" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-swap="none"
+  <form id="transaction-accept" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-ext="json-enc" hx-swap="none"
     method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
@@ -16,12 +16,13 @@
         </div>
         <div>
           <label for="beneficiary" class="label-style">Beneficiary Address</label>
-          <input type="text" id="beneficiary" name="transaction_beneficiary" value="{{ .Pending.Transaction.Beneficiary }}"
-            class="input-style" />
+          <input type="text" id="beneficiary" name="transaction_beneficiary"
+            value="{{ .Pending.Transaction.Beneficiary }}" class="input-style" />
         </div>
         <div>
           <label for="amount" class="label-style">Amount</label>
-          <input type="text" id="amount" name="transaction_amount" value="{{ .Pending.Transaction.Amount }}" class="input-style" />
+          <input type="text" id="amount" name="transaction_amount" value="{{ .Pending.Transaction.Amount }}"
+            class="input-style" />
         </div>
         <div>
           <label for="network" class="label-style">Network</label>
@@ -30,11 +31,13 @@
         </div>
         <div>
           <label for="asset_type" class="label-style">Asset Type</label>
-          <input type="text" id="asset_type" name="transaction_asset_type" value="{{ .Pending.Transaction.AssetType }}" class="input-style" />
+          <input type="text" id="asset_type" name="transaction_asset_type" value="{{ .Pending.Transaction.AssetType }}"
+            class="input-style" />
         </div>
         <div>
           <label for="txid" class="label-style">Transaction ID (Txid)</label>
-          <input type="text" id="txid" name="transaction_txid" value="{{ .Pending.Transaction.Txid }}" class="input-style" />
+          <input type="text" id="txid" name="transaction_txid" value="{{ .Pending.Transaction.Txid }}"
+            class="input-style" />
         </div>
       </div>
       <div>
@@ -65,7 +68,8 @@
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
           <select id="orig_name_identifier_type" name="og_name_identifier_type" class="identifier-types"></select>
-          <input type="hidden" class="orig_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
+          <input type="hidden" class="orig_name_identifier_type" value="{{ .NameIdentifierType }}"
+            data-id="natural-person-name-type" />
         </div>
         {{ end }}
 
@@ -83,7 +87,8 @@
           </div>
           <div>
             <label for="orig_town_name" class="label-style">City/Municipality</label>
-            <input type="text" id="orig_town_name" name="og_town_name" value="{{ (index .AddressLine 2) }}" class="input-style" />
+            <input type="text" id="orig_town_name" name="og_town_name" value="{{ (index .AddressLine 2) }}"
+              class="input-style" />
           </div>
           <div>
             <label for="orig_district_name" class="label-style">Region/Province/State</label>
@@ -123,8 +128,7 @@
         {{ range .Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="og_account_numbers" value="{{ . }}"
-            class="input-style" />
+          <input type="text" id="orig_account_numbers" name="og_account_numbers" value="{{ . }}" class="input-style" />
         </div>
         {{ end }}
       </div>
@@ -151,7 +155,8 @@
         <div>
           <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
           <select id="benf_name_identifier_type" name="bf_name_identifier_type" class="identifier-types"></select>
-          <input type="hidden" class="benf_name_identifier_type" value="{{ .NameIdentifierType }}" data-id="natural-person-name-type" />
+          <input type="hidden" class="benf_name_identifier_type" value="{{ .NameIdentifierType }}"
+            data-id="natural-person-name-type" />
         </div>
         {{ end }}
 
@@ -169,7 +174,8 @@
           </div>
           <div>
             <label for="benf_town_name" class="label-style">City/Municipality</label>
-            <input type="text" id="benf_town_name" name="bf_town_name" value="{{ (index .AddressLine 2) }}" class="input-style" />
+            <input type="text" id="benf_town_name" name="bf_town_name" value="{{ (index .AddressLine 2) }}"
+              class="input-style" />
           </div>
           <div>
             <label for="benf_district_name" class="label-style">Region/Province/State</label>
@@ -209,8 +215,7 @@
         {{ range .Identity.Beneficiary.AccountNumbers }}
         <div>
           <label for="benf_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="benf_account_numbers" name="bf_account_numbers" value="{{ . }}"
-            class="input-style" />
+          <input type="text" id="benf_account_numbers" name="bf_account_numbers" value="{{ . }}" class="input-style" />
         </div>
         {{ end }}
       </div>
@@ -229,24 +234,27 @@
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
-            <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-            <select id="orig_vasp_legal_person_name_identifier_type" name="orig_vasp_legal_person_name_identifier_type" class="identifier-types"></select>
-            <input type="hidden" class="orig_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
+            <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
+              Type</label>
+            <select id="orig_vasp_legal_person_name_identifier_type" name="orig_vasp_legal_person_name_identifier_type"
+              class="identifier-types"></select>
+            <input type="hidden" class="orig_vasp_legal_person_name_identifier_type"
+              value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
           </div>
         </div>
-          {{ end }}
+        {{ end }}
 
         {{ range $originatingVasp.GeographicAddresses }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_vasp_street_name" class="label-style">Street Address</label>
-            <input type="text" id="orig_vasp_street_name" name="orig_vasp_street_name" value="{{ (index .AddressLine 0) }}"
-              class="input-style" />
+            <input type="text" id="orig_vasp_street_name" name="orig_vasp_street_name"
+              value="{{ (index .AddressLine 0) }}" class="input-style" />
           </div>
           <div>
             <label for="orig_vasp_building_number" class="label-style">Building Number</label>
-            <input type="text" id="orig_vasp_building_number" name="orig_vasp_building_number"
-              value="" class="input-style" />
+            <input type="text" id="orig_vasp_building_number" name="orig_vasp_building_number" value=""
+              class="input-style" />
           </div>
           <div>
             <label for="orig_vasp_town_name" class="label-style">City/Municipality</label>
@@ -272,7 +280,8 @@
         <div>
           <label for="orig_vasp_address_type" class="label-style">Address Type</label>
           <select id="orig_vasp_address_type" name="orig_vasp_address_type" class="identifier-types"></select>
-          <input type="hidden" class="orig_vasp_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
+          <input type="hidden" class="orig_vasp_address_type" value="{{ .AddressType }}"
+            data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -285,14 +294,17 @@
           </div>
           <div>
             <label for="orig_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="orig_vasp_national_identifier_type" name="orig_vasp_national_identifier_type" class="identifier-types"></select>
-            <input type="hidden" class="orig_vasp_national_identifier_type" value="{{ $nationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
+            <select id="orig_vasp_national_identifier_type" name="orig_vasp_national_identifier_type"
+              class="identifier-types"></select>
+            <input type="hidden" class="orig_vasp_national_identifier_type"
+              value="{{ $nationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
           </div>
         </div>
         <div>
           <label for="orig_vasp_country_of_issue" class="label-style">Country of Issue</label>
           <select id="orig_vasp_country_of_issue" name="orig_vasp_country_of_issue" class="countries"></select>
-          <input type="hidden" class="orig_vasp_country_of_issue" value="{{ $nationalIdentification.CountryOfIssue }}" />
+          <input type="hidden" class="orig_vasp_country_of_issue"
+            value="{{ $nationalIdentification.CountryOfIssue }}" />
         </div>
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
@@ -302,8 +314,10 @@
           </div>
           <div>
             <label for="orig_vasp_country_of_registration" class="label-style">Country of Registration</label>
-            <select id="orig_vasp_country_of_registration" name="orig_vasp_country_of_registration" class="countries"></select>
-            <input type="hidden" class="orig_vasp_country_of_registration" value="{{ $originatingVasp.CountryOfRegistration }}" />
+            <select id="orig_vasp_country_of_registration" name="orig_vasp_country_of_registration"
+              class="countries"></select>
+            <input type="hidden" class="orig_vasp_country_of_registration"
+              value="{{ $originatingVasp.CountryOfRegistration }}" />
           </div>
         </div>
       </div>
@@ -321,9 +335,12 @@
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
-            <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-            <select id="benf_vasp_legal_person_name_identifier_type" name="benf_vasp_legal_person_name_identifier_type" class="identifier-types"></select>
-            <input type="hidden" class="benf_vasp_legal_person_name_identifier_type" value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
+            <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
+              Type</label>
+            <select id="benf_vasp_legal_person_name_identifier_type" name="benf_vasp_legal_person_name_identifier_type"
+              class="identifier-types"></select>
+            <input type="hidden" class="benf_vasp_legal_person_name_identifier_type"
+              value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
           </div>
         </div>
         {{ end }}
@@ -332,8 +349,8 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_vasp_street_name" class="label-style">Street Address</label>
-            <input type="text" id="benf_vasp_street_name" name="benf_vasp_street_name" value="{{ (index .AddressLine 0) }}"
-              class="input-style" />
+            <input type="text" id="benf_vasp_street_name" name="benf_vasp_street_name"
+              value="{{ (index .AddressLine 0) }}" class="input-style" />
           </div>
           <div>
             <label for="benf_vasp_building_number" class="label-style">Building Number</label>
@@ -364,7 +381,8 @@
         <div>
           <label for="benf_vasp_address_type" class="label-style">Address Type</label>
           <select id="benf_vasp_address_type" name="benf_vasp_address_type" class="identifier-types"></select>
-          <input type="hidden" class="benf_vasp_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
+          <input type="hidden" class="benf_vasp_address_type" value="{{ .AddressType }}"
+            data-id="address-identifier-type" />
         </div>
         {{ end }}
 
@@ -377,14 +395,18 @@
           </div>
           <div>
             <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type" class="identifier-types"></select>
-            <input type="hidden" class="benf_vasp_national_identifier_type" value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
+            <select id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type"
+              class="identifier-types"></select>
+            <input type="hidden" class="benf_vasp_national_identifier_type"
+              value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}"
+              data-id="national-identifier-type" />
           </div>
         </div>
         <div>
           <label for="benf_vasp_country_of_issue" class="label-style">Country of Issue</label>
           <select id="benf_vasp_country_of_issue" name="benf_vasp_country_of_issue" class="countries"></select>
-          <input type="hidden" class="benf_vasp_country_of_issue" value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
+          <input type="hidden" class="benf_vasp_country_of_issue"
+            value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
@@ -394,8 +416,10 @@
           </div>
           <div>
             <label for="benf_vasp_country_of_registration" class="label-style">Country of Registration</label>
-            <select id="benf_vasp_country_of_registration" name="benf_vasp_country_of_registration" class="countries"></select>
-            <input type="hidden" class="benf_vasp_country_of_registration" value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
+            <select id="benf_vasp_country_of_registration" name="benf_vasp_country_of_registration"
+              class="countries"></select>
+            <input type="hidden" class="benf_vasp_country_of_registration"
+              value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
           </div>
         </div>
       </div>
