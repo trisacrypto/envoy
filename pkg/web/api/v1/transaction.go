@@ -213,6 +213,15 @@ func (c *Transaction) TitleStatus() string {
 	return cases.Title(language.English).String(c.Status)
 }
 
+// Convert last update timestamp to local time.
+func (c *Transaction) LocalizeLastUpdate() time.Time {
+	if c.LastUpdate != nil {
+		return c.LastUpdate.In(time.Local)
+	}
+
+	return time.Time{}
+}
+
 //===========================================================================
 // SecureEnvelopes
 //===========================================================================
