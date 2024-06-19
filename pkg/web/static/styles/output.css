@@ -2725,6 +2725,10 @@ details.collapse summary::-webkit-details-marker {
   margin-bottom: 1.5rem;
 }
 
+.me-3 {
+  margin-inline-end: 0.75rem;
+}
+
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -2767,6 +2771,10 @@ details.collapse summary::-webkit-details-marker {
 
 .block {
   display: block;
+}
+
+.inline {
+  display: inline;
 }
 
 .flex {
@@ -2855,6 +2863,16 @@ details.collapse summary::-webkit-details-marker {
 
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .grid-cols-2 {
@@ -3516,6 +3534,20 @@ body main {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+/* Toggle spinner visibility when a request is pending. */
+
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator{
+  display: inline;
+}
+
+.htmx-request.htmx-indicator{
+  display: inline;
+}
+
 @media (min-width: 768px) {
   .md\:tooltip-right:before {
     transform: translateY(-50%);
@@ -3742,4 +3774,3 @@ body main {
     width: 25%;
   }
 }
-
