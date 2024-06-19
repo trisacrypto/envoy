@@ -64,3 +64,15 @@ body main {
   @apply mt-1 badge badge-primary badge-lg text-white;
 }
 
+/* Toggle spinner visibility when a request is pending. */
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator{
+  display: inline;
+}
+
+.htmx-request.htmx-indicator{
+  display: inline;
+}
