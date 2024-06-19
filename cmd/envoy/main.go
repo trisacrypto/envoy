@@ -133,6 +133,22 @@ func main() {
 			},
 		},
 		{
+			Name:     "pwreset",
+			Usage:    "reset a user's password",
+			Category: "admin",
+			Before:   openDB,
+			Action:   resetPassword,
+			After:    closeDB,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "email",
+					Aliases:  []string{"e"},
+					Required: true,
+					Usage:    "email address of user",
+				},
+			},
+		},
+		{
 			Name:      "createapikey",
 			Usage:     "create a new api key with the specified permissions",
 			Category:  "admin",
@@ -419,6 +435,28 @@ func createUser(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("created user %s with role %s\npassword: %s\n", user.Email, c.String("role"), password)
+	return nil
+}
+
+func resetPassword(c *cli.Context) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var user *models.User
+	if user, err = db.RetrieveUser(ctx, c.String("email")); err != nil {
+		return cli.Exit(fmt.Errorf("could not retrieve user %q: %w", c.String("email"), err), 1)
+	}
+
+	password := auth.AlphaNumeric(12)
+	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+		return cli.Exit(fmt.Errorf("could not create derived key for user password: %w", err), 1)
+	}
+
+	if err = db.UpdateUser(ctx, user); err != nil {
+		return cli.Exit(fmt.Errorf("could not update user %s: %w", user.Email, err), 1)
+	}
+
+	fmt.Printf("updated user %s with password: %s\n", user.Email, password)
 	return nil
 }
 
