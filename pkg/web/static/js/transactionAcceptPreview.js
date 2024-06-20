@@ -78,7 +78,7 @@ function setIdentifierData(el, identifier) {
 }
 
 // Modify parameters sent in the body of a request via the htmx configRequest.
-const idEl = document.getElementById('send-id')
+const idEl = document.getElementById('envelope-id')
 const id = idEl?.value
 document.body.addEventListener('htmx:configRequest', (e) => {
   const transactionSendEP = `/v1/transactions/${id}/send`;
@@ -87,30 +87,162 @@ document.body.addEventListener('htmx:configRequest', (e) => {
 
     let data = {
       identity: {
-        originator:{
+        originator: {
           originator_persons: [{
             natural_person: {
               name: {
-                name_identifiers: [{
-                  primary_identifier: params.og_primary_identifier,
-                  secondary_identifier: params.og_secondary_identifier,
-                  name_identifier_type: params.og_name_identifier_type
-                }]
-              }
+                name_identifiers: [{}]
+              },
+              geographic_addresses: [{
+                address_line: []
+              }],
+              account_numbers: []
+            },
+          }],
+        },
+        beneficiary: {
+          beneficiary_persons: [{
+            natural_person: {
+              name: {
+                name_identifiers: [{}]
+              },
+              geographic_addresses: [{
+                address_line: []
+              }],
+              account_numbers: []
             }
           }]
-        }
+        },
+        originating_vasp: {
+          originating_vasp: {
+            legal_person: {
+              name: {
+                name_identifiers: [{}]
+              },
+              geographic_addresses: [{
+                address_line: []
+              }],
+              national_identification: {}
+            },
+          }
+        },
+        beneficiary_vasp: {
+          beneficiary_vasp: {
+            legal_person: {
+              name: {
+                name_identifiers: [{}]
+              },
+              geographic_addresses: [{
+                address_line: []
+              }],
+              national_identification: {}
+            },
+          }
+        },
       },
-      beneficiary: {},
-      originating_vasp: {},
-      beneficiary_vasp: {},
       transaction: {}
     }
 
-    // Convert the transaction amount to a float. If NaN, set the value to an empty string.
-    const amount = parseFloat(data.transaction.amount)
-    data.transaction.amount = isNaN(amount) ? '' : amount;
+    const originatorPerson = data.identity.originator.originator_persons[0].natural_person;
+    const beneficiaryPerson = data.identity.beneficiary.beneficiary_persons[0].natural_person;
+    const originatingVASP = data.identity.originating_vasp.originating_vasp.legal_person;
+    const beneficiaryVASP = data.identity.beneficiary_vasp.beneficiary_vasp.legal_person;
 
+    for (const key in params) {
+      // Remove prefix from the key.
+      const newKey = key.split('_').slice(2).join('_');
+
+      switch (true) {
+        // Set the transaction details.
+        case key.startsWith('env_transaction_'):
+          data.transaction[newKey] = params[key];
+          break;
+        // Set the originator name identifiers and name identifier type.
+        case key.startsWith('id_og_'):
+          originatorPerson.name.name_identifiers[0][newKey] = params[key];
+          break;
+        // Set the originator address line.
+        case key.startsWith('address_og_'):
+          originatorPerson.geographic_addresses[0].address_line.push(params[key]);
+          break;
+        // Set the originator country and address type.
+        case key.startsWith('addr_og_'):
+          originatorPerson.geographic_addresses[0][newKey] = params[key];
+          break;
+        // Set details for the originator natural person that's not a name identifier or geographic address.
+        case key.startsWith('np_og_'):
+          originatorPerson[newKey] = params[key];
+          break;
+        // Set the originator account number.
+        case key.startsWith('acct_og_'):
+          originatorPerson.account_numbers.push(params[key]);
+          break;
+        // Set the beneficiary name identifiers and name identifier type.
+        case key.startsWith('id_bf_'):
+          beneficiaryPerson.name.name_identifiers[0][newKey] = params[key];
+          break;
+        // Set the beneficiary address line.
+        case key.startsWith('address_bf_'):
+          beneficiaryPerson.geographic_addresses[0].address_line.push(params[key]);
+          break;
+        // Set the beneficiary country and address type.
+        case key.startsWith('addr_bf_'):
+          beneficiaryPerson.geographic_addresses[0][newKey] = params[key];
+          break;
+        // Set details for the beneficiary natural person that's not a name identifier or geographic address.
+        case key.startsWith('np_bf_'):
+          beneficiaryPerson[newKey] = params[key];
+          break;
+        // Set the beneficiary account number.
+        case key.startsWith('acct_bf_'):
+          beneficiaryPerson.account_numbers.push(params[key]);
+          break;
+        // Set the originating VASP name identifiers and name identifier type.
+        case key.startsWith('id_orig'):
+          originatingVASP.name.name_identifiers[0][newKey] = params[key];
+          break;
+        // Set the originating VASP address line.
+        case key.startsWith('address_orig'):
+          originatingVASP.geographic_addresses[0].address_line.push(params[key]);
+          break;
+        // Set the originating VASP country and address type.
+        case key.startsWith('addr_orig'):
+          originatingVASP.geographic_addresses[0][newKey] = params[key];
+          break;
+        // Set the originating VASP national identification.
+        case key.startsWith('nat_orig'):
+          originatingVASP.national_identification[newKey] = params[key];
+          break;
+        // Set the originating VASP country of registration.
+        case key.startsWith('ctry_orig'):
+          originatingVASP[newKey] = params[key];
+          break;
+        // Set the beneficiary VASP name identifiers and name identifier type.
+        case key.startsWith('id_benf'):
+          beneficiaryVASP.name.name_identifiers[0][newKey] = params[key];
+          break;
+        // Set the beneficiary VASP address line.
+        case key.startsWith('address_benf'):
+          beneficiaryVASP.geographic_addresses[0].address_line.push(params[key]);
+          break;
+        // Set the beneficiary VASP country and address type.
+        case key.startsWith('addr_benf'):
+          beneficiaryVASP.geographic_addresses[0][newKey] = params[key];
+          break;
+        // Set the beneficiary VASP national identification.
+        case key.startsWith('nat_benf'):
+          beneficiaryVASP.national_identification[newKey] = params[key];
+          break;
+        // Set the beneficiary VASP country of registration.
+        case key.startsWith('ctry_benf'):
+          beneficiaryVASP[newKey] = params[key];
+          break;
+      };
+    };
+
+    // Convert transaction amount to a float. If conversion fails, set amount to the original value.
+    const amount = parseFloat(data.transaction.amount);
+    data.transaction.amount = isNaN(amount) ? data.transaction.amount : amount;
     e.detail.parameters = data;
-  }
-})
+  };
+});
