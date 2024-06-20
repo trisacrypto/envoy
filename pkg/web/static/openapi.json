@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "TRISA Node API",
-    "description": "The TRISA Node API allows users to interact with the TRISA Self-Hosted Node\nin a programmatic fashion. This API is a JSON REST API that does not have\nauthentication -- it is intended that this API is served on an internal\nIP address with routing only available to internal services.",
+    "description": "The TRISA Node API allows users to interact with the TRISA Self-Hosted Node\nin a programmatic fashion. It is intended that this API is served on an internal\nIP address with routing only available to internal services.",
     "termsOfService": "https://trisa.io/terms/",
     "contact": {
       "email": "support@rotational.io"
@@ -11,7 +11,7 @@
       "name": "MIT Licensed",
       "url": "https://github.com/trisacrypto/trisa/blob/main/LICENSE"
     },
-    "version": "v0.1.0"
+    "version": "v0.1.1"
   },
   "externalDocs": {
     "description": "TRISA Developer Documentation",
@@ -181,6 +181,29 @@
             "bearer-auth": []
           }
         ],
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "next_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prev_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -208,14 +231,14 @@
         ],
         "requestBody": {
           "description": "Create a new transaction",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Transaction"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -302,6 +325,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -357,7 +390,7 @@
             }
           },
           "404": {
-            "description": "Account not found"
+            "description": "Transaction not found"
           }
         }
       }
@@ -384,6 +417,34 @@
             "schema": {
               "type": "string",
               "format": "UUID"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "next_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prev_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "decrypt",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -434,6 +495,13 @@
               "type": "string",
               "format": "ULID"
             }
+          },
+          {
+            "name": "decrypt",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -451,6 +519,47 @@
             "description": "Account or crypto address not found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "secure_envelope"
+        ],
+        "summary": "Delete a specific secure envelope",
+        "description": "Deletes a specified secure envelope",
+        "operationId": "deleteSecureEnvelope",
+        "parameters": [
+          {
+            "name": "transactionID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "envelopeID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reply"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Secure envelop not found"
+          }
+        }
       }
     },
     "/v1/accounts": {
@@ -464,6 +573,29 @@
         "security": [
           {
             "bearer-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "next_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prev_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -587,6 +719,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Account"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful operation",
@@ -670,6 +812,27 @@
               "type": "string",
               "format": "ULID"
             }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "next_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prev_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -713,6 +876,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -830,6 +994,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -919,6 +1084,29 @@
         "security": [
           {
             "bearer-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "next_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prev_page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1110,8 +1298,56 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "UUID",
+            "format": "uuid",
             "example": "c44d81ec-7c2d-4372-8844-28fdb6b1c664"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "counterparty": {
+            "type": "string"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "ulid"
+          },
+          "originator": {
+            "type": "string"
+          },
+          "originator_address": {
+            "type": "string"
+          },
+          "beneficiary": {
+            "type": "string"
+          },
+          "beneficiary_address": {
+            "type": "string"
+          },
+          "virtual_asset": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "last_update": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "envelope_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -1126,6 +1362,66 @@
             "items": {
               "$ref": "#/components/schemas/Transaction"
             }
+          }
+        }
+      },
+      "Envelope": {
+        "type": "object",
+        "properties": {
+          "envelope_id": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/Rejection"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/IdentityPayload"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          },
+          "pending": {
+            "$ref": "#/components/schemas/Pending"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pending": {
+        "type": "object",
+        "properties": {
+          "envelope_id": {
+            "type": "string"
+          },
+          "received_by": {
+            "type": "string"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          },
+          "reply_not_after": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reply_not_before": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "extra_json": {
+            "type": "string"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
           }
         }
       },
@@ -1325,7 +1621,8 @@
             "format": "datetime"
           },
           "ivms101": {
-            "type": "object"
+            "type": "object",
+            "description": "ivms record"
           },
           "created": {
             "type": "string",
@@ -1520,6 +1817,250 @@
             "format": "base64"
           }
         }
+      },
+      "Rejection": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "REJECTED",
+              "UNKNOWN_WALLET_ADDRESS",
+              "UNKNOWN_IDENTITY",
+              "UNKNOWN_ORIGINATOR",
+              "UNKNOWN_BENEFICIARY",
+              "UNSUPPORTED_CURRENCY",
+              "EXCEEDED_TRADING_VOLUME",
+              "COMPLIANCE_CHECK_FAIL",
+              "NO_COMPLIANCE",
+              "HIGH_RISK",
+              "OUT_OF_NETWORK",
+              "UNPARSEABLE_IDENTITY",
+              "UNPARSEABLE_TRANSACTION",
+              "MISSING_FIELDS",
+              "INCOMPLETE_IDENTITY"
+            ],
+            "description": "TRISA error codes. For a complete list of error codes, visit https://trisa.dev/api/errors/index.html"
+          },
+          "message": {
+            "type": "string"
+          },
+          "request_retry": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Prepare": {
+        "type": "object",
+        "properties": {
+          "travel_address": {
+            "type": "string"
+          },
+          "originator": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "beneficiary": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "transfer": {
+            "$ref": "#/components/schemas/Transfer"
+          }
+        }
+      },
+      "Prepared": {
+        "type": "object",
+        "properties": {
+          "travel_address": {
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/IdentityPayload"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "customer_id": {
+            "type": "string"
+          },
+          "addr_line_1": {
+            "type": "string"
+          },
+          "addr_line_2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "post_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "crypto_address": {
+            "type": "string"
+          }
+        }
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "network": {
+            "type": "string"
+          },
+          "asset_type": {
+            "type": "string"
+          },
+          "transaction_id": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        }
+      },
+      "IdentityPayload": {
+        "type": "object",
+        "properties": {
+          "originator": {
+            "$ref": "#/components/schemas/Originator"
+          },
+          "beneficiary": {
+            "$ref": "#/components/schemas/Beneficiary"
+          },
+          "originating_vasp": {
+            "$ref": "#/components/schemas/OriginatingVasp"
+          },
+          "beneficiary_vasp": {
+            "$ref": "#/components/schemas/BeneficiaryVasp"
+          },
+          "transfer_path": {
+            "$ref": "#/components/schemas/TransferPath"
+          },
+          "payload_metadata": {
+            "$ref": "#/components/schemas/PayloadMetadata"
+          }
+        }
+      },
+      "Originator": {
+        "type": "object",
+        "properties": {
+          "originator_persons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            }
+          },
+          "account_numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Beneficiary": {
+        "type": "object",
+        "properties": {
+          "beneficiary_persons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            }
+          },
+          "account_numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OriginatingVasp": {
+        "type": "object",
+        "properties": {
+          "originating_vasp": {
+            "$ref": "#/components/schemas/Person"
+          }
+        }
+      },
+      "BeneficiaryVasp": {
+        "type": "object",
+        "properties": {
+          "beneficiary_vasp": {
+            "$ref": "#/components/schemas/Person"
+          }
+        }
+      },
+      "IntermediaryVasp": {
+        "type": "object",
+        "properties": {
+          "intermediary_vasp": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "sequence": {
+            "type": "integer"
+          }
+        }
+      },
+      "TransferPath": {
+        "type": "object",
+        "properties": {
+          "transfer_path": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntermediaryVasp"
+            }
+          }
+        }
+      },
+      "PayloadMetadata": {
+        "type": "object",
+        "properties": {
+          "transliteration_method": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransliterationMethodCode"
+            }
+          }
+        }
+      },
+      "TransliterationMethodCode": {
+        "type": "string",
+        "enum": [
+          "TRANSLITERATION_METHOD_CODE_OTHR",
+          "TRANSLITERATION_METHOD_CODE_ARAB",
+          "TRANSLITERATION_METHOD_CODE_ARAN",
+          "TRANSLITERATION_METHOD_CODE_ARMN",
+          "TRANSLITERATION_METHOD_CODE_CYRL",
+          "TRANSLITERATION_METHOD_CODE_DEVA",
+          "TRANSLITERATION_METHOD_CODE_GEOR",
+          "TRANSLITERATION_METHOD_CODE_GREK",
+          "TRANSLITERATION_METHOD_CODE_HANI",
+          "TRANSLITERATION_METHOD_CODE_HEBR",
+          "TRANSLITERATION_METHOD_CODE_KANA",
+          "TRANSLITERATION_METHOD_CODE_KORE",
+          "TRANSLITERATION_METHOD_CODE_THAI"
+        ],
+        "description": "Identifies the national script from which transliteration to Latin script is applied."
       }
     },
     "requestBodies": {

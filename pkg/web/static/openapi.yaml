@@ -3,8 +3,7 @@ info:
   title: TRISA Node API
   description: |-
     The TRISA Node API allows users to interact with the TRISA Self-Hosted Node
-    in a programmatic fashion. This API is a JSON REST API that does not have
-    authentication -- it is intended that this API is served on an internal
+    in a programmatic fashion. It is intended that this API is served on an internal
     IP address with routing only available to internal services.
   termsOfService: https://trisa.io/terms/
   contact:
@@ -12,7 +11,7 @@ info:
   license:
     name: MIT Licensed
     url: https://github.com/trisacrypto/trisa/blob/main/LICENSE
-  version: v0.1.0
+  version: v0.1.1
 externalDocs:
   description: TRISA Developer Documentation
   url: https://trisa.dev
@@ -113,7 +112,21 @@ paths:
       summary: List transactions
       description: Paginated list of all transactions
       operationId: listTransactions
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -127,14 +140,15 @@ paths:
       summary: Create transaction
       description: Create a new transaction
       operationId: createTransaction
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       requestBody:
         description: Create a new transaction
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Transaction'
-        required: true
       responses:
         '201':
           description: Transaction created
@@ -153,7 +167,8 @@ paths:
       summary: Find transaction by ID
       description: Returns a single transaction if found
       operationId: transactionDetail
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
@@ -177,7 +192,8 @@ paths:
       summary: Updates a transaction record
       description: Update a transaction record (does not patch, all fields are required)
       operationId: updateTransaction
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
@@ -186,6 +202,12 @@ paths:
           schema:
             type: string
             format: UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
       responses:
         '200':
           description: Successful operation
@@ -203,7 +225,8 @@ paths:
       summary: Deletes a transaction
       description: Deletes a transaction
       operationId: deleteTransaction
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
@@ -220,7 +243,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Reply'
         '404':
-          description: Account not found
+          description: Transaction not found
   /v1/transactions/{transactionID}/secure-envelopes:
     get:
       tags:
@@ -228,7 +251,8 @@ paths:
       summary: List secure envelopes for transaction
       description: Paginated list of all secure envelopes for the specified transaction
       operationId: listSecureEnvelopes
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
@@ -237,6 +261,22 @@ paths:
           schema:
             type: string
             format: UUID
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
+        - name: decrypt
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: Successful operation
@@ -251,7 +291,8 @@ paths:
       summary: Lookup a specific secure envelope
       description: Returns detailed information about the specified secure envelope
       operationId: envelopeDetail
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
@@ -267,6 +308,10 @@ paths:
           schema:
             type: string
             format: ULID
+        - name: decrypt
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: Successful operation
@@ -276,6 +321,32 @@ paths:
                 $ref: '#/components/schemas/SecureEnvelope'
         '404':
           description: Account or crypto address not found
+    delete:
+      tags:
+        - secure_envelope
+      summary: Delete a specific secure envelope
+      description: Deletes a specified secure envelope
+      operationId: deleteSecureEnvelope
+      parameters:
+        - name: transactionID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: envelopeID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reply'
+        '404':
+          description: Secure envelop not found
   /v1/accounts:
     get:
       tags:
@@ -283,7 +354,21 @@ paths:
       summary: List customer accounts
       description: Paginated list of all stored customer accounts
       operationId: listAccounts
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -297,7 +382,8 @@ paths:
       summary: Create customer account
       description: Create a new customer account
       operationId: createAccount
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       requestBody:
         description: Create a new customer account
         content:
@@ -323,7 +409,8 @@ paths:
       summary: Find account by ID
       description: Returns a single account if found
       operationId: accountDetail
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -347,7 +434,8 @@ paths:
       summary: Updates an account record
       description: Update an account record (does not patch, all fields are required)
       operationId: updateAccount
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -356,6 +444,12 @@ paths:
           schema:
             type: string
             format: ULID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
       responses:
         '200':
           description: Successful operation
@@ -373,7 +467,8 @@ paths:
       summary: Deletes an account
       description: Deletes an account and associated crypto addresses
       operationId: deleteAccount
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -398,7 +493,8 @@ paths:
       summary: list all crypto addresses for account
       description: returns a paginated list of all crypto addresses associated with the account
       operationId: listCryptoAddresses
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -407,6 +503,18 @@ paths:
           schema:
             type: string
             format: ULID
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -422,7 +530,8 @@ paths:
       summary: Create crypto address
       description: Create a crypto address associated with the specified account
       operationId: createCryptoAddress
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -432,6 +541,7 @@ paths:
             type: string
             format: ULID
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -456,7 +566,8 @@ paths:
       summary: Lookup a specific crypto address
       description: Returns detailed information about the specified crypto address
       operationId: cryptoAddressesDetail
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -487,7 +598,8 @@ paths:
       summary: Update a crypto address
       description: Update a crypto address record (does not patch, all fields are required)
       operationId: updateCryptoAddresses
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -504,6 +616,7 @@ paths:
             type: string
             format: ULID
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -525,7 +638,8 @@ paths:
       summary: Delete a crypto address
       description: Delete a crypto address record associated with account
       operationId: deleteCryptoAddresses
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
@@ -557,7 +671,21 @@ paths:
       summary: List counterparties
       description: Paginated list of all stored counterparties
       operationId: listCounterparties
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -571,7 +699,8 @@ paths:
       summary: Create counterparty
       description: Create a new counterparty
       operationId: createCounterparty
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       requestBody:
         description: Create a new counterparty
         content:
@@ -580,7 +709,7 @@ paths:
               $ref: '#/components/schemas/Counterparty'
         required: true
       responses:
-        '201':
+        '200':
           description: Counterparty created
           content:
             application/json:
@@ -597,7 +726,8 @@ paths:
       summary: Find counterparty by ID
       description: Returns a single counterparty if found
       operationId: counterpartyDetail
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: counterpartyID
           in: path
@@ -621,7 +751,8 @@ paths:
       summary: Updates a counterparty record
       description: Update a counterparty record (does not patch, all fields are required)
       operationId: updateCounterparty
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: counterpartyID
           in: path
@@ -647,7 +778,8 @@ paths:
       summary: Deletes a counterparty
       description: Deletes a counterparty
       operationId: deleteCounterparty
-      security: [ bearer-auth: [] ]
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: counterpartyID
           in: path
@@ -672,8 +804,42 @@ components:
       properties:
         id:
           type: string
-          format: UUID
+          format: uuid
           example: c44d81ec-7c2d-4372-8844-28fdb6b1c664
+        source:
+          type: string
+        status:
+          type: string
+        counterparty:
+          type: string
+        counterparty_id:
+          type: string
+          format: ulid
+        originator:
+          type: string
+        originator_address:
+          type: string
+        beneficiary:
+          type: string
+        beneficiary_address:
+          type: string
+        virtual_asset:
+          type: string
+        amount:
+          type: number
+          format: double
+        last_update:
+          type: string
+          format: date-time
+        envelope_count:
+          type: integer
+          format: int64
+        created:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
     TransactionsList:
       type: object
       properties:
@@ -683,6 +849,47 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Transaction'
+    Envelope:
+      type: object
+      properties:
+        envelope_id:
+          type: string
+        error:
+          $ref: '#/components/schemas/Rejection'
+        identity:
+          $ref: '#/components/schemas/IdentityPayload'
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        pending:
+          $ref: '#/components/schemas/Pending'
+        sent_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+    Pending:
+      type: object
+      properties:
+        envelope_id:
+          type: string
+        received_by:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+        message:
+          type: string
+        reply_not_after:
+          type: string
+          format: date-time
+        reply_not_before:
+          type: string
+          format: date-time
+        extra_json:
+          type: string
+        transaction:
+          $ref: '#/components/schemas/Transaction'
     SecureEnvelope:
       type: object
       properties:
@@ -826,6 +1033,7 @@ components:
           format: datetime
         ivms101:
           type: object
+          description: ivms record
         created:
           type: string
           format: datetime
@@ -965,6 +1173,174 @@ components:
         prev_page_token:
           type: string
           format: base64
+    Rejection:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - REJECTED
+            - UNKNOWN_WALLET_ADDRESS
+            - UNKNOWN_IDENTITY
+            - UNKNOWN_ORIGINATOR
+            - UNKNOWN_BENEFICIARY
+            - UNSUPPORTED_CURRENCY
+            - EXCEEDED_TRADING_VOLUME
+            - COMPLIANCE_CHECK_FAIL
+            - NO_COMPLIANCE
+            - HIGH_RISK
+            - OUT_OF_NETWORK
+            - UNPARSEABLE_IDENTITY
+            - UNPARSEABLE_TRANSACTION
+            - MISSING_FIELDS
+            - INCOMPLETE_IDENTITY
+          description: TRISA error codes. For a complete list of error codes, visit https://trisa.dev/api/errors/index.html
+        message:
+          type: string
+        request_retry:
+          type: boolean
+    Prepare:
+      type: object
+      properties:
+        travel_address:
+          type: string
+        originator:
+          $ref: '#/components/schemas/Person'
+        beneficiary:
+          $ref: '#/components/schemas/Person'
+        transfer:
+          $ref: '#/components/schemas/Transfer'
+    Prepared:
+      type: object
+      properties:
+        travel_address:
+          type: string
+        identity:
+          $ref: '#/components/schemas/IdentityPayload'
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+    Person:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        customer_id:
+          type: string
+        addr_line_1:
+          type: string
+        addr_line_2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        post_code:
+          type: string
+        country:
+          type: string
+        crypto_address:
+          type: string
+    Transfer:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        network:
+          type: string
+        asset_type:
+          type: string
+        transaction_id:
+          type: string
+        tag:
+          type: string
+    IdentityPayload:
+      type: object
+      properties:
+        originator:
+          $ref: '#/components/schemas/Originator'
+        beneficiary:
+          $ref: '#/components/schemas/Beneficiary'
+        originating_vasp:
+          $ref: '#/components/schemas/OriginatingVasp'
+        beneficiary_vasp:
+          $ref: '#/components/schemas/BeneficiaryVasp'
+        transfer_path:
+          $ref: '#/components/schemas/TransferPath'
+        payload_metadata:
+          $ref: '#/components/schemas/PayloadMetadata'
+    Originator:
+      type: object
+      properties:
+        originator_persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Person'
+        account_numbers:
+          type: array
+          items:
+            type: string
+    Beneficiary:
+      type: object
+      properties:
+        beneficiary_persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Person'
+        account_numbers:
+          type: array
+          items:
+            type: string
+    OriginatingVasp:
+      type: object
+      properties:
+        originating_vasp:
+          $ref: '#/components/schemas/Person'
+    BeneficiaryVasp:
+      type: object
+      properties:
+        beneficiary_vasp:
+          $ref: '#/components/schemas/Person'
+    IntermediaryVasp:
+      type: object
+      properties:
+        intermediary_vasp:
+          $ref: '#/components/schemas/Person'
+        sequence:
+          type: integer
+    TransferPath:
+      type: object
+      properties:
+        transfer_path:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntermediaryVasp'
+    PayloadMetadata:
+      type: object
+      properties:
+        transliteration_method:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransliterationMethodCode'
+    TransliterationMethodCode:
+      type: string
+      enum:
+        - TRANSLITERATION_METHOD_CODE_OTHR
+        - TRANSLITERATION_METHOD_CODE_ARAB
+        - TRANSLITERATION_METHOD_CODE_ARAN
+        - TRANSLITERATION_METHOD_CODE_ARMN
+        - TRANSLITERATION_METHOD_CODE_CYRL
+        - TRANSLITERATION_METHOD_CODE_DEVA
+        - TRANSLITERATION_METHOD_CODE_GEOR
+        - TRANSLITERATION_METHOD_CODE_GREK
+        - TRANSLITERATION_METHOD_CODE_HANI
+        - TRANSLITERATION_METHOD_CODE_HEBR
+        - TRANSLITERATION_METHOD_CODE_KANA
+        - TRANSLITERATION_METHOD_CODE_KORE
+        - TRANSLITERATION_METHOD_CODE_THAI
+      description: Identifies the national script from which transliteration to Latin script is applied.
   requestBodies:
     Account:
       description: Account that needs to be added or updated
@@ -985,5 +1361,5 @@ components:
       bearerFormat: JWT
 servers:
   - url: http://localhost:8000
-    variables: {}
+    variables: { }
     description: Local Development Server
