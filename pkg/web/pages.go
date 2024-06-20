@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/trisacrypto/envoy/pkg"
@@ -25,6 +26,18 @@ func (s *Server) Logout(c *gin.Context) {
 
 	// Send the user to the login page
 	htmx.Redirect(c, http.StatusFound, "/login")
+}
+
+func (s *Server) About(c *gin.Context) {
+	c.HTML(http.StatusOK, "about.html", gin.H{
+		"Version":       fmt.Sprintf("%d.%d.%d", pkg.VersionMajor, pkg.VersionMinor, pkg.VersionPatch),
+		"Revision":      pkg.GitVersion,
+		"Release":       fmt.Sprintf("%s-%d", pkg.VersionReleaseLevel, pkg.VersionReleaseNumber),
+		"Region":        s.globalConf.RegionInfo,
+		"Config":        s.conf,
+		"TRISA":         s.globalConf.Node,
+		"DirectorySync": s.globalConf.DirectorySync,
+	})
 }
 
 func (s *Server) Transactions(c *gin.Context) {
