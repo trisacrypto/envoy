@@ -76,3 +76,41 @@ function setIdentifierData(el, identifier) {
       break;
   }
 }
+
+// Modify parameters sent in the body of a request via the htmx configRequest.
+const idEl = document.getElementById('send-id')
+const id = idEl?.value
+document.body.addEventListener('htmx:configRequest', (e) => {
+  const transactionSendEP = `/v1/transactions/${id}/send`;
+  if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+    const params = e.detail.parameters;
+
+    let data = {
+      identity: {
+        originator:{
+          originator_persons: [{
+            natural_person: {
+              name: {
+                name_identifiers: [{
+                  primary_identifier: params.og_primary_identifier,
+                  secondary_identifier: params.og_secondary_identifier,
+                  name_identifier_type: params.og_name_identifier_type
+                }]
+              }
+            }
+          }]
+        }
+      },
+      beneficiary: {},
+      originating_vasp: {},
+      beneficiary_vasp: {},
+      transaction: {}
+    }
+
+    // Convert the transaction amount to a float. If NaN, set the value to an empty string.
+    const amount = parseFloat(data.transaction.amount)
+    data.transaction.amount = isNaN(amount) ? '' : amount;
+
+    e.detail.parameters = data;
+  }
+})

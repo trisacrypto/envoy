@@ -6,6 +6,7 @@
 {{ define "content" }}
 
 <section class="mx-8 py-9">
+  <input type="hidden" id="accept-id" value="{{ .ID }}" />
   <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Accept Transaction Request</h1>
   <div class="my-4 md:m-8">
     <p class="my-2 md:text-lg">Review and accept the secure envelope transaction details below.</p>
@@ -28,8 +29,9 @@
   const transactionSendEP = `/v1/transactions/${id}/send`;
   // Transform transaction accept form data and pass to the htmx request.
 document.body.addEventListener('htmx:configRequest', (e) => {
+  console.log(e);
   if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
-    const params = e.detail.parameters;
+    // const params = e.detail.parameters;
 
     let data = {
       identity: {
