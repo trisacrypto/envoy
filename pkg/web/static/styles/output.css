@@ -3671,6 +3671,14 @@ body main {
     margin-top: 0px;
   }
 
+  .md\:mb-1 {
+    margin-bottom: 0.25rem;
+  }
+
+  .md\:mb-0\.5 {
+    margin-bottom: 0.125rem;
+  }
+
   .md\:flex {
     display: flex;
   }
