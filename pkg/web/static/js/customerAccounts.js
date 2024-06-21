@@ -42,8 +42,8 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   }
 });
 
-// Count the number of wallet addresses to ensure a unique number as crypto wallets or added and deleted.
-// Start the counter at 1 to avoid a conflict with the first crypto wallet.
+// Count number of wallet addresses to create a unique ID as crypto wallets are added and deleted.
+// Start counter at 1 to avoid conflict with the first crypto wallet.
 let walletIdCounter = 1;
 
 // Add a new wallet address and network field to the new customer account form modal on click.
@@ -81,13 +81,13 @@ addWalletBttn?.addEventListener('click', () => {
       }
     });
 
-    // Get the selected network value for each additional wallet and set it as the selected value
-    // to ensure the dropdown does not reset the value when a new wallet is added.
-    const selectedValue = network?.value
+    // Get selected network for each additional wallet and set value to ensure the dropdown 
+    // does not reset to the default when wallets are added.
+    const selectedNetwork = network?.value
 
-    // Add network options to each additional wallet.
+    // Set network options and value for each wallet.
     network?.slim?.setData(networksArray);
-    network?.slim?.setSelected(selectedValue);
+    network?.slim?.setSelected(selectedNetwork);
   })
 })
 
