@@ -14,13 +14,13 @@ import (
 
 func TestServerEnabled(t *testing.T) {
 	t.Run("AtLeastOne", func(t *testing.T) {
-		conf := &config.WebConfig{
+		conf := config.Config{Web: config.WebConfig{
 			Enabled:    true,
 			APIEnabled: false,
 			UIEnabled:  false,
-		}
+		}}
 
-		_, err := web.New(*conf, nil, nil)
+		_, err := web.New(conf, nil, nil)
 		require.EqualError(t, err, "invalid configuration: if enabled, either the api, ui, or both need to be enabled")
 	})
 
@@ -55,13 +55,13 @@ func TestServerEnabled(t *testing.T) {
 	}
 
 	t.Run("APIEnabled", func(t *testing.T) {
-		conf := config.WebConfig{
+		conf := config.Config{Web: config.WebConfig{
 			Enabled:    true,
 			APIEnabled: true,
 			UIEnabled:  false,
 			BindAddr:   "127.0.0.1:9100",
 			Origin:     "http://locahost:9100",
-		}
+		}}
 
 		srv, err := web.New(conf, store, network)
 		require.NoError(t, err, "could not start web server")
@@ -148,13 +148,13 @@ func TestServerEnabled(t *testing.T) {
 	})
 
 	t.Run("UIEnabled", func(t *testing.T) {
-		conf := config.WebConfig{
+		conf := config.Config{Web: config.WebConfig{
 			Enabled:    true,
 			APIEnabled: false,
 			UIEnabled:  true,
 			BindAddr:   "127.0.0.1:9100",
 			Origin:     "http://locahost:9100",
-		}
+		}}
 
 		srv, err := web.New(conf, store, network)
 		require.NoError(t, err, "could not start web server")

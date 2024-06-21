@@ -95,6 +95,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/", authenticate, s.Home)
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
+	s.router.GET("/about", authenticate, s.About)
 	s.router.GET("/transactions", authenticate, s.Transactions)
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)

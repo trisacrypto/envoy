@@ -25,17 +25,18 @@ import (
 // The Web Server implements the compliance and administrative user interfaces.
 type Server struct {
 	sync.RWMutex
-	conf    config.WebConfig
-	store   store.Store
-	srv     *http.Server
-	router  *gin.Engine
-	issuer  *auth.ClaimsIssuer
-	url     *url.URL
-	vasp    *models.Counterparty
-	trisa   network.Network
-	started time.Time
-	healthy bool
-	ready   bool
+	conf       config.WebConfig
+	globalConf config.Config
+	store      store.Store
+	srv        *http.Server
+	router     *gin.Engine
+	issuer     *auth.ClaimsIssuer
+	url        *url.URL
+	vasp       *models.Counterparty
+	trisa      network.Network
+	started    time.Time
+	healthy    bool
+	ready      bool
 }
 
 // Serve the compliance and administrative user interfaces in its own go routine.
