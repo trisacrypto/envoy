@@ -80,7 +80,7 @@ func New(conf config.Config) (node *Node, err error) {
 	}
 
 	// Create the admin web ui server if it is enabled
-	if node.admin, err = web.New(conf.Web, node.store, node.network); err != nil {
+	if node.admin, err = web.New(conf, node.store, node.network); err != nil {
 		return nil, err
 	}
 

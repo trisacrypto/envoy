@@ -42,6 +42,11 @@ var testEnv = map[string]string{
 	"TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT": "localhost:2526",
 	"TRISA_DIRECTORY_SYNC_ENABLED":          "true",
 	"TRISA_DIRECTORY_SYNC_INTERVAL":         "10m",
+	"REGION_INFO_ID":                        "2840302",
+	"REGION_INFO_NAME":                      "us-east4c",
+	"REGION_INFO_COUNTRY":                   "US",
+	"REGION_INFO_CLOUD":                     "GCP",
+	"REGION_INFO_CLUSTER":                   "rotational-testing-gke-9",
 }
 
 func TestConfig(t *testing.T) {
@@ -84,6 +89,11 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT"], conf.Node.Directory.MembersEndpoint)
 	require.True(t, conf.DirectorySync.Enabled)
 	require.Equal(t, 10*time.Minute, conf.DirectorySync.Interval)
+	require.Equal(t, int32(2840302), conf.RegionInfo.ID)
+	require.Equal(t, testEnv["REGION_INFO_NAME"], conf.RegionInfo.Name)
+	require.Equal(t, testEnv["REGION_INFO_COUNTRY"], conf.RegionInfo.Country)
+	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)
+	require.Equal(t, testEnv["REGION_INFO_CLUSTER"], conf.RegionInfo.Cluster)
 }
 
 func TestWebConfig(t *testing.T) {

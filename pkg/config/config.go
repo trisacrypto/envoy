@@ -33,6 +33,7 @@ type Config struct {
 	Web           WebConfig           `split_words:"true"`
 	Node          TRISAConfig         `split_words:"true"`
 	DirectorySync DirectorySyncConfig `split_words:"true"`
+	RegionInfo    RegionInfo          `split_words:"true"`
 	processed     bool
 }
 
@@ -89,6 +90,15 @@ type DirectoryConfig struct {
 type DirectorySyncConfig struct {
 	Enabled  bool          `default:"true" desc:"if false, the sync background service will not be run"`
 	Interval time.Duration `default:"6h" desc:"the interval synchronization is run"`
+}
+
+// Optional region and deployment information associated with the node.
+type RegionInfo struct {
+	ID      int32  `env:"REGION_INFO_ID" desc:"the 7 digit region identifier code"`
+	Name    string `env:"REGION_INFO_NAME" desc:"the name of the region"`
+	Country string `env:"REGION_INFO_COUNTRY" desc:"the alpha-2 country code of the region"`
+	Cloud   string `env:"REGION_INFO_CLOUD" desc:"the cloud service provider"`
+	Cluster string `env:"REGION_INFO_CLUSTER" desc:"the name of the cluster the node is hosted in"`
 }
 
 func New() (conf Config, err error) {
@@ -224,4 +234,9 @@ func (c DirectoryConfig) Network() string {
 		return endpoint
 	}
 	return strings.Join(parts[len(parts)-2:], ".")
+}
+
+// Determines if region info is available or not.
+func (c RegionInfo) Available() bool {
+	return c.ID > 0 || c.Name != "" || c.Country != "" || c.Cloud != "" || c.Cluster != ""
 }

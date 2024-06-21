@@ -15,24 +15,25 @@ import (
 )
 
 // Create a new web server that serves the compliance and admin web user interface.
-func New(conf config.WebConfig, store store.Store, network network.Network) (s *Server, err error) {
-	if err = conf.Validate(); err != nil {
+func New(conf config.Config, store store.Store, network network.Network) (s *Server, err error) {
+	if err = conf.Web.Validate(); err != nil {
 		return nil, err
 	}
 
 	s = &Server{
-		conf:  conf,
-		store: store,
-		trisa: network,
+		conf:       conf.Web,
+		globalConf: conf,
+		store:      store,
+		trisa:      network,
 	}
 
 	// If not enabled, return just the server stub
-	if !conf.Enabled {
+	if !s.conf.Enabled {
 		return s, nil
 	}
 
 	// Configure the token issuer if enabled
-	if s.issuer, err = auth.NewIssuer(conf.Auth); err != nil {
+	if s.issuer, err = auth.NewIssuer(s.conf.Auth); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +113,7 @@ func IsAPIRequest(c *gin.Context) bool {
 
 // Debug returns a server that uses the specified http server instead of creating one.
 // This function is primarily used to create test servers easily.
-func Debug(conf config.WebConfig, store store.Store, network network.Network, srv *http.Server) (s *Server, err error) {
+func Debug(conf config.Config, store store.Store, network network.Network, srv *http.Server) (s *Server, err error) {
 	if s, err = New(conf, store, network); err != nil {
 		return nil, err
 	}
