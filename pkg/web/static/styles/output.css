@@ -3687,6 +3687,10 @@ body main {
     margin-bottom: 0px;
   }
 
+  .md\:mb-0\.5 {
+    margin-bottom: 0.125rem;
+  }
+
   .md\:mt-0 {
     margin-top: 0px;
   }
