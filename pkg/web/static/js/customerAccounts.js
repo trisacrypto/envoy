@@ -44,39 +44,46 @@ document.body.addEventListener("htmx:configRequest", (e) => {
 
 // Add a new wallet address and network field to the new customer account form modal on click.
 addWalletBttn?.addEventListener('click', () => {
-  const walletCount = walletDiv?.children.length * 1
+  // Generate a random UUID for each new crypto wallet address and network field to ensure a unique ID as wallets are added and deleted. 
+  // IDs will only be generated in secure contexts.
+  let walletID = self.crypto.randomUUID();
   walletDiv?.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address</label>
-      <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
+      <label for="crypto_address_${walletID}" class="label-style">Wallet Address</label>
+      <input type="text" id="crypto_address_${walletID}" name="crypto_address_${walletID}" class="input-style" />
     </div>
     <div>
-      <label for="network_${walletCount}" class="label-style">Network</label>
+      <label for="network_${walletID}" class="label-style">Network</label>
       <div class="flex items-center gap-x-1">
-        <select id="network_${walletCount}" name="network_${walletCount}"></select>
+        <select id="network_${walletID}" name="network_${walletID}" class="acct-networks"></select>
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" class="tooltip tooltip-left" data-tip="Delete wallet">
           <i class="fa-solid fa-trash text-xs"><span class="sr-only">Delete wallet</span></i>
         </button>
       </div>
     </div>
   </div>
-  `)
+  `);
 
-  // TODO: Does a new div need to be created for each network select?
-  // Create a div to ensure content appears in the modal and not the document body.
-  newAcctModal.appendChild(document.createElement('div')).id = `network_list_${walletCount}`
+  // Create a searchable select dropdown for the network when a new wallet is added.
+  const acctNetworks = document.querySelectorAll('.acct-networks')
+  // Initialize SlimSelect for each crypto wallet network.
+  acctNetworks.forEach((network) => {
+    new SlimSelect({
+      select: network,
+      settings: {
+        contentLocation: document.getElementById('new_acct_modal')
+      }
+    });
 
-  // Initialize network select for each new wallet.
-  const additionalNetworkSelect = new SlimSelect({
-    select: `#network_${walletCount}`,
-    settings: {
-      contentLocation: document.getElementById(`network_list_${walletCount}`),
-    },
+    // Get selected network for each additional wallet and set value to ensure the dropdown 
+    // does not reset to the default when wallets are added.
+    const selectedNetwork = network?.value
+
+    // Set network options and value for each wallet.
+    network?.slim?.setData(networksArray);
+    network?.slim?.setSelected(selectedNetwork);
   })
-
-  // Add network options to additional wallet.
-  additionalNetworkSelect.setData(networksArray);
 })
 
 // Close the new customer account modal and reset the form values on success.
@@ -113,11 +120,11 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
       });
 
       // Get each network value selected by the requester from the hidden input field.
-      const networkID = network.id;
+      const networkID = network?.id;
       const selectedNetwork = document.querySelector(`.${networkID}`);
 
       if (selectedNetwork) {
-        const networkValue = selectedNetwork.value;
+        const networkValue = selectedNetwork?.value;
         setNetworkData(network, networkValue);
       };
     });
@@ -127,6 +134,6 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 // Set the network options and selected value in a SlimSelect dropdown for each network.
 function setNetworkData(el, value) {
   // Add network options to the select element.
-  el.slim.setData(networksArray);
-  el.slim.setSelected(value);
+  el?.slim?.setData(networksArray);
+  el?.slim?.setSelected(value);
 }
