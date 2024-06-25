@@ -42,23 +42,21 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   }
 });
 
-// Count number of wallet addresses to create a unique ID as crypto wallets are added and deleted.
-// Start counter at 1 to avoid conflict with the first crypto wallet.
-let walletIdCounter = 1;
-
 // Add a new wallet address and network field to the new customer account form modal on click.
 addWalletBttn?.addEventListener('click', () => {
-  const walletCount = walletIdCounter;
+  // Generate a random UUID for each new crypto wallet address and network field to ensure a unique ID as wallets are added and deleted. 
+  // IDs will only be generated in secure contexts.
+  let walletID = self.crypto.randomUUID();
   walletDiv?.insertAdjacentHTML('beforeend', `
   <div class="grid gap-6 my-4 md:grid-cols-2 crypto-wallets">
     <div>
-      <label for="crypto_address_${walletCount}" class="label-style">Wallet Address</label>
-      <input type="text" id="crypto_address_${walletCount}" name="crypto_address_${walletCount}" class="input-style" />
+      <label for="crypto_address_${walletID}" class="label-style">Wallet Address</label>
+      <input type="text" id="crypto_address_${walletID}" name="crypto_address_${walletID}" class="input-style" />
     </div>
     <div>
-      <label for="network_${walletCount}" class="label-style">Network</label>
+      <label for="network_${walletID}" class="label-style">Network</label>
       <div class="flex items-center gap-x-1">
-        <select id="network_${walletCount}" name="network_${walletCount}" class="acct-networks"></select>
+        <select id="network_${walletID}" name="network_${walletID}" class="acct-networks"></select>
         <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" class="tooltip tooltip-left" data-tip="Delete wallet">
           <i class="fa-solid fa-trash text-xs"><span class="sr-only">Delete wallet</span></i>
         </button>
@@ -66,9 +64,6 @@ addWalletBttn?.addEventListener('click', () => {
     </div>
   </div>
   `);
-
-  // Increment the wallet counter for the next wallet address.
-  walletIdCounter++;
 
   // Create a searchable select dropdown for the network when a new wallet is added.
   const acctNetworks = document.querySelectorAll('.acct-networks')
