@@ -29,6 +29,15 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     const humanizeLastUpdate = dayjs(lastUpdate.textContent).fromNow();
     lastUpdate.textContent = humanizeLastUpdate;
   }
+
+    // Display envelope timestamp in local time.
+    if (e.detail.requestConfig.path === `/v1/transactions/${transactionID?.value}/secure-envelopes` && e.detail.requestConfig.verb === 'get') {
+      const envelopeTimestamp = document.querySelectorAll('.env-timestamp');
+      envelopeTimestamp.forEach((timestamp) => {
+        const localTime = dayjs(timestamp.textContent)
+        timestamp.textContent = localTime?.$d
+      })
+    }
 });
 
 // Add code to amend the request parameters before the request is sent.
