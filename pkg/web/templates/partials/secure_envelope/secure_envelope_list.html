@@ -67,8 +67,8 @@
     {{ if .IsError }}
     <div class="collapse-title bg-red-200 text-xl font-medium">
       {{ else }}
-      <div class="collapse-title bg-green-200 text-xl font-medium">
-        {{ end }}
+    <div class="collapse-title text-xl font-medium">
+      {{ end }}
         <h3 class="font-semibold text-lg">ID: {{ .ID }}</h3>
       </div>
       <div class="collapse-content">
@@ -77,8 +77,8 @@
           <dl class="mt-2">
             <div class="py-1 grid grid-cols-2">
               <dt>Envelope Timestamp</dt>
-              {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05" }}
-              <dd>{{ $timestamp }}</dd>
+              {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05 -0700" }}
+              <dd class="env-timestamp">{{ $timestamp }}</dd>
             </div>
             <div class="py-1 grid grid-cols-2">
               <dt>Status</dt>

@@ -1,6 +1,5 @@
 const transactionID = document.getElementById('transaction-id');
 
-
 // Add code to run after HTMX settles the DOM once a swap occurs.
 document.body.addEventListener('htmx:afterSettle', (e) => {
   const envelopeListEP = `/v1/transactions/${transactionID?.value}/secure-envelopes`
@@ -22,6 +21,13 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     });
 
     // TODO: Add code to toggle show/hide for PKS.
+  }
+
+  // Humanize the last update timestamp.
+  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID?.value}?detail=full` && e.detail.requestConfig.verb === 'get') {
+    const lastUpdate = document.querySelector('.trans-last-update');
+    const humanizeLastUpdate = dayjs(lastUpdate.textContent).fromNow();
+    lastUpdate.textContent = humanizeLastUpdate;
   }
 });
 
