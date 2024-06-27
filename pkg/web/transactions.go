@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -440,10 +441,13 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		return
 	}
 
+	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
+	// Set a cookie to show a toast message on the page redirect.
+	setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Auth.CookieDomain)
+
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
 		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
@@ -711,4 +715,9 @@ func CheckUUIDMatch(id, target uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func setToastCookie(c *gin.Context, name, value, path, domain string) {
+	secure := !auth.IsLocalhost(domain)
+	c.SetCookie(name, value, 60, path, domain, secure, false)
 }
