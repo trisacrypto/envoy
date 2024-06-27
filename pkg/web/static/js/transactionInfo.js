@@ -35,8 +35,8 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}/secure-envelopes` && e.detail.requestConfig.verb === 'get') {
       const envelopeTimestamp = document.querySelectorAll('.envelope-timestamp');
       envelopeTimestamp.forEach((timestamp) => {
-        const localTime = dayjs(timestamp.textContent)
-        timestamp.textContent = localTime?.$d
+        const localTime = dayjs(timestamp.textContent).format('MMM DD, YYYY hh:mm:ss')
+        timestamp.textContent = localTime
       })
     }
 });
