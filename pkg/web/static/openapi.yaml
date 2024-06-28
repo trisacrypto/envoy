@@ -481,7 +481,7 @@ paths:
       parameters:
         - name: transactionID
           in: path
-          description: ID of transaction to delete secure envelope from
+          description: ID of transaction of the secure envelope to be deleted
           required: true
           schema:
             type: string
@@ -714,13 +714,13 @@ paths:
         - crypto_address
       summary: Lookup a specific crypto address
       description: Returns detailed information about the specified crypto address
-      operationId: cryptoAddressesDetail
+      operationId: cryptoAddressDetail
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return crypto address for
+          description: ID of account of crypto address to be returned
           required: true
           schema:
             type: string
@@ -746,13 +746,13 @@ paths:
         - crypto_address
       summary: Update a crypto address
       description: Update a crypto address record (does not patch, all fields are required)
-      operationId: updateCryptoAddresses
+      operationId: updateCryptoAddress
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to update crypto address for
+          description: ID of account of crypto address to be updated
           required: true
           schema:
             type: string
@@ -787,13 +787,13 @@ paths:
         - crypto_address
       summary: Delete a crypto address
       description: Delete a crypto address record associated with account
-      operationId: deleteCryptoAddresses
+      operationId: deleteCryptoAddress
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to delete crypto address from
+          description: ID of account of crypto address to be deleted
           required: true
           schema:
             type: string
@@ -855,7 +855,7 @@ paths:
               $ref: '#/components/schemas/Counterparty'
         required: true
       responses:
-        '201':
+        '200':
           description: Counterparty created
           content:
             application/json:
@@ -946,7 +946,7 @@ paths:
           description: Successful operation
         '404':
           description: Counterparty not found
-  /v1/utilities/encode:
+  /v1/utilities/travel-address/encode:
     post:
       tags:
         - utility
@@ -969,7 +969,7 @@ paths:
                 $ref: '#/components/schemas/TravelAddress'
         '400':
           description: Invalid input
-  /v1/utilities/decode:
+  /v1/utilities/travel-address/decode:
     post:
       tags:
         - utility
@@ -1034,15 +1034,9 @@ components:
         access_token:
           type: string
           description: The access token for the authenticated session.
-        token_type:
-          type: string
-          description: The type of the access token.
         refresh_token:
           type: string
           description: The refresh token for obtaining a new access token.
-        expires_in:
-          type: integer
-          description: The duration in seconds until the access token expires.
     ReauthenticateRequest:
       type: object
       description: The request object for the reauthentication endpoint.
@@ -1056,9 +1050,7 @@ components:
       properties:
         page_size:
           type: integer
-          format: int32
           example: 50
-          default: 100
           description: The number of items to return per page.
         next_page_token:
           type: string
@@ -1068,28 +1060,6 @@ components:
           type: string
           format: base64
           description: The token for retrieving the previous page of results.
-    IVMS101Certify:
-      type: object
-      description: The request object for the IVMS101 certificate endpoint.
-      properties:
-        schema_type:
-          type: string
-          description: The type of the schema.
-        schema_version:
-          type: string
-          description: The version of the schema.
-        payload:
-          type: object
-          description: The payload of the IVMS101 certificate.
-        public_key:
-          type: string
-          description: The public key of the IVMS101 certificate.
-        private_key:
-          type: string
-          description: The private key of the IVMS101 certificate.
-        public_key_password:
-          type: string
-          description: The password for the public key of the IVMS101 certificate.
     Account:
       type: object
       description: The account object.
@@ -1101,49 +1071,30 @@ components:
         customer_id:
           type: string
           description: The customer ID associated with the account.
-        type:
+        first_name:
           type: string
-          description: The type of the account.
-        names:
+          description: The first name of the account.
+        last_name:
+          type: string
+          description: The last name of the account.
+        travel_address:
+          type: string
+          description: The travel address for this account.
+        ivms101:
+          type: string
+          description: The IVMS101 certificate of the counterparty.
+        crypto_addresses:
           type: array
           items:
-            type: string
-          description: The names associated with the account.
-        birthdate:
-          type: string
-          format: date
-          description: The birthdate of the account holder.
-        phone:
-          type: string
-          description: The phone number associated with the account.
-        email:
-          type: string
-          description: The email address associated with the account.
-        addresses:
-          type: array
-          items:
-            type: string
-          description: The addresses associated with the account.
-        tax_id:
-          type: string
-          description: The tax ID of the account holder.
-        language:
-          type: string
-          description: The preferred language of the account holder.
-        metadata:
-          type: object
-          description: Additional metadata associated with the account.
-        block_incoming:
-          type: boolean
-          description: Indicates whether incoming transactions are blocked for the account.
+            $ref: '#/components/schemas/CryptoAddress'
         created:
           type: string
           format: date-time
-          description: The date and time when the account was created.
+          description: The date and time when the transaction was created.
         modified:
           type: string
           format: date-time
-          description: The date and time when the account was last modified.
+          description: The date and time when the transaction was last modified.
     AccountList:
       type: object
       description: The response object for the accounts endpoint.
@@ -1162,21 +1113,21 @@ components:
           type: string
           format: ULID
           description: The unique identifier of the crypto address.
-        customer_id:
+        crypto_address:
           type: string
-          description: The customer ID associated with the crypto address.
-        payment_system:
+          description: The crypto address itself.
+        network:
           type: string
-          description: The payment system of the crypto address.
-        address_type:
+          description: The network of the crypto address.
+        asset_type:
           type: string
           description: The type of the crypto address.
-        address:
+        tag:
           type: string
-          description: The crypto address.
-        metadata:
-          type: object
-          description: Additional metadata associated with the crypto address.
+          description: The tag associated with the crypto address.
+        travel_address:
+          type: string
+          description: The travel address of the crypto address.
         created:
           type: string
           format: date-time
@@ -1205,7 +1156,7 @@ components:
           description: The unique identifier of the transaction.
         source:
           type: string
-          description: The source of the transaction.
+          description: The source of the transaction. It may be 'local' meaning the transaction was created by the user, or 'remote' meaning it is an incoming message.
         status:
           type: string
           description: The status of the transaction.
@@ -1218,23 +1169,30 @@ components:
           description: The unique identifier of the counterparty.
         originator:
           type: string
-          description: The originator of the transaction.
+          description: The full name of the originator of the transaction.
         originator_address:
           type: string
           description: The originator's crypto address.
         beneficiary:
           type: string
-          description: The beneficiary of the transaction.
+          description: The full name of the beneficiary of the transaction.
         beneficiary_address:
           type: string
           description: The beneficiary's crypto address.
         virtual_asset:
           type: string
-          description: The virtual asset involved in the transaction.
+          description: The virtual asset involved in the transaction. This may be a representation of the network or asset type.
         amount:
           type: number
           format: double
           description: The amount of the transaction.
+        last_update:
+          type: string
+          format: date-time
+          description: The date and time when the transaction was last updated.
+        envelope_count:
+          type: integer
+          description: The amount of enveloped for this transaction.
         created:
           type: string
           format: date-time
@@ -1286,11 +1244,11 @@ components:
         reply_not_after:
           type: string
           format: date-time
-          description: The date and time after which a reply to the pending envelope is no longer valid.
+          description: The date and time when a reply will be returned by.
         reply_not_before:
           type: string
           format: date-time
-          description: The date and time before which a reply to the pending envelope is not yet valid.
+          description: The date and time that the response will not be sent before.
         extra_json:
           type: string
           description: Additional JSON data associated with the pending envelope.
@@ -1667,21 +1625,12 @@ components:
       type: object
       description: The travel address object.
       properties:
-        travel_address:
+        encoded:
           type: string
-          description: The travel address.
-        travel_rule_scheme:
+          description: The encoded travel address.
+        decoded:
           type: string
-          description: The travel rule scheme of the travel address.
-        travel_rule_domain:
-          type: string
-          description: The travel rule domain of the travel address.
-        country:
-          type: string
-          description: The country of the travel address.
-        id:
-          type: string
-          description: The unique identifier of the travel address.
+          description: The decoded travel address.
   securitySchemes:
     bearer-auth:
       type: http
