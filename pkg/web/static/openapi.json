@@ -588,6 +588,9 @@
           },
           "404": {
             "description": "Transaction not found"
+          },
+          "501": {
+            "description": "Not implemented" 
           }
         }
       }
@@ -796,6 +799,9 @@
           },
           "404": {
             "description": "Secure envelope not found"
+          },
+          "501": {
+            "description": "Not implemented"
           }
         }
       }
@@ -1761,15 +1767,15 @@
           },
           "network": {
             "type": "string",
-            "description": "The network of the crypto address."
+            "description": "The network associated with the crypto address in SIP0044 encoding."
           },
           "asset_type": {
             "type": "string",
-            "description": "The type of the crypto address."
+            "description": "The asset type with the crypto address."
           },
           "tag": {
             "type": "string",
-            "description": "The tag associated with the crypto address."
+            "description": "The memo or destination tag associated with the address."
           },
           "travel_address": {
             "type": "string",
@@ -1860,7 +1866,7 @@
           },
           "envelope_count": {
             "type": "integer",
-            "description": "The amount of enveloped for this transaction."
+            "description": "The number of secure envelopes associated with the transaction."
           },
           "created": {
             "type": "string",
