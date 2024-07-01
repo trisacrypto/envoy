@@ -62,8 +62,8 @@
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Last Update</dd>
           {{ if .LastUpdate }}
-          {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 3:04:05 PM" }}
-          <dt>{{ $lastUpdate }}</dt>
+          {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05 -0700" }}
+          <dt class="trans-last-update">{{ $lastUpdate }}</dt>
           {{ else }}
           <dt>N/A</dt>
           {{ end }}

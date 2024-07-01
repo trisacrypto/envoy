@@ -1,9 +1,9 @@
-const transactionID = document.getElementById('transaction-id');
-
+const transactionEl = document.getElementById('transaction-id');
+const transactionID = transactionEl?.value
 
 // Add code to run after HTMX settles the DOM once a swap occurs.
 document.body.addEventListener('htmx:afterSettle', (e) => {
-  const envelopeListEP = `/v1/transactions/${transactionID?.value}/secure-envelopes`
+  const envelopeListEP = `/v1/transactions/${transactionID}/secure-envelopes`
   if (e.detail.requestConfig.path === envelopeListEP && e.detail.requestConfig.verb === 'get') {
     // Toggle the collapse-close class when an accordion is clicked.
     document.querySelectorAll('.envelope-accordion').forEach((accordion) => {
@@ -23,11 +23,26 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
     // TODO: Add code to toggle show/hide for PKS.
   }
+
+  // Humanize the last update timestamp.
+  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}?detail=full` && e.detail.requestConfig.verb === 'get') {
+    const lastUpdate = document.querySelector('.trans-last-update');
+    const humanizeLastUpdate = dayjs(lastUpdate.textContent).fromNow();
+    lastUpdate.textContent = humanizeLastUpdate;
+  }
+
+  // Display envelope timestamp in local time.
+  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}/secure-envelopes` && e.detail.requestConfig.verb === 'get') {
+    const envelopeTimestamp = document.querySelectorAll('.envelope-timestamp');
+    envelopeTimestamp.forEach((timestamp) => {
+      const localTime = dayjs(timestamp.textContent).format('MMM DD, YYYY hh:mm:ss A')
+      timestamp.textContent = localTime
+    })
+  }
 });
 
 // Add code to amend the request parameters before the request is sent.
-const rejectEP = `/v1/transactions/${transactionID?.value}/reject`
-
+const rejectEP = `/v1/transactions/${transactionID}/reject`
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Determine if the request repair checkbox is checked and add to the request parameters.
   const isRetryChecked = document.getElementById('request_retry')
