@@ -1,10 +1,12 @@
 openapi: 3.0.3
 info:
   title: TRISA Node API
-  description: |-
+  description: >-
     The TRISA Node API allows users to interact with the TRISA Self-Hosted Node
-    in a programmatic fashion. It is intended that this API is served on an internal
-    IP address with routing only available to internal services.
+    in a programmatic fashion.
+
+    It is intended that this API is served on an internal IP address with
+    routing only available to internal services.
   termsOfService: https://trisa.io/terms/
   contact:
     email: support@rotational.io
@@ -28,12 +30,16 @@ tags:
     description: Counterparties to exchange travel rule information with using TRISA or TRP protocols.
   - name: secure_envelope
     description: Secure Envelopes provide an audit record of travel rule exchanges with a counterparty.
+  - name: utility
+    description: Other useful methods.
 paths:
   /v1/status:
     get:
       summary: Heartbeat endpoint
       description: Allows users to check the status of the node
       operationId: status
+      tags:
+        - utility
       responses:
         '200':
           description: Successful operation
@@ -57,26 +63,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                client_id:
-                  type: string
-                client_secret:
-                  type: string
+              $ref: '#/components/schemas/APIAuthentication'
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  access_token:
-                    type: string
-                  refresh_token:
-                    type: string
+                $ref: '#/components/schemas/LoginReply'
         '403':
-          description: invalid api credentials
+          description: Invalid API credentials
   /v1/reauthenticate:
     post:
       tags:
@@ -87,24 +83,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                refresh_token:
-                  type: string
+              $ref: '#/components/schemas/ReauthenticateRequest'
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  access_token:
-                    type: string
-                  refresh_token:
-                    type: string
+                $ref: '#/components/schemas/LoginReply'
         '403':
-          description: invalid reauthentication credentials
+          description: Invalid reauthentication credentials
   /v1/transactions:
     get:
       tags:
@@ -144,11 +132,11 @@ paths:
         - bearer-auth: [ ]
       requestBody:
         description: Create a new transaction
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Transaction'
+        required: true
       responses:
         '201':
           description: Transaction created
@@ -197,17 +185,18 @@ paths:
       parameters:
         - name: transactionID
           in: path
-          description: ID of transaction to return
+          description: ID of transaction to update
           required: true
           schema:
             type: string
             format: UUID
       requestBody:
-        required: true
+        description: Updated transaction record
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Transaction'
+        required: true
       responses:
         '200':
           description: Successful operation
@@ -230,7 +219,83 @@ paths:
       parameters:
         - name: transactionID
           in: path
-          description: ID of transaction to return
+          description: ID of transaction to delete
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Transaction not found
+  /v1/transactions/prepare:
+    post:
+      tags:
+        - transaction
+      summary: Prepare transaction data for sending
+      description: Prepare transaction data for sending to a counterparty
+      operationId: prepareTransaction
+      security:
+        - bearer-auth: [ ]
+      requestBody:
+        description: Transaction data to prepare
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prepare'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prepared'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception or missing field
+  /v1/transactions/send-prepared:
+    post:
+      tags:
+        - transaction
+      summary: Send prepared transaction data to counterparty
+      description: Send prepared transaction data to a counterparty
+      operationId: sendPreparedTransaction
+      security:
+        - bearer-auth: [ ]
+      requestBody:
+        description: Prepared transaction data to send
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prepared'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception or missing field
+  /v1/transactions/{transactionID}/preview:
+    get:
+      tags:
+        - transaction
+      summary: Preview transaction envelope
+      description: Preview the transaction envelope for a specific transaction
+      operationId: previewTransaction
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: transactionID
+          in: path
+          description: ID of transaction to preview
           required: true
           schema:
             type: string
@@ -241,7 +306,101 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Reply'
+                $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Transaction not found
+  /v1/transactions/{transactionID}/send:
+    post:
+      tags:
+        - transaction
+      summary: Send transaction envelope
+      description: Send the transaction envelope for a specific transaction
+      operationId: sendTransaction
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: transactionID
+          in: path
+          description: ID of transaction to send
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        description: Transaction envelope to send
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Envelope'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Transaction not found
+  /v1/transactions/{transactionID}/accept:
+    post:
+      tags:
+        - transaction
+      summary: Accept incoming transaction envelope
+      description: Accept the incoming transaction envelope for a specific transaction
+      operationId: acceptTransaction
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: transactionID
+          in: path
+          description: ID of transaction to accept
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Transaction not found
+        '501':
+          description: Not implemented
+  /v1/transactions/{transactionID}/reject:
+    post:
+      tags:
+        - transaction
+      summary: Reject incoming transaction envelope
+      description: Reject the incoming transaction envelope for a specific transaction
+      operationId: rejectTransaction
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: transactionID
+          in: path
+          description: ID of transaction to reject
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        description: Reason for rejection
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rejection'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
         '404':
           description: Transaction not found
   /v1/transactions/{transactionID}/secure-envelopes:
@@ -273,10 +432,6 @@ paths:
           in: query
           schema:
             type: string
-        - name: decrypt
-          in: query
-          schema:
-            type: boolean
       responses:
         '200':
           description: Successful operation
@@ -296,7 +451,7 @@ paths:
       parameters:
         - name: transactionID
           in: path
-          description: ID of transaction to return secure envelopes for
+          description: ID of transaction to return secure envelope for
           required: true
           schema:
             type: string
@@ -308,10 +463,6 @@ paths:
           schema:
             type: string
             format: ULID
-        - name: decrypt
-          in: query
-          schema:
-            type: boolean
       responses:
         '200':
           description: Successful operation
@@ -320,33 +471,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/SecureEnvelope'
         '404':
-          description: Account or crypto address not found
+          description: Secure envelope not found
     delete:
       tags:
         - secure_envelope
       summary: Delete a specific secure envelope
-      description: Deletes a specified secure envelope
+      description: Deletes the specified secure envelope
       operationId: deleteSecureEnvelope
+      security:
+        - bearer-auth: [ ]
       parameters:
         - name: transactionID
           in: path
+          description: ID of transaction of the secure envelope to be deleted
           required: true
           schema:
             type: string
+            format: UUID
         - name: envelopeID
           in: path
+          description: ID of secure envelope to delete
           required: true
           schema:
             type: string
+            format: ULID
       responses:
         '200':
           description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Reply'
         '404':
-          description: Secure envelop not found
+          description: Secure envelope not found
+        '501':
+          description: Not implemented
   /v1/accounts:
     get:
       tags:
@@ -439,17 +594,18 @@ paths:
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account to update
           required: true
           schema:
             type: string
             format: ULID
       requestBody:
-        required: true
+        description: Updated account record
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Account'
+        required: true
       responses:
         '200':
           description: Successful operation
@@ -472,7 +628,7 @@ paths:
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account to delete
           required: true
           schema:
             type: string
@@ -480,25 +636,21 @@ paths:
       responses:
         '200':
           description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Reply'
         '404':
           description: Account not found
   /v1/accounts/{accountID}/crypto-addresses:
     get:
       tags:
         - crypto_address
-      summary: list all crypto addresses for account
-      description: returns a paginated list of all crypto addresses associated with the account
+      summary: List crypto addresses for account
+      description: Returns a paginated list of all crypto addresses associated with the account
       operationId: listCryptoAddresses
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account to return crypto addresses for
           required: true
           schema:
             type: string
@@ -535,17 +687,18 @@ paths:
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account to create crypto address for
           required: true
           schema:
             type: string
             format: ULID
       requestBody:
-        required: true
+        description: Crypto address to create
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CryptoAddress'
+        required: true
       responses:
         '201':
           description: Crypto address created
@@ -565,13 +718,13 @@ paths:
         - crypto_address
       summary: Lookup a specific crypto address
       description: Returns detailed information about the specified crypto address
-      operationId: cryptoAddressesDetail
+      operationId: cryptoAddressDetail
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account of crypto address to be returned
           required: true
           schema:
             type: string
@@ -597,30 +750,31 @@ paths:
         - crypto_address
       summary: Update a crypto address
       description: Update a crypto address record (does not patch, all fields are required)
-      operationId: updateCryptoAddresses
+      operationId: updateCryptoAddress
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account of crypto address to be updated
           required: true
           schema:
             type: string
             format: ULID
         - name: cryptoAddressID
           in: path
-          description: ID of crypto address to return
+          description: ID of crypto address to update
           required: true
           schema:
             type: string
             format: ULID
       requestBody:
-        required: true
+        description: Updated crypto address record
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CryptoAddress'
+        required: true
       responses:
         '200':
           description: Successful operation
@@ -637,20 +791,20 @@ paths:
         - crypto_address
       summary: Delete a crypto address
       description: Delete a crypto address record associated with account
-      operationId: deleteCryptoAddresses
+      operationId: deleteCryptoAddress
       security:
         - bearer-auth: [ ]
       parameters:
         - name: accountID
           in: path
-          description: ID of account to return
+          description: ID of account of crypto address to be deleted
           required: true
           schema:
             type: string
             format: ULID
         - name: cryptoAddressID
           in: path
-          description: ID of crypto address to return
+          description: ID of crypto address to delete
           required: true
           schema:
             type: string
@@ -658,10 +812,6 @@ paths:
       responses:
         '200':
           description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Reply'
         '404':
           description: Account or crypto address not found
   /v1/counterparties:
@@ -756,11 +906,18 @@ paths:
       parameters:
         - name: counterpartyID
           in: path
-          description: ID of counterparty to return
+          description: ID of counterparty to update
           required: true
           schema:
             type: string
             format: ULID
+      requestBody:
+        description: Updated counterparty record
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Counterparty'
+        required: true
       responses:
         '200':
           description: Successful operation
@@ -783,7 +940,7 @@ paths:
       parameters:
         - name: counterpartyID
           in: path
-          description: ID of counterparty to return
+          description: ID of counterparty to delete
           required: true
           schema:
             type: string
@@ -791,69 +948,270 @@ paths:
       responses:
         '200':
           description: Successful operation
+        '404':
+          description: Counterparty not found
+  /v1/utilities/travel-address/encode:
+    post:
+      tags:
+        - utility
+      summary: Encode travel address
+      description: Encodes a travel address into a TRP-formatted string
+      operationId: encodeTravelAddress
+      requestBody:
+        description: Travel address to encode
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TravelAddress'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Reply'
-        '404':
-          description: Account not found
+                $ref: '#/components/schemas/TravelAddress'
+        '400':
+          description: Invalid input
+  /v1/utilities/travel-address/decode:
+    post:
+      tags:
+        - utility
+      summary: Decode travel address
+      description: Decodes a TRP-formatted travel address into its component parts
+      operationId: decodeTravelAddress
+      requestBody:
+        description: TRP-formatted travel address to decode
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TravelAddress'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TravelAddress'
+        '400':
+          description: Invalid input
 components:
   schemas:
-    Transaction:
+    StatusReply:
       type: object
+      description: The response object for the status endpoint.
+      properties:
+        status:
+          type: string
+          example: ok
+          enum:
+            - ok
+            - not ready
+            - unhealthy
+            - maintenance
+          description: The status of the node.
+        uptime:
+          type: string
+          format: duration
+          example: 25h33m29.4860s
+          description: The duration since the node was last started.
+        version:
+          type: string
+          format: semver
+          example: 1.0.0
+          description: The version of the node.
+    APIAuthentication:
+      type: object
+      description: The request object for the authentication endpoint.
+      properties:
+        client_id:
+          type: string
+          description: The client ID for authentication.
+        client_secret:
+          type: string
+          description: The client secret for authentication.
+    LoginReply:
+      type: object
+      description: The response object for the authentication endpoint.
+      properties:
+        access_token:
+          type: string
+          description: The access token for the authenticated session.
+        refresh_token:
+          type: string
+          description: The refresh token for obtaining a new access token.
+    ReauthenticateRequest:
+      type: object
+      description: The request object for the reauthentication endpoint.
+      properties:
+        refresh_token:
+          type: string
+          description: The refresh token for reauthentication.
+    PageQuery:
+      type: object
+      description: The request object for paginated endpoints.
+      properties:
+        page_size:
+          type: integer
+          example: 50
+          description: The number of items to return per page.
+        next_page_token:
+          type: string
+          format: base64
+          description: The token for retrieving the next page of results.
+        prev_page_token:
+          type: string
+          format: base64
+          description: The token for retrieving the previous page of results.
+    Account:
+      type: object
+      description: The account object.
       properties:
         id:
           type: string
-          format: uuid
-          example: c44d81ec-7c2d-4372-8844-28fdb6b1c664
-        source:
+          format: ULID
+          description: The unique identifier of the account.
+        customer_id:
           type: string
-        status:
+          description: The customer ID associated with the account.
+        first_name:
           type: string
-        counterparty:
+          description: The first name of the account.
+        last_name:
           type: string
-        counterparty_id:
+          description: The last name of the account.
+        travel_address:
           type: string
-          format: ulid
-        originator:
+          description: The travel address for this account.
+        ivms101:
           type: string
-        originator_address:
-          type: string
-        beneficiary:
-          type: string
-        beneficiary_address:
-          type: string
-        virtual_asset:
-          type: string
-        amount:
-          type: number
-          format: double
-        last_update:
-          type: string
-          format: date-time
-        envelope_count:
-          type: integer
-          format: int64
+          description: The IVMS101 certificate of the counterparty.
+        crypto_addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoAddress'
         created:
           type: string
           format: date-time
+          description: The date and time when the transaction was created.
         modified:
           type: string
           format: date-time
-    TransactionsList:
+          description: The date and time when the transaction was last modified.
+    AccountList:
       type: object
+      description: The response object for the accounts endpoint.
       properties:
         page:
           $ref: '#/components/schemas/PageQuery'
-        transactions:
+        accounts:
           type: array
           items:
-            $ref: '#/components/schemas/Transaction'
+            $ref: '#/components/schemas/Account'
+    CryptoAddress:
+      type: object
+      description: The crypto address object.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the crypto address.
+        crypto_address:
+          type: string
+          description: The crypto address itself.
+        network:
+          type: string
+          description: The network associated with the crypto address in SIP0044 encoding.
+        asset_type:
+          type: string
+          description: The asset type with the crypto address.
+        tag:
+          type: string
+          description: The memo or destination tag associated with the address.
+        travel_address:
+          type: string
+          description: The travel address of the crypto address.
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the crypto address was created.
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the crypto address was last modified.
+    CryptoAddressList:
+      type: object
+      description: The response object for the crypto addresses endpoint.
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        crypto_addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoAddress'
+    Transaction:
+      type: object
+      description: The transaction object.
+      properties:
+        id:
+          type: string
+          format: UUID
+          description: The unique identifier of the transaction.
+        source:
+          type: string
+          description: The source of the transaction. It may be 'local' meaning the transaction was created by the user, or 'remote' meaning it is an incoming message.
+        status:
+          type: string
+          description: The status of the transaction.
+        counterparty:
+          type: string
+          description: The counterparty of the transaction.
+        counterparty_id:
+          type: string
+          format: ULID
+          description: The unique identifier of the counterparty.
+        originator:
+          type: string
+          description: The full name of the originator of the transaction.
+        originator_address:
+          type: string
+          description: The originator's crypto address.
+        beneficiary:
+          type: string
+          description: The full name of the beneficiary of the transaction.
+        beneficiary_address:
+          type: string
+          description: The beneficiary's crypto address.
+        virtual_asset:
+          type: string
+          description: The virtual asset involved in the transaction. This may be a representation of the network or asset type.
+        amount:
+          type: number
+          format: double
+          description: The amount of the transaction.
+        last_update:
+          type: string
+          format: date-time
+          description: The date and time when the transaction was last updated.
+        envelope_count:
+          type: integer
+          description: The number of secure envelopes associated with the transaction.
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the transaction was created.
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the transaction was last modified.
     Envelope:
       type: object
+      description: The envelope object.
       properties:
         envelope_id:
           type: string
+          description: The unique identifier of the envelope.
         error:
           $ref: '#/components/schemas/Rejection'
         identity:
@@ -865,316 +1223,123 @@ components:
         sent_at:
           type: string
           format: date-time
+          description: The date and time when the envelope was sent.
         received_at:
           type: string
           format: date-time
+          description: The date and time when the envelope was received.
     Pending:
       type: object
+      description: The pending envelope object.
       properties:
         envelope_id:
           type: string
+          description: The unique identifier of the pending envelope.
         received_by:
           type: string
+          description: The recipient of the pending envelope.
         received_at:
           type: string
           format: date-time
+          description: The date and time when the pending envelope was received.
         message:
           type: string
+          description: The message associated with the pending envelope.
         reply_not_after:
           type: string
           format: date-time
+          description: The date and time when a reply will be returned by.
         reply_not_before:
           type: string
           format: date-time
+          description: The date and time that the response will not be sent before.
         extra_json:
           type: string
+          description: Additional JSON data associated with the pending envelope.
         transaction:
           $ref: '#/components/schemas/Transaction'
     SecureEnvelope:
       type: object
+      description: The secure envelope object.
       properties:
         id:
           type: string
           format: ULID
+          description: The unique identifier of the secure envelope.
         direction:
           type: string
-          enum:
-            - incoming
-            - outgoing
+          description: The direction of the secure envelope (incoming or outgoing).
         envelope_id:
           type: string
           format: UUID
+          description: The unique identifier of the envelope associated with the secure envelope.
         payload:
           type: string
-          format: base64
+          format: byte
+          description: The encrypted payload of the secure envelope.
         encryption_key:
           type: string
-          format: base64
+          format: byte
+          description: The encryption key used to encrypt the secure envelope.
         encryption_algorithm:
           type: string
-          example: AES-GCM-256
+          description: The encryption algorithm used to encrypt the secure envelope.
         valid_hmac:
           type: boolean
+          description: Indicates whether the HMAC of the secure envelope is valid.
         hmac:
           type: string
-          format: base64
+          format: byte
+          description: The HMAC of the secure envelope.
         hmac_secret:
           type: string
-          format: base64
+          format: byte
+          description: The HMAC secret used to generate the HMAC of the secure envelope.
         hmac_algorithm:
           type: string
-          example: HMAC-SHA-256
+          description: The HMAC algorithm used to generate the HMAC of the secure envelope.
         is_error:
           type: boolean
+          description: Indicates whether the secure envelope contains an error.
         error:
           type: object
+          description: The error object associated with the secure envelope, if any.
         timestamp:
           type: string
-          format: datetime
+          format: date-time
+          description: The timestamp of the secure envelope.
         sealed:
           type: boolean
+          description: Indicates whether the secure envelope is sealed.
         public_key_signature:
           type: string
+          description: The public key signature of the secure envelope.
         original:
           type: string
-          format: base64
-    DecryptedEnvelope:
-      type: object
-      properties:
-        identity:
-          type: object
-        transaction:
-          type: object
-        pending:
-          type: object
-        sent_at:
-          type: string
-          format: datetime
-        received_at:
-          type: string
-          format: datetime
-    EnvelopeQuery:
-      type: object
-      properties:
-        decrypt:
-          type: boolean
-          default: false
-        archives:
-          type: boolean
-          default: false
+          format: byte
+          description: The original payload of the secure envelope.
     EnvelopesList:
       type: object
+      description: The response object for the secure envelopes endpoint.
       properties:
         page:
           $ref: '#/components/schemas/PageQuery'
         is_decrypted:
           type: boolean
+          description: Indicates whether the secure envelopes in the list are decrypted.
         secure_envelopes:
           type: array
           items:
             $ref: '#/components/schemas/SecureEnvelope'
+          description: The list of secure envelopes.
         decrypted_envelopes:
           type: array
           items:
-            $ref: '#/components/schemas/DecryptedEnvelope'
-    Counterparty:
-      type: object
-      properties:
-        id:
-          type: string
-          format: ULID
-          example: 01HV1GBK4JG9KF8RHJG2KF0B9M
-        source:
-          type: string
-          readOnly: true
-          enum:
-            - user
-            - gds
-        directory_id:
-          type: string
-          format: UUID
-          example: af0e1286-a2a1-40b1-989a-dd5b75fdfbf3
-          readOnly: true
-        registered_directory:
-          type: string
-          example: trisatest.net
-          readOnly: true
-        protocol:
-          type: string
-          example: trisa
-          enum:
-            - trisa
-            - trp
-        common_name:
-          type: string
-          format: hostname
-          example: trisa.example.com
-        endpoint:
-          type: string
-          format: uri
-          example: trisa.example.com:443
-        name:
-          type: string
-          example: AliceVASP
-        website:
-          type: string
-          format: uri
-        country:
-          type: string
-          format: ISO-3166-1 ALPHA-2
-        business_category:
-          type: string
-        vasp_categories:
-          type: array
-          items:
-            type: string
-        verified_on:
-          type: string
-          format: datetime
-        ivms101:
-          type: object
-          description: ivms record
-        created:
-          type: string
-          format: datetime
-          readOnly: true
-        modified:
-          type: string
-          format: datetime
-          readOnly: true
-    CounterpartyList:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        counterparties:
-          type: array
-          items:
-            $ref: '#/components/schemas/Counterparty'
-    CryptoAddress:
-      type: object
-      properties:
-        id:
-          type: string
-          format: ULID
-          example: 01HSNQWH856KKB2PFXEF4XJQWY
-        crypto_address:
-          type: string
-          example: 18dlice0aYQesEaFs3XuLHBXGoCyhjjHin
-        network:
-          type: string
-          format: SLIP-0044
-          example: BTC
-          externalDocs:
-            description: SLIP-0044 Definitions
-            url: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        asset_type:
-          type: string
-          description: crypto asset type for multi-asset chains
-        tag:
-          type: string
-          description: tag or memo for chains that require one
-        created:
-          type: string
-          format: datetime
-        modified:
-          type: string
-          format: datetime
-    CryptoAddressList:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        crypto_addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/CryptoAddress'
-    Account:
-      type: object
-      properties:
-        id:
-          type: string
-          format: ULID
-          example: 01HSNQWH856KKB2PFXEF4XJQWY
-          description: node-specific identifier
-        customer_id:
-          type: string
-          description: VASP identifier for customer account
-        first_name:
-          type: string
-          example: Jane
-          description: Given or first name of customer
-        last_name:
-          type: string
-          example: Doe
-          description: Family or last name of customer
-        crypto_addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/CryptoAddress'
-        created:
-          type: string
-          format: datetime
-        modified:
-          type: string
-          format: datetime
-    AccountList:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Account'
-    Reply:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: false
-        error:
-          type: string
-          example: could not complete requested operation
-        version:
-          type: string
-          format: semver
-          example: 1.0.0
-    StatusReply:
-      type: object
-      properties:
-        status:
-          type: string
-          example: ok
-          enum:
-            - ok
-            - not ready
-            - unhealthy
-            - maintenance
-        uptime:
-          type: string
-          format: duration
-          example: 25h33m29.4860s
-        version:
-          type: string
-          format: semver
-          example: 1.0.0
-    PageQuery:
-      type: object
-      properties:
-        page_size:
-          type: integer
-          format: int32
-          example: 50
-          default: 100
-        next_page_token:
-          type: string
-          format: base64
-        prev_page_token:
-          type: string
-          format: base64
+            $ref: '#/components/schemas/Envelope'
+          description: The list of decrypted envelopes.
     Rejection:
       type: object
+      description: The rejection object.
       properties:
         code:
           type: string
@@ -1197,13 +1362,27 @@ components:
           description: TRISA error codes. For a complete list of error codes, visit https://trisa.dev/api/errors/index.html
         message:
           type: string
+          description: The error message of the rejection.
         request_retry:
           type: boolean
+          description: Indicates whether the request should be retried.
+    TransactionsList:
+      type: object
+      description: The response object for the transactions endpoint.
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
     Prepare:
       type: object
+      description: The request object for the prepare transaction endpoint.
       properties:
         travel_address:
           type: string
+          description: The travel address of the transaction.
         originator:
           $ref: '#/components/schemas/Person'
         beneficiary:
@@ -1212,52 +1391,72 @@ components:
           $ref: '#/components/schemas/Transfer'
     Prepared:
       type: object
+      description: The response object for the prepare transaction endpoint.
       properties:
         travel_address:
           type: string
+          description: The travel address of the prepared transaction.
         identity:
           $ref: '#/components/schemas/IdentityPayload'
         transaction:
           $ref: '#/components/schemas/Transaction'
     Person:
       type: object
+      description: The person object.
       properties:
         first_name:
           type: string
+          description: The first name of the person.
         last_name:
           type: string
+          description: The last name of the person.
         customer_id:
           type: string
+          description: The customer ID of the person.
         addr_line_1:
           type: string
+          description: The first line of the person's address.
         addr_line_2:
           type: string
+          description: The second line of the person's address.
         city:
           type: string
+          description: The city of the person's address.
         state:
           type: string
+          description: The state of the person's address.
         post_code:
           type: string
+          description: The postal code of the person's address.
         country:
           type: string
+          description: The country of the person's address.
         crypto_address:
           type: string
+          description: The crypto address of the person.
     Transfer:
       type: object
+      description: The transfer object.
       properties:
         amount:
           type: number
           format: double
+          description: The amount of the transfer.
         network:
           type: string
+          description: The network of the transfer.
         asset_type:
           type: string
+          description: The type of the virtual asset involved in the transfer.
         transaction_id:
           type: string
+          description: The unique identifier of the transfer transaction.
         tag:
           type: string
+          description: The tag associated with the transfer.
     IdentityPayload:
       type: object
+      description: The identity payload object.
       properties:
         originator:
           $ref: '#/components/schemas/Originator'
@@ -1273,57 +1472,71 @@ components:
           $ref: '#/components/schemas/PayloadMetadata'
     Originator:
       type: object
+      description: The originator object.
       properties:
         originator_persons:
           type: array
           items:
             $ref: '#/components/schemas/Person'
+          description: The list of originator persons.
         account_numbers:
           type: array
           items:
             type: string
+          description: The list of account numbers associated with the originator.
     Beneficiary:
       type: object
+      description: The beneficiary object.
       properties:
         beneficiary_persons:
           type: array
           items:
             $ref: '#/components/schemas/Person'
+          description: The list of beneficiary persons.
         account_numbers:
           type: array
           items:
             type: string
+          description: The list of account numbers associated with the beneficiary.
     OriginatingVasp:
       type: object
+      description: The originating VASP object.
       properties:
         originating_vasp:
           $ref: '#/components/schemas/Person'
     BeneficiaryVasp:
       type: object
+      description: The beneficiary VASP object.
       properties:
         beneficiary_vasp:
           $ref: '#/components/schemas/Person'
     IntermediaryVasp:
       type: object
+      description: The intermediary VASP object.
       properties:
         intermediary_vasp:
           $ref: '#/components/schemas/Person'
         sequence:
           type: integer
+          description: The sequence number of the intermediary VASP in the transfer path.
     TransferPath:
       type: object
+      description: The transfer path object.
       properties:
         transfer_path:
           type: array
           items:
             $ref: '#/components/schemas/IntermediaryVasp'
+          description: The list of intermediary VASPs in the transfer path.
     PayloadMetadata:
       type: object
+      description: The metadata object for the identity payload.
       properties:
         transliteration_method:
           type: array
           items:
             $ref: '#/components/schemas/TransliterationMethodCode'
+          description: The list of transliteration methods used in the identity payload.
     TransliterationMethodCode:
       type: string
       enum:
@@ -1341,19 +1554,87 @@ components:
         - TRANSLITERATION_METHOD_CODE_KORE
         - TRANSLITERATION_METHOD_CODE_THAI
       description: Identifies the national script from which transliteration to Latin script is applied.
-  requestBodies:
-    Account:
-      description: Account that needs to be added or updated
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Account'
-    CryptoAddress:
-      description: CryptoAddress associated with account that needs to be added or updated
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CryptoAddress'
+    Counterparty:
+      type: object
+      description: The counterparty object.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the counterparty.
+        source:
+          type: string
+          description: The source of the counterparty.
+        directory_id:
+          type: string
+          description: The unique identifier of the directory that contains the counterparty.
+        registered_directory:
+          type: string
+          description: The name of the registered directory that contains the counterparty.
+        protocol:
+          type: string
+          description: The protocol used to communicate with the counterparty.
+        common_name:
+          type: string
+          description: The common name of the counterparty.
+        endpoint:
+          type: string
+          description: The endpoint URL of the counterparty.
+        travel_address:
+          type: string
+          description: The travel address of the counterparty.
+        name:
+          type: string
+          description: The name of the counterparty.
+        website:
+          type: string
+          description: The website URL of the counterparty.
+        country:
+          type: string
+          description: The country of the counterparty.
+        business_category:
+          type: string
+          description: The business category of the counterparty.
+        vasp_categories:
+          type: array
+          items:
+            type: string
+          description: The list of VASP categories that the counterparty belongs to.
+        verified_on:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty was verified.
+        ivms101:
+          type: string
+          description: The IVMS101 certificate of the counterparty.
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty was created.
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty was last modified.
+    CounterpartyList:
+      type: object
+      description: The response object for the counterparties endpoint.
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        counterparties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Counterparty'
+    TravelAddress:
+      type: object
+      description: The travel address object.
+      properties:
+        encoded:
+          type: string
+          description: The encoded travel address.
+        decoded:
+          type: string
+          description: The decoded travel address.
   securitySchemes:
     bearer-auth:
       type: http

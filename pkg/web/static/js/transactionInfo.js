@@ -62,3 +62,17 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     transactionRejectForm.reset()
   }
 });
+
+// Display success toast message if user is redirected to info page after accepting a transaction.
+const transactionSend = Cookies.get('transaction_send_success')
+if (transactionSend === 'true') {
+  const successToast = document.getElementById('success-toast');
+  const successToastMsg = document.getElementById('success-toast-msg');
+  successToast.classList.remove('hidden');
+  successToastMsg.textContent = 'Success! The secure envelope has been accepted.'
+
+  // Remove the toast after 5 seconds.
+  setTimeout(() => {
+    successToast.classList.add('hidden');
+  }, 5000);
+}
