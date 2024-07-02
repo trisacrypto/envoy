@@ -11,8 +11,8 @@
         </div>
           <div class="flex gap-x-4">
            {{ if eq .Source "remote" }}
-            <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-green-700 font-semibold text-white text-center md:p-2 hover:bg-green-700/80">Accept</a>
-            <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-32 bg-[#DB3B00] font-semibold text-white md:p-2 hover:bg-[#DB3B00]/80">Reject</button>
+            <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-secondary font-semibold text-white text-center md:p-2 hover:bg-secondary/80">Accept</a>
+            <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-3 bg-error font-semibold text-white md:p-2 hover:bg-error/80">Reject</button>
             {{ end }}
             <button onclick="transaction_modal.close()" class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
             <button onclick="transaction_modal.close()" class="p-1 rounded w-32 bg-black font-semibold text-white md:p-2 hover:bg-black/80">Close</button>
