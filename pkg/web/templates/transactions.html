@@ -33,7 +33,7 @@
       <a href="/v1/transactions/export" download class="btn btn-sm bg-black text-white hover:bg-black/80">Export Transactions</a>
     </div>  
   </section>
-  <section id="transactions" hx-get="/v1/transactions" hx-ext="json-enc" hx-trigger="load">
+  <section id="transactions" class="xl:overflow-x-visible" hx-get="/v1/transactions" hx-ext="json-enc" hx-trigger="load">
     <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
