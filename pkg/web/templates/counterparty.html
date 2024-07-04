@@ -3,7 +3,7 @@
   <section class="mx-8 py-14">
     <section class="flex gap-x-6 mb-12">
       <h1 class="font-bold text-2xl">Counterparty VASPs</h1>
-      <button onclick="add_cparty_modal.showModal()" class="btn btn-sm bg-[#55ACD8] text-white hover:bg-[#55ACD8]/90">Add New VASP</button>
+      <button onclick="add_cparty_modal.showModal()" class="btn btn-sm bg-primary text-white hover:bg-primary/90">Add New VASP</button>
     </section>
     <section id="counterparties" hx-get="/v1/counterparties" hx-trigger="load">
       <div class="text-center">
@@ -13,7 +13,7 @@
 
   <!-- Add VASP Modal -->
   <dialog id="add_cparty_modal" class="modal">
-    <div class="modal-box max-w-3xl">
+    <div class="modal-box max-w-3xl max-h-screen">
       <div class="flex justify-between items-center">
         <h1 class="font-bold text-xl">Add New Counterparty VASP</h1>
         <button onclick="add_cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
@@ -97,7 +97,7 @@
             <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
           </div>
           <div class="flex justify-center">
-            <button class="w-44 btn bg-[#55ACD8] font-semibold text-lg text-white hover:bg-[#55ACD8]/90">Save</button>
+            <button class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Save</button>
           </div>
         </form>
       </div>
