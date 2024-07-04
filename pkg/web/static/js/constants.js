@@ -286,7 +286,6 @@ export const IDENTIFIER_TYPE = {
   LEGAL_PERSON_NAME_TYPE_CODE_SHRT: 'Short',
   LEGAL_PERSON_NAME_TYPE_CODE_TRAD: 'Trading',
   LEGAL_PERSON_NAME_TYPE_CODE_MISC: 'Unspecified',
-  NATIONAL_IDENTIFIER_TYPE_CODE_MISC: 'Unspecified',
   NATIONAL_IDENTIFIER_TYPE_CODE_ARNU: 'ARNU',
   NATIONAL_IDENTIFIER_TYPE_CODE_CCPT: 'Passport',
   NATIONAL_IDENTIFIER_TYPE_CODE_RAID: 'RAID',
@@ -296,11 +295,12 @@ export const IDENTIFIER_TYPE = {
   NATIONAL_IDENTIFIER_TYPE_CODE_SOCS: 'Social Security',
   NATIONAL_IDENTIFIER_TYPE_CODE_IDCD: 'Identity Card',
   NATIONAL_IDENTIFIER_TYPE_CODE_LEIX: 'LEI',
-  NATURAL_PERSON_NAME_TYPE_CODE_MISC: 'Unspecified',
+  NATIONAL_IDENTIFIER_TYPE_CODE_MISC: 'Unspecified',
   NATURAL_PERSON_NAME_TYPE_CODE_ALIA: 'Alias',
   NATURAL_PERSON_NAME_TYPE_CODE_BIRT: 'Birth',
   NATURAL_PERSON_NAME_TYPE_CODE_MAID: 'Maiden',
   NATURAL_PERSON_NAME_TYPE_CODE_LEGL: 'Legal',
+  NATURAL_PERSON_NAME_TYPE_CODE_MISC: 'Unspecified',
 };
 
 // Create arrays for each identifier type category from the IDENTIFIER_TYPE object.
@@ -314,6 +314,10 @@ export const legalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
 
 export const nationalIdentifierTypeArray = Object.entries(IDENTIFIER_TYPE)
   .filter(([key]) => key.includes('NATIONAL_IDENTIFIER_TYPE_CODE'))
+  .map(([value, text]) => ({ text, value }));
+
+export const naturalPersonNtlIdTypeArray = Object.entries(IDENTIFIER_TYPE)
+  .filter(([key]) => key.includes('NATIONAL_IDENTIFIER_TYPE_CODE') && !['LEIX', 'TXID', 'RAID'].includes(key.split('_').pop()))
   .map(([value, text]) => ({ text, value }));
 
 export const naturalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
