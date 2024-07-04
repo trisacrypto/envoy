@@ -7,6 +7,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ func (s *Server) Home(c *gin.Context) {
 }
 
 func (s *Server) LoginPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "login.html", scene.New(c))
 }
 
 func (s *Server) Logout(c *gin.Context) {
@@ -29,7 +30,8 @@ func (s *Server) Logout(c *gin.Context) {
 }
 
 func (s *Server) About(c *gin.Context) {
-	c.HTML(http.StatusOK, "about.html", gin.H{
+	ctx := scene.New(c)
+	ctx.Update(scene.Scene{
 		"Version":       fmt.Sprintf("%d.%d.%d", pkg.VersionMajor, pkg.VersionMinor, pkg.VersionPatch),
 		"Revision":      pkg.GitVersion,
 		"Release":       fmt.Sprintf("%s-%d", pkg.VersionReleaseLevel, pkg.VersionReleaseNumber),
@@ -38,36 +40,42 @@ func (s *Server) About(c *gin.Context) {
 		"TRISA":         s.globalConf.Node,
 		"DirectorySync": s.globalConf.DirectorySync,
 	})
+
+	c.HTML(http.StatusOK, "about.html", ctx)
 }
 
 func (s *Server) Transactions(c *gin.Context) {
-	c.HTML(http.StatusOK, "transactions.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "transactions.html", scene.New(c))
 }
 
 func (s *Server) TransactionsAcceptPreview(c *gin.Context) {
 	// Get the transaction ID from the URL path and make available to the template.
-	id := c.Param("id")
-	c.HTML(http.StatusOK, "transactions_accept.html", gin.H{"Version": pkg.Version(), "ID": id})
+	ctx := scene.New(c)
+	ctx["ID"] = c.Param("id")
+
+	c.HTML(http.StatusOK, "transactions_accept.html", ctx)
 }
 
 func (s *Server) TransactionsInfo(c *gin.Context) {
 	// Get the transaction ID from the URL path and make available to the template.
-	id := c.Param("id")
-	c.HTML(http.StatusOK, "transactions_info.html", gin.H{"Version": pkg.Version(), "ID": id})
+	ctx := scene.New(c)
+	ctx["ID"] = c.Param("id")
+
+	c.HTML(http.StatusOK, "transactions_info.html", ctx)
 }
 
 func (s *Server) Accounts(c *gin.Context) {
-	c.HTML(http.StatusOK, "accounts.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "accounts.html", scene.New(c))
 }
 
 func (s *Server) CounterpartyVasps(c *gin.Context) {
-	c.HTML(http.StatusOK, "counterparty.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "counterparty.html", scene.New(c))
 }
 
 func (s *Server) SendEnvelopeForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "send_envelope.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "send_envelope.html", scene.New(c))
 }
 
 func (s *Server) TravelAddressUtility(c *gin.Context) {
-	c.HTML(http.StatusOK, "traveladdress.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusOK, "traveladdress.html", scene.New(c))
 }
