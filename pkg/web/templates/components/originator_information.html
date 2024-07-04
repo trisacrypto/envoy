@@ -16,6 +16,16 @@
       <input type="text" id="orig_last_name" name="orig_last_name" placeholder="Enter originator's last or family name" class="input-style" />
     </div>
   </div>
+  <div class="grid gap-6 my-4 md:grid-cols-2">
+    <div>
+      <label for="orig_dob" class="label-style">Date of Birth (MM/DD/YYYY)</label>
+      <input type="text" id="orig_dob" name="orig_dob" placeholder="Enter originator's date of birth" class="input-style" />
+    </div>
+    <div>
+      <label for="orig_birth_place" class="label-style">Birthplace</label>
+      <select id="orig_birth_place" name="orig_birth_place"></select>
+    </div>
+  </div>
   <div class="my-4">
     <label for="orig_customer_id" class="label-style">Internal Customer Identifier</label>
     <input type="text" id="orig_customer_id" name="orig_customer_id" placeholder="Enter customer's internal identification number" class="input-style" />
@@ -45,6 +55,20 @@
       <label for="orig_countries" class="label-style">Country</label>
       <select id="orig_countries" name="orig_country"></select>
     </div>
+  </div>
+  <div class="grid gap-6 my-6 md:grid-cols-2">
+    <div>
+      <label for="orig_number" class="label-style">National Identification Number</label>
+      <input type="text" id="orig_number" name="orig_number" placeholder="Enter originator's national identification number" class="input-style" />
+    </div>
+    <div>
+      <label for="orig_type_code" class="label-style">National Identification Type</label>
+      <select id="orig_type_code" name="orig_type_code"></select>
+    </div>
+  </div>
+  <div class="my-6">
+    <label for="orig_identification_country" class="label-style">Country of Residence</label>
+    <select id="orig_identification_country" name="orig_identification_country"></select>
   </div>
 </section>
 

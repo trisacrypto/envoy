@@ -1,7 +1,35 @@
-import { IDENTIFIER_TYPE } from './constants.js';
+import { IDENTIFIER_TYPE, countriesArray, nationalIdentifierTypeArray } from './constants.js';
 
-const previewEnvelopeBttn = document.getElementById('preview-envelope-bttn')
-const secureEnvelopeForm = document.getElementById('secure-envelope-form')
+const birthplace = 'birthplace';
+const country = 'country';
+const idType = 'idType';
+
+const envelopeDropdowns = [
+  { sel: '#orig_birth_place', type: birthplace },
+  { sel: '#benf_birth_place', type: birthplace },
+  { sel: '#orig_identification_country', type: country },
+  { sel: '#benf_identification_country', type: country },
+  { sel: '#orig_type_code', type: idType },
+  { sel: '#benf_type_code', type: idType },
+];
+
+envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.type));
+
+function setSlimSelect(sel, type) {
+  const newDropdown = new SlimSelect({
+    select: sel
+  });
+
+  if (type === 'birthplace' || type === 'country') {
+    countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
+    newDropdown.setData(countriesArray);
+  };
+
+  if (type === 'idType') {
+    nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
+    newDropdown.setData(nationalIdentifierTypeArray);
+  };
+};
 
 document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === '/v1/transactions/prepare' && e.detail.verb === 'post') {
