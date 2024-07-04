@@ -72,7 +72,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     };
 
     // Modify outgoing request data.
-    console.log(data);
     e.detail.parameters = data;
   }
 

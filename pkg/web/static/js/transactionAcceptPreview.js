@@ -151,8 +151,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       transaction: {}
     }
 
-    console.log(data);
-
     const originatorPerson = data.identity.originator.originator_persons[0].natural_person;
     const beneficiaryPerson = data.identity.beneficiary.beneficiary_persons[0].natural_person;
     const originatingVASP = data.identity.originating_vasp.originating_vasp.legal_person;
