@@ -1,4 +1,4 @@
-import { countriesArray, networksArray, legalPersonNameTypeArray, addressTypeArray, nationalIdentifierTypeArray, naturalPersonNameTypeArray } from "./constants.js";
+import { countriesArray, networksArray, legalPersonNameTypeArray, addressTypeArray, nationalIdentifierTypeArray, naturalPersonNtlIdTypeArray, naturalPersonNameTypeArray } from "./constants.js";
 
 document.body.addEventListener('htmx:afterSettle', () => {
   // Initialize a SlimSelect dropdown for the transaction network.
@@ -66,6 +66,10 @@ function setIdentifierData(el, identifier) {
       el.slim.setData(addressTypeArray)
       el.slim.setSelected(identifier.value)
       break;
+    case 'natural-person-ntl-id-type':
+      el.slim.setData(naturalPersonNtlIdTypeArray)
+      el.slim.setSelected(identifier.value)
+      break;
     case 'national-identifier-type':
       el.slim.setData(nationalIdentifierTypeArray)
       el.slim.setSelected(identifier.value)
@@ -96,6 +100,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
               geographic_addresses: [{
                 address_line: []
               }],
+              national_identification: {},
+              date_and_place_of_birth:{},
               account_numbers: []
             },
           }],
@@ -109,8 +115,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
               geographic_addresses: [{
                 address_line: []
               }],
+              national_identification: {},
+              date_and_place_of_birth:{},
               account_numbers: []
-            }
+            },
           }]
         },
         originating_vasp: {
@@ -143,6 +151,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       transaction: {}
     }
 
+    console.log(data);
+
     const originatorPerson = data.identity.originator.originator_persons[0].natural_person;
     const beneficiaryPerson = data.identity.beneficiary.beneficiary_persons[0].natural_person;
     const originatingVASP = data.identity.originating_vasp.originating_vasp.legal_person;
@@ -161,6 +171,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         case key.startsWith('id_og_'):
           originatorPerson.name.name_identifiers[0][newKey] = params[key];
           break;
+        // Set the originator date and place of birth.
+        case key.startsWith('originator_birth_'):
+          originatorPerson.date_and_place_of_birth[newKey] = params[key];
+          break;
         // Set the originator address line.
         case key.startsWith('address_og_'):
           originatorPerson.geographic_addresses[0].address_line.push(params[key]);
@@ -173,6 +187,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         case key.startsWith('np_og_'):
           originatorPerson[newKey] = params[key];
           break;
+        // Set national identification for the originator.
+        case key.startsWith('originator_id_'):
+          originatorPerson.national_identification[newKey] = params[key];
+          break;
         // Set the originator account number.
         case key.startsWith('acct_og_'):
           originatorPerson.account_numbers.push(params[key]);
@@ -180,6 +198,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         // Set the beneficiary name identifiers and name identifier type.
         case key.startsWith('id_bf_'):
           beneficiaryPerson.name.name_identifiers[0][newKey] = params[key];
+          break;
+        // Set the beneficiary date and place of birth.
+        case key.startsWith('beneficiary_birth_'):
+          beneficiaryPerson.date_and_place_of_birth[newKey] = params[key];
           break;
         // Set the beneficiary address line.
         case key.startsWith('address_bf_'):
@@ -192,6 +214,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         // Set details for the beneficiary natural person that's not a name identifier or geographic address.
         case key.startsWith('np_bf_'):
           beneficiaryPerson[newKey] = params[key];
+          break;
+        // Set national identification for the beneficiary.
+        case key.startsWith('beneficiary_id_'):
+          beneficiaryPerson.national_identification[newKey] = params[key];
           break;
         // Set the beneficiary account number.
         case key.startsWith('acct_bf_'):

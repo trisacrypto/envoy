@@ -1,4 +1,4 @@
-import { IDENTIFIER_TYPE, countriesArray, nationalIdentifierTypeArray } from './constants.js';
+import { IDENTIFIER_TYPE, countriesArray, naturalPersonNtlIdTypeArray } from './constants.js';
 
 const birthplace = 'birthplace';
 const country = 'country';
@@ -26,8 +26,8 @@ function setSlimSelect(sel, options) {
   };
 
   if (options === nationalIdType) {
-    nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
-    newDropdown.setData(nationalIdentifierTypeArray);
+    naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
+    newDropdown.setData(naturalPersonNtlIdTypeArray);
   };
 };
 

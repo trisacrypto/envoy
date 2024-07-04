@@ -75,6 +75,19 @@
         </div>
         {{ end }}
 
+        {{ $originatorBirth := $originator.DateAndPlaceOfBirth }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="originator_birth_date_of_birth" class="label-style">Date of Birth</label>
+            <input type="text" id="originator_birth_date_of_birth" name="originator_birth_date_of_birth" value="{{ $originatorBirth.DateOfBirth }}" class="input-style" />
+          </div>
+          <div>
+            <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
+            <select id="originator_birth_place_of_birth" name="originator_birth_place_of_birth" class="countries"></select>
+            <input type="hidden" class="originator_birth_place_of_birth" value="{{ $originatorBirth.PlaceOfBirth }}" />
+          </div>
+        </div>
+
         {{ range $originatorAddress }}
         
         <div class="grid gap-6 my-4 md:grid-cols-2">
@@ -120,6 +133,25 @@
           </div>
         </div>
 
+        {{ $originatorNationalIdentification := $originator.NationalIdentification }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="originator_id_national_identifier" class="label-style">National Identifier Number</label>
+            <input type="text" id="originator_id_national_identifier" name="originator_id_national_identifier" value="{{ $originatorNationalIdentification.NationalIdentifier }}" class="input-style" />
+          </div>
+          <div>
+            <label for="originator_id_national_identifier_type" class="label-style">National Identifier Type</label>
+            <select id="originator_id_national_identifier_type" name="originator_id_national_identifier_type" class="identifier-types"></select>
+            <input type="hidden" class="originator_id_national_identifier_type" value="{{ $originatorNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
+          </div>
+        </div>
+
+        <div class="my-4">
+          <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
+          <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
+          <input type="hidden" class="originator_id_country_of_issue" value="{{ $originatorNationalIdentification.CountryOfIssue }}" />
+        </div>
+
         {{ range .Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
@@ -154,6 +186,19 @@
             data-id="natural-person-name-type" />
         </div>
         {{ end }}
+
+        {{ $beneficiaryBirth := $beneficiary.DateAndPlaceOfBirth }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="beneficiary_birth_date_of_birth" class="label-style">Date of Birth</label>
+            <input type="text" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_date_of_birth" value="{{ $originatorBirth.DateOfBirth }}" class="input-style" />
+          </div>
+          <div>
+            <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
+            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_place_of_birth" class="countries"></select>
+            <input type="hidden" class="beneficiary_birth_place_of_birth" value="{{ $beneficiaryBirth.PlaceOfBirth }}" />
+          </div>
+        </div>
 
         {{ range $beneficiaryAddress }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
@@ -197,6 +242,25 @@
             <input type="text" id="benf_customer_identification" name="np_bf_customer_identification"
               value="{{ $beneficiary.CustomerIdentification }}" class="input-style" />
           </div>
+        </div>
+
+        {{ $beneficiaryNationalIdentification := $beneficiary.NationalIdentification }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="beneficiary_id_national_identifier" class="label-style">National Identifier Number</label>
+            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_national_identifier" value="{{ $beneficiaryNationalIdentification.NationalIdentifier }}" class="input-style" />
+          </div>
+          <div>
+            <label for="beneficiary_id_national_identifier_type" class="label-style">National Identifier Type</label>
+            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_national_identifier_type" class="identifier-types"></select>
+            <input type="hidden" class="beneficiary_id_national_identifier_type" value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
+          </div>
+        </div>
+
+        <div class="my-4">
+          <label for="beneficiary_id_country_of_issue" class="label-style">Country of Issue</label>
+          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_country_of_issue" class="countries"></select>
+          <input type="hidden" class="beneficiary_id_country_of_issue" value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
 
         {{ range .Identity.Beneficiary.AccountNumbers }}
