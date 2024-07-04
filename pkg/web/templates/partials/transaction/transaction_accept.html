@@ -75,6 +75,19 @@
         </div>
         {{ end }}
 
+        {{ $originatorBirth := $originator.DateAndPlaceOfBirth }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="originator_birth_date_of_birth" class="label-style">Date of Birth</label>
+            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_date_of_birth" value="{{ $originatorBirth.DateOfBirth }}" class="input-style" />
+          </div>
+          <div>
+            <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
+            <select id="originator_birth_place_of_birth" name="originator_birth_place_of_birth" class="countries"></select>
+            <input type="hidden" class="originator_birth_place_of_birth" value="{{ $originatorBirth.PlaceOfBirth }}" />
+          </div>
+        </div>
+
         {{ range $originatorAddress }}
         
         <div class="grid gap-6 my-4 md:grid-cols-2">
@@ -120,6 +133,25 @@
           </div>
         </div>
 
+        {{ $originatorNationalIdentification := $originator.NationalIdentification }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="originator_id_national_identifier" class="label-style">National Identifier Number</label>
+            <input type="text" id="originator_id_national_identifier" name="originator_id_national_identifier" value="{{ $originatorNationalIdentification.NationalIdentifier }}" class="input-style" />
+          </div>
+          <div>
+            <label for="originator_id_national_identifier_type" class="label-style">National Identifier Type</label>
+            <select id="originator_id_national_identifier_type" name="originator_id_national_identifier_type" class="identifier-types"></select>
+            <input type="hidden" class="originator_id_national_identifier_type" value="{{ $originatorNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
+          </div>
+        </div>
+
+        <div class="my-4">
+          <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
+          <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
+          <input type="hidden" class="originator_id_country_of_issue" value="{{ $originatorNationalIdentification.CountryOfIssue }}" />
+        </div>
+
         {{ range .Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
@@ -154,6 +186,19 @@
             data-id="natural-person-name-type" />
         </div>
         {{ end }}
+
+        {{ $beneficiaryBirth := $beneficiary.DateAndPlaceOfBirth }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="beneficiary_birth_date_of_birth" class="label-style">Date of Birth</label>
+            <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_date_of_birth" value="{{ $beneficiaryBirth.DateOfBirth }}" class="input-style" />
+          </div>
+          <div>
+            <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
+            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_place_of_birth" class="countries"></select>
+            <input type="hidden" class="beneficiary_birth_place_of_birth" value="{{ $beneficiaryBirth.PlaceOfBirth }}" />
+          </div>
+        </div>
 
         {{ range $beneficiaryAddress }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
@@ -197,6 +242,25 @@
             <input type="text" id="benf_customer_identification" name="np_bf_customer_identification"
               value="{{ $beneficiary.CustomerIdentification }}" class="input-style" />
           </div>
+        </div>
+
+        {{ $beneficiaryNationalIdentification := $beneficiary.NationalIdentification }}
+        <div class="grid gap-6 my-4 md:grid-cols-2">
+          <div>
+            <label for="beneficiary_id_national_identifier" class="label-style">National Identifier Number</label>
+            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_national_identifier" value="{{ $beneficiaryNationalIdentification.NationalIdentifier }}" class="input-style" />
+          </div>
+          <div>
+            <label for="beneficiary_id_national_identifier_type" class="label-style">National Identifier Type</label>
+            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_national_identifier_type" class="identifier-types"></select>
+            <input type="hidden" class="beneficiary_id_national_identifier_type" value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
+          </div>
+        </div>
+
+        <div class="my-4">
+          <label for="beneficiary_id_country_of_issue" class="label-style">Country of Issue</label>
+          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_country_of_issue" class="countries"></select>
+          <input type="hidden" class="beneficiary_id_country_of_issue" value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
 
         {{ range .Identity.Beneficiary.AccountNumbers }}
@@ -395,7 +459,7 @@
       </div>
     </section>
     <div class="py-4 flex justify-center items-center gap-x-2">
-      <button type="submit" class="p-1 rounded w-36 bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">
+      <button type="submit" class="p-1 rounded w-36 bg-success font-semibold text-white md:p-2 hover:bg-success/80">
         <div class="flex justify-center items-center">
           <svg aria-hidden="true" role="status" class="htmx-indicator inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
@@ -405,7 +469,7 @@
         </div>
       </button>
       <a href="/transactions/{{ .EnvelopeID }}/info"
-        class="p-1 rounded w-36 bg-red-700 font-semibold text-white text-center md:p-2 hover:bg-red-700/80">Cancel</a>
+        class="p-1 rounded w-36 bg-warning font-semibold text-white text-center md:p-2 hover:bg-warning/80">Cancel</a>
     </div>
   </form>
 </section>

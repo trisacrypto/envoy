@@ -28,16 +28,25 @@ type Prepared struct {
 }
 
 type Person struct {
-	FirstName     string `json:"first_name"`
-	LastName      string `json:"last_name"`
-	CustomerID    string `json:"customer_id"`
-	AddrLine1     string `json:"addr_line_1"`
-	AddrLine2     string `json:"addr_line_2"`
-	City          string `json:"city"`
-	State         string `json:"state"`
-	PostalCode    string `json:"post_code"`
-	Country       string `json:"country"`
-	CryptoAddress string `json:"crypto_address"`
+	FirstName      string          `json:"first_name"`
+	LastName       string          `json:"last_name"`
+	CustomerID     string          `json:"customer_id"`
+	Identification *Identification `json:"identification"`
+	AddrLine1      string          `json:"addr_line_1"`
+	AddrLine2      string          `json:"addr_line_2"`
+	City           string          `json:"city"`
+	State          string          `json:"state"`
+	PostalCode     string          `json:"post_code"`
+	Country        string          `json:"country"`
+	CryptoAddress  string          `json:"crypto_address"`
+}
+
+type Identification struct {
+	TypeCode    string `json:"type_code"`
+	Number      string `json:"number"`
+	Country     string `json:"country"`
+	DateOfBirth string `json:"dob"`
+	BirthPlace  string `json:"birth_place"`
 }
 
 type Transfer struct {
@@ -117,10 +126,17 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 						Country:     p.Country,
 					},
 				},
-				NationalIdentification: nil,
+				NationalIdentification: &ivms101.NationalIdentification{
+					NationalIdentifierType: p.Identification.ParseNationalIdentifierType(),
+					NationalIdentifier:     p.Identification.Number,
+					CountryOfIssue:         p.Identification.Country,
+				},
 				CustomerIdentification: p.CustomerID,
-				DateAndPlaceOfBirth:    nil,
-				CountryOfResidence:     p.Country,
+				DateAndPlaceOfBirth: &ivms101.DateAndPlaceOfBirth{
+					DateOfBirth:  p.Identification.DateOfBirth,
+					PlaceOfBirth: p.Identification.BirthPlace,
+				},
+				CountryOfResidence: p.Country,
 			},
 		},
 	}
@@ -139,4 +155,16 @@ func (p *Prepared) Payload() (payload *trisa.Payload, err error) {
 
 	payload.SentAt = time.Now().UTC().Format(time.RFC3339)
 	return payload, nil
+}
+
+func (i *Identification) ParseNationalIdentifierType() ivms101.NationalIdentifierTypeCode {
+	tc := strings.ToUpper(strings.TrimSpace(i.TypeCode))
+	if !strings.HasPrefix(tc, "NATIONAL_IDENTIFIER_TYPE_CODE") {
+		tc = "NATIONAL_IDENTIFIER_TYPE_CODE_" + tc
+	}
+
+	if val, ok := ivms101.NationalIdentifierTypeCode_value[tc]; ok {
+		return ivms101.NationalIdentifierTypeCode(val)
+	}
+	return ivms101.NationalIdentifierMISC
 }
