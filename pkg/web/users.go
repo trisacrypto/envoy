@@ -95,7 +95,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Convert the API serializer into a dtabase model
+	// Convert the API serializer into a database model
 	if user, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
