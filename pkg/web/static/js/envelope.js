@@ -2,30 +2,30 @@ import { IDENTIFIER_TYPE, countriesArray, nationalIdentifierTypeArray } from './
 
 const birthplace = 'birthplace';
 const country = 'country';
-const idType = 'idType';
+const nationalIdType = 'idType';
 
 const envelopeDropdowns = [
-  { sel: '#orig_birth_place', type: birthplace },
-  { sel: '#benf_birth_place', type: birthplace },
-  { sel: '#orig_identification_country', type: country },
-  { sel: '#benf_identification_country', type: country },
-  { sel: '#orig_type_code', type: idType },
-  { sel: '#benf_type_code', type: idType },
+  { sel: '#og_id_birth_place', options: birthplace },
+  { sel: '#bf_id_birth_place', options: birthplace },
+  { sel: '#og_id_country', options: country },
+  { sel: '#bf_id_country', options: country },
+  { sel: '#og_id_type_code', options: nationalIdType },
+  { sel: '#bf_id_type_code', options: nationalIdType },
 ];
 
-envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.type));
+envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.options));
 
-function setSlimSelect(sel, type) {
+function setSlimSelect(sel, options) {
   const newDropdown = new SlimSelect({
     select: sel
   });
 
-  if (type === 'birthplace' || type === 'country') {
+  if (options === birthplace || options === country) {
     countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
     newDropdown.setData(countriesArray);
   };
 
-  if (type === 'idType') {
+  if (options === nationalIdType) {
     nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
     newDropdown.setData(nationalIdentifierTypeArray);
   };
@@ -38,28 +38,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     let data = {
       travel_address: params.travel_address,
       originator:{
-        first_name: params.orig_first_name,
-        last_name: params.orig_last_name,
-        customer_id: params.orig_customer_id,
-        addr_line_1: params.orig_addr_line_1,
-        addr_line_2: params.orig_addr_line_2,
-        city: params.orig_city,
-        post_code: params.orig_post_code,
-        state: params.orig_state,
-        country: params.orig_country,
-        crypto_address: params.orig_crypto_address
+        identification: {},
       },
       beneficiary:{
-        first_name: params.benf_first_name,
-        last_name: params.benf_last_name,
-        customer_id: params.benf_customer_id,
-        addr_line_1: params.benf_addr_line_1,
-        addr_line_2: params.benf_addr_line_2,
-        city: params.benf_city,
-        state: params.benf_state,
-        post_code: params.benf_post_code,
-        country: params.benf_country,
-        crypto_address: params.benf_crypto_address
+        identification: {},
       },
       // TODO: Add notes to data
       transfer:{
@@ -71,7 +53,26 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       },
     }
 
+    for (const key in params) {
+      if (key.startsWith('orig_')) {
+        data.originator[key.replace('orig_', '')] = params[key];
+      };
+
+      if (key.startsWith('og_id_')) {
+        data.originator.identification[key.replace('og_id_', '')] = params[key];
+      }
+
+      if (key.startsWith('benf_')) {
+        data.beneficiary[key.replace('benf_', '')] = params[key];
+      };
+
+      if (key.startsWith('bf_id_')) {
+        data.beneficiary.identification[key.replace('bf_id_', '')] = params[key];
+      };
+    };
+
     // Modify outgoing request data.
+    console.log(data);
     e.detail.parameters = data;
   }
 

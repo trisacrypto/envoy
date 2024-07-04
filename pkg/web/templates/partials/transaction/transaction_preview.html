@@ -77,7 +77,9 @@
             <h2 class="pb-2 text-lg font-bold">ORIGINATOR:</h2>
             {{ $originator := (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson }}
             {{ $originatorName := $originator.Name.NameIdentifiers }}
+            {{ $originatorBirth := $originator.DateAndPlaceOfBirth }}
             {{ $originatorAddress := $originator.GeographicAddresses }}
+            {{ $originatorNationalIdentification := $originator.NationalIdentification }}
 
             <dl>
               <div class="transaction-preview-container">
@@ -95,6 +97,15 @@
               </div>
               {{ end }}
               {{ end }}
+
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Date of Birth</dt>
+                <dd>{{ if $originatorBirth.DateOfBirth }} {{ $originatorBirth.DateOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Place of Birth</dt>
+                <dd>{{ if $originatorBirth.PlaceOfBirth }} {{ $originatorBirth.PlaceOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
 
               {{ range $originatorAddress }}
               <div class="transaction-preview-container">
@@ -124,7 +135,20 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Customer Identification</dt>
-                <div>{{ if $originator.CustomerIdentification }} {{ $originator.CustomerIdentification }} {{ else }} N/A {{ end }}</div>
+                <dd>{{ if $originator.CustomerIdentification }} {{ $originator.CustomerIdentification }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Number</dt>
+                <dd>{{ if $originatorNationalIdentification.NationalIdentifier }} {{ $originatorNationalIdentification.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $originatorNationalIdentification.NationalIdentifierType }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Country of Issue</dt>
+                <dd>{{ if $originatorNationalIdentification.CountryOfIssue }} {{ $originatorNationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
               </div>
 
               <div class="transaction-preview-container">
@@ -162,6 +186,16 @@
               {{ end }}
               {{ end }}
 
+              {{ $beneficiaryBirth := $beneficiary.DateAndPlaceOfBirth }}
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Date of Birth</dt>
+                <dd>{{ if $beneficiaryBirth.DateOfBirth }} {{ $beneficiaryBirth.DateOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Place of Birth</dt>
+                <dd>{{ if $beneficiaryBirth.PlaceOfBirth }} {{ $beneficiaryBirth.PlaceOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
               {{ $beneficiaryAddress := $beneficiary.GeographicAddresses }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address</dt>
@@ -189,6 +223,25 @@
                 <dt class="font-semibold">Country of Residence</dt>
                 <dd>{{ if $beneficiary.CountryOfResidence }} {{ $beneficiary.CountryOfResidence }} {{ else }} N/A {{ end }} </dd>
               </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Customer Identification</dt>
+                <div>{{ if $beneficiary.CustomerIdentification }} {{ $beneficiary.CustomerIdentification }} {{ else }} N/A {{ end }}</div>
+              </div>
+
+              {{ $beneficiaryNationalIdentification := $beneficiary.NationalIdentification }}
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Number</dt>
+                <dd>{{ if $beneficiaryNationalIdentification.NationalIdentifier }} {{ $beneficiaryNationalIdentification.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $beneficiaryNationalIdentification.NationalIdentifierType }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Country of Issue</dt>
+                <dd>{{ if $beneficiaryNationalIdentification.CountryOfIssue }} {{ $beneficiaryNationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
               <div class="transaction-preview-container">
                 {{ if gt (len .Identity.Beneficiary.AccountNumbers) 1 }}
                 <dt class="font-semibold">Account Numbers</dt>
