@@ -469,6 +469,47 @@ func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error
 }
 
 //===========================================================================
+// Users Resource
+//===========================================================================
+
+const usersEP = "/v1/users"
+
+func (s *APIv1) ListUsers(ctx context.Context, in *PageQuery) (out *UserList, err error) {
+	if err = s.List(ctx, usersEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CreateUser(ctx context.Context, in *User) (out *User, err error) {
+	if err = s.Create(ctx, usersEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) UserDetail(ctx context.Context, id ulid.ULID) (out *User, err error) {
+	endpoint, _ := url.JoinPath(usersEP, id.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) UpdateUser(ctx context.Context, in *User) (out *User, err error) {
+	endpoint, _ := url.JoinPath(usersEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DeleteUser(ctx context.Context, id ulid.ULID) error {
+	endpoint, _ := url.JoinPath(usersEP, id.String())
+	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
 // Utilities Resource
 //===========================================================================
 

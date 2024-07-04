@@ -2,7 +2,7 @@
   <!-- Modal content -->
   <div class="max-h-[450px] overflow-y-auto">
     <!-- Modal header -->
-    <div class="md:flex items-center justify-between p-4 border border-black bg-[#D9D9D9]">
+    <div class="md:flex items-center justify-between p-4 border border-black bg-neutral">
       <div class="mb-4 md:mb-0">
         <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
           Secure Envelope Details: Preview
@@ -22,7 +22,7 @@
         <input type="hidden" id="prepared_payload" name="prepared_payload" value="{{ .Dump }}" />
         <div class="flex flex-row gap-x-2 md:gap-4">
           <button type="submit"
-            class="p-1 w-32 rounded bg-green-700 font-semibold text-white md:p-2 hover:bg-green-700/80">
+            class="p-1 w-32 rounded bg-success font-semibold text-white md:p-2 hover:bg-success/80">
               <div class="flex justify-center items-center">
                 <svg aria-hidden="true" role="status" class="htmx-indicator inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
@@ -32,15 +32,15 @@
               </div>
           </button>
           <button type="button" onclick="preview_envelope.close()"
-            class="p-1 w-32 rounded bg-[#55ACD8] font-semibold text-white md:p-2 hover:bg-[#55ACD8]/80">Edit</button>
+            class="p-1 w-32 rounded bg-primary font-semibold text-white md:p-2 hover:bg-primary/90">Edit</button>
           <button type="button" onclick="preview_envelope.close()"
-            class="p-1 w-32 rounded bg-red-700 font-semibold text-white md:p-2 hover:bg-red-700/80">Cancel</button>
+            class="p-1 w-32 rounded bg-warning font-semibold text-white md:p-2 hover:bg-warning/80">Cancel</button>
         </div>
       </form>
     </div>
     <!-- Modal content -->
     <div class="py-4">
-      <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-[#D9D9D9]">
+      <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-neutral">
         <div class="mb-4">
           <h2 class="pb-2 text-lg font-bold">TRANSACTION DETAILS:</h2>
           <dl>
@@ -77,7 +77,9 @@
             <h2 class="pb-2 text-lg font-bold">ORIGINATOR:</h2>
             {{ $originator := (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson }}
             {{ $originatorName := $originator.Name.NameIdentifiers }}
+            {{ $originatorBirth := $originator.DateAndPlaceOfBirth }}
             {{ $originatorAddress := $originator.GeographicAddresses }}
+            {{ $originatorNationalIdentification := $originator.NationalIdentification }}
 
             <dl>
               <div class="transaction-preview-container">
@@ -95,6 +97,15 @@
               </div>
               {{ end }}
               {{ end }}
+
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Date of Birth</dt>
+                <dd>{{ if $originatorBirth.DateOfBirth }} {{ $originatorBirth.DateOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Place of Birth</dt>
+                <dd>{{ if $originatorBirth.PlaceOfBirth }} {{ $originatorBirth.PlaceOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
 
               {{ range $originatorAddress }}
               <div class="transaction-preview-container">
@@ -124,7 +135,20 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Customer Identification</dt>
-                <div>{{ if $originator.CustomerIdentification }} {{ $originator.CustomerIdentification }} {{ else }} N/A {{ end }}</div>
+                <dd>{{ if $originator.CustomerIdentification }} {{ $originator.CustomerIdentification }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Number</dt>
+                <dd>{{ if $originatorNationalIdentification.NationalIdentifier }} {{ $originatorNationalIdentification.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $originatorNationalIdentification.NationalIdentifierType }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Country of Issue</dt>
+                <dd>{{ if $originatorNationalIdentification.CountryOfIssue }} {{ $originatorNationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
               </div>
 
               <div class="transaction-preview-container">
@@ -162,6 +186,16 @@
               {{ end }}
               {{ end }}
 
+              {{ $beneficiaryBirth := $beneficiary.DateAndPlaceOfBirth }}
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Date of Birth</dt>
+                <dd>{{ if $beneficiaryBirth.DateOfBirth }} {{ $beneficiaryBirth.DateOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Place of Birth</dt>
+                <dd>{{ if $beneficiaryBirth.PlaceOfBirth }} {{ $beneficiaryBirth.PlaceOfBirth }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
               {{ $beneficiaryAddress := $beneficiary.GeographicAddresses }}
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Address</dt>
@@ -189,6 +223,25 @@
                 <dt class="font-semibold">Country of Residence</dt>
                 <dd>{{ if $beneficiary.CountryOfResidence }} {{ $beneficiary.CountryOfResidence }} {{ else }} N/A {{ end }} </dd>
               </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Customer Identification</dt>
+                <div>{{ if $beneficiary.CustomerIdentification }} {{ $beneficiary.CustomerIdentification }} {{ else }} N/A {{ end }}</div>
+              </div>
+
+              {{ $beneficiaryNationalIdentification := $beneficiary.NationalIdentification }}
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Number</dt>
+                <dd>{{ if $beneficiaryNationalIdentification.NationalIdentifier }} {{ $beneficiaryNationalIdentification.NationalIdentifier }} {{ else }} N/A {{ end }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">National Identification Type</dt>
+                <dd class="identifier-type badge-style">{{ $beneficiaryNationalIdentification.NationalIdentifierType }}</dd>
+              </div>
+              <div class="transaction-preview-container">
+                <dt class="font-semibold">Country of Issue</dt>
+                <dd>{{ if $beneficiaryNationalIdentification.CountryOfIssue }} {{ $beneficiaryNationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</dd>
+              </div>
+
               <div class="transaction-preview-container">
                 {{ if gt (len .Identity.Beneficiary.AccountNumbers) 1 }}
                 <dt class="font-semibold">Account Numbers</dt>

@@ -65,6 +65,13 @@ type Client interface {
 	UpdateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	DeleteCounterparty(context.Context, ulid.ULID) error
 
+	// Users Resource
+	ListUsers(context.Context, *PageQuery) (*UserList, error)
+	CreateUser(context.Context, *User) (*User, error)
+	UserDetail(context.Context, ulid.ULID) (*User, error)
+	UpdateUser(context.Context, *User) (*User, error)
+	DeleteUser(context.Context, ulid.ULID) error
+
 	// Utilities
 	EncodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
 	DecodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)

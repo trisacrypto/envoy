@@ -509,14 +509,12 @@ html {
 :root {
   color-scheme: light;
   --in: 0.7206 0.191 231.6;
-  --su: 64.8% 0.150 160;
-  --wa: 0.8471 0.199 83.87;
   --er: 0.7176 0.221 22.18;
   --pc: 0.141658 0.021087 232.991098;
   --ac: 0.15352 0.0368 183.61;
   --inc: 0 0 0;
-  --suc: 0 0 0;
-  --wac: 0 0 0;
+  --suc: 0.90546 0.027421 150.069279;
+  --wac: 0.901084 0.038099 27.518103;
   --erc: 0 0 0;
   --rounded-box: 1rem;
   --rounded-btn: 0.5rem;
@@ -528,15 +526,17 @@ html {
   --tab-border: 1px;
   --tab-radius: 0.5rem;
   --p: 0.708289 0.105435 232.991098;
-  --s: 0.6971 0.329 342.55;
+  --s: 0.557272 0.061434 238.847523;
   --sc: 0.9871 0.0106 342.55;
   --a: 0.7676 0.184 183.61;
-  --n: 0.321785 0.02476 255.701624;
+  --n: 0.885305 0 0;
   --nc: 0.894994 0.011585 252.096176;
   --b1: 1 0 0;
   --b2: 0.961151 0 0;
   --b3: 0.924169 0.00108 197.137559;
   --bc: 0.278078 0.029596 256.847952;
+  --su: 0.527299 0.137103 150.069279;
+  --wa: 0.50542 0.190493 27.518103;
 }
 
 *, ::before, ::after {
@@ -2705,6 +2705,11 @@ details.collapse summary::-webkit-details-marker {
   margin-bottom: 1.25rem;
 }
 
+.my-6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -2803,6 +2808,10 @@ details.collapse summary::-webkit-details-marker {
 
 .max-h-full {
   max-height: 100%;
+}
+
+.max-h-screen {
+  max-height: 100vh;
 }
 
 .w-1\/2 {
@@ -3022,21 +3031,6 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity)) !important;
 }
 
-.bg-\[\#517994\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(81 121 148 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#55ACD8\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(85 172 216 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#D9D9D9\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(217 217 217 / var(--tw-bg-opacity));
-}
-
 .bg-base-200 {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
@@ -3067,9 +3061,9 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
 }
 
-.bg-green-700 {
+.bg-neutral {
   --tw-bg-opacity: 1;
-  background-color: rgb(21 128 61 / var(--tw-bg-opacity));
+  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
 }
 
 .bg-primary {
@@ -3082,9 +3076,19 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(254 202 202 / var(--tw-bg-opacity));
 }
 
-.bg-red-700 {
+.bg-secondary {
   --tw-bg-opacity: 1;
-  background-color: rgb(185 28 28 / var(--tw-bg-opacity));
+  background-color: var(--fallback-s,oklch(var(--s)/var(--tw-bg-opacity)));
+}
+
+.bg-success {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-su,oklch(var(--su)/var(--tw-bg-opacity)));
+}
+
+.bg-warning {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-wa,oklch(var(--wa)/var(--tw-bg-opacity)));
 }
 
 .p-1 {
@@ -3272,11 +3276,6 @@ details.collapse summary::-webkit-details-marker {
   color: rgb(0 0 238 / var(--tw-text-opacity));
 }
 
-.text-\[\#b91c1c\] {
-  --tw-text-opacity: 1;
-  color: rgb(185 28 28 / var(--tw-text-opacity));
-}
-
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
@@ -3320,6 +3319,11 @@ details.collapse summary::-webkit-details-marker {
 .text-red-700 {
   --tw-text-opacity: 1;
   color: rgb(185 28 28 / var(--tw-text-opacity));
+}
+
+.text-warning {
+  --tw-text-opacity: 1;
+  color: var(--fallback-wa,oklch(var(--wa)/var(--tw-text-opacity)));
 }
 
 .text-white {
@@ -3569,18 +3573,6 @@ body main {
   }
 }
 
-.hover\:bg-\[\#517994\]\/80:hover {
-  background-color: rgb(81 121 148 / 0.8);
-}
-
-.hover\:bg-\[\#55ACD8\]\/80:hover {
-  background-color: rgb(85 172 216 / 0.8);
-}
-
-.hover\:bg-\[\#55ACD8\]\/90:hover {
-  background-color: rgb(85 172 216 / 0.9);
-}
-
 .hover\:bg-black\/80:hover {
   background-color: rgb(0 0 0 / 0.8);
 }
@@ -3589,21 +3581,25 @@ body main {
   background-color: rgb(55 65 81 / 0.8);
 }
 
-.hover\:bg-green-700\/80:hover {
-  background-color: rgb(21 128 61 / 0.8);
-}
-
 .hover\:bg-primary\/90:hover {
   background-color: var(--fallback-p,oklch(var(--p)/0.9));
 }
 
-.hover\:bg-red-700\/80:hover {
-  background-color: rgb(185 28 28 / 0.8);
+.hover\:bg-secondary\/80:hover {
+  background-color: var(--fallback-s,oklch(var(--s)/0.8));
 }
 
-.hover\:text-\[\#55ACD8\]:hover {
+.hover\:bg-success\/80:hover {
+  background-color: var(--fallback-su,oklch(var(--su)/0.8));
+}
+
+.hover\:bg-warning\/80:hover {
+  background-color: var(--fallback-wa,oklch(var(--wa)/0.8));
+}
+
+.hover\:text-primary:hover {
   --tw-text-opacity: 1;
-  color: rgb(85 172 216 / var(--tw-text-opacity));
+  color: var(--fallback-p,oklch(var(--p)/var(--tw-text-opacity)));
 }
 
 .hover\:underline:hover {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,10 +18,10 @@ var (
 
 // Renders the "not found page"
 func (s *Server) NotFound(c *gin.Context) {
-	c.HTML(http.StatusNotFound, "404.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusNotFound, "404.html", scene.New(c))
 }
 
 // Renders the "invalid action page"
 func (s *Server) NotAllowed(c *gin.Context) {
-	c.HTML(http.StatusMethodNotAllowed, "405.html", gin.H{"Version": pkg.Version()})
+	c.HTML(http.StatusMethodNotAllowed, "405.html", scene.New(c))
 }
