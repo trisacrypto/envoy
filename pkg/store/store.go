@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
@@ -131,6 +132,7 @@ type UserStore interface {
 	RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error)
 	UpdateUser(context.Context, *models.User) error
 	SetUserPassword(ctx context.Context, userID ulid.ULID, password string) error
+	SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) error
 	DeleteUser(ctx context.Context, userID ulid.ULID) error
 	LookupRole(ctx context.Context, role string) (*models.Role, error)
 }

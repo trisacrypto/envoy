@@ -157,7 +157,9 @@ func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (user *mode
 	return user, nil
 }
 
-const updateUserSQL = "UPDATE users SET name=:name, email=:email, role_id=:roleID, last_login=:lastLogin WHERE id=:id"
+const (
+	updateUserSQL = "UPDATE users SET name=:name, email=:email, role_id=:roleID, modified=:modified WHERE id=:id"
+)
 
 func (s *Store) UpdateUser(ctx context.Context, user *models.User) (err error) {
 	var tx *sql.Tx
@@ -196,6 +198,32 @@ func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password 
 
 	var result sql.Result
 	if result, err = tx.Exec(setUserPasswordSQL, params...); err != nil {
+		// TODO: handle constraint violations
+		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return tx.Commit()
+}
+
+const setUserLastLoginSQL = "UPDATE users SET last_login=:lastLogin, modified=:modified WHERE id=:id"
+
+func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	params := []any{
+		sql.Named("id", userID),
+		sql.Named("lastLogin", sql.NullTime{Time: lastLogin, Valid: !lastLogin.IsZero()}),
+		sql.Named("modified", time.Now()),
+	}
+
+	var result sql.Result
+	if result, err = tx.Exec(setUserLastLoginSQL, params...); err != nil {
 		// TODO: handle constraint violations
 		return err
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {

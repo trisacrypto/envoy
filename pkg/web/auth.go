@@ -67,7 +67,7 @@ func (s *Server) Login(c *gin.Context) {
 
 	// Update user last login timestamp
 	user.LastLogin = sql.NullTime{Valid: true, Time: time.Now()}
-	if err = s.store.UpdateUser(ctx, user); err != nil {
+	if err = s.store.SetUserLastLogin(ctx, user.ID, user.LastLogin.Time); err != nil {
 		log := logger.Tracing(ctx)
 		log.Warn().Err(err).Msg("unable to update user last login timestamp")
 
@@ -302,7 +302,7 @@ func (s *Server) reauthenticateUser(c *gin.Context, userID ulid.ULID) (_ *auth.C
 	}
 
 	user.LastLogin = sql.NullTime{Valid: true, Time: time.Now()}
-	if err = s.store.UpdateUser(ctx, user); err != nil {
+	if err = s.store.SetUserLastLogin(ctx, user.ID, user.LastLogin.Time); err != nil {
 		log := logger.Tracing(ctx)
 		log.Warn().Err(err).Msg("unable to update user last login timestamp")
 

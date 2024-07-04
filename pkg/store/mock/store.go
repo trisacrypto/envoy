@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -158,6 +159,10 @@ func (s *Store) UpdateUser(context.Context, *models.User) error {
 }
 
 func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password string) (err error) {
+	return nil
+}
+
+func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
 	return nil
 }
 
