@@ -187,6 +187,16 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
 		}
 
+		// Users Resource
+		users := v1.Group("/users", authenticate)
+		{
+			users.GET("", authorize(permiss.UsersView), s.ListUsers)
+			users.POST("", authorize(permiss.UsersManage), s.CreateUser)
+			users.GET("/:id", authorize(permiss.UsersView), s.UserDetail)
+			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
+			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
+		}
+
 		// Utilities
 		utils := v1.Group("/utilities", authenticate)
 		{
