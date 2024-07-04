@@ -125,6 +125,9 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
 
+		// User Profile Management
+		v1.POST("/change-password", authenticate, s.ChangePassword)
+
 		// Accounts Resource
 		accounts := v1.Group("/accounts", authenticate)
 		{

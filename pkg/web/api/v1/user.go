@@ -26,7 +26,8 @@ type UserList struct {
 }
 
 type UserPassword struct {
-	Password string `json:"password"`
+	Password  string `json:"password"`
+	SendEmail bool   `json:"send_email"`
 }
 
 func NewUser(model *models.User) (out *User, err error) {
@@ -88,6 +89,7 @@ func (u *User) Validate() (err error) {
 }
 
 func (u *User) Model() (model *models.User, err error) {
+	// NOTE: the role must be set by the external caller who has database access.
 	model = &models.User{
 		Model: models.Model{
 			ID:       u.ID,
@@ -97,8 +99,6 @@ func (u *User) Model() (model *models.User, err error) {
 		Name:  sql.NullString{String: u.Name, Valid: u.Name != ""},
 		Email: u.Email,
 	}
-
-	// TODO: manage the role to associate it with the user.
 
 	if u.LastLogin != nil {
 		model.LastLogin = sql.NullTime{

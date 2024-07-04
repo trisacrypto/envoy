@@ -14,6 +14,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -340,4 +341,77 @@ func (s *Server) reauthenticateAPIKey(c *gin.Context, keyID ulid.ULID) (_ *auth.
 	}
 
 	return auth.NewClaims(ctx, apikey)
+}
+
+func (s *Server) ChangePassword(c *gin.Context) {
+	var (
+		err         error
+		claims      *auth.Claims
+		in          *api.UserPassword
+		userID      ulid.ULID
+		subjectType auth.SubjectType
+		derivedKey  string
+	)
+
+	// Get the claims of the currently authenticated user to change the password for.
+	if claims, err = auth.GetClaims(c); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not initiate change user password request"))
+		return
+	}
+
+	// Get the user ID from the subject of the claims
+	if subjectType, userID, err = claims.SubjectID(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not initiate change user password request"))
+		return
+	}
+
+	// Validate the subject type
+	if subjectType != auth.SubjectUser {
+		c.Error(fmt.Errorf("cannot change password for subject type %d", subjectType))
+		c.JSON(http.StatusBadRequest, api.Error("could not initiate change user password request"))
+		return
+	}
+
+	// Parse the user data for the update request
+	in = &api.UserPassword{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse password change request"))
+		return
+	}
+
+	// Validation
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Create derived key from requested password reset
+	if derivedKey, err = auth.CreateDerivedKey(in.Password); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	// Set the password for the specified user
+	if err = s.store.SetUserPassword(c.Request.Context(), userID, derivedKey); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	// Create template scene for rendering information about the user
+	data := scene.New(c)
+	data["Success"] = true
+	data["UserID"] = userID
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: data,
+		JSONData: api.Reply{Success: true},
+		HTMLName: "password_changed.html",
+	})
 }

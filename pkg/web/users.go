@@ -12,6 +12,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 )
 
 func (s *Server) ListUsers(c *gin.Context) {
@@ -290,7 +291,7 @@ func (s *Server) DeleteUser(c *gin.Context) {
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"UserID": userID},
+		HTMLData: scene.Scene{"UserID": userID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "user_delete.html",
 	})
@@ -344,9 +345,11 @@ func (s *Server) ChangeUserPassword(c *gin.Context) {
 		return
 	}
 
+	// TODO: email the user the password if requested
+
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"UserID": userID},
+		HTMLData: scene.Scene{"UserID": userID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "user_password_changed.html",
 	})
