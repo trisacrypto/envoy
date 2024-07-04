@@ -195,6 +195,7 @@ func (s *Server) setupRoutes() (err error) {
 			users.GET("/:id", authorize(permiss.UsersView), s.UserDetail)
 			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
 			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
+			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
 		}
 
 		// Utilities

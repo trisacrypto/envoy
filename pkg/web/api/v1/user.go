@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"time"
+	"unicode"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -22,6 +23,10 @@ type User struct {
 type UserList struct {
 	Page  *PageQuery `json:"page"`
 	Users []*User    `json:"users"`
+}
+
+type UserPassword struct {
+	Password string `json:"password"`
 }
 
 func NewUser(model *models.User) (out *User, err error) {
@@ -103,4 +108,47 @@ func (u *User) Model() (model *models.User, err error) {
 	}
 
 	return model, nil
+}
+
+func (u UserPassword) Validate() (err error) {
+	// Password cannot be empty
+	if u.Password == "" {
+		return ValidationError(err, MissingField("password"))
+	}
+
+	// Password must be at least 8 characters
+	if len(u.Password) < 8 {
+		return ValidationError(err, IncorrectField("password", "too short: must be at least 8 characters"))
+	}
+
+	// Password must not start or end with whitespace
+	if unicode.IsSpace(rune(u.Password[0])) || unicode.IsSpace(rune(u.Password[len(u.Password)-1])) {
+		return ValidationError(err, IncorrectField("password", "password must not start or end with whitespace"))
+	}
+
+	// Check password strength
+	var strength = []uint8{0, 0, 0, 0}
+	for _, c := range u.Password {
+		switch {
+		case unicode.IsNumber(c):
+			strength[0] = 1
+		case unicode.IsUpper(c):
+			strength[1] = 1
+		case unicode.IsLower(c):
+			strength[2] = 1
+		case unicode.IsPunct(c) || unicode.IsSymbol(c):
+			strength[3] = 1
+		}
+	}
+
+	var strengthScore uint8
+	for _, component := range strength {
+		strengthScore = strengthScore + component
+	}
+
+	if strengthScore < 3 {
+		err = ValidationError(err, IncorrectField("password", "password must contain uppercase letters, lowercase letters, numbers, and special characters"))
+	}
+
+	return err
 }

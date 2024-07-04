@@ -295,3 +295,59 @@ func (s *Server) DeleteUser(c *gin.Context) {
 		HTMLName: "user_delete.html",
 	})
 }
+
+func (s *Server) ChangeUserPassword(c *gin.Context) {
+	var (
+		err        error
+		userID     ulid.ULID
+		in         *api.UserPassword
+		derivedKey string
+	)
+
+	// Parse the userID from the URL
+	if userID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("user not found"))
+		return
+	}
+
+	// Parse the user data for the update request
+	in = &api.UserPassword{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse password change request"))
+		return
+	}
+
+	// Validation
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Create derived key from requested password reset
+	if derivedKey, err = auth.CreateDerivedKey(in.Password); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	// Set the password for the specified user
+	if err = s.store.SetUserPassword(c.Request.Context(), userID, derivedKey); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("user not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: gin.H{"UserID": userID},
+		JSONData: api.Reply{Success: true},
+		HTMLName: "user_password_changed.html",
+	})
+}

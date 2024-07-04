@@ -452,8 +452,8 @@ func resetPassword(c *cli.Context) (err error) {
 		return cli.Exit(fmt.Errorf("could not create derived key for user password: %w", err), 1)
 	}
 
-	if err = db.UpdateUser(ctx, user); err != nil {
-		return cli.Exit(fmt.Errorf("could not update user %s: %w", user.Email, err), 1)
+	if err = db.SetUserPassword(ctx, user.ID, user.Password); err != nil {
+		return cli.Exit(fmt.Errorf("could not store password: %w", err), 1)
 	}
 
 	fmt.Printf("updated user %s with password: %s\n", user.Email, password)
