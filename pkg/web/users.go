@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
 
 func (s *Server) ListUsers(c *gin.Context) {
@@ -39,7 +40,7 @@ func (s *Server) ListUsers(c *gin.Context) {
 		return
 	}
 
-	// convert the users page into a users list object
+	// Convert the users page into a users list object
 	if out, err = api.NewUserList(page); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process user list request"))
@@ -56,10 +57,12 @@ func (s *Server) ListUsers(c *gin.Context) {
 
 func (s *Server) CreateUser(c *gin.Context) {
 	var (
-		err  error
-		in   *api.User
-		user *models.User
-		out  *api.User
+		err      error
+		in       *api.User
+		user     *models.User
+		role     *models.Role
+		password string
+		out      *api.User
 	)
 
 	// Parse the model from the POST request
@@ -80,12 +83,34 @@ func (s *Server) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// TODO: deal with role and password for the new user
+	// Validate the role in the database
+	if role, err = s.store.LookupRole(c.Request.Context(), in.Role); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusBadRequest, api.Error(api.ValidationError(nil, api.IncorrectField("role", "unknown role - specify one of admin, compliance, or observer"))))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process create user request"))
+		return
+	}
 
 	// Convert the API serializer into a dtabase model
 	if user, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Set the role on the user
+	user.SetRole(role)
+
+	// Create a password for the user -- the user cannot specify one themselves, but
+	// the password will be returned to the user after the API call.
+	password = auth.AlphaNumeric(12)
+	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete create user request"))
 		return
 	}
 
@@ -103,6 +128,9 @@ func (s *Server) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, api.Error("could not process create user request"))
 		return
 	}
+
+	// Ensure the created password is returned back to the user
+	out.Passsword = password
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
@@ -155,6 +183,7 @@ func (s *Server) UpdateUser(c *gin.Context) {
 		err    error
 		userID ulid.ULID
 		user   *models.User
+		role   *models.Role
 		in     *api.User
 		out    *api.User
 	)
@@ -193,6 +222,21 @@ func (s *Server) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
+
+	// Validate the role in the database
+	if role, err = s.store.LookupRole(c.Request.Context(), in.Role); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusBadRequest, api.Error(api.ValidationError(nil, api.IncorrectField("role", "unknown role - specify one of admin, compliance, or observer"))))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process create user request"))
+		return
+	}
+
+	// Set the role on the user for update
+	user.SetRole(role)
 
 	if err = s.store.UpdateUser(c.Request.Context(), user); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {

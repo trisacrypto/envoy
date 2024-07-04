@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -221,6 +222,31 @@ func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) (err error) {
 	}
 
 	return tx.Commit()
+}
+
+const lookupRoleSQL = "SELECT * FROM roles WHERE title like :role LIMIT 1"
+
+func (s *Store) LookupRole(ctx context.Context, role string) (model *models.Role, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// Normalize the role
+	role = strings.TrimSpace(role)
+
+	// Fetch role details
+	model = &models.Role{}
+	if err = model.Scan(tx.QueryRow(lookupRoleSQL, sql.Named("role", role))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	tx.Commit()
+	return model, nil
 }
 
 const fetchRolesQL = "SELECT * FROM roles"

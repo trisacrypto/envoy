@@ -165,6 +165,10 @@ func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) error {
 	return nil
 }
 
+func (s *Store) LookupRole(ctx context.Context, role string) (*models.Role, error) {
+	return nil, nil
+}
+
 func (s *Store) ListAPIKeys(context.Context, *models.PageInfo) (*models.APIKeyPage, error) {
 	return nil, nil
 }

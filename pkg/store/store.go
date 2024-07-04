@@ -132,6 +132,7 @@ type UserStore interface {
 	UpdateUser(context.Context, *models.User) error
 	SetUserPassword(ctx context.Context, userID ulid.ULID, password string) error
 	DeleteUser(ctx context.Context, userID ulid.ULID) error
+	LookupRole(ctx context.Context, role string) (*models.Role, error)
 }
 
 type APIKeyStore interface {

@@ -12,6 +12,7 @@ type User struct {
 	ID        ulid.ULID  `json:"id,omitempty"`
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
+	Passsword string     `json:"password,omitempty"`
 	Role      string     `json:"role"`
 	LastLogin *time.Time `json:"last_login"`
 	Created   time.Time  `json:"created,omitempty"`
@@ -61,18 +62,23 @@ func NewUserList(page *models.UserPage) (out *UserList, err error) {
 }
 
 func (u *User) Validate() (err error) {
-	if u.LastLogin != nil {
-		err = ValidationError(err, ReadOnlyField("last_login"))
-	}
-
 	if u.Email == "" {
 		err = ValidationError(err, MissingField("email"))
+	}
+
+	if u.Passsword != "" {
+		err = ValidationError(err, ReadOnlyField("password"))
 	}
 
 	if u.Role == "" {
 		err = ValidationError(err, MissingField("role"))
 	}
 
+	if u.LastLogin != nil {
+		err = ValidationError(err, ReadOnlyField("last_login"))
+	}
+
+	// NOTE: role cannot be verified without a database query
 	return err
 }
 
