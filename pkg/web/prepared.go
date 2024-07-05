@@ -14,6 +14,20 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 )
 
+// PrepareTransaction - Prepare transaction data for sending to a counterparty
+//
+//	@Summary		Prepare transaction data for sending
+//	@Description	Prepare transaction data for sending to a counterparty
+//	@ID				prepareTransaction
+//	@Security		BearerAuth
+//	@Tags			Transaction
+//	@Accept			json
+//	@Produce		json
+//	@Param			prepare	body		api.Prepare		true	"Transaction data to prepare"
+//	@Success		200		{object}	api.Prepared	"Successful operation"
+//	@Failure		400		{object}	api.Reply		"Invalid input"
+//	@Failure		422		{object}	api.Reply		"Validation exception or missing field"
+//	@Router			/v1/transactions/prepare [post]
 func (s *Server) PrepareTransaction(c *gin.Context) {
 	var (
 		err             error
@@ -97,6 +111,20 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 	})
 }
 
+// SendPreparedTransaction - Send prepared transaction data to a counterparty
+//
+//	@Summary		Send prepared transaction data to counterparty
+//	@Description	Send prepared transaction data to a counterparty
+//	@Tags			Transaction
+//	@ID				sendPreparedTransaction
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			prepared	body		api.Prepared	true	"Prepared transaction data to send"
+//	@Success		200			{object}	api.Transaction	"Successful operation"
+//	@Failure		400			{object}	api.Reply		"Invalid input"
+//	@Failure		422			{object}	api.Reply		"Validation exception or missing field"
+//	@Router			/v1/transactions/send-prepared [post]
 func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	var (
 		err          error

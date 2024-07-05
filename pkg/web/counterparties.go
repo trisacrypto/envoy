@@ -14,6 +14,20 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+// ListCounterparties - Paginated list of all stored counterparties
+//
+//	@Summary		List counterparties
+//	@Description	Paginated list of all stored counterparties
+//	@ID				listCounterparties
+//	@Tags			Counterparty
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page	query		api.PageQuery			true	"Page query parameters"
+//	@Success		200		{object}	api.CounterpartyList	"Successful operation"
+//	@Failure		400		{object}	api.Reply				"Invalid input"
+//	@Failure		401		{object}	api.Reply				"Unauthorized"
+//	@Failure		500		{object}	api.Reply				"Internal server error"
+//	@Router			/v1/counterparties [get]
 func (s *Server) ListCounterparties(c *gin.Context) {
 	var (
 		err   error
@@ -53,6 +67,22 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 	})
 }
 
+// CreateCounterparty - Create a new counterparty
+//
+//	@Summary		Create counterparty
+//	@Description	Create a new counterparty
+//	@ID				createCounterparty
+//	@Tags			Counterparty
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			counterparty	body		api.Counterparty	true	"Create a new counterparty"
+//	@Success		201				{object}	api.Counterparty
+//	@Failure		400				{object}	api.Reply	"Invalid input"
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		422				{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/counterparties [post]
 func (s *Server) CreateCounterparty(c *gin.Context) {
 	var (
 		err          error
@@ -113,6 +143,20 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	})
 }
 
+// CounterpartyDetail - Returns a single counterparty if found
+//
+//	@Summary		Find counterparty by ID
+//	@Description	Returns a single counterparty if found
+//	@ID				counterpartyDetail
+//	@Tags			Counterparty
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"ID of counterparty to return"
+//	@Success		200	{object}	api.Counterparty
+//	@Failure		401	{object}	api.Reply	"Unauthorized"
+//	@Failure		404	{object}	api.Reply	"Counterparty not found"
+//	@Failure		500	{object}	api.Reply	"Internal server error"
+//	@Router			/v1/counterparties/{counterpartyID} [get]
 func (s *Server) CounterpartyDetail(c *gin.Context) {
 	var (
 		err            error
@@ -191,6 +235,25 @@ func (s *Server) UpdateCounterpartyPreview(c *gin.Context) {
 	})
 }
 
+// UpdateCounterparty - Update a counterparty record (does not patch, all fields are required)
+//
+//	@Summary		Updates a counterparty record
+//	@Description	Update a counterparty record (does not patch, all fields are required)
+//	@ID				updateCounterparty
+//	@Tags			Counterparty
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"ID of counterparty to update"
+//	@Param			counterparty	body		api.Counterparty	true	"Updated counterparty record"
+//	@Success		200				{object}	api.Counterparty
+//	@Failure		400				{object}	api.Reply	"Invalid input"
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		403				{object}	api.Reply	"Forbidden"
+//	@Failure		404				{object}	api.Reply	"Counterparty not found"
+//	@Failure		422				{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/counterparties/{counterpartyID} [put]
 func (s *Server) UpdateCounterparty(c *gin.Context) {
 	var (
 		err            error
@@ -270,6 +333,21 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	})
 }
 
+// DeleteCounterparty - Deletes a counterparty
+//
+//	@Summary		Deletes a counterparty
+//	@Description	Deletes a counterparty
+//	@ID				deleteCounterparty
+//	@Tags			Counterparty
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"ID of counterparty to delete"
+//	@Success		200	{object}	api.Reply
+//	@Failure		401	{object}	api.Reply	"Unauthorized"
+//	@Failure		403	{object}	api.Reply	"Forbidden"
+//	@Failure		404	{object}	api.Reply	"Counterparty not found"
+//	@Failure		500	{object}	api.Reply	"Internal server error"
+//	@Router			/v1/counterparties/{counterpartyID} [delete]
 func (s *Server) DeleteCounterparty(c *gin.Context) {
 	var (
 		err            error

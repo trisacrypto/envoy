@@ -18,6 +18,13 @@ const (
 )
 
 // Status reports the version and uptime of the server
+//	@Summary		Heartbeat endpoint
+//	@Description	Allows users to check the status of the node
+//	@Tags			Utility
+//	@Produce		json
+//	@Success		200	{object}	api.StatusReply	"Successful operation"
+//	@Failure		503	{object}	api.StatusReply	"Unavailable"
+//	@Router			/v1/status [get]
 func (s *Server) Status(c *gin.Context) {
 	var state string
 	s.RLock()

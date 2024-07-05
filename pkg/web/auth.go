@@ -112,6 +112,19 @@ func (s *Server) Login(c *gin.Context) {
 	}
 }
 
+// Authenticate - Authenticate with client ID and client secret
+//	@Summary		Authenticate with API credentials
+//	@Description	Authenticate with client ID and client secret
+//	@ID				apiAuthenticate
+//	@Tags			Authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			apiAuthentication	body		api.APIAuthentication	true	"API credentials for authentication"
+//	@Success		200					{object}	api.LoginReply			"Successful response"
+//	@Failure		400					{object}	api.Reply				"Invalid input"
+//	@Failure		403					{object}	api.Reply				"Invalid API credentials"
+//	@Failure		500					{object}	api.Reply				"Internal server error"
+//	@Router			/v1/authenticate [post]
 func (s *Server) Authenticate(c *gin.Context) {
 	var (
 		err    error
@@ -191,6 +204,19 @@ func (s *Server) Authenticate(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+// Reauthenticate - Reauthenticate with refresh token
+//	@Summary		Reauthenticate with refresh token
+//	@Description	Reauthenticate with refresh token
+//	@ID				reauthenticate
+//	@Tags			Authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			reauthenticateRequest	body		api.ReauthenticateRequest	true	"Refresh token for reauthentication"
+//	@Success		200						{object}	api.LoginReply				"Successful response"
+//	@Failure		400						{object}	api.Reply					"Invalid input"
+//	@Failure		403						{object}	api.Reply					"Invalid reauthentication credentials"
+//	@Failure		500						{object}	api.Reply					"Internal server error"
+//	@Router			/v1/reauthenticate [post]
 func (s *Server) Reauthenticate(c *gin.Context) {
 	var (
 		err    error

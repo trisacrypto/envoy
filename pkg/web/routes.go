@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/metrics"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
@@ -12,7 +14,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggest/swgui/v5cdn"
 )
 
 // Sets up the server's middleware and routes.
@@ -104,12 +105,12 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
-	// Swagger documentation with Swagger UI hosted from a CDN
-	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
-		"TRISA Node API Documentation",
-		"/static/openapi.json",
-		"/v1/docs",
-	)))
+	// Set up Swagger
+	s.router.GET("/v1/docs/*any", ginSwagger.WrapHandler(
+		swaggerFiles.NewHandler(),
+		ginSwagger.DeepLinking(true),
+		ginSwagger.PersistAuthorization(true),
+	))
 
 	// API Routes (Including Content Negotiated Partials)
 	v1 := s.router.Group("/v1")
@@ -163,8 +164,8 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
 
 			// Transaction specific actions
-			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
-			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
+			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendTransaction)
+			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.PreviewTransaction)
 			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)
 			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
 

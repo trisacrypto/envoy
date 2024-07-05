@@ -23,8 +23,10 @@ go.work
 .env
 .secret
 
+docs
 node_modules
 tmp
+vendor
 
 # OS Droppings
 .DS_Store

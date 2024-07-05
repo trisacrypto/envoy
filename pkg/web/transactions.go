@@ -25,6 +25,20 @@ import (
 // Transactions REST Resource
 //===========================================================================
 
+// ListTransactions - Get a list of transactions
+//
+//	@Summary		List Transactions
+//	@Description	Paginated list of all transactions
+//	@ID				listTransactions
+//	@Produce		json
+//	@Produce		html
+//	@Param			page	query		api.PageQuery	true	"Page query parameters"
+//	@Success		200		{object}	api.TransactionsList
+//	@Failure		400		{object}	api.Reply
+//	@Failure		500		{object}	api.Reply
+//	@Router			/v1/transactions [get]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) ListTransactions(c *gin.Context) {
 	var (
 		err   error
@@ -66,6 +80,21 @@ func (s *Server) ListTransactions(c *gin.Context) {
 	})
 }
 
+// CreateTransaction - Create a new transaction
+//
+//	@Summary		Create Transaction
+//	@Description	Create a new transaction
+//	@ID				createTransaction
+//	@Accept			json
+//	@Produce		json
+//	@Produce		html
+//	@Param			transaction	body		api.Transaction	true	"Transaction data"
+//	@Success		200			{object}	api.Transaction	"Transaction created"
+//	@Failure		400			{object}	api.Reply		"Invalid input"
+//	@Failure		500			{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions [post]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) CreateTransaction(c *gin.Context) {
 	var (
 		err         error
@@ -121,6 +150,21 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 	})
 }
 
+// TransactionDetail - Get details of a specific transaction
+//
+//	@Summary		Find transaction by ID
+//	@Description	Returns a single transaction if found
+//	@ID				transactionDetail
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string			true	"ID of transaction to return"
+//	@Success		200				{object}	api.Transaction	"Successful operation"
+//	@Failure		400				{object}	api.Reply		"Invalid input"
+//	@Failure		404				{object}	api.Reply		"Transaction not found"
+//	@Failure		500				{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions/{transactionId} [get]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) TransactionDetail(c *gin.Context) {
 	var (
 		err           error
@@ -180,6 +224,23 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	})
 }
 
+// UpdateTransaction - Update a transaction record (does not patch, all fields are required)
+//
+//	@Summary		Updates a transaction record
+//	@Description	Update a transaction record (does not patch, all fields are required)
+//	@ID				updateTransaction
+//	@Accept			json
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string			true	"ID of transaction to update"
+//	@Param			transaction		body		api.Transaction	true	"Updated transaction record"
+//	@Success		200				{object}	api.Transaction	"Successful operation"
+//	@Failure		400				{object}	api.Reply		"Invalid input"
+//	@Failure		404				{object}	api.Reply		"Transaction not found"
+//	@Failure		500				{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions/{transactionId} [put]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) UpdateTransaction(c *gin.Context) {
 	var (
 		err           error
@@ -251,6 +312,20 @@ func (s *Server) UpdateTransaction(c *gin.Context) {
 	})
 }
 
+// DeleteTransaction - Delete a specific transaction
+//
+//	@Summary		Deletes a transaction
+//	@Description	Delete a specific transaction
+//	@ID				deleteTransaction
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string		true	"ID of transaction to delete"
+//	@Success		200				{object}	api.Reply	"Successful operation"
+//	@Failure		404				{object}	api.Reply	"Transaction not found"
+//	@Failure		500				{object}	api.Reply	"Internal error"
+//	@Router			/v1/transactions/{transactionId} [delete]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) DeleteTransaction(c *gin.Context) {
 	var (
 		err           error
@@ -286,7 +361,22 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 // Transaction Detail Actions
 //===========================================================================
 
-func (s *Server) AcceptTransactionPreview(c *gin.Context) {
+// PreviewTransaction - Preview the transaction envelope for a specific transaction
+//
+//	@Summary		Preview transaction envelope
+//	@Description	Preview the transaction envelope for a specific transaction
+//	@ID				previewTransaction
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string			true	"ID of transaction to preview"
+//	@Success		200				{object}	api.Envelope	"The transaction to preview"
+//	@Failure		400				{object}	api.Reply		"Invalid input"
+//	@Failure		404				{object}	api.Reply		"Transaction not found"
+//	@Failure		500				{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions/{transactionId}/preview [get]
+//	@Security		BearerAuth
+//	@Tags			Transaction
+func (s *Server) PreviewTransaction(c *gin.Context) {
 	var (
 		err           error
 		transactionID uuid.UUID
@@ -334,7 +424,24 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	})
 }
 
-func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
+// SendTransaction - Send the transaction envelope for a specific transaction
+//
+//	@Summary		Send transaction envelope
+//	@Description	Send the transaction envelope for a specific transaction
+//	@ID				sendTransaction
+//	@Accept			json
+//	@Produce		json
+//	@Produce		html
+//	@Param			id			path		string			true	"ID of transaction to send"
+//	@Param			envelope	body		api.Envelope	true	"Transaction envelope to send"
+//	@Success		200			{object}	api.Envelope	"Successful operation"
+//	@Failure		400			{object}	api.Reply		"Invalid input"
+//	@Failure		404			{object}	api.Reply		"Transaction not found"
+//	@Failure		500			{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions/{transactionId}/send [post]
+//	@Security		BearerAuth
+//	@Tags			Transaction
+func (s *Server) SendTransaction(c *gin.Context) {
 	var (
 		err          error
 		in           *api.Envelope
@@ -464,10 +571,40 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+// AcceptTransaction - Accept the incoming transaction envelope for a specific transaction
+//
+//	@Summary		Accept incoming transaction envelope
+//	@Description	Accept the incoming transaction envelope for a specific transaction
+//	@ID				accept-transaction
+//	@Produce		json
+//	@Param			transactionID	path		string			true	"ID of transaction to accept"
+//	@Failure		200				{object}	api.Envelope	"Successful operation"
+//	@Failure		404				{object}	api.Reply		"Transaction not found"
+//	@Failure		501				{object}	api.Reply		"Not implemented"
+//	@Router			/v1/transactions/{transactionId}/accept [post]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) AcceptTransaction(c *gin.Context) {
 	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
 }
 
+// RejectTransaction - Reject the incoming transaction envelope for a specific transaction
+//
+//	@Summary		Reject incoming transaction envelope
+//	@Description	Reject the incoming transaction envelope for a specific transaction
+//	@ID				rejectTransaction
+//	@Accept			json
+//	@Produce		json
+//	@Produce		html
+//	@Param			id			path		string			true	"ID of transaction to reject"
+//	@Param			rejection	body		api.Rejection	true	"Reason for rejection"
+//	@Success		200			{object}	api.Envelope	"Successful operation"
+//	@Failure		400			{object}	api.Reply		"Invalid input"
+//	@Failure		404			{object}	api.Reply		"Transaction not found"
+//	@Failure		500			{object}	api.Reply		"Internal error"
+//	@Router			/v1/transactions/{transactionId}/reject [post]
+//	@Security		BearerAuth
+//	@Tags			Transaction
 func (s *Server) RejectTransaction(c *gin.Context) {
 	var (
 		err          error
@@ -579,6 +716,22 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 // Secure Envelopes REST Resource
 //===========================================================================
 
+// ListSecureEnvelopes - Paginated list of all secure envelopes for the specified transaction
+//
+//	@Summary		List secure envelopes for transaction
+//	@Description	Paginated list of all secure envelopes for the specified transaction
+//	@ID				listSecureEnvelopes
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string					true	"ID of transaction to return secure envelopes for"
+//	@Param			query			query		api.EnvelopeListQuery	true	"Envelope list query parameters"
+//	@Success		200				{object}	api.EnvelopesList		"Successful operation"
+//	@Failure		400				{object}	api.Reply				"Invalid input"
+//	@Failure		404				{object}	api.Reply				"Transaction not found"
+//	@Failure		500				{object}	api.Reply				"Internal error"
+//	@Router			/v1/transactions/{transactionId}/secure-envelopes [get]
+//	@Security		BearerAuth
+//	@Tags			SecureEnvelope
 func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	var (
 		err           error
@@ -638,6 +791,23 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	})
 }
 
+// SecureEnvelopeDetail - Returns detailed information about the specified secure envelope
+//
+//	@Summary		Lookup a specific secure envelope
+//	@Description	Returns detailed information about the specified secure envelope
+//	@ID				envelopeDetail
+//	@Produce		json
+//	@Produce		html
+//	@Param			transactionID	path		string				true	"ID of transaction to return secure envelope for"
+//	@Param			envelopeID		path		string				true	"ID of secure envelope to return"
+//	@Param			query			query		api.EnvelopeQuery	true	"Envelope query parameters"
+//	@Success		200				{object}	api.SecureEnvelope	"Successful operation"
+//	@Failure		400				{object}	api.Reply			"Invalid input"
+//	@Failure		404				{object}	api.Reply			"Transaction not found"
+//	@Failure		500				{object}	api.Reply			"Internal error"
+//	@Router			/v1/transactions/{transactionId}/secure-envelopes/{envelopeID} [get]
+//	@Security		BearerAuth
+//	@Tags			SecureEnvelope
 func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 	var (
 		err           error

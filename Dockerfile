@@ -40,6 +40,7 @@ RUN go mod verify
 COPY . .
 
 # Build binary
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go generate ./...
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -o /go/bin/envoy -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}'" ./cmd/envoy && xx-verify /go/bin/envoy
 
 # Final Stage

@@ -8,13 +8,27 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
-	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/oklog/ulid/v2"
 )
 
+// ListAccounts - Paginated list of all stored customer accounts
+//
+//	@Summary		List customer accounts
+//	@Description	Paginated list of all stored customer accounts
+//	@ID				listAccounts
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page	query		api.PageQuery	true	"Page query parameters"
+//	@Success		200		{object}	api.AccountsList
+//	@Failure		400		{object}	api.Reply	"Invalid input"
+//	@Failure		401		{object}	api.Reply	"Unauthorized"
+//	@Failure		500		{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts [get]
 func (s *Server) ListAccounts(c *gin.Context) {
 	var (
 		err   error
@@ -56,6 +70,22 @@ func (s *Server) ListAccounts(c *gin.Context) {
 	})
 }
 
+// CreateAccount - Create a new customer account
+//
+//	@Summary		Create customer account
+//	@Description	Create a new customer account
+//	@ID				createAccount
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			account	body		api.Account	true	"Create a new customer account"
+//	@Success		201		{object}	api.Account
+//	@Failure		400		{object}	api.Reply	"Invalid input"
+//	@Failure		401		{object}	api.Reply	"Unauthorized"
+//	@Failure		422		{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500		{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts [post]
 func (s *Server) CreateAccount(c *gin.Context) {
 	var (
 		err     error
@@ -105,6 +135,20 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	})
 }
 
+// AccountDetail - Returns a single account if found
+//
+//	@Summary		Find account by ID
+//	@Description	Returns a single account if found
+//	@ID				accountDetail
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"ID of account to return"
+//	@Success		200	{object}	api.Account
+//	@Failure		401	{object}	api.Reply	"Unauthorized"
+//	@Failure		404	{object}	api.Reply	"Account not found"
+//	@Failure		500	{object}	api.Reply	"Internal server error"
+//	@Router			/v1/account/{accountID} [get]
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
 		err       error
@@ -146,6 +190,20 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	})
 }
 
+// UpdateAccountPreview - Returns a preview of the updated account
+//
+//	@Summary		Preview account update
+//	@Description	Returns a preview of the updated account
+//	@ID				updateAccountPreview
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"ID of account to preview update for"
+//	@Success		200	{object}	api.Account
+//	@Failure		401	{object}	api.Reply	"Unauthorized"
+//	@Failure		404	{object}	api.Reply	"Account not found"
+//	@Failure		500	{object}	api.Reply	"Internal server error"
+//	@Router			/v1/account/{accountID}/preview [get]
 func (s *Server) UpdateAccountPreview(c *gin.Context) {
 	var (
 		err       error
@@ -187,6 +245,24 @@ func (s *Server) UpdateAccountPreview(c *gin.Context) {
 	})
 }
 
+// UpdateAccount - Update an account record (does not patch, all fields are required)
+//
+//	@Summary		Updates an account record
+//	@Description	Update an account record (does not patch, all fields are required)
+//	@ID				updateAccount
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string		true	"ID of account to update"
+//	@Param			account	body		api.Account	true	"Updated account record"
+//	@Success		200		{object}	api.Account
+//	@Failure		400		{object}	api.Reply	"Invalid input"
+//	@Failure		401		{object}	api.Reply	"Unauthorized"
+//	@Failure		404		{object}	api.Reply	"Account not found"
+//	@Failure		422		{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500		{object}	api.Reply	"Internal server error"
+//	@Router			/v1/account/{accountID} [put]
 func (s *Server) UpdateAccount(c *gin.Context) {
 	var (
 		err       error
@@ -254,6 +330,20 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	})
 }
 
+// DeleteAccount - Deletes an account and associated crypto addresses
+//
+//	@Summary		Deletes an account
+//	@Description	Deletes an account and associated crypto addresses
+//	@ID				deleteAccount
+//	@Tags			Account
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"ID of account to delete"
+//	@Success		200	{object}	api.Reply
+//	@Failure		401	{object}	api.Reply	"Unauthorized"
+//	@Failure		404	{object}	api.Reply	"Account not found"
+//	@Failure		500	{object}	api.Reply	"Internal server error"
+//	@Router			/v1/account/{accountID} [delete]
 func (s *Server) DeleteAccount(c *gin.Context) {
 	var (
 		err       error
@@ -287,6 +377,21 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	})
 }
 
+// ListCryptoAddresses - Returns a paginated list of all crypto addresses associated with the account
+//
+//	@Summary		List crypto addresses for account
+//	@Description	Returns a paginated list of all crypto addresses associated with the account
+//	@ID				listCryptoAddresses
+//	@Tags			CryptoAddress
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id		path		string			true	"ID of account to return crypto addresses for"
+//	@Param			page	query		api.PageQuery	true	"Page query parameters"
+//	@Success		200		{object}	api.CryptoAddressList
+//	@Failure		401		{object}	api.Reply	"Unauthorized"
+//	@Failure		404		{object}	api.Reply	"Account not found"
+//	@Failure		500		{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts/{accountID}/crypto-addresses [get]
 func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	var (
 		err       error
@@ -340,6 +445,24 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	})
 }
 
+// CreateCryptoAddress - Create a crypto address associated with the specified account
+//
+//	@Summary		Create crypto address
+//	@Description	Create a crypto address associated with the specified account
+//	@ID				createCryptoAddress
+//	@Tags			CryptoAddress
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"ID of account to create crypto address for"
+//	@Param			cryptoAddress	body		api.CryptoAddress	true	"Crypto address to create"
+//	@Success		201				{object}	api.CryptoAddress
+//	@Failure		400				{object}	api.Reply	"Invalid input"
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		404				{object}	api.Reply	"Account not found"
+//	@Failure		422				{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts/{accountID}/crypto-addresses [post]
 func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	var (
 		err       error
@@ -404,6 +527,21 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	})
 }
 
+// CryptoAddressDetail - Returns detailed information about the specified crypto address
+//
+//	@Summary		Lookup a specific crypto address
+//	@Description	Returns detailed information about the specified crypto address
+//	@ID				cryptoAddressDetail
+//	@Tags			CryptoAddress
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"ID of account of crypto address to be returned"
+//	@Param			cryptoAddressID	path		string	true	"ID of crypto address to return"
+//	@Success		200				{object}	api.CryptoAddress
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		404				{object}	api.Reply	"Account or crypto address not found"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID} [get]
 func (s *Server) CryptoAddressDetail(c *gin.Context) {
 	var (
 		err             error
@@ -452,6 +590,25 @@ func (s *Server) CryptoAddressDetail(c *gin.Context) {
 	})
 }
 
+// UpdateCryptoAddress - Update a crypto address record (does not patch, all fields are required)
+//
+//	@Summary		Update a crypto address
+//	@Description	Update a crypto address record (does not patch, all fields are required)
+//	@ID				updateCryptoAddress
+//	@Tags			CryptoAddress
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"ID of account of crypto address to be updated"
+//	@Param			cryptoAddressID	path		string				true	"ID of crypto address to update"
+//	@Param			cryptoAddress	body		api.CryptoAddress	true	"Updated crypto address record"
+//	@Success		200				{object}	api.CryptoAddress
+//	@Failure		400				{object}	api.Reply	"Invalid input"
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		404				{object}	api.Reply	"Account or crypto address not found"
+//	@Failure		422				{object}	api.Reply	"Validation exception or missing field"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID} [put]
 func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	var (
 		err             error
@@ -529,6 +686,21 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	})
 }
 
+// DeleteCryptoAddress - Delete a crypto address record associated with account
+//
+//	@Summary		Delete a crypto address
+//	@Description	Delete a crypto address record associated with account
+//	@ID				deleteCryptoAddress
+//	@Tags			CryptoAddress
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"ID of account of crypto address to be deleted"
+//	@Param			cryptoAddressID	path		string	true	"ID of crypto address to delete"
+//	@Success		200				{object}	api.Reply
+//	@Failure		401				{object}	api.Reply	"Unauthorized"
+//	@Failure		404				{object}	api.Reply	"Account or crypto address not found"
+//	@Failure		500				{object}	api.Reply	"Internal server error"
+//	@Router			/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID} [delete]
 func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 	var (
 		err             error

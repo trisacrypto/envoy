@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	_ "github.com/trisacrypto/envoy/docs"
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
@@ -22,10 +25,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
-
-	"github.com/trisacrypto/envoy/pkg/config"
-
-	"github.com/trisacrypto/envoy/pkg"
 
 	"github.com/joho/godotenv"
 	"github.com/oklog/ulid/v2"
@@ -37,6 +36,51 @@ var (
 	db   store.Store
 	conf config.Config
 )
+
+//	@title			TRISA Node API
+//	@version		v0.1.1
+//	@description	The TRISA Node API allows users to interact with the TRISA Self-Hosted Node in a programmatic fashion. It is intended that this API is served on an internal IP address with routing only available to internal services.
+//	@termsOfService	https://trisa.io/terms/
+
+//	@contact.name	Rotational Lab
+//	@contact.email	support@rotational.io
+//	@contact.url	https://rotational.io/contact/
+
+//	@license.name	MIT Licensed
+//	@license.url	https://github.com/trisacrypto/trisa/blob/main/LICENSE
+
+//	@externalDocs.description	TRISA Developer Documentation
+//	@externalDocs.url			https://trisa.dev
+
+//	@tag.name			Account
+//	@tag.description	Stored information about your user/customer accounts.
+
+//	@tag.name			Authentication
+//	@tag.description	Allow for authentication against Envoy node.
+
+//	@tag.name			Counterparty
+//	@tag.description	Counterparties to exchange travel rule information with using TRISA or TRP protocols.
+
+//	@tag.name			CryptoAddress
+//	@tag.description	Associate crypto addresses with user accounts.
+
+//	@tag.name			SecureEnvelope
+//	@tag.description	Secure Envelopes provide an audit record of travel rule exchanges with a counterparty.
+
+//	@tag.name			Transaction
+//	@tag.description	Travel Rule information exchanges for specific crypto asset transactions.
+
+//	@tag.name			Utility
+//	@tag.description	Other useful methods.
+
+//	@host		http://localhost:8000
+//	@BasePath	/
+//	@schemes	http
+
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Type "Bearer" followed by a space and the JWT token.
 
 func main() {
 	godotenv.Load()
