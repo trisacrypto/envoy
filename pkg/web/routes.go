@@ -103,6 +103,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
+	s.router.GET("/user-profile", authenticate, s.UserProfile)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
