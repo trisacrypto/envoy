@@ -3398,7 +3398,7 @@ body main {
   font-weight: 700;
 }
 
-#transaction-rejection {
+#transaction-rejection, #user-role-sel {
   background: url("data:image/svg+xml,<svg height='10px' width='10px' viewBox='0 0 24 24' fill='black' stroke-width='1.5' stroke='currentColor' class='size-6' xmlns='http://www.w3.org/2000/svg'>=<path stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /></svg>") no-repeat;
   background-position: calc(100% - 0.75rem) center !important;
   -moz-appearance:none !important;
