@@ -19,25 +19,25 @@
     <div class="modal-box">
       <div class="flex justify-between items-center">
         <h1 class="font-bold text-xl">Add New User</h1>
-        <button onclick="new_user_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <button id="close-new-usr-mdl" onclick="new_user_modal.close()" class="btn btn-sm btn-circle btn-ghost">
           <i class="fa-solid fa-x"></i>
           <span class="sr-only">Close modal</span>
         </button>
       </div>
       <p class="py-4">Add new user details.</p>
       <div>
-        <form hx-post="/v1/users" method="dialog" hx-ext="json-enc" hx-target="#user_modal">
+        <form id="new-user-form" hx-post="/v1/users" method="dialog" hx-ext="json-enc" hx-target="#user_modal">
           <div class="mb-4">
             <label for="name" class="label-style">Name</label>
             <input type="text" id="name" name="name" class="input-style" />
           </div>
           <div class="mb-4">
             <label for="email" class="label-style">Email</label>
-            <input type="text" id="email" name="email" class="input-style" />
+            <input type="text" id="email" name="email" class="input-style" required />
           </div>
           <div class="mb-4">
             <label for="user-role-sel" class="label-style">Role</label>
-            <select id="user-role-sel" name="role" 
+            <select id="user-role-sel" name="role" required
             class="!bg-gray-50 border !border-gray-300 !text-gray-900 rounded-lg focus:!ring-blue-500 focus:!border-blue-500 block w-full p-2.5">
               <option value="">Please choose a user role</option>
               <option value="Admin">Admin</option>
@@ -56,4 +56,8 @@
   <dialog id="user_modal" class="modal"></dialog>
 </section>
 
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/userSettings.js"></script>
 {{ end }}
