@@ -6,6 +6,8 @@
         <th>Email</th>
         <th>Role</th>
         <th>Created</th>
+        <th>Last Login</th>
+         <!-- TODO: Make visible to admin users only -->
         <th>Actions</th>
       </tr>
     </thead>
@@ -18,12 +20,18 @@
         <td>{{ .Role }}</td>
         {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
+        {{ $lastLogin := .LastLogin.Format "January 2, 2006 15:04:05" }}
+        {{ if $lastLogin }}
+        <td>{{ $lastLogin }}</td>
+        {{ else }}
+        <td>&mdash;</td>
+        {{ end }}
+        <!-- TODO: Make visible to admin users only -->
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-              <li><a>Edit</a></li>
-              <li><a>View</a></li>
+              <li><a>Change Password</a></li>
             </ul>
           </div>
         </td>
