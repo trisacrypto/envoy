@@ -1,4 +1,4 @@
-<div class="overflow-x-auto xl:overflow-x-hidden overflow-y-hidden">
+<div>
   <table class="table">
     <thead class="font-bold text-base text-black">
       <tr class="text-center text-balance">
@@ -21,9 +21,11 @@
       {{ range .Transactions }}
       <tr class="hover text-center">
         <td>
-          <button type="button" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}?detail=preview" hx-target="#transaction_modal">
-            <i class="fa-solid fa-eye"></i>          
-          </button>
+          <div class="tooltip tooltip-right" data-tip="View preview of the transaction details">
+            <button type="button" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}?detail=preview" hx-target="#transaction_modal">
+              <i class="fa-solid fa-eye"></i>          
+            </button>
+          </div>
         </td>
         <td>
           {{ if eq .Source "local" }}
