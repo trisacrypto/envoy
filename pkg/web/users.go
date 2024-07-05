@@ -11,7 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 )
 
@@ -108,8 +108,8 @@ func (s *Server) CreateUser(c *gin.Context) {
 
 	// Create a password for the user -- the user cannot specify one themselves, but
 	// the password will be returned to the user after the API call.
-	password = auth.AlphaNumeric(12)
-	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+	password = passwords.AlphaNumeric(12)
+	if user.Password, err = passwords.CreateDerivedKey(password); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete create user request"))
 		return
@@ -327,7 +327,7 @@ func (s *Server) ChangeUserPassword(c *gin.Context) {
 	}
 
 	// Create derived key from requested password reset
-	if derivedKey, err = auth.CreateDerivedKey(in.Password); err != nil {
+	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
 		return

@@ -14,7 +14,7 @@ func TestUserPasswordStrength(t *testing.T) {
 			err      string
 		}{
 			{"", "missing password: this field is required"},
-			{"short", "invalid field password: too short: must be at least 8 characters"},
+			{"short", "invalid field password: password must be at least 8 characters"},
 			{"   spacy   ", "invalid field password: password must not start or end with whitespace"},
 			{"simplepassword", "invalid field password: password must contain uppercase letters, lowercase letters, numbers, and special characters"},
 			{"simple3password", "invalid field password: password must contain uppercase letters, lowercase letters, numbers, and special characters"},

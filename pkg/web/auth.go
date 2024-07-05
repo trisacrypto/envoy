@@ -13,6 +13,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
@@ -58,7 +59,7 @@ func (s *Server) Login(c *gin.Context) {
 	}
 
 	// Check that the password supplied in the request is correct
-	if verified, err := auth.VerifyDerivedKey(user.Password, in.Password); err != nil || !verified {
+	if verified, err := passwords.VerifyDerivedKey(user.Password, in.Password); err != nil || !verified {
 		log := logger.Tracing(ctx)
 		log.Debug().Err(err).Msg("invalid login credentials")
 
@@ -150,7 +151,7 @@ func (s *Server) Authenticate(c *gin.Context) {
 	}
 
 	// Verify the client secret is correct
-	if verified, err := auth.VerifyDerivedKey(apikey.Secret, in.ClientSecret); err != nil || !verified {
+	if verified, err := passwords.VerifyDerivedKey(apikey.Secret, in.ClientSecret); err != nil || !verified {
 		log := logger.Tracing(ctx)
 		log.Debug().Err(err).Msg("invalid api key credentials")
 
@@ -390,7 +391,7 @@ func (s *Server) ChangePassword(c *gin.Context) {
 	}
 
 	// Create derived key from requested password reset
-	if derivedKey, err = auth.CreateDerivedKey(in.Password); err != nil {
+	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
 		return

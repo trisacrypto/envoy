@@ -1,9 +1,9 @@
-package auth_test
+package passwords_test
 
 import (
 	"testing"
 
-	. "github.com/trisacrypto/envoy/pkg/web/auth"
+	. "github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 
 	"github.com/stretchr/testify/require"
 )

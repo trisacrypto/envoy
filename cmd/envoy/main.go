@@ -20,7 +20,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/ulids"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
 	"github.com/trisacrypto/envoy/pkg/config"
@@ -422,8 +422,8 @@ func createUser(c *cli.Context) (err error) {
 		return cli.Exit("specify admin, compliance, or observer as the role", 1)
 	}
 
-	password := auth.AlphaNumeric(12)
-	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+	password := passwords.AlphaNumeric(12)
+	if user.Password, err = passwords.CreateDerivedKey(password); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -447,8 +447,8 @@ func resetPassword(c *cli.Context) (err error) {
 		return cli.Exit(fmt.Errorf("could not retrieve user %q: %w", c.String("email"), err), 1)
 	}
 
-	password := auth.AlphaNumeric(12)
-	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+	password := passwords.AlphaNumeric(12)
+	if user.Password, err = passwords.CreateDerivedKey(password); err != nil {
 		return cli.Exit(fmt.Errorf("could not create derived key for user password: %w", err), 1)
 	}
 
@@ -466,11 +466,11 @@ func createAPIKey(c *cli.Context) (err error) {
 	}
 
 	key := &models.APIKey{
-		ClientID: auth.KeyID(),
+		ClientID: passwords.KeyID(),
 	}
 
-	secret := auth.Secret()
-	if key.Secret, err = auth.CreateDerivedKey(secret); err != nil {
+	secret := passwords.Secret()
+	if key.Secret, err = passwords.CreateDerivedKey(secret); err != nil {
 		return cli.Exit(err, 1)
 	}
 

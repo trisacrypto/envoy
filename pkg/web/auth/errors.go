@@ -2,6 +2,7 @@ package auth
 
 import "errors"
 
+// Authentication Errors
 var (
 	ErrUnknownSigningKey = errors.New("unknown signing key")
 	ErrNoKeyID           = errors.New("token does not have kid in header")
