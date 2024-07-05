@@ -126,6 +126,9 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
 
+		// User Profile Management
+		v1.POST("/change-password", authenticate, s.ChangePassword)
+
 		// Accounts Resource
 		accounts := v1.Group("/accounts", authenticate)
 		{
@@ -196,6 +199,7 @@ func (s *Server) setupRoutes() (err error) {
 			users.GET("/:id", authorize(permiss.UsersView), s.UserDetail)
 			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
 			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
+			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
 		}
 
 		// Utilities

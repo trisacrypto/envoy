@@ -8,6 +8,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -314,7 +315,7 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     gin.H{"CounterpartyID": counterpartyID, "Source": counterparty.Source},
+		Data:     scene.Scene{"CounterpartyID": counterpartyID, "Source": counterparty.Source},
 		HTMLName: "counterparty_delete.html",
 	})
 }

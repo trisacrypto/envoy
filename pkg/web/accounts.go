@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -281,7 +282,7 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"AccountID": accountID},
+		HTMLData: scene.Scene{"AccountID": accountID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "account_delete.html",
 	})
@@ -563,7 +564,7 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"AccountID": accountID, "CryptoAddressID": cryptoAddressID},
+		HTMLData: scene.Scene{"AccountID": accountID, "CryptoAddressID": cryptoAddressID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "crypto_address_delete.html",
 	})
