@@ -4,7 +4,7 @@
   <section class="mb-12 p-5 border-2 border-black/20 rounded">
     <div class="flex items-center gap-x-4">
       <h1 class="font-bold text-2xl">User Profile</h1>
-      <button type="button" onclick="change_pwd_modal.showModal()" class="btn btn-sm bg-primary text-white hover:bg-primary/90">Change Password</button>
+      <button id="close-pwd-mdl-btn" type="button" onclick="change_pwd_modal.showModal()" class="btn btn-sm bg-primary text-white hover:bg-primary/90">Change Password</button>
     </div>
     <div class="my-5">
       <table class="table">
@@ -48,7 +48,7 @@
           id="change-pwd-form"
           hx-post="/v1/change-password" 
           hx-ext="json-enc" 
-          hx-swap="none" 
+          hx-swap="none"
           method="post"
           >
           <div class="mb-4">
