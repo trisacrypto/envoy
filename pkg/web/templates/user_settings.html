@@ -9,32 +9,26 @@
     {{ end }}
   </section>
 
-  <section id="accounts" hx-get="/v1/users" hx-trigger="load">
+  <!-- Users list table -->
+  <section id="users" hx-get="/v1/users" hx-trigger="load">
     <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
   </section>
 
+  <!-- Add User Modal -->
   <dialog id="new_user_modal" class="modal">
     <div class="modal-box">
       <div class="flex justify-between items-center">
         <h1 class="font-bold text-xl">Add New User</h1>
-        <button id="close-new-usr-mdl" onclick="new_user_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <button id="close-new-user-modal" onclick="new_user_modal.close()" class="btn btn-sm btn-circle btn-ghost">
           <i class="fa-solid fa-x"></i>
           <span class="sr-only">Close modal</span>
         </button>
       </div>
       <p class="py-4">Add new user details.</p>
       <div>
-        <form
-          _="on htmx:afterRequest            
-            if event.detail.successful
-              remove .hidden from #success-toast
-              put 'Success! A new user has been created.' into #success-toast-msg
-              wait 5s
-              add .hidden to #success-toast
-            end" 
-          id="new-user-form" hx-post="/v1/users" method="post" hx-ext="json-enc" hx-target="#new_user_modal" hx-swap="outerHTML">
+        <form id="new-user-form" hx-post="/v1/users" method="post" hx-ext="json-enc" hx-target="#user_modal" hx-swap="outerHTML">
           <div class="mb-4">
             <label for="name" class="label-style">Name</label>
             <input type="text" id="name" name="name" class="input-style" />
@@ -53,6 +47,7 @@
               <option value="Observer">Observer</option>
             </select>
           </div>
+          <!-- TODO: Add Reset button to clear the form -->
           <div class="py-4 flex justify-center">
             <button id="add-user-submit" class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Create User</button>
           </div>
@@ -61,7 +56,8 @@
     </div>
   </dialog>
 
-  <dialog id="user_modal" class="modal"></dialog>
+  <dialog id="user_modal"></dialog>
+
 </section>
 
 {{ end }}

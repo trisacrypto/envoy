@@ -2,15 +2,28 @@
   <div class="modal-box">
     <div class="flex justify-between items-center">
       <h1 class="font-bold text-xl">Your New User Has Been Created!</h1>
-      <button onclick="user_pwd_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <button
+        onclick="user_pwd_modal.close()"
+        class="btn btn-sm btn-circle btn-ghost"
+      >
         <i class="fa-solid fa-x"></i>
         <span class="sr-only">Close modal</span>
       </button>
     </div>
     <section class="my-4">
-      <p class="py-1">An account for <span class="font-semibold">{{ .Email }}</span> with the Role of <span class="font-semibold">{{ .Role }}</span> has been created.</p>
-      <p class="py-1"><span class="font-semibold">Copy and securely store the new user's password.</span> The password will be required to log in.</p>
-      <p class="py-1">For security purposes, this is the only time you will see the password.</p>
+      <p class="py-1">
+        An account for <span class="font-semibold">{{ .Email }}</span> with the
+        Role of <span class="font-semibold">{{ .Role }}</span> has been created.
+      </p>
+      <p class="py-1">
+        <span class="font-semibold"
+          >Copy and securely store the new user's password.</span
+        >
+        The password will be required to log in.
+      </p>
+      <p class="py-1">
+        For security purposes, this is the only time you will see the password.
+      </p>
       <div class="my-4 p-3 flex justify-between items-center bg-[#FFFDD0] rounded">
         <span id="new-user-pwd" class="font-semibold">{{ .Password }}</span>
         <button id="copy-password-btn" type="button">
@@ -18,7 +31,16 @@
         </button>
       </div>
       <div class="pt-4 flex justify-center">
-        <button id="close-pwd-modal" type="button" class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Close</button>
+        <button
+          id="close-pwd-modal"
+          type="button"
+          class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90"
+          hx-get="/v1/users"
+          hx-target="#users"
+          hx-swap="outerHTML"
+        >
+          Close
+        </button>
       </div>
     </section>
   </div>
