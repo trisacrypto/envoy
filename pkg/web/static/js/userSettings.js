@@ -1,9 +1,9 @@
 const usersEP = '/v1/users';
 const newUserModal = document.getElementById('new_user_modal');
 const newUserForm = document.getElementById('new-user-form');
+const closeUserModal = document.getElementById('close-new-user-modal')
 
 // Reset new user modal form if user closes the modal.
-const closeUserModal = document.getElementById('close-new-user-modal')
 if (closeUserModal) {
   closeUserModal.addEventListener('click', () => {
     newUserForm?.reset()
@@ -13,7 +13,6 @@ if (closeUserModal) {
 // Add code to run after HTMX settles the DOM once a swap occurs. 
 document.addEventListener('htmx:afterSettle', (e) => {
   if (e.detail.requestConfig.path === usersEP && e.detail.requestConfig.verb === 'post') {
-    
     // Copy the new user password to the clipboard if user clicks the copy icon.
     const copyPasswordBtn = document.getElementById('copy-password-btn');
     if (copyPasswordBtn) {
@@ -34,11 +33,14 @@ document.addEventListener('htmx:afterSettle', (e) => {
 
 function copyUserPassword() {
   const newPassword = document.getElementById('new-user-pwd').innerHTML;
+  // The clipboard API is only available in secure contexts.
   navigator.clipboard.writeText(newPassword);
 
   const copyIcon = document.getElementById('copy-icon');
   copyIcon.classList.remove('fa-copy');
   copyIcon.classList.add('fa-circle-check');
+
+  // Reset the copy icon after 1 second.
   setTimeout(() => {
     copyIcon.classList.remove('fa-circle-check');
     copyIcon.classList.add('fa-copy');
