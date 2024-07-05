@@ -130,7 +130,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	}
 
 	// Ensure the created password is returned back to the user
-	out.Passsword = password
+	out.Password = password
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
