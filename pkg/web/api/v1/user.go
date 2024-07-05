@@ -6,6 +6,7 @@ import (
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 )
 
 type User struct {
@@ -22,6 +23,11 @@ type User struct {
 type UserList struct {
 	Page  *PageQuery `json:"page"`
 	Users []*User    `json:"users"`
+}
+
+type UserPassword struct {
+	Password  string `json:"password"`
+	SendEmail bool   `json:"send_email"`
 }
 
 func NewUser(model *models.User) (out *User, err error) {
@@ -83,6 +89,7 @@ func (u *User) Validate() (err error) {
 }
 
 func (u *User) Model() (model *models.User, err error) {
+	// NOTE: the role must be set by the external caller who has database access.
 	model = &models.User{
 		Model: models.Model{
 			ID:       u.ID,
@@ -93,8 +100,6 @@ func (u *User) Model() (model *models.User, err error) {
 		Email: u.Email,
 	}
 
-	// TODO: manage the role to associate it with the user.
-
 	if u.LastLogin != nil {
 		model.LastLogin = sql.NullTime{
 			Time:  *u.LastLogin,
@@ -103,4 +108,18 @@ func (u *User) Model() (model *models.User, err error) {
 	}
 
 	return model, nil
+}
+
+func (u UserPassword) Validate() (err error) {
+	// Password cannot be empty
+	if u.Password == "" {
+		return ValidationError(err, MissingField("password"))
+	}
+
+	// Validate the password strength
+	if _, verr := passwords.Strength(u.Password); verr != nil {
+		err = ValidationError(err, IncorrectField("password", verr.Error()))
+	}
+
+	return err
 }
