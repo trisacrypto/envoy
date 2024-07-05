@@ -2874,15 +2874,6 @@ details.collapse summary::-webkit-details-marker {
   max-width: 24rem;
 }
 
-.max-w-full {
-  max-width: 100%;
-}
-
-.max-w-fit {
-  max-width: -moz-fit-content;
-  max-width: fit-content;
-}
-
 .table-fixed {
   table-layout: fixed;
 }
@@ -2958,20 +2949,12 @@ details.collapse summary::-webkit-details-marker {
        column-gap: 1.5rem;
 }
 
-.overflow-auto {
-  overflow: auto;
-}
-
 .overflow-x-auto {
   overflow-x: auto;
 }
 
 .overflow-y-auto {
   overflow-y: auto;
-}
-
-.overflow-y-hidden {
-  overflow-y: hidden;
 }
 
 .text-balance {
@@ -3783,19 +3766,5 @@ body main {
 @media (min-width: 1280px) {
   .xl\:w-1\/4 {
     width: 25%;
-  }
-
-  .xl\:overflow-x-hidden {
-    overflow-x: hidden;
-  }
-}
-
-@media (min-width: 1536px) {
-  .\32xl\:overflow-x-hidden {
-    overflow-x: hidden;
-  }
-
-  .\32xl\:overflow-x-visible {
-    overflow-x: visible;
   }
 }
