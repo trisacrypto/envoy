@@ -99,11 +99,11 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/transactions", authenticate, s.Transactions)
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)
+	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
-	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
+	s.router.GET("/users", authenticate, s.UsersManagement)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
-	s.router.GET("/user-settings", authenticate, s.UserSettings)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(

@@ -80,6 +80,6 @@ func (s *Server) TravelAddressUtility(c *gin.Context) {
 	c.HTML(http.StatusOK, "traveladdress.html", scene.New(c))
 }
 
-func (s *Server) UserSettings(c *gin.Context) {
-	c.HTML(http.StatusOK, "user_settings.html", scene.New(c))
+func (s *Server) UsersManagement(c *gin.Context) {
+	c.HTML(http.StatusOK, "users_management.html", scene.New(c))
 }
