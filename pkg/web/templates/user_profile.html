@@ -46,8 +46,8 @@
       <div>
         <form
           id="change-pwd-form"
-          hx-post="/v1/change-password" 
-          hx-ext="json-enc" 
+          hx-post="/v1/change-password"
+          hx-ext="json-enc"
           hx-swap="none"
           method="post"
           >
@@ -55,8 +55,12 @@
             <label for="password" class="label-style pb-0.5">New Password</label>
             <input type="password" id="password" name="password" class="input-style" />
           </div>
+          <div class="mb-4">
+            <label for="confirm-password" class="label-style pb-0.5">Confirm Password</label>
+            <input type="password" id="confirm-password" name="confirm-password" class="input-style" />
+          </div>
           <div class="py-2.5 flex justify-center">
-            <button type="submit" class="btn bg-primary text-white hover:bg-primary/90">Change Password</button>
+            <button type="submit" id="change-password-btn" disabled class="btn bg-primary text-white hover:bg-primary/90">Change Password</button>
           </div>
         </form>
       </div>
