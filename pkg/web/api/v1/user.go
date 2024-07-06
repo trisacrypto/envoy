@@ -13,9 +13,9 @@ type User struct {
 	ID        ulid.ULID  `json:"id,omitempty"`
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
-	Passsword string     `json:"password,omitempty"`
+	Password  string     `json:"password,omitempty"`
 	Role      string     `json:"role"`
-	LastLogin *time.Time `json:"last_login"`
+	LastLogin *time.Time `json:"last_login,omitempty"`
 	Created   time.Time  `json:"created,omitempty"`
 	Modified  time.Time  `json:"modified,omitempty"`
 }
@@ -72,7 +72,7 @@ func (u *User) Validate() (err error) {
 		err = ValidationError(err, MissingField("email"))
 	}
 
-	if u.Passsword != "" {
+	if u.Password != "" {
 		err = ValidationError(err, ReadOnlyField("password"))
 	}
 

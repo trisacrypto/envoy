@@ -2649,6 +2649,10 @@ details.collapse summary::-webkit-details-marker {
   border-width: 0;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .collapse {
   visibility: collapse;
 }
@@ -3031,6 +3035,11 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity)) !important;
 }
 
+.bg-\[\#FFFDD0\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 253 208 / var(--tw-bg-opacity));
+}
+
 .bg-base-200 {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
@@ -3101,6 +3110,10 @@ details.collapse summary::-webkit-details-marker {
 
 .p-2\.5 {
   padding: 0.625rem;
+}
+
+.p-3 {
+  padding: 0.75rem;
 }
 
 .p-4 {
@@ -3195,6 +3208,10 @@ details.collapse summary::-webkit-details-marker {
 
 .pt-2 {
   padding-top: 0.5rem;
+}
+
+.pt-4 {
+  padding-top: 1rem;
 }
 
 .text-center {
@@ -3398,7 +3415,7 @@ body main {
   font-weight: 700;
 }
 
-#transaction-rejection {
+#transaction-rejection, #user-role-sel {
   background: url("data:image/svg+xml,<svg height='10px' width='10px' viewBox='0 0 24 24' fill='black' stroke-width='1.5' stroke='currentColor' class='size-6' xmlns='http://www.w3.org/2000/svg'>=<path stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /></svg>") no-repeat;
   background-position: calc(100% - 0.75rem) center !important;
   -moz-appearance:none !important;
