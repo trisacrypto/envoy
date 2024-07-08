@@ -18,15 +18,14 @@ closePwdModalBtn.addEventListener('click', () => {
 
 // Enable the change password button when the password and confirm password inputs are identical.
 // TODO: should we add any other visual indication that the passwords do not match?
-const checkPasswords = e => {
+const checkPasswords = () => {
   if (passwordInput.value == confirmPassword.value && passwordInput.value != '') {
     changePasswordBtn.removeAttribute('disabled');
   } else {
     changePasswordBtn.setAttribute('disabled', 'true');
-  }
-}
+  };
+};
 
-// TODO: is this a complete list of events that should be used to detect if the passwords match?
 addEventListeners(passwordInput, 'change keyup paste cut', checkPasswords);
 addEventListeners(confirmPassword, 'change keyup paste cut', checkPasswords);
 
@@ -34,6 +33,7 @@ addEventListeners(confirmPassword, 'change keyup paste cut', checkPasswords);
 // TODO: should we do a pre-flight check as a last sanity check that the passwords match?
 document.body.addEventListener('htmx:afterRequest', (e) => {
     changePwdForm.reset();
+    changePasswordBtn.setAttribute('disabled', 'true');
 
   if (e.detail.requestConfig.path === '/v1/change-password' && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     // Close the modal and reset the form.
