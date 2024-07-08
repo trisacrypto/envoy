@@ -26,6 +26,7 @@ const checkPasswords = () => {
   };
 };
 
+// TODO: is this a complete list of events that should be used to detect if the passwords match?
 addEventListeners(passwordInput, 'change keyup paste cut', checkPasswords);
 addEventListeners(confirmPassword, 'change keyup paste cut', checkPasswords);
 
