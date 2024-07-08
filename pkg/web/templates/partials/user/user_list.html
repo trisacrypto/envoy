@@ -31,7 +31,7 @@
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-              <li><a>Change Password</a></li>
+              <li><a onclick="user_modal.showModal()" hx-get="/v1/users/{{ .ID }}?detail=password" hx-target="#user_modal" hx-swap="innerHTML">Change Password</a></li>
             </ul>
           </div>
         </td>
