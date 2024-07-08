@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -144,6 +145,7 @@ func (s *Server) UserDetail(c *gin.Context) {
 	var (
 		err    error
 		userID ulid.ULID
+		query  *api.UserQuery
 		user   *models.User
 		out    *api.User
 	)
@@ -151,6 +153,14 @@ func (s *Server) UserDetail(c *gin.Context) {
 	// Parse the userID from the URL
 	if userID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("user not found"))
+		return
+	}
+
+	// Parse the user query
+	query = &api.UserQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse user query in request"))
 		return
 	}
 
@@ -172,10 +182,22 @@ func (s *Server) UserDetail(c *gin.Context) {
 		return
 	}
 
+	// Determine the HTML template to render based on the query
+	var template string
+	switch query.Detail {
+	case api.DetailUser:
+		template = "user_detail.html"
+	case api.DetailPassword:
+		template = "user_password.html"
+	default:
+		c.Error(fmt.Errorf("unhandled detail query '%q'", query.Detail))
+		template = "user_detail.html"
+	}
+
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "user_detail.html",
+		HTMLName: template,
 	})
 }
 
