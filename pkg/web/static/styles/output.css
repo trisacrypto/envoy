@@ -2997,6 +2997,10 @@ details.collapse summary::-webkit-details-marker {
   border-width: 2px;
 }
 
+.border-b-0 {
+  border-bottom-width: 0px;
+}
+
 .border-t {
   border-top-width: 1px;
 }
@@ -3169,6 +3173,11 @@ details.collapse summary::-webkit-details-marker {
   padding-bottom: 0.5rem;
 }
 
+.py-2\.5 {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
 .py-20 {
   padding-top: 5rem;
   padding-bottom: 5rem;
@@ -3192,6 +3201,14 @@ details.collapse summary::-webkit-details-marker {
 .py-9 {
   padding-top: 2.25rem;
   padding-bottom: 2.25rem;
+}
+
+.pb-0 {
+  padding-bottom: 0px;
+}
+
+.pb-0\.5 {
+  padding-bottom: 0.125rem;
 }
 
 .pb-2 {
