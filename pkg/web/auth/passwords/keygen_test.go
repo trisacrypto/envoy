@@ -1,4 +1,4 @@
-package auth_test
+package passwords_test
 
 import (
 	"math/rand"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 
 	"github.com/stretchr/testify/require"
 )
@@ -20,14 +20,14 @@ func TestAlpha(t *testing.T) {
 	// Test creating different random strings at different lengths
 	for i := 0; i < 10000; i++ {
 		len := rand.Intn(512) + 1
-		alpha := auth.Alpha(len)
+		alpha := passwords.Alpha(len)
 		require.Len(t, alpha, len)
 		require.Regexp(t, regexp.MustCompile(`[a-zA-Z]+`), alpha)
 	}
 
 	vals := make(map[string]struct{})
 	for i := 0; i < 10000; i++ {
-		val := auth.Alpha(16)
+		val := passwords.Alpha(16)
 		vals[val] = struct{}{}
 	}
 	require.Len(t, vals, 10000, "there is a very low chance that a duplicate value was generated")
@@ -42,14 +42,14 @@ func TestAlphaNumeric(t *testing.T) {
 	// Test creating different random strings at different lengths
 	for i := 0; i < 10000; i++ {
 		len := rand.Intn(512) + 1
-		alpha := auth.AlphaNumeric(len)
+		alpha := passwords.AlphaNumeric(len)
 		require.Len(t, alpha, len)
 		require.Regexp(t, regexp.MustCompile(`[a-zA-Z0-9]+`), alpha)
 	}
 
 	vals := make(map[string]struct{})
 	for i := 0; i < 10000; i++ {
-		val := auth.AlphaNumeric(16)
+		val := passwords.AlphaNumeric(16)
 		vals[val] = struct{}{}
 	}
 	require.Len(t, vals, 10000, "there is a very low chance that a duplicate value was generated")
@@ -61,11 +61,11 @@ func TestKeyGen(t *testing.T) {
 		t.Skip("skipping long running test in short mode")
 	}
 
-	keyID := auth.KeyID()
-	require.Len(t, keyID, auth.KeyIDLength)
+	keyID := passwords.KeyID()
+	require.Len(t, keyID, passwords.KeyIDLength)
 
-	secret := auth.Secret()
-	require.Len(t, secret, auth.SecretLength)
+	secret := passwords.Secret()
+	require.Len(t, secret, passwords.SecretLength)
 }
 
 func TestCryptoRandInt(t *testing.T) {
@@ -76,7 +76,7 @@ func TestCryptoRandInt(t *testing.T) {
 
 	nums := make(map[uint64]struct{})
 	for i := 0; i < 10000; i++ {
-		val := auth.CryptoRandInt()
+		val := passwords.CryptoRandInt()
 		nums[val] = struct{}{}
 	}
 	require.Len(t, nums, 10000, "there is a very low chance that a duplicate value was generated")
@@ -84,13 +84,13 @@ func TestCryptoRandInt(t *testing.T) {
 
 func benchmarkAlpha(i int, b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		auth.Alpha(i)
+		passwords.Alpha(i)
 	}
 }
 
 func benchmarkAlphaNumeric(i int, b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		auth.AlphaNumeric(i)
+		passwords.AlphaNumeric(i)
 	}
 }
 
@@ -104,7 +104,7 @@ func BenchmarkAlphaNumeric256(b *testing.B) { benchmarkAlphaNumeric(256, b) }
 
 func BenchmarkCryptoRandInt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		auth.CryptoRandInt()
+		passwords.CryptoRandInt()
 	}
 }
 

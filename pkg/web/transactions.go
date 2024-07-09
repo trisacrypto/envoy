@@ -12,6 +12,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 
@@ -276,7 +277,7 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"TransactionID": transactionID},
+		HTMLData: scene.Scene{"TransactionID": transactionID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "transaction_delete.html",
 	})

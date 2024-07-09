@@ -11,7 +11,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 )
 
 func (s *Server) ListUsers(c *gin.Context) {
@@ -107,8 +108,8 @@ func (s *Server) CreateUser(c *gin.Context) {
 
 	// Create a password for the user -- the user cannot specify one themselves, but
 	// the password will be returned to the user after the API call.
-	password = auth.AlphaNumeric(12)
-	if user.Password, err = auth.CreateDerivedKey(password); err != nil {
+	password = passwords.AlphaNumeric(12)
+	if user.Password, err = passwords.CreateDerivedKey(password); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete create user request"))
 		return
@@ -130,7 +131,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	}
 
 	// Ensure the created password is returned back to the user
-	out.Passsword = password
+	out.Password = password
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
@@ -290,8 +291,66 @@ func (s *Server) DeleteUser(c *gin.Context) {
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: gin.H{"UserID": userID},
+		HTMLData: scene.Scene{"UserID": userID},
 		JSONData: api.Reply{Success: true},
 		HTMLName: "user_delete.html",
+	})
+}
+
+func (s *Server) ChangeUserPassword(c *gin.Context) {
+	var (
+		err        error
+		userID     ulid.ULID
+		in         *api.UserPassword
+		derivedKey string
+	)
+
+	// Parse the userID from the URL
+	if userID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("user not found"))
+		return
+	}
+
+	// Parse the user data for the update request
+	in = &api.UserPassword{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse password change request"))
+		return
+	}
+
+	// Validation
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Create derived key from requested password reset
+	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	// Set the password for the specified user
+	if err = s.store.SetUserPassword(c.Request.Context(), userID, derivedKey); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("user not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete change user password request"))
+		return
+	}
+
+	// TODO: email the user the password if requested
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: scene.Scene{"UserID": userID},
+		JSONData: api.Reply{Success: true},
+		HTMLName: "user_password_changed.html",
 	})
 }

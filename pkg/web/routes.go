@@ -96,12 +96,14 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/about", authenticate, s.About)
+	s.router.GET("/profile", authenticate, s.UserProfile)
 	s.router.GET("/transactions", authenticate, s.Transactions)
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)
+	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
-	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
+	s.router.GET("/users", authenticate, s.UsersManagement)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
@@ -124,6 +126,9 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/login", s.Login)
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
+
+		// User Profile Management
+		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource
 		accounts := v1.Group("/accounts", authenticate)
@@ -195,6 +200,7 @@ func (s *Server) setupRoutes() (err error) {
 			users.GET("/:id", authorize(permiss.UsersView), s.UserDetail)
 			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
 			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
+			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
 		}
 
 		// Utilities
