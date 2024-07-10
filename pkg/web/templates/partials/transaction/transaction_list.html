@@ -1,5 +1,5 @@
-<div>
-  <table class="table">
+<div class="table-container">
+  <table class="table table-xs">
     <thead class="font-bold text-base text-black">
       <tr class="text-center text-balance">
         <th>Preview</th>
@@ -125,7 +125,7 @@
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
+            <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 text-sm shadow bg-black font-semibold text-white rounded-box">
               <li><a href="/transactions/{{ .ID }}/info">View</a></li>
               {{ if eq .Source "remote" }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
