@@ -1,4 +1,4 @@
-{{ $canManageTransactions := not .IsViewOnly }}
+{{ $canMngTrans := not .IsViewOnly }}
 {{- with .TransactionsList -}}
 <div>
   <table class="table">
@@ -129,9 +129,11 @@
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
               <li><a href="/transactions/{{ .ID }}/info">View</a></li>
-              {{ if and (eq .Source "remote") ($canManageTransactions) }}
+              {{ if $canMngTrans }}
+              {{ if eq .Source "remote" }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
               <li><a href="/transactions/{{ .ID }}/info">Reject</a></li>
+              {{ end }}
               <li><a>Archive</a></li>
               {{ end }}
             </ul>

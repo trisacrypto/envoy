@@ -146,3 +146,12 @@ func (s Scene) TransactionsList() *api.TransactionsList {
 	}
 	return nil
 }
+
+func (s Scene) TransactionDetail() *api.Transaction {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.Transaction); ok {
+			return out
+		}
+	}
+	return nil
+}

@@ -179,6 +179,7 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: template,
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
