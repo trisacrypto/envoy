@@ -137,3 +137,12 @@ func (s Scene) CounterpartyList() *api.CounterpartyList {
 	}
 	return nil
 }
+
+func (s Scene) TransactionsList() *api.TransactionsList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.TransactionsList); ok {
+			return out
+		}
+	}
+	return nil
+}
