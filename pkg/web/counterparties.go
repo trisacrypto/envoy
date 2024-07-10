@@ -51,6 +51,7 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "counterparty_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 

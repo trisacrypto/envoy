@@ -8,6 +8,7 @@ package scene
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
 
@@ -20,6 +21,7 @@ const (
 	Page            = "Page"
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
+	APIData         = "APIData"
 )
 
 type Scene map[string]interface{}
@@ -49,15 +51,32 @@ func New(c *gin.Context) Scene {
 	return context
 }
 
-func (s Scene) Update(o Scene) {
+func (s Scene) Update(o Scene) Scene {
 	for key, val := range o {
 		s[key] = val
 	}
+	return s
 }
 
-func (s Scene) HasRole(role string) bool {
-	if user := s.GetUser(); user != nil {
-		return user.Role == role
+func (s Scene) WithAPIData(data interface{}) Scene {
+	s[APIData] = data
+	return s
+}
+
+//===========================================================================
+// Scene User Related Helpers
+//===========================================================================
+
+// Role string constants
+const (
+	RoleAdmin      = "Admin"
+	RoleCompliance = "Compliance"
+	RoleObserver   = "Observer"
+)
+
+func (s Scene) IsAuthenticated() bool {
+	if isauths, ok := s[IsAuthenticated]; ok {
+		return isauths.(bool)
 	}
 	return false
 }
@@ -73,15 +92,48 @@ func (s Scene) GetUser() *auth.Claims {
 	return nil
 }
 
-func (s Scene) IsAuthenticated() bool {
-	if isauths, ok := s[IsAuthenticated]; ok {
-		return isauths.(bool)
+func (s Scene) HasRole(role string) bool {
+	if user := s.GetUser(); user != nil {
+		return user.Role == role
 	}
 	return false
 }
 
-func GetAuthUserRole(c *gin.Context) string {
-	ctx := New(c)
-	user := ctx.GetUser()
-	return user.Role
+func (s Scene) IsAdmin() bool {
+	return s.HasRole(RoleAdmin)
+}
+
+func (s Scene) IsViewOnly() bool {
+	return s.HasRole(RoleObserver)
+}
+
+//===========================================================================
+// Scene API Data Related Helpers
+//===========================================================================
+
+func (s Scene) AccountsList() *api.AccountsList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.AccountsList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
+func (s Scene) UserList() *api.UserList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.UserList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
+func (s Scene) CounterpartyList() *api.CounterpartyList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.CounterpartyList); ok {
+			return out
+		}
+	}
+	return nil
 }
