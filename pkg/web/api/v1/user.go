@@ -2,11 +2,17 @@ package api
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+)
+
+const (
+	DetailUser     = "user"
+	DetailPassword = "password"
 )
 
 type User struct {
@@ -21,13 +27,18 @@ type User struct {
 }
 
 type UserList struct {
-	Page  *PageQuery `json:"page"`
-	Users []*User    `json:"users"`
+	Page         *PageQuery `json:"page"`
+	Users        []*User    `json:"users"`
+	AuthUserRole string     `json:"user_role"`
 }
 
 type UserPassword struct {
 	Password  string `json:"password"`
 	SendEmail bool   `json:"send_email"`
+}
+
+type UserQuery struct {
+	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
 }
 
 func NewUser(model *models.User) (out *User, err error) {
@@ -119,6 +130,23 @@ func (u UserPassword) Validate() (err error) {
 	// Validate the password strength
 	if _, verr := passwords.Strength(u.Password); verr != nil {
 		err = ValidationError(err, IncorrectField("password", verr.Error()))
+	}
+
+	return err
+}
+
+//===========================================================================
+// User Query
+//===========================================================================
+
+func (q *UserQuery) Validate() (err error) {
+	q.Detail = strings.ToLower(strings.TrimSpace(q.Detail))
+	if q.Detail == "" {
+		q.Detail = DetailUser
+	}
+
+	if q.Detail != DetailUser && q.Detail != DetailPassword {
+		err = ValidationError(err, IncorrectField("detail", "should either be 'user' or 'password'"))
 	}
 
 	return err

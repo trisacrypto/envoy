@@ -1,7 +1,11 @@
+import { addEventListeners } from "./userProfile.js";
+import { setSuccessToast } from "./utils.js";
+
 const usersEP = '/v1/users';
 const newUserModal = document.getElementById('new_user_modal');
 const newUserForm = document.getElementById('new-user-form');
 const closeUserModal = document.getElementById('close-new-user-modal')
+const userModal = document.getElementById('user_modal');
 
 // Reset new user modal form if user closes the modal.
 if (closeUserModal) {
@@ -29,6 +33,29 @@ document.addEventListener('htmx:afterSettle', (e) => {
       });
     };
   };
+
+  // Get user ID, if it exists, after the DOM settles.
+  const userID = document.getElementById('user-id');
+  const userDetailEP = `/v1/users/${userID?.value}?detail=password`;
+
+  if (e.detail.requestConfig.path === userDetailEP && e.detail.requestConfig.verb === 'get') {
+    const passwordInput = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm-password');
+    const changePasswordBtn = document.getElementById('change-password-btn');
+
+    // TODO: Convert to a reusable function for password matching.
+    const checkPasswords = () => {
+      if (passwordInput?.value == confirmPassword?.value && passwordInput?.value != '') {
+        changePasswordBtn?.removeAttribute('disabled');
+      } else {
+        changePasswordBtn?.setAttribute('disabled', 'true');
+      };
+    };
+
+    // TODO: Should input also be included in the events lists?
+    addEventListeners(passwordInput, 'change keyup paste cut', checkPasswords);
+    addEventListeners(confirmPassword, 'change keyup paste cut', checkPasswords);
+  };
 });
 
 function copyUserPassword() {
@@ -45,7 +72,7 @@ function copyUserPassword() {
     copyIcon.classList.remove('fa-circle-check');
     copyIcon.classList.add('fa-copy');
   }, 1000);
-}
+};
 
 // Add code to run after htmx:afterRequest event.
 document.addEventListener('htmx:afterRequest', (e) => {
@@ -53,16 +80,19 @@ document.addEventListener('htmx:afterRequest', (e) => {
     // Close the add user modal and reset the form.
     newUserModal.close();
     newUserForm.reset();
+    setSuccessToast('Success! The new user has been created.');
+  };
 
-    // Display success toast message.
-    const successToast = document.getElementById('success-toast');
-    const successToastMsg = document.getElementById('success-toast-msg');
-    successToast.classList.remove('hidden');
-    successToastMsg.textContent = 'Success! The new user has been created.'
+  // Get user ID, if it exists, after the DOM settles.
+  const userID = document.getElementById('user-id');
+  const userChangePwd = `/v1/users/${userID?.value}/password`;
 
-    // Remove the toast after 5 seconds.
-    setTimeout(() => {
-      successToast.classList.add('hidden');
-    }, 5000);
-  }
-})
+  if (e.detail.requestConfig.path === userChangePwd && e.detail.requestConfig.verb === 'post') {
+    userModal.close();
+  };
+
+  if (e.detail.requestConfig.path === userChangePwd && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    userModal.close();
+    setSuccessToast('Success! The password has been changed.');
+  };
+});

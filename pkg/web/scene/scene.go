@@ -79,3 +79,9 @@ func (s Scene) IsAuthenticated() bool {
 	}
 	return false
 }
+
+func GetAuthUserRole(c *gin.Context) string {
+	ctx := New(c)
+	user := ctx.GetUser()
+	return user.Role
+}

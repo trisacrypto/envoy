@@ -1,3 +1,4 @@
+{{ $role := .AuthUserRole }}
 <div>
   <table class="table">
     <thead class="font-bold text-base text-black">
@@ -7,8 +8,9 @@
         <th>Role</th>
         <th>Created</th>
         <th>Last Login</th>
-         <!-- TODO: Make visible to admin users only -->
+        {{ if eq $role "Admin" }}
         <th>Actions</th>
+        {{ end }}
       </tr>
     </thead>
     <tbody>
@@ -26,15 +28,16 @@
         {{ else }}
         <td>&mdash;</td>
         {{ end }}
-        <!-- TODO: Make visible to admin users only -->
+        {{ if eq $role "Admin" }}
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-              <li><a>Change Password</a></li>
+              <li><a onclick="user_modal.showModal()" hx-get="/v1/users/{{ .ID }}?detail=password" hx-target="#user_modal" hx-swap="innerHTML">Change Password</a></li>
             </ul>
           </div>
         </td>
+        {{ end }}
       </tr>
       {{ end }}
       {{ else }}
