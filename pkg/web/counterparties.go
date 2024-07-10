@@ -47,7 +47,7 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 		return
 	}
 
-	// Check if user has permission to perform action in the list table.
+	// Add whether the authenticated user has permission to perform specific actions to the response.
 	permission := scene.HasPermission(c)
 	out.HasPermission = permission
 
