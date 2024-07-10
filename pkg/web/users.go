@@ -183,6 +183,7 @@ func (s *Server) UserDetail(c *gin.Context) {
 	}
 
 	// Determine the HTML template to render based on the query
+	// NOTE: if no query is provided, the UserQuery defaults to 'user'
 	var template string
 	switch query.Detail {
 	case api.DetailUser:
