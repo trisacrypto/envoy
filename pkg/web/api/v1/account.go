@@ -42,8 +42,9 @@ type CryptoAddress struct {
 }
 
 type AccountsList struct {
-	Page     *PageQuery `json:"page"`
-	Accounts []*Account `json:"accounts"`
+	Page          *PageQuery `json:"page"`
+	Accounts      []*Account `json:"accounts"`
+	HasPermission bool       `json:"permission"`
 }
 
 type CryptoAddressList struct {

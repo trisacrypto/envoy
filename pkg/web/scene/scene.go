@@ -20,6 +20,9 @@ const (
 	Page            = "Page"
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
+	UserAdmin       = "Admin"
+	UserCompliance  = "Compliance"
+	UserObserver    = "Observer"
 )
 
 type Scene map[string]interface{}
@@ -84,4 +87,9 @@ func GetAuthUserRole(c *gin.Context) string {
 	ctx := New(c)
 	user := ctx.GetUser()
 	return user.Role
+}
+
+func HasPermission(c *gin.Context) bool {
+	role := GetAuthUserRole(c)
+	return role != UserObserver
 }
