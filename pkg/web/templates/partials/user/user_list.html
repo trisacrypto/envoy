@@ -1,4 +1,5 @@
-{{ $isAdmin := .IsAdmin }}
+{{- $isAdmin := .IsAdmin -}}
+{{- with .UserList -}}
 <div>
   <table class="table">
     <thead class="font-bold text-base text-black">
@@ -48,3 +49,4 @@
     </tbody>
   </table>
 </div>
+{{- end }}

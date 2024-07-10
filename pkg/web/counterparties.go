@@ -47,14 +47,11 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 		return
 	}
 
-	// Add whether the authenticated user has permission to perform specific actions to the response.
-	permission := scene.HasPermission(c)
-	out.HasPermission = permission
-
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "counterparty_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 

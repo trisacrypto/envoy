@@ -49,15 +49,12 @@ func (s *Server) ListAccounts(c *gin.Context) {
 		return
 	}
 
-	// Add authenticated user's role to the response.
-	permission := scene.HasPermission(c)
-	out.HasPermission = permission
-
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "account_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 

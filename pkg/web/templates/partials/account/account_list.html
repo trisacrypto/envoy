@@ -1,4 +1,5 @@
-{{ $hasPermission := .HasPermission }}
+{{ $canEditAccounts := not .IsViewOnly }}
+{{- with .AccountsList -}}
 <div>
   <table class="table overflow-x-auto">
     <thead class="font-bold text-base text-black">
@@ -27,7 +28,7 @@
             <div class="dropdown">
               <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-                {{ if $hasPermission }}
+                {{ if $canEditAccounts }}
                 <li><a id="edit-acct-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML">Edit</a></li>
                 {{ end }}
                 <li><a id="acct-detail-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_modal" hx-swap="innerHTML">View</a></li>
@@ -44,3 +45,4 @@
     </tbody>
   </table>
 </div>
+{{- end }}

@@ -27,9 +27,8 @@ type User struct {
 }
 
 type UserList struct {
-	Page    *PageQuery `json:"page"`
-	Users   []*User    `json:"users"`
-	IsAdmin bool       `json:"is_admin"`
+	Page  *PageQuery `json:"page"`
+	Users []*User    `json:"users"`
 }
 
 type UserPassword struct {

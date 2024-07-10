@@ -1,4 +1,5 @@
-{{ $hasPermission := .HasPermission }}
+{{- $canEditAccounts := not .IsViewOnly -}}
+{{- with .CounterpartyList -}}
 <div>
   <table class="table overflow-x-auto">
     <thead class="font-bold text-base text-black">
@@ -25,7 +26,7 @@
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-              {{ if and (eq .Source "user") ($hasPermission) }}
+              {{ if and (eq .Source "user") ($canEditAccounts) }}
               <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">Edit</a></li>
               {{ end }}
               <li><a>View</a></li>
@@ -42,3 +43,4 @@
     </tbody>
   </table>
 </div>
+{{- end }}
