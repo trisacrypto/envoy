@@ -10,9 +10,9 @@
           <span>Transaction ID: {{ .ID }}</span>
         </div>
           <div class="flex gap-x-4">
-           {{ if eq .Source "remote" }}
+           {{ if and (eq .Source "remote") (ne .Status "completed") }}
             <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Accept</a>
-            <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-3 bg-warning font-semibold text-white md:p-2 hover:bg-warning/80">Reject</button>
+            <button onclick="transaction_rejection_modal.showModal()" class="p-1 rounded w-32 bg-warning font-semibold text-white md:p-2 hover:bg-warning/80">Reject</button>
             {{ end }}
             <button onclick="transaction_modal.close()" class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
             <button onclick="transaction_modal.close()" class="p-1 rounded w-32 bg-black font-semibold text-white md:p-2 hover:bg-black/80">Close</button>
@@ -28,28 +28,24 @@
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Status</th>
-                {{ if .Status }}
-                <td class="envelope-data">{{ .Status }}</td>
-                {{ else }}
-                <td class="envelope-data">-</td>
-                {{ end }}
+                <td class="envelope-data">{{ if .Status }} {{ .TitleStatus }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Date Created</th>
                 {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
-                <td class="envelope-data text-balance" id="date-created">{{ $created }}</td>
+                <td class="envelope-data text-balance" id="date-created">{{ if .Created }} {{ $created }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Network</th>
-                <td class="envelope-data" id="transfer-network">{{ .VirtualAsset }}</td>
+                <td class="envelope-data" id="transfer-network">{{ if .VirtualAsset }} {{ .VirtualAsset }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Transfer Amount</th>
-                <td class="envelope-data" id="transfer-amt">{{ .Amount }}</td>
+                <td class="envelope-data" id="transfer-amt">{{ if .Amount }} {{ .Amount }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Memo/Tag</th>
-                <td class="envelope-data text-balance" id="transfer-tag">-</td>
+                <td class="envelope-data text-balance" id="transfer-tag">N/A</td>
               </tr>
             </table>
           </section>
@@ -63,18 +59,18 @@
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">VASP Name</th>
-                <td class="envelope-data" id="orig-name">{{ .Counterparty }}</td>
-                <td class="envelope-data" id="benf-name">&mdash;</td>
+                <td class="envelope-data" id="orig-name">{{ if .Counterparty }} {{ .Counterparty }} {{ else }} N/A {{ end }}</td>
+                <td class="envelope-data" id="benf-name">N/A</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Name</th>
-                <td class="envelope-data" id="orig-name">{{ .Originator }}</td>
-                <td class="envelope-data" id="benf-name">{{ .Beneficiary }}</td>
+                <td class="envelope-data" id="orig-name">{{ if .Originator }} {{ .Originator }} {{ else }} N/A {{ end }}</td>
+                <td class="envelope-data" id="benf-name">{{ if .Beneficiary }} {{ .Beneficiary }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Wallet Address</th>
-                <td class="envelope-data" id="orig-wallet-addr">{{ .OriginatorAddress }}</td>
-                <td class="envelope-data" id="benf-wallet-addr">{{ .BeneficiaryAddress }}</td>
+                <td class="envelope-data" id="orig-wallet-addr">{{ if .OriginatorAddress }} {{ .OriginatorAddress }} {{ else }} N/A {{ end }}</td>
+                <td class="envelope-data" id="benf-wallet-addr">{{ if .BeneficiaryAddress }} {{ .BeneficiaryAddress }} {{ else }} N/A {{ end }}</td>
               </tr>
             </table>
           </section>

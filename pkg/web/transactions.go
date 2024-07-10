@@ -168,7 +168,7 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	case api.DetailFull:
 		template = "transaction_detail.html"
 	case api.DetailPreview:
-		template = "transaction_preview.html"
+		template = "transaction_info.html"
 	default:
 		c.Error(fmt.Errorf("unhandled detail query '%q'", query.Detail))
 		template = "transaction_detail.html"
