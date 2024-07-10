@@ -47,6 +47,10 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 		return
 	}
 
+	// Check if user has permission to perform action in the list table.
+	permission := scene.HasPermission(c)
+	out.HasPermission = permission
+
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,

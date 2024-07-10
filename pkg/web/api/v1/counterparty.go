@@ -42,6 +42,7 @@ type Counterparty struct {
 type CounterpartyList struct {
 	Page           *PageQuery      `json:"page"`
 	Counterparties []*Counterparty `json:"counterparties"`
+	HasPermission  bool            `json:"permission"`
 }
 
 func NewCounterparty(model *models.Counterparty) (out *Counterparty, err error) {
