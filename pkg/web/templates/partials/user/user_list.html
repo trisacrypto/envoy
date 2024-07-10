@@ -1,4 +1,4 @@
-{{ $role := .AuthUserRole }}
+{{ $isAdmin := .IsAdmin }}
 <div>
   <table class="table">
     <thead class="font-bold text-base text-black">
@@ -8,7 +8,7 @@
         <th>Role</th>
         <th>Created</th>
         <th>Last Login</th>
-        {{ if eq $role "Admin" }}
+        {{ if $isAdmin }}
         <th>Actions</th>
         {{ end }}
       </tr>
@@ -28,7 +28,7 @@
         {{ else }}
         <td>&mdash;</td>
         {{ end }}
-        {{ if eq $role "Admin" }}
+        {{ if $isAdmin }}
         <td>
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>

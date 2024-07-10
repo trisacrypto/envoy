@@ -76,6 +76,11 @@ func (s Scene) GetUser() *auth.Claims {
 	return nil
 }
 
+func IsAdmin(c *gin.Context) bool {
+	role := GetAuthUserRole(c)
+	return role == UserAdmin
+}
+
 func (s Scene) IsAuthenticated() bool {
 	if isauths, ok := s[IsAuthenticated]; ok {
 		return isauths.(bool)

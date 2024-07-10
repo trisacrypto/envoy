@@ -49,8 +49,8 @@ func (s *Server) ListUsers(c *gin.Context) {
 		return
 	}
 
-	role := scene.GetAuthUserRole(c)
-	out.AuthUserRole = role
+	role := scene.IsAdmin(c)
+	out.IsAdmin = role
 
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
