@@ -32,9 +32,7 @@
     <ul tabindex="0" class="dropdown-content z-[1] bg-black text-white shadow menu menu-sm p-2 rounded-box w-52 font-semibold">
       <li><a href="/profile"><i class="fa-solid fa-user-gear"></i>User Profile</a></li>
       <li><a href="/about"><i class="fa-solid fa-gear"></i>Node Configuration</a></li>
-      {{ if .HasRole "Admin" }}
       <li><a href="/users"><i class="fa-solid fa-users"></i>Users Management</a></li>
-      {{ end }}
       <li><a href="/utilities/travel-address"><i class="fa-solid fa-suitcase"></i>Travel Addresses</a></li>
       <li><a href="/logout" id="logout-bttn"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
     </ul>

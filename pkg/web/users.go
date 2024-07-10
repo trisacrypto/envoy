@@ -49,6 +49,9 @@ func (s *Server) ListUsers(c *gin.Context) {
 		return
 	}
 
+	role := scene.GetAuthUserRole(c)
+	out.AuthUserRole = role
+
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
