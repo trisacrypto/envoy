@@ -120,6 +120,15 @@ func (s Scene) AccountsList() *api.AccountsList {
 	return nil
 }
 
+func (s Scene) AccountDetail() *api.Account {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.Account); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) UserList() *api.UserList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.UserList); ok {
