@@ -145,6 +145,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "account_detail.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 

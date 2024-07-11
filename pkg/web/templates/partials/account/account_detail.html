@@ -1,3 +1,5 @@
+{{ $canEditAcct := not .IsViewOnly }}
+{{ with .AccountDetail }}
 <div class="modal-box max-w-3xl">
   <div class="mb-4 flex justify-between items-center">
     <h1 class="font-bold text-xl">Customer Details</h1>
@@ -38,7 +40,10 @@
   </dl>
   {{ end }}
   {{ end }}
+  {{ if $canEditAcct }}
   <div class="mt-8 flex justify-center">
     <button id="edit-acct-bttn" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML" class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Edit</button>
   </div>
+  {{ end }}
 </div>
+{{ end }}
