@@ -57,7 +57,7 @@ const createTransactionSQL = "INSERT INTO transactions (id, source, status, coun
 
 func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Transaction) (err error) {
 	// Basic validation
-	if transaction.ID == uuid.Nil {
+	if transaction.ID != uuid.Nil {
 		return dberr.ErrNoIDOnCreate
 	}
 
