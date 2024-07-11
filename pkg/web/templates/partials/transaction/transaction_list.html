@@ -1,3 +1,5 @@
+{{ $canMngTrans := not .IsViewOnly }}
+{{- with .TransactionsList -}}
 <div class="table-container">
   <table class="table table-sm">
     <thead class="font-bold text-base text-black">
@@ -127,11 +129,13 @@
             <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
             <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 text-sm shadow bg-black font-semibold text-white rounded-box">
               <li><a href="/transactions/{{ .ID }}/info">View</a></li>
+              {{ if $canMngTrans }}
               {{ if eq .Source "remote" }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
               <li><a href="/transactions/{{ .ID }}/info">Reject</a></li>
               {{ end }}
               <li><a>Archive</a></li>
+              {{ end }}
             </ul>
           </div>
         </td>
@@ -145,3 +149,4 @@
     </tbody>
   </table>
 </div>
+{{- end }}

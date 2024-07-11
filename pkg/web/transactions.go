@@ -64,6 +64,7 @@ func (s *Server) ListTransactions(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "transaction_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
@@ -178,6 +179,7 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: template,
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
