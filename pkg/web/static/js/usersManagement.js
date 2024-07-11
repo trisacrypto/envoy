@@ -23,14 +23,15 @@ document.addEventListener('htmx:afterSettle', (e) => {
       copyPasswordBtn.addEventListener('click', copyUserPassword);
     };
 
-    // Copy the new user password to the clipboard if user clicks the close button.
-    const closePwdModalBtn = document.getElementById('close-pwd-modal');
+    // Copy the new user password to the clipboard if user clicks a close button.
+    const closePwdModalBtn = document.querySelectorAll('.close-pwd-modal');
     if (closePwdModalBtn) {
-      closePwdModalBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        copyUserPassword();
-        document.getElementById('user_pwd_modal').close();
-      });
+      closePwdModalBtn.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          copyUserPassword();
+        });
+      })
     };
   };
 
