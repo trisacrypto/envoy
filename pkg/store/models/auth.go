@@ -58,6 +58,7 @@ func (u User) Role() (*Role, error) {
 
 func (u *User) SetRole(role *Role) {
 	u.role = role
+	u.RoleID = role.ID
 }
 
 func (u User) Permissions() []string {
