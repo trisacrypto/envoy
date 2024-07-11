@@ -104,7 +104,7 @@ func (s Scene) IsAdmin() bool {
 }
 
 func (s Scene) IsViewOnly() bool {
-	return s.HasRole(RoleObserver)
+	return !s.HasRole(RoleAdmin) && !s.HasRole(RoleCompliance)
 }
 
 //===========================================================================
