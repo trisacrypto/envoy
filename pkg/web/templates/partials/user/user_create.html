@@ -1,10 +1,14 @@
-<dialog id="user_pwd_modal" class="modal" open>
+<dialog id="user_modal" class="modal" open>
   <div class="modal-box">
     <div class="flex justify-between items-center">
       <h1 class="font-bold text-xl">Your New User Has Been Created!</h1>
       <button
-        onclick="user_pwd_modal.close()"
-        class="btn btn-sm btn-circle btn-ghost"
+        type="button"
+        onclick="user_modal.close()"
+        class="close-pwd-modal btn btn-sm btn-circle btn-ghost"
+        hx-get="/v1/users"
+        hx-target="#users"
+        hx-swap="innerHTML"
       >
         <i class="fa-solid fa-x"></i>
         <span class="sr-only">Close modal</span>
@@ -30,12 +34,12 @@
       </div>
       <div class="pt-4 flex justify-center">
         <button
-          id="close-pwd-modal"
           type="button"
-          class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90"
+          onclick="user_modal.close()"
+          class="close-pwd-modal w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90"
           hx-get="/v1/users"
           hx-target="#users"
-          hx-swap="outerHTML"
+          hx-swap="innerHTML"
         >
           Close
         </button>
