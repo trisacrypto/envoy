@@ -3692,6 +3692,10 @@ body main {
   background-color: var(--fallback-wa,oklch(var(--wa)/0.8));
 }
 
+.hover\:bg-primary\/80:hover {
+  background-color: var(--fallback-p,oklch(var(--p)/0.8));
+}
+
 .hover\:text-primary:hover {
   --tw-text-opacity: 1;
   color: var(--fallback-p,oklch(var(--p)/var(--tw-text-opacity)));
