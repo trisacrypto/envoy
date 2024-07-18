@@ -63,26 +63,31 @@ function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
   switch (identifierDataID) {
     case 'legal-person-name-type':
+      // Add placeholder in case the legal name type value is empty.
       legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'address-identifier-type':
+      // Add placeholder in case the address type value is empty.
       addressTypeArray.unshift({ 'placeholder': true, 'text': 'Select an address type', 'value': '' });
       el.slim.setData(addressTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-ntl-id-type':
+      // Add placeholder in case the natural person identifier type value is empty.
       naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(naturalPersonNtlIdTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'national-identifier-type':
+      // Add placeholder in case the national identifier type value is empty.
       nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-name-type':
+      // Add placeholder in case the natural person name type value is empty.
       naturalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(naturalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
