@@ -12,6 +12,9 @@ document.body.addEventListener('htmx:afterSettle', () => {
   // Set the list of options in the network dropdown and display the value selected by the requester.
   const networkEl = document.getElementById('selected-network');
   const networkValue = networkEl?.value;
+  // Add placeholder in case the network value is empty. Importing the options with the placeholder 
+  // from the constants file resulted in the options not being displayed.
+  networksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
   transactionNetwork.setData(networksArray);
   transactionNetwork.setSelected(networkValue);
 
@@ -50,6 +53,9 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
 // Set the country options and selected value in a SlimSelect dropdown for each country selection.
 function setCountryData(el, value) {
+  // Add placeholder in case the country value is empty. Importing the options with the placeholder 
+  // from the constants file resulted in the options not being displayed.
+  countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
   el.slim.setData(countriesArray)
   el.slim.setSelected(value)
 }
@@ -59,22 +65,37 @@ function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
   switch (identifierDataID) {
     case 'legal-person-name-type':
+      // Add placeholder in case the legal name type value is empty. Importing the options with the placeholder 
+      // from the constants file resulted in the options not being displayed.
+      legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'address-identifier-type':
+      // Add placeholder in case the address type value is empty. Importing the options with the placeholder
+      // from the constants file resulted in the options not being displayed.
+      addressTypeArray.unshift({ 'placeholder': true, 'text': 'Select an address type', 'value': '' });
       el.slim.setData(addressTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-ntl-id-type':
+      // Add placeholder in case the natural person identifier type value is empty. Importing the options with the placeholder
+      // from the constants file resulted in the options not being displayed.
+      naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(naturalPersonNtlIdTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'national-identifier-type':
+      // Add placeholder in case the national identifier type value is empty. Importing the options with the placeholder 
+      // from the constants file resulted in the options not being displayed.
+      nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-name-type':
+      // Add placeholder in case the natural person name type value is empty. Importing the options with the placeholder
+      // from the constants file resulted in the options not being displayed.
+      naturalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(naturalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
       break;
