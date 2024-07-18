@@ -63,22 +63,27 @@ function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
   switch (identifierDataID) {
     case 'legal-person-name-type':
+      legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'address-identifier-type':
+      addressTypeArray.unshift({ 'placeholder': true, 'text': 'Select an address type', 'value': '' });
       el.slim.setData(addressTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-ntl-id-type':
+      naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(naturalPersonNtlIdTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'national-identifier-type':
+      nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
       el.slim.setSelected(identifier.value)
       break;
     case 'natural-person-name-type':
+      naturalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(naturalPersonNameTypeArray)
       el.slim.setSelected(identifier.value)
       break;
