@@ -12,6 +12,8 @@ document.body.addEventListener('htmx:afterSettle', () => {
   // Set the list of options in the network dropdown and display the value selected by the requester.
   const networkEl = document.getElementById('selected-network');
   const networkValue = networkEl?.value;
+  // Add placeholder in case the network value is empty.
+  networksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
   transactionNetwork.setData(networksArray);
   transactionNetwork.setSelected(networkValue);
 
@@ -50,6 +52,8 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
 // Set the country options and selected value in a SlimSelect dropdown for each country selection.
 function setCountryData(el, value) {
+  // Add placeholder in case the country value is empty.
+  countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
   el.slim.setData(countriesArray)
   el.slim.setSelected(value)
 }
