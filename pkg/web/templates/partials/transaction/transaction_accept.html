@@ -166,7 +166,7 @@
         <div class="my-4">
           <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
           <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
-          <input type="hidden" class="originator_id_country_of_issue" value="" />
+          <input type="hidden" class="originator_id_country_of_issue" value="{{ $originatorNationalIdentification.CountryOfIssue }}" />
         </div>
         {{ else }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
