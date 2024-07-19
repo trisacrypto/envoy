@@ -46,11 +46,11 @@
           <dl>
             <div class="grid md:grid-cols-2">
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Originator</dt>
+                <dt class="font-semibold">Originator Wallet Address</dt>
                 <dd>{{ if .Transaction.Originator }} {{ .Transaction.Originator }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Beneficiary</dt>
+                <dt class="font-semibold">Beneficiary Wallet Address</dt>
                 <dd>{{ if .Transaction.Beneficiary }} {{ .Transaction.Beneficiary }} {{ else }} N/A {{ end }}</dd>
               </div>
             </div>
@@ -64,7 +64,7 @@
                 <dd>{{ if .Transaction.Network }} {{ .Transaction.Network }} {{ else }} N/A {{ end }}</dd>
               </div>
               <div class="transaction-preview-container">
-                <dt class="font-semibold">Travel Address</dt>
+                <dt class="font-semibold">Beneficiary Travel Address</dt>
                 <dd class="max-w-sm break-words">
                   {{ if .TravelAddress }} {{ .TravelAddress }} {{ else }} N/A {{ end }}</dd>
               </div>

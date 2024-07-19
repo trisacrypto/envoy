@@ -3640,15 +3640,6 @@ body main {
   display: inline;
 }
 
-/* Set a media query for the transaction list table */
-
-@media (max-width: 1536px) {
-  .table-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-}
-
 @media (min-width: 768px) {
   .md\:tooltip-right:before {
     transform: translateY(-50%);
