@@ -44,3 +44,25 @@ document.body.addEventListener('htmx:responseError', (e) => {
     }, 5000)
   }
 })
+
+/*
+ * Timestamp handling: localizes and formats datetimes on the page.
+ */
+const updateDatetimes = (e) => {
+  const options = {};
+  const dtfmt = Intl.DateTimeFormat(navigator.languages, {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: 'numeric', minute:'numeric', second: 'numeric',
+    hour12: false, timeZoneName: "short",
+  });
+
+  const datetimes = document.querySelectorAll('.datetime');
+  datetimes?.forEach(elem => {
+    const dt = new Date(elem.textContent);
+    elem.textContent = dtfmt.format(dt);
+    elem.classList.remove('datetime');
+  });
+};
+
+document.addEventListener('DOMContentLoaded', updateDatetimes);
+document.body.addEventListener('htmx:afterSettle', updateDatetimes);
