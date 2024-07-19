@@ -21,10 +21,10 @@
         <td>{{ .Name }}</td>
         <td>{{ .Email }}</td>
         <td>{{ .Role }}</td>
-        {{ $created := .Created.Format "January 2, 2006 15:04:05 -0700" }}
+        {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
         <td>{{ $created }}</td>
         {{ if .LastLogin }}
-        {{ $lastLogin := .LastLogin.Format "January 2, 2006 15:04:05 -0700" }}
+        {{ $lastLogin := .LastLogin.Format "January 2, 2006 15:04:05" }}
         <td>{{ $lastLogin }}</td>
         {{ else }}
         <td>&mdash;</td>
