@@ -30,6 +30,8 @@ tags:
     description: Counterparties to exchange travel rule information with using TRISA or TRP protocols.
   - name: secure_envelope
     description: Secure Envelopes provide an audit record of travel rule exchanges with a counterparty.
+  - name: user
+    description: User management.
   - name: utility
     description: Other useful methods.
 paths:
@@ -950,6 +952,142 @@ paths:
           description: Successful operation
         '404':
           description: Counterparty not found
+  /v1/users:
+    get:
+      tags:
+        - user
+      summary: List users
+      description: Paginated list of all  users
+      operationId: listUsers
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: next_page_token
+          in: query
+          schema:
+            type: string
+        - name: prev_page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: Create a new user
+      operationId: createUser
+      security:
+        - bearer-auth: [ ]
+      requestBody:
+        description: Create a new user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception or missing field
+  /v1/users/{userID}:
+    get:
+      tags:
+        - user
+      summary: Find user by ID
+      description: Returns a single user if found
+      operationId: userDetail
+      security:
+        - bearer-auth: [ ]
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user to return
+          required: true
+          schema:
+            type: string
+            format: ULID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+      put:
+        tags:
+          - user
+        summary: Updates a user record
+        description: Update a user record (does not patch, all fields are required)
+        operationId: updateUser
+        security:
+          - bearer-auth: [ ]
+        parameters:
+          - name: userID
+            in: path
+            description: ID of user to update
+            required: true
+            schema:
+              type: string
+              format: ULID
+        requestBody:
+          description: Updated user record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          required: true
+        responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/User'
+          '400':
+            description: Invalid input
+          '422':
+            description: Validation exception or missing field
+        delete:
+          tags:
+            - user
+          summary: Deletes a user
+          description: Deletes a user
+          operationId: deleteUser
+          security:
+            - bearer-auth: [ ]
+          parameters:
+            - name: userID
+              in: path
+              description: ID of user to delete
+              required: true
+              schema:
+                type: string
+                format: ULID
+          responses:
+            '200':
+              description: Successful operation
+            '404':
+              description: User not found
   /v1/utilities/travel-address/encode:
     post:
       tags:
@@ -1625,6 +1763,48 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Counterparty'
+    User:
+      type: object
+      description: The user object.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the user.
+        name:
+          type: string
+          description: The name of the user.
+        email:
+          type: string
+          description: The email address of the user.
+        password:
+          type: string
+          description: The password of the user.
+        role:
+          type: string
+          description: The role of the user.
+        last_login:
+          type: string
+          format: date-time
+          description: The date and time when the user last logged in.
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the user was created.
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the user was last modified.
+    UserList:
+      type: object
+      description: The response object for the users endpoint.
+      properties:
+        page:
+          $ref: '#/components/schemas/PageQuery'
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
     TravelAddress:
       type: object
       description: The travel address object.
