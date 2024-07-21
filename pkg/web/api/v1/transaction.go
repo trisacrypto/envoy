@@ -69,13 +69,19 @@ type SecureEnvelope struct {
 }
 
 type Envelope struct {
-	EnvelopeID  string                   `json:"envelope_id,omitempty"`
-	Error       *trisa.Error             `json:"error,omitempty"`
-	Identity    *ivms101.IdentityPayload `json:"identity,omitempty"`
-	Transaction *generic.Transaction     `json:"transaction,omitempty"`
-	Pending     *generic.Pending         `json:"pending,omitempty"`
-	SentAt      *time.Time               `json:"sent_at"`
-	ReceivedAt  *time.Time               `json:"received_at,omitempty"`
+	ID                 ulid.ULID                `json:"id"`
+	Direction          string                   `json:"direction"`
+	EnvelopeID         string                   `json:"envelope_id,omitempty"`
+	IsError            bool                     `json:"is_error"`
+	Error              *trisa.Error             `json:"error,omitempty"`
+	Identity           *ivms101.IdentityPayload `json:"identity,omitempty"`
+	Transaction        *generic.Transaction     `json:"transaction,omitempty"`
+	Pending            *generic.Pending         `json:"pending,omitempty"`
+	SentAt             *time.Time               `json:"sent_at"`
+	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
+	Timestamp          time.Time                `json:"timestamp"`
+	PublicKeySignature string                   `json:"public_key_signature,omitempty"`
+	Original           []byte                   `json:"original,omitempty"`
 }
 
 type Rejection struct {
@@ -249,7 +255,6 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 	}
 
 	for _, model := range page.Envelopes {
-		// TODO: how to validate HMAC signature?
 		var env *SecureEnvelope
 		if env, err = NewSecureEnvelope(model); err != nil {
 			return nil, err
@@ -264,11 +269,28 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 // Envelopes
 //===========================================================================
 
-func NewEnvelope(env *envelope.Envelope) (out *Envelope, err error) {
-	out = &Envelope{EnvelopeID: env.ID()}
+func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Envelope, err error) {
+	out = &Envelope{
+		ID:                 model.ID,
+		Direction:          model.Direction,
+		EnvelopeID:         model.EnvelopeID.String(),
+		Timestamp:          model.Timestamp,
+		PublicKeySignature: model.PublicKey.String,
+	}
 
+	if out.Original, err = proto.Marshal(model.Envelope); err != nil {
+		return nil, err
+	}
+
+	// If the envelope is nil, it's likely because the envelope could not be decrypted.
+	if env == nil {
+		return out, nil
+	}
+
+	// Use the decrypted envelope to populate the payload.
 	switch state := env.State(); state {
 	case envelope.Error:
+		out.IsError = true
 		out.Error = env.Error()
 		return out, nil
 	case envelope.Clear:
@@ -308,6 +330,27 @@ func NewEnvelope(env *envelope.Envelope) (out *Envelope, err error) {
 
 	if out.ReceivedAt, err = parseTimestamp(payload.ReceivedAt); err != nil {
 		return nil, fmt.Errorf("could not parse received at timestamp: %s", err)
+	}
+
+	return out, nil
+}
+
+func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Envelope) (out *EnvelopesList, err error) {
+	if len(page.Envelopes) != len(envelopes) {
+		return nil, fmt.Errorf("page of %d secure envelopes does not match %d decrypted envelopes", len(page.Envelopes), len(envelopes))
+	}
+
+	out = &EnvelopesList{
+		Page:               &PageQuery{},
+		DecryptedEnvelopes: make([]*Envelope, 0, len(page.Envelopes)),
+	}
+
+	for i, model := range page.Envelopes {
+		var env *Envelope
+		if env, err = NewEnvelope(model, envelopes[i]); err != nil {
+			return nil, err
+		}
+		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)
 	}
 
 	return out, nil

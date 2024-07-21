@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/rs/zerolog/log"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
@@ -619,13 +620,26 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 		return
 	}
 
-	// TODO: implement decryption!
 	// TODO: handle archive queries
 	if in.Decrypt {
-		err = errors.New("envelope decryption not implemented yet")
-		c.Error(err)
-		c.JSON(http.StatusNotImplemented, api.Error(err))
-		return
+		envelopes := make([]*envelope.Envelope, 0, len(page.Envelopes))
+		for i, model := range page.Envelopes {
+			// Decrypt model and add it to the envelopes array
+			var env *envelope.Envelope
+			if env, err = s.Decrypt(model); err != nil {
+				// If an envelope cannot be decrypted the error is logged but a null
+				// envelope is returned instead of not returning any data.
+				log.Debug().Err(err).Int("envelope", i).Msg("envelope decryption failure")
+			}
+
+			envelopes = append(envelopes, env)
+		}
+
+		if out, err = api.NewEnvelopeList(page, envelopes); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error("could not process decrypted envelopes list request"))
+			return
+		}
 	} else {
 		if out, err = api.NewSecureEnvelopeList(page); err != nil {
 			c.Error(err)
@@ -648,7 +662,7 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 		transactionID uuid.UUID
 		envelopeID    ulid.ULID
 		model         *models.SecureEnvelope
-		out           *api.SecureEnvelope
+		out           any
 	)
 
 	in = &api.EnvelopeQuery{}
@@ -682,13 +696,22 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 		return
 	}
 
-	// TODO: handle decryption
 	// TODO: handle archive queries
+	code := http.StatusOK
 	if in.Decrypt {
-		err = errors.New("envelope decryption not implemented yet")
-		c.Error(err)
-		c.JSON(http.StatusNotImplemented, api.Error(err))
-		return
+		var env *envelope.Envelope
+		if env, err = s.Decrypt(model); err != nil {
+			// If we were unable to decrypt the envelope, use the partial content status
+			c.Error(err)
+			code = http.StatusPartialContent
+		}
+
+		if out, err = api.NewEnvelope(model, env); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+
 	} else {
 		if out, err = api.NewSecureEnvelope(model); err != nil {
 			c.Error(err)
@@ -697,7 +720,7 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 		}
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(code, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "secure_envelope_detail.html",

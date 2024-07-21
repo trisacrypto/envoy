@@ -209,15 +209,25 @@ func (s *Server) findCounterparty(ctx context.Context, uri *traddr.URL) (cp *mod
 }
 
 func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err error) {
-	// TODO: do we need the counterparty common name?
+	// No decryption is necessary if this is an error envelope
+	if in.IsError {
+		return envelope.Wrap(in.Envelope)
+	}
+
+	// Ensure that we have a public key to decrypt with
+	if !in.PublicKey.Valid {
+		return nil, ErrNoPublicKey
+	}
+
+	// TODO: pass in the common name from the model when the remote is stored there.
 	var unsealingKey keys.PrivateKey
 	if unsealingKey, err = s.trisa.UnsealingKey(in.PublicKey.String, ""); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not lookup unsealing key for secure envelope: %w", err)
 	}
 
 	var unseal interface{}
 	if unseal, err = unsealingKey.UnsealingKey(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not retrieve unsealing key for secure envelope: %w", err)
 	}
 
 	// If the direction is outgoing, update the keys on the envelope
