@@ -58,9 +58,11 @@ const updateDatetimes = (e) => {
 
   const datetimes = document.querySelectorAll('.datetime');
   datetimes?.forEach(elem => {
-    const dt = new Date(elem.textContent);
-    elem.textContent = dtfmt.format(dt);
-    elem.classList.remove('datetime');
+    if (elem.textContent !== '' || elem.textContent !== null) {
+      const dt = new Date(elem.textContent);
+      elem.textContent = dtfmt.format(dt);
+      elem.classList.remove('datetime');
+    }
   });
 };
 
