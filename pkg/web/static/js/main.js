@@ -66,5 +66,4 @@ const updateDatetimes = (e) => {
   });
 };
 
-document.addEventListener('DOMContentLoaded', updateDatetimes);
 document.body.addEventListener('htmx:afterSettle', updateDatetimes);
