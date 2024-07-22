@@ -53,7 +53,6 @@ document.addEventListener('htmx:afterSettle', (e) => {
       };
     };
 
-    // TODO: Should input also be included in the events lists?
     addEventListeners(passwordInput, 'input', checkPasswords);
     addEventListeners(confirmPassword, 'input', checkPasswords);
   };
