@@ -127,7 +127,7 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 					},
 				},
 				NationalIdentification: &ivms101.NationalIdentification{
-					NationalIdentifierType: p.Identification.ParseNationalIdentifierType(),
+					NationalIdentifierType: p.Identification.NationalIdentifierTypeCode(),
 					NationalIdentifier:     p.Identification.Number,
 					CountryOfIssue:         p.Identification.Country,
 				},
@@ -157,14 +157,10 @@ func (p *Prepared) Payload() (payload *trisa.Payload, err error) {
 	return payload, nil
 }
 
-func (i *Identification) ParseNationalIdentifierType() ivms101.NationalIdentifierTypeCode {
-	tc := strings.ToUpper(strings.TrimSpace(i.TypeCode))
-	if !strings.HasPrefix(tc, "NATIONAL_IDENTIFIER_TYPE_CODE") {
-		tc = "NATIONAL_IDENTIFIER_TYPE_CODE_" + tc
-	}
-
-	if val, ok := ivms101.NationalIdentifierTypeCode_value[tc]; ok {
-		return ivms101.NationalIdentifierTypeCode(val)
+func (i *Identification) NationalIdentifierTypeCode() ivms101.NationalIdentifierTypeCode {
+	i.TypeCode = strings.TrimSpace(i.TypeCode)
+	if tc, err := ivms101.ParseNationalIdentifierTypeCode(i.TypeCode); err == nil {
+		return tc
 	}
 	return ivms101.NationalIdentifierMISC
 }

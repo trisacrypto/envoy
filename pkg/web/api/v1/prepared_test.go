@@ -59,6 +59,6 @@ func TestParseNationalIdentifierType(t *testing.T) {
 
 	for i, tc := range testCases {
 		identification := &api.Identification{TypeCode: tc.input}
-		require.Equal(t, tc.expected, identification.ParseNationalIdentifierType(), "test case %d failed", i)
+		require.Equal(t, tc.expected, identification.NationalIdentifierTypeCode(), "test case %d failed", i)
 	}
 }
