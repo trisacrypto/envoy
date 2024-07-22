@@ -325,7 +325,7 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	if out, err = api.NewEnvelope(decrypted); err != nil {
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -349,7 +349,8 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		db           models.PreparedTransaction
 		payload      *trisa.Payload
 		outgoing     *envelope.Envelope
-		incoming     *envelope.Envelope
+		incoming     *models.SecureEnvelope
+		decrypted    *envelope.Envelope
 	)
 
 	ctx := c.Request.Context()
@@ -456,10 +457,24 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		return
 	}
 
-	// TODO: we need to get the incoming envelope in order for this to work!
+	// Retrieve the secure envelope model for the incoming envelope
+	if incoming, err = s.store.LatestSecureEnvelope(ctx, transaction.ID, models.DirectionIncoming); err != nil {
+		c.Error(fmt.Errorf("could not retrieve incoming secure envelope: %w", err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
+	// Decrypt the incoming secure envelope
+	// TODO: why are we decrypting the incoming secure envelope again?
+	if decrypted, err = s.Decrypt(incoming); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
 	// If the content request is JSON (e.g. the API) then render the incoming envelope
 	// as the response by decrypting it and sending it back to the user.
-	if out, err = api.NewEnvelope(incoming); err != nil {
+	if out, err = api.NewEnvelope(incoming, decrypted); err != nil {
 		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
@@ -482,7 +497,8 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		transaction  *models.Transaction
 		counterparty *models.Counterparty
 		outgoing     *envelope.Envelope
-		incoming     *envelope.Envelope
+		incoming     *models.SecureEnvelope
+		decrypted    *envelope.Envelope
 	)
 
 	ctx := c.Request.Context()
@@ -561,16 +577,35 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_reject.html",
-	})
+	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
+	// Set a cookie to show a toast message on the page redirect.
+	setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Auth.CookieDomain)
 
-	// TODO: we need to get the incoming envelope in order for this to work!
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page.
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+		htmx.Redirect(c, http.StatusFound, detailURL)
+		return
+	}
+
+	// Retrieve the secure envelope model for the incoming envelope
+	if incoming, err = s.store.LatestSecureEnvelope(ctx, transaction.ID, models.DirectionIncoming); err != nil {
+		c.Error(fmt.Errorf("could not retrieve incoming secure envelope: %w", err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
+	// Decrypt the incoming secure envelope
+	// TODO: why are we decrypting the incoming secure envelope again?
+	if decrypted, err = s.Decrypt(incoming); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
 	// If the content request is JSON (e.g. the API) then render the incoming envelope
 	// as the response by decrypting it and sending it back to the user.
-	if out, err = api.NewEnvelope(incoming); err != nil {
+	if out, err = api.NewEnvelope(incoming, decrypted); err != nil {
 		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
