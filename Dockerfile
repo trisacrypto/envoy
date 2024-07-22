@@ -1,7 +1,7 @@
 # Dynamic Builds
 ARG XX_IMAGE=tonistiigi/xx
-ARG BUILDER_IMAGE=golang:1.21-bullseye
-ARG FINAL_IMAGE=debian:bullseye-slim
+ARG BUILDER_IMAGE=golang:1.22-bookworm
+ARG FINAL_IMAGE=debian:bookworm-slim
 
 # Build stage
 FROM --platform=${BUILDPLATFORM} ${XX_IMAGE} AS xx
