@@ -48,8 +48,7 @@ document.body.addEventListener('htmx:responseError', (e) => {
 /*
  * Timestamp handling: localizes and formats datetimes on the page.
  */
-const updateDatetimes = (e) => {
-  const options = {};
+const updateDatetimes = () => {
   const dtfmt = Intl.DateTimeFormat(navigator.languages, {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: 'numeric', minute:'numeric', second: 'numeric',
