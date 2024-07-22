@@ -38,8 +38,8 @@
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Date Created</th>
-                {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
-                <td class="envelope-data text-balance" id="date-created">{{ if .Created }} {{ $created }} {{ else }} N/A {{ end }}</td>
+                {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
+                <td class="envelope-data text-balance datetime" id="date-created">{{ if .Created }} {{ $created }} {{ else }} N/A {{ end }}</td>
               </tr>
               <tr>
                 <th scope="row" class="envelope-header">Network</th>

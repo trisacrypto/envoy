@@ -59,8 +59,8 @@
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Created</dd>
           {{ if .Created }}
-          {{ $created := .Created.Format "January 2, 2006 3:04:05 PM" }}
-          <dt>{{ $created }}</dt>
+          {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
+          <dt class="datetime">{{ $created }}</dt>
           {{ else }}
           <dt>N/A</dt>
           {{ end }}

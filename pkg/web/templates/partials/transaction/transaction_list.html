@@ -25,7 +25,7 @@
         <td>
           <div class="tooltip tooltip-right" data-tip="View preview of the transaction details">
             <button type="button" onclick="transaction_modal.showModal()" hx-get="/v1/transactions/{{ .ID }}?detail=preview" hx-target="#transaction_modal">
-              <i class="fa-solid fa-eye"></i>          
+              <i class="fa-solid fa-eye"></i>
             </button>
           </div>
         </td>
@@ -116,8 +116,8 @@
         <td>{{ .VirtualAsset }}</td>
         <td>{{ .Amount }}</td>
         <td>{{ .EnvelopeCount }}</td>
-        {{ $created := .Created.Format "January 2, 2006 15:04:05" }}
-        <td>{{ $created }}</td>
+        {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
+        <td class="datetime">{{ $created }}</td>
         {{ if .LastUpdate }}
         {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05 -0700" }}
         <td class="trans-last-update">{{ $lastUpdate }}</td>

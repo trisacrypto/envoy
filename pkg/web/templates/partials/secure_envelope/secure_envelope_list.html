@@ -5,11 +5,11 @@
   {{ $sentAt := .SentAt.Format "January 2, 2006 3:04:05 PM" }}
   {{ $receivedAt := .ReceivedAt.Format "January 2, 2006 3:04:05 PM" }}
   <p>
-    <span class="font-semibold">Sent at:</span>
+    <span class="datetime font-semibold">Sent at:</span>
     {{ if .SentAt }} {{ $sentAt }} {{ else }} N/A {{ end }}
   </p>
   <p>
-    <span class="font-semibold">Received at:</span>
+    <span class="datetime font-semibold">Received at:</span>
     {{ if .ReceivedAt }} {{ $receivedAt }} {{ else }} N/A {{ end }}
   </p>
 </div>
@@ -78,7 +78,7 @@
             <div class="py-1 grid grid-cols-2">
               <dt>Envelope Timestamp</dt>
               {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05 -0700" }}
-              <dd class="envelope-timestamp">{{ $timestamp }}</dd>
+              <dd class="datetime">{{ $timestamp }}</dd>
             </div>
             <div class="py-1 grid grid-cols-2">
               <dt>Status</dt>
