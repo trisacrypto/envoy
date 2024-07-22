@@ -556,7 +556,7 @@ func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
 	}
 
 	var msg *api.SecureEnvelope
-	if msg, reject, err = envelope.Seal(payload, envelope.WithSealingKey(seal), envelope.WithEnvelopeID(in.ID()), envelope.WithCrypto(decrypted.Crypto())); err != nil {
+	if msg, reject, err = envelope.SealPayload(payload, envelope.WithSealingKey(seal), envelope.WithEnvelopeID(in.ID()), envelope.WithCrypto(decrypted.Crypto())); err != nil {
 		if reject != nil {
 			return in.Error(reject)
 		}

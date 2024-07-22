@@ -1,6 +1,6 @@
 module github.com/trisacrypto/envoy
 
-go 1.21.5
+go 1.22
 
 require (
 	cloud.google.com/go/secretmanager v1.13.4
@@ -18,8 +18,8 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggest/swgui v1.8.1
-	github.com/trisacrypto/directory v1.7.8
-	github.com/trisacrypto/trisa v1.2.0
+	github.com/trisacrypto/directory v1.8.0
+	github.com/trisacrypto/trisa v1.3.0
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/crypto v0.25.0
 	golang.org/x/text v0.16.0
@@ -29,7 +29,6 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.115.0 // indirect
 	cloud.google.com/go/auth v0.7.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
@@ -66,7 +65,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/s2a-go v0.1.7 // indirect
+	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
