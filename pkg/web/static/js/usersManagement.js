@@ -53,9 +53,8 @@ document.addEventListener('htmx:afterSettle', (e) => {
       };
     };
 
-    // TODO: Should input also be included in the events lists?
-    addEventListeners(passwordInput, 'change keyup paste cut', checkPasswords);
-    addEventListeners(confirmPassword, 'change keyup paste cut', checkPasswords);
+    addEventListeners(passwordInput, 'input', checkPasswords);
+    addEventListeners(confirmPassword, 'input', checkPasswords);
   };
 });
 
