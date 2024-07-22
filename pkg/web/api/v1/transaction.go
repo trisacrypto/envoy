@@ -38,7 +38,7 @@ type Transaction struct {
 	Counterparty       string     `json:"counterparty"`
 	CounterpartyID     ulid.ULID  `json:"counterparty_id,omitempty"`
 	Originator         string     `json:"originator,omitempty"`
-	OriginatorAddress  string     `json:"orginator_address,omitempty"`
+	OriginatorAddress  string     `json:"originator_address,omitempty"`
 	Beneficiary        string     `json:"beneficiary,omitempty"`
 	BeneficiaryAddress string     `json:"beneficiary_address,omitempty"`
 	VirtualAsset       string     `json:"virtual_asset"`
