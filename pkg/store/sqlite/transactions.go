@@ -205,7 +205,7 @@ func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, 
 // Secure Envelopes CRUD Interface
 //===========================================================================
 
-const listSecureEnvelopesSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID"
+const listSecureEnvelopesSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID ORDER BY timestamp DESC"
 
 func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (out *models.SecureEnvelopePage, err error) {
 	var tx *sql.Tx
