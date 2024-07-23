@@ -577,14 +577,14 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
-	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
-	// Set a cookie to show a toast message on the page redirect.
-	setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
-
-	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page.
+	// If the content requested is HTML (e.g. the web-front end), then set a toast
+	// cookie and respond with a 204 no content response
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		htmx.Redirect(c, http.StatusFound, detailURL)
+		// Set a cookie to show a toast message on the page redirect.
+		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
+		setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
+
+		c.Status(http.StatusNoContent)
 		return
 	}
 
