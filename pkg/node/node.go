@@ -134,22 +134,22 @@ func (s *Node) Serve() (err error) {
 		return err
 	}
 
-	// Start the TRISA node server
+	// Start the TRISA node server if it is enabled
 	if err = s.trisa.Serve(); err != nil {
 		return err
 	}
 
 	// Block until an error occurs or shutdown happens
-	log.Info().Msg("trisa node server has started")
+	log.Info().Msg("envoy node has started")
 	if err := <-s.errc; err != nil {
-		log.WithLevel(zerolog.FatalLevel).Err(err).Msg("trisa node crashed")
+		log.WithLevel(zerolog.FatalLevel).Err(err).Msg("envoy node has crashed")
 		return err
 	}
 	return nil
 }
 
 func (s *Node) Shutdown() (err error) {
-	log.Info().Msg("gracefully shutting down trisa node services")
+	log.Info().Msg("gracefully shutting down envoy node services")
 
 	// Stop services that only run when not in maintenance mode
 	if !s.conf.Maintenance {
@@ -168,6 +168,6 @@ func (s *Node) Shutdown() (err error) {
 		err = errors.Join(err, terr)
 	}
 
-	log.Debug().Msg("trisa node shutdown")
+	log.Debug().Msg("envoy node has shutdown")
 	return err
 }

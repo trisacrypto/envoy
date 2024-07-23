@@ -33,6 +33,7 @@ type Config struct {
 	Web           WebConfig           `split_words:"true"`
 	Node          TRISAConfig         `split_words:"true"`
 	DirectorySync DirectorySyncConfig `split_words:"true"`
+	TRP           TRPConfig           `split_words:"true"`
 	RegionInfo    RegionInfo          `split_words:"true"`
 	processed     bool
 }
@@ -48,6 +49,7 @@ type WebConfig struct {
 	BindAddr      string     `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
 	Origin        string     `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
 	TRISAEndpoint string     `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	TRPEndpoint   string     `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
 	Auth          AuthConfig `split_words:"true"`
 }
 
@@ -67,9 +69,9 @@ type TRISAConfig struct {
 	Maintenance         bool            `env:"TRISA_MAINTENANCE" desc:"if true sets the TRISA node to maintenance mode; inherited from parent"`
 	Endpoint            string          `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
 	Enabled             bool            `default:"true" desc:"if false, the TRISA node server will not be run"`
-	BindAddr            string          `split_words:"true" default:":8100"`
-	Pool                string          `split_words:"true" required:"false"`
-	Certs               string          `split_words:"true" required:"false"`
+	BindAddr            string          `split_words:"true" default:":8100" desc:"the ip address and port to bind the trisa grpc server on"`
+	Pool                string          `required:"false" desc:"the pool of public certificates to accept incoming mTLS connections for"`
+	Certs               string          `required:"false" desc:"the complete certificate chain issued by the trisa network"`
 	KeyExchangeCacheTTL time.Duration   `split_words:"true" default:"24h"`
 	Directory           DirectoryConfig `split_words:"true"`
 	certs               *trust.Provider
@@ -90,6 +92,17 @@ type DirectoryConfig struct {
 type DirectorySyncConfig struct {
 	Enabled  bool          `default:"true" desc:"if false, the sync background service will not be run"`
 	Interval time.Duration `default:"6h" desc:"the interval synchronization is run"`
+}
+
+type TRPConfig struct {
+	Maintenance bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the trp node to maintenance mode; inherited from parent"`
+	Enabled     bool   `default:"true" desc:"if false, the trp server will not be run"`
+	BindAddr    string `default:":8200" split_words:"true" desc:"the ip address and port to bind the trp server on"`
+	UseMTLS     bool   `default:"true" split_words:"true" desc:"if true the trp server will require mTLS authentication, otherwise it will use simple TLS"`
+	Pool        string `required:"false" desc:"the trisa pool is used by default for mTLS but a different trp pool may be specified"`
+	Certs       string `required:"false" desc:"trisa certificates are used by default but different trp certs may be specified"`
+	certs       *trust.Provider
+	pool        trust.ProviderPool
 }
 
 // Optional region and deployment information associated with the node.
@@ -198,11 +211,11 @@ func (c *TRISAConfig) load() (err error) {
 	}
 
 	if c.certs, err = sz.ReadFile(c.Certs); err != nil {
-		return fmt.Errorf("could not parse certs: %s", err)
+		return fmt.Errorf("could not parse certs: %w", err)
 	}
 
 	if c.pool, err = sz.ReadPoolFile(c.Pool); err != nil {
-		return fmt.Errorf("could not parse cert pool: %s", err)
+		return fmt.Errorf("could not parse cert pool: %w", err)
 	}
 	return nil
 }
@@ -234,6 +247,65 @@ func (c DirectoryConfig) Network() string {
 		return endpoint
 	}
 	return strings.Join(parts[len(parts)-2:], ".")
+}
+
+// Validate that the TRP config is suitable for operation of the server
+func (c *TRPConfig) Validate() error {
+	if c.Enabled {
+		if c.BindAddr == "" {
+			return errors.New("invalid configuration: missing bind address")
+		}
+
+		// Can't have only certs or only pool
+		if (c.Certs == "" && c.Pool != "") || (c.Certs != "" && c.Pool == "") {
+			return errors.New("invalid configuration: must specify both certs and pool path")
+		}
+	}
+	return nil
+}
+
+// Load and parse the mTLS/TLS certificates from disk.
+func (c *TRPConfig) LoadCerts() (_ *trust.Provider, err error) {
+	if c.certs == nil {
+		if err = c.load(); err != nil {
+			return nil, err
+		}
+	}
+	return c.certs, nil
+}
+
+// Load and parse the the mTLS trust provider pool for creating an x509.Pool.
+func (c *TRPConfig) LoadPool() (_ trust.ProviderPool, err error) {
+	if len(c.pool) == 0 {
+		if err = c.load(); err != nil {
+			return nil, err
+		}
+	}
+	return c.pool, nil
+}
+
+// Load and cache certificates and provider pool from disk.
+func (c *TRPConfig) load() (err error) {
+	var sz *trust.Serializer
+	if sz, err = trust.NewSerializer(false); err != nil {
+		return err
+	}
+
+	if c.certs, err = sz.ReadFile(c.Certs); err != nil {
+		return fmt.Errorf("could not parse certs: %w", err)
+	}
+
+	if c.pool, err = sz.ReadPoolFile(c.Pool); err != nil {
+		return fmt.Errorf("could not parse cert pool: %w", err)
+	}
+
+	return nil
+}
+
+// Reset the certs cache to force load the pool and certs again
+func (c *TRPConfig) Reset() {
+	c.pool = nil
+	c.certs = nil
 }
 
 // Determines if region info is available or not.

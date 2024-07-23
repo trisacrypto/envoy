@@ -93,7 +93,7 @@ func (s *Server) Login(c *gin.Context) {
 	}
 
 	// Set the tokens as cookies for the front-end
-	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Web.Auth.CookieDomain); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to process login request"))
 		return
@@ -185,7 +185,7 @@ func (s *Server) Authenticate(c *gin.Context) {
 	}
 
 	// Set the tokens as cookies in case the api client has a cookie jar
-	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Web.Auth.CookieDomain); err != nil {
 		log := logger.Tracing(c.Request.Context())
 		log.Warn().Err(err).Msg("could not set cookies on api authenticate")
 	}
@@ -271,7 +271,7 @@ func (s *Server) Reauthenticate(c *gin.Context) {
 	}
 
 	// Set the tokens as cookies for the front-end/api cookie jar
-	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Auth.CookieDomain); err != nil {
+	if err = auth.SetAuthCookies(c, out.AccessToken, out.RefreshToken, s.conf.Web.Auth.CookieDomain); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to process reauthenticate request"))
 		return

@@ -448,7 +448,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 
 	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
 	// Set a cookie to show a toast message on the page redirect.
-	setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Auth.CookieDomain)
+	setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page.
@@ -579,7 +579,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 
 	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
 	// Set a cookie to show a toast message on the page redirect.
-	setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Auth.CookieDomain)
+	setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page.

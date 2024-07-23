@@ -21,19 +21,18 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 	}
 
 	s = &Server{
-		conf:       conf.Web,
-		globalConf: conf,
-		store:      store,
-		trisa:      network,
+		conf:  conf,
+		store: store,
+		trisa: network,
 	}
 
 	// If not enabled, return just the server stub
-	if !s.conf.Enabled {
+	if !s.conf.Web.Enabled {
 		return s, nil
 	}
 
 	// Configure the token issuer if enabled
-	if s.issuer, err = auth.NewIssuer(s.conf.Auth); err != nil {
+	if s.issuer, err = auth.NewIssuer(s.conf.Web.Auth); err != nil {
 		return nil, err
 	}
 
@@ -51,12 +50,12 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 
 	// Create the http server if enabled
 	s.srv = &http.Server{
-		Addr:         s.conf.BindAddr,
-		Handler:      s.router,
-		ErrorLog:     nil,
-		ReadTimeout:  20 * time.Second,
-		WriteTimeout: 20 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		Addr:              s.conf.Web.BindAddr,
+		Handler:           s.router,
+		ErrorLog:          nil,
+		ReadHeaderTimeout: 20 * time.Second,
+		WriteTimeout:      20 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	return s, nil
@@ -66,7 +65,7 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 // returns 529 Unavailable on all API requests. If the API is enabled, it returns nil
 // and should not be used as a middleware function.
 func (s *Server) APIEnabled() gin.HandlerFunc {
-	if s.conf.APIEnabled {
+	if s.conf.Web.APIEnabled {
 		return nil
 	}
 
@@ -85,7 +84,7 @@ func (s *Server) APIEnabled() gin.HandlerFunc {
 // If the UI is disabled, this middleware factory function returrns a middleware that
 // returns 529 Unvailable on all UI requests. If the UI is enabled, it returns nil.
 func (s *Server) UIEnabled() gin.HandlerFunc {
-	if s.conf.UIEnabled {
+	if s.conf.Web.UIEnabled {
 		return nil
 	}
 

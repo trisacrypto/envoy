@@ -1,13 +1,12 @@
-package web
+package trp
 
 import (
 	"net/http"
 	"time"
 
-	"github.com/trisacrypto/envoy/pkg"
-	"github.com/trisacrypto/envoy/pkg/web/api/v1"
-
 	"github.com/gin-gonic/gin"
+	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/trp/api/v1"
 )
 
 const (
@@ -36,6 +35,22 @@ func (s *Server) Status(c *gin.Context) {
 		Version: pkg.Version(),
 		Uptime:  time.Since(s.started).String(),
 	})
+}
+
+// If the server is in maintenance mode, aborts the current request and renders the
+// maintenance mode page instead. Returns nil if not in maintenance mode.
+func (s *Server) Maintenance() gin.HandlerFunc {
+	if s.conf.Maintenance {
+		return func(c *gin.Context) {
+			c.JSON(http.StatusServiceUnavailable, &api.StatusReply{
+				Status:  serverStatusMaintenance,
+				Version: pkg.Version(),
+				Uptime:  time.Since(s.started).String(),
+			})
+			c.Abort()
+		}
+	}
+	return nil
 }
 
 // Healthz is used to alert k8s to the health/liveness status of the server.

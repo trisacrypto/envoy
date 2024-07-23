@@ -31,7 +31,7 @@ func (s *Server) setupRoutes() (err error) {
 	corsConf := cors.Config{
 		AllowMethods:     []string{"GET", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-TOKEN"},
-		AllowOrigins:     []string{s.conf.Origin},
+		AllowOrigins:     []string{s.conf.Web.Origin},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
