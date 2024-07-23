@@ -15,6 +15,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/trp"
 	"github.com/trisacrypto/envoy/pkg/web"
 
 	"github.com/gin-gonic/gin"
@@ -89,6 +90,11 @@ func New(conf config.Config) (node *Node, err error) {
 		return nil, err
 	}
 
+	// Create the TRP server
+	if node.trp, err = trp.New(conf, node.store, node.network); err != nil {
+		return nil, err
+	}
+
 	// Create the directory sync background routine
 	if node.syncd, err = directory.New(conf.DirectorySync, node.network, node.store, node.errc); err != nil {
 		return nil, err
@@ -104,6 +110,7 @@ type Node struct {
 	conf    config.Config
 	admin   *web.Server
 	trisa   *trisa.Server
+	trp     *trp.Server
 	syncd   *directory.Sync
 	store   store.Store
 	network network.Network
@@ -139,6 +146,11 @@ func (s *Node) Serve() (err error) {
 		return err
 	}
 
+	// Start the TRP server if it is enabled
+	if err = s.trp.Serve(s.errc); err != nil {
+		return err
+	}
+
 	// Block until an error occurs or shutdown happens
 	log.Info().Msg("envoy node has started")
 	if err := <-s.errc; err != nil {
@@ -165,6 +177,11 @@ func (s *Node) Shutdown() (err error) {
 
 	// Shutdown the TRISA server
 	if terr := s.trisa.Shutdown(); terr != nil {
+		err = errors.Join(err, terr)
+	}
+
+	// Shutdown the TRP server
+	if terr := s.trp.Shutdown(); terr != nil {
 		err = errors.Join(err, terr)
 	}
 

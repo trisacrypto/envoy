@@ -12,6 +12,7 @@ services:
     ports:
       - 8000:8000
       - 8100:8100
+      - 8200:8200
     volumes:
       - ./tmp/envoy:/data
     secrets:
@@ -38,6 +39,11 @@ services:
       - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
       - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
       - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
 
   counterparty.local:
     image: trisa/envoy
@@ -74,6 +80,11 @@ services:
       - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
       - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
       - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
 
   gds.local:
     image: trisa/gds
