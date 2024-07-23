@@ -1,4 +1,9 @@
-package web
+/*
+ * Package trp implements a JSON web server for the Travel Rule Protocol that was
+ * designed and developed by OpenVASP. This is a separate server from the rest of the
+ * envoy services so that it can be enabled, authenticated, and managed independently.
+ */
+package trp
 
 import (
 	"context"
@@ -10,38 +15,79 @@ import (
 	"sync"
 	"time"
 
-	"github.com/trisacrypto/envoy/pkg/config"
-	"github.com/trisacrypto/envoy/pkg/store"
-	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
-	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/trisa/network"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
-
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
+
+	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/trisa/network"
 )
 
-// The Web Server implements the compliance and administrative user interfaces.
 type Server struct {
 	sync.RWMutex
 	conf    config.Config
 	store   store.Store
 	srv     *http.Server
 	router  *gin.Engine
-	issuer  *auth.ClaimsIssuer
 	url     *url.URL
-	vasp    *models.Counterparty
 	trisa   network.Network
 	started time.Time
 	healthy bool
 	ready   bool
 }
 
-// Serve the compliance and administrative user interfaces in its own go routine.
+func New(conf config.Config, store store.Store, network network.Network) (s *Server, err error) {
+	if err = conf.TRP.Validate(); err != nil {
+		return nil, err
+	}
+
+	s = &Server{
+		conf:  conf,
+		store: store,
+		trisa: network,
+	}
+
+	// If not enabled, return just the server stub
+	if !s.conf.TRP.Enabled {
+		return s, nil
+	}
+
+	// Use TRISA certs if no TRP specific certs are passed in
+	if conf.TRP.Certs == "" {
+		conf.TRP.Certs = conf.Node.Certs
+		conf.TRP.Pool = conf.Node.Pool
+	}
+
+	// Configure the gin router if enabled
+	s.router = gin.New()
+	s.router.RedirectTrailingSlash = true
+	s.router.RedirectFixedPath = false
+	s.router.HandleMethodNotAllowed = true
+	s.router.ForwardedByClientIP = true
+	s.router.UseRawPath = false
+	s.router.UnescapePathValues = true
+	if err = s.setupRoutes(); err != nil {
+		return nil, err
+	}
+
+	// Create the http server if enabled
+	// TODO: set up TLS or mTLS as required
+	s.srv = &http.Server{
+		Addr:              s.conf.TRP.BindAddr,
+		Handler:           s.router,
+		ErrorLog:          nil,
+		ReadHeaderTimeout: 20 * time.Second,
+		WriteTimeout:      20 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+
+	return s, nil
+}
+
+// Serve the TRP API server
 func (s *Server) Serve(errc chan<- error) (err error) {
-	if !s.conf.Web.Enabled {
-		log.Warn().Bool("enabled", s.conf.Web.Enabled).Msg("web API and UI are not enabled")
+	if !s.conf.TRP.Enabled {
+		log.Warn().Bool("enabled", s.conf.TRP.Enabled).Msg("openvasp/trp server is not enabled")
 		return nil
 	}
 
@@ -67,7 +113,7 @@ func (s *Server) Serve(errc chan<- error) (err error) {
 		}
 	}()
 
-	log.Info().Str("url", s.URL()).Msg("compliance and admin web user interface started")
+	log.Info().Str("url", s.URL()).Msg("openvasp/trp api server started")
 	return nil
 }
 
@@ -82,11 +128,11 @@ func (s *Server) serve(sock net.Listener) error {
 // Shutdown the web server gracefully.
 func (s *Server) Shutdown() (err error) {
 	// If the server is not enabled, skip shutdown.
-	if !s.conf.Web.Enabled {
+	if !s.conf.TRP.Enabled {
 		return nil
 	}
 
-	log.Info().Msg("gracefully shutting down compliance and admin web user interface server")
+	log.Info().Msg("gracefully shutting down openvasp/trp server")
 	s.SetStatus(false, false)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
@@ -136,28 +182,16 @@ func (s *Server) setURL(addr net.Addr) {
 	}
 }
 
-// Localparty returns the VASP information for the current node.
-func (s *Server) Localparty(ctx context.Context) (_ *models.Counterparty, err error) {
-	if s.vasp == nil {
-		// Parse TRISA endpoint
-		var uri *traddr.URL
-		if uri, err = traddr.Parse(s.conf.Web.TRISAEndpoint); err != nil {
-			return nil, fmt.Errorf("could not parse configured trisa endpoint: %w", err)
-		}
-
-		commonName := uri.Hostname()
-		if commonName == "" {
-			return nil, ErrNoLocalCommonName
-		}
-
-		// Lookup VASP information from counterparty database
-		if s.vasp, err = s.findCounterparty(ctx, uri); err != nil {
-			log.Warn().Err(err).Msg("could not lookup local vasp information")
-			if errors.Is(err, dberr.ErrNotFound) {
-				return nil, ErrNoLocalparty
-			}
-			return nil, fmt.Errorf("could not lookup counterparty by common name: %w", err)
-		}
+// Debug returns a server that uses the specified http server instead of creating one.
+// This function is primarily used to create test servers easily.
+func Debug(conf config.Config, store store.Store, network network.Network, srv *http.Server) (s *Server, err error) {
+	if s, err = New(conf, store, network); err != nil {
+		return nil, err
 	}
-	return s.vasp, nil
+
+	// Replace the http server with the one specified
+	s.srv = nil
+	s.srv = srv
+	s.srv.Handler = s.router
+	return s, nil
 }

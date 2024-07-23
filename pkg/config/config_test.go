@@ -33,6 +33,7 @@ var testEnv = map[string]string{
 	"TRISA_WEB_AUTH_ACCESS_TOKEN_TTL":       "24h",
 	"TRISA_WEB_AUTH_REFRESH_TOKEN_TTL":      "48h",
 	"TRISA_WEB_AUTH_TOKEN_OVERLAP":          "-12h",
+	"TRISA_NODE_ENABLED":                    "true",
 	"TRISA_NODE_BIND_ADDR":                  ":556",
 	"TRISA_NODE_POOL":                       "fixtures/certs/pool.gz",
 	"TRISA_NODE_CERTS":                      "fixtures/certs/certs.gz",
@@ -42,6 +43,11 @@ var testEnv = map[string]string{
 	"TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT": "localhost:2526",
 	"TRISA_DIRECTORY_SYNC_ENABLED":          "true",
 	"TRISA_DIRECTORY_SYNC_INTERVAL":         "10m",
+	"TRISA_TRP_ENABLED":                     "true",
+	"TRISA_TRP_BIND_ADDR":                   ":8012",
+	"TRISA_TRP_USE_MTLS":                    "false",
+	"TRISA_TRP_POOL":                        "fixtures/certs/trp/pool.pem",
+	"TRISA_TRP_CERTS":                       "fixtures/certs/trp/certs.pem",
 	"REGION_INFO_ID":                        "2840302",
 	"REGION_INFO_NAME":                      "us-east4c",
 	"REGION_INFO_COUNTRY":                   "US",
@@ -90,6 +96,12 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.DirectorySync.Enabled)
 	require.Equal(t, 10*time.Minute, conf.DirectorySync.Interval)
 	require.Equal(t, int32(2840302), conf.RegionInfo.ID)
+	require.True(t, conf.TRP.Maintenance)
+	require.True(t, conf.TRP.Enabled)
+	require.Equal(t, testEnv["TRISA_TRP_BIND_ADDR"], conf.TRP.BindAddr)
+	require.False(t, conf.TRP.UseMTLS)
+	require.Equal(t, testEnv["TRISA_TRP_POOL"], conf.TRP.Pool)
+	require.Equal(t, testEnv["TRISA_TRP_CERTS"], conf.TRP.Certs)
 	require.Equal(t, testEnv["REGION_INFO_NAME"], conf.RegionInfo.Name)
 	require.Equal(t, testEnv["REGION_INFO_COUNTRY"], conf.RegionInfo.Country)
 	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)
@@ -210,7 +222,7 @@ func TestTRISAConfig(t *testing.T) {
 	require.Len(t, pool, 1, "unexpected cert pool length")
 }
 
-func TestTRISAConfigCache(t *testing.T) {
+func TestCertsConfigCache(t *testing.T) {
 	// Ensure TRISAConfig value caches with pointer receiver
 	conf := config.TRISAConfig{
 		Maintenance: false,
@@ -232,69 +244,80 @@ func TestTRISAConfigCache(t *testing.T) {
 	conf.Certs = path
 	conf.Pool = path
 
-	// Copy the testdata fixture to the temporary directory fixture
-	dst, err := os.Create(path)
-	require.NoError(t, err, "could not create temporary certificate fixture")
-	_, err = io.Copy(dst, src)
-	require.NoError(t, err, "could not copy the testdata fixture to the temporary fixture")
-	require.NoError(t, dst.Close(), "could not flush and close temporary certificate fixture")
+	createTest := func(conf config.CertsCacheLoader) func(t *testing.T) {
+		return func(t *testing.T) {
 
-	// Should be able to load certs from the temporary fixture
-	_, err = conf.LoadCerts()
-	require.NoError(t, err, "was unable to load certs")
-	_, err = conf.LoadPool()
-	require.NoError(t, err, "was unable to load pool")
+			// Copy the testdata fixture to the temporary directory fixture
+			dst, err := os.Create(path)
+			require.NoError(t, err, "could not create temporary certificate fixture")
+			_, err = io.Copy(dst, src)
+			require.NoError(t, err, "could not copy the testdata fixture to the temporary fixture")
+			require.NoError(t, dst.Close(), "could not flush and close temporary certificate fixture")
 
-	// Delete the fixture, the certs and pool should be cached
-	require.NoError(t, os.Remove(path), "could not delete the temporary fixture")
-	require.NoFileExists(t, path, "was unable to delete temporary fixture")
+			// Should be able to load certs from the temporary fixture
+			_, err = conf.LoadCerts()
+			require.NoError(t, err, "was unable to load certs")
+			_, err = conf.LoadPool()
+			require.NoError(t, err, "was unable to load pool")
 
-	_, err = conf.LoadCerts()
-	require.NoError(t, err, "was unable to load certs")
-	_, err = conf.LoadPool()
-	require.NoError(t, err, "was unable to load pool")
+			// Delete the fixture, the certs and pool should be cached
+			require.NoError(t, os.Remove(path), "could not delete the temporary fixture")
+			require.NoFileExists(t, path, "was unable to delete temporary fixture")
 
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
-	)
+			_, err = conf.LoadCerts()
+			require.NoError(t, err, "was unable to load certs")
+			_, err = conf.LoadPool()
+			require.NoError(t, err, "was unable to load pool")
 
-	wg.Add(2)
+		}
+	}
 
-	// Passing by value into a new go routine not should clear the cache
-	// NOTE: loading certs is not thread safe, mu protection to get through race check.
-	go func(c config.TRISAConfig, wg *sync.WaitGroup) {
-		defer wg.Done()
-		mu.Lock()
-		defer mu.Unlock()
+	t.Run("TRISAConfig", createTest(&conf))
+	t.Run("TRPConfig", createTest(&config.TRPConfig{Certs: path, Pool: path}))
 
+	t.Run("ByReference", func(t *testing.T) {
+		var (
+			wg sync.WaitGroup
+			mu sync.Mutex
+		)
+
+		wg.Add(2)
+
+		// Passing by value into a new go routine not should clear the cache
+		// NOTE: loading certs is not thread safe, mu protection to get through race check.
+		go func(c config.TRISAConfig, wg *sync.WaitGroup) {
+			defer wg.Done()
+			mu.Lock()
+			defer mu.Unlock()
+
+			_, err = conf.LoadCerts()
+			require.NoError(t, err, "was unable to load certs")
+			_, err = conf.LoadPool()
+			require.NoError(t, err, "was unable to load pool")
+		}(conf, &wg)
+
+		// Passing by reference into a new go routine should not clear the cache
+		// NOTE: loading certs is not thread safe, mu protection to get through race check.
+		go func(c *config.TRISAConfig, wg *sync.WaitGroup) {
+			defer wg.Done()
+			mu.Lock()
+			defer mu.Unlock()
+
+			_, err = conf.LoadCerts()
+			require.NoError(t, err, "was unable to load certs")
+			_, err = conf.LoadPool()
+			require.NoError(t, err, "was unable to load pool")
+		}(&conf, &wg)
+
+		wg.Wait()
+
+		// If we clear the cache, then loading the certs should error
+		conf.Reset()
 		_, err = conf.LoadCerts()
-		require.NoError(t, err, "was unable to load certs")
+		require.Error(t, err, "magic certs still cached or test is broken")
 		_, err = conf.LoadPool()
-		require.NoError(t, err, "was unable to load pool")
-	}(conf, &wg)
-
-	// Passing by reference into a new go routine should not clear the cache
-	// NOTE: loading certs is not thread safe, mu protection to get through race check.
-	go func(c *config.TRISAConfig, wg *sync.WaitGroup) {
-		defer wg.Done()
-		mu.Lock()
-		defer mu.Unlock()
-
-		_, err = conf.LoadCerts()
-		require.NoError(t, err, "was unable to load certs")
-		_, err = conf.LoadPool()
-		require.NoError(t, err, "was unable to load pool")
-	}(&conf, &wg)
-
-	wg.Wait()
-
-	// If we clear the cache, then loading the certs should error
-	conf.Reset()
-	_, err = conf.LoadCerts()
-	require.Error(t, err, "magic certs still cached or test is broken")
-	_, err = conf.LoadPool()
-	require.Error(t, err, "magic pool still cached or test is broken")
+		require.Error(t, err, "magic pool still cached or test is broken")
+	})
 }
 
 func TestDirectoryConfig(t *testing.T) {

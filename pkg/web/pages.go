@@ -23,7 +23,7 @@ func (s *Server) LoginPage(c *gin.Context) {
 
 func (s *Server) Logout(c *gin.Context) {
 	// Clear the client cookies
-	auth.ClearAuthCookies(c, s.conf.Auth.CookieDomain)
+	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
 	// Send the user to the login page
 	htmx.Redirect(c, http.StatusFound, "/login")
@@ -35,10 +35,10 @@ func (s *Server) About(c *gin.Context) {
 		"Version":       fmt.Sprintf("%d.%d.%d", pkg.VersionMajor, pkg.VersionMinor, pkg.VersionPatch),
 		"Revision":      pkg.GitVersion,
 		"Release":       fmt.Sprintf("%s-%d", pkg.VersionReleaseLevel, pkg.VersionReleaseNumber),
-		"Region":        s.globalConf.RegionInfo,
+		"Region":        s.conf.RegionInfo,
 		"Config":        s.conf,
-		"TRISA":         s.globalConf.Node,
-		"DirectorySync": s.globalConf.DirectorySync,
+		"TRISA":         s.conf.Node,
+		"DirectorySync": s.conf.DirectorySync,
 	})
 
 	c.HTML(http.StatusOK, "about.html", ctx)

@@ -672,7 +672,7 @@ func (s *APIv1) Delete(ctx context.Context, endpoint string) (err error) {
 //===========================================================================
 
 const (
-	userAgent    = "TRISA Node API Client/v1"
+	userAgent    = "Envoy API Client/v1"
 	accept       = "application/json"
 	acceptLang   = "en-US,en"
 	acceptEncode = "gzip, deflate, br"
