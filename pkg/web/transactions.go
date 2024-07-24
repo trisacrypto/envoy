@@ -578,14 +578,14 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	}
 
 	// If the content requested is HTML (e.g. the web-front end), then
-	// respond with a 204 no content response
+	// respond with a 204 no content response and the front-end will handle the
+	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
-
 		c.Status(http.StatusNoContent)
 		return
 	}
 
+	// Otherwise provide the response envelope back to the API client
 	// Retrieve the secure envelope model for the incoming envelope
 	if incoming, err = s.store.LatestSecureEnvelope(ctx, transaction.ID, models.DirectionIncoming); err != nil {
 		c.Error(fmt.Errorf("could not retrieve incoming secure envelope: %w", err))
