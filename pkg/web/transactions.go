@@ -577,17 +577,15 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
-	detailURL, _ := url.JoinPath("/transactions", transaction.ID.String(), "info")
-	// Set a cookie to show a toast message on the page redirect.
-	setToastCookie(c, "transaction_reject_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
-
-	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page.
+	// If the content requested is HTML (e.g. the web-front end), then
+	// respond with a 204 no content response and the front-end will handle the
+	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		htmx.Redirect(c, http.StatusFound, detailURL)
+		c.Status(http.StatusNoContent)
 		return
 	}
 
+	// Otherwise provide the response envelope back to the API client
 	// Retrieve the secure envelope model for the incoming envelope
 	if incoming, err = s.store.LatestSecureEnvelope(ctx, transaction.ID, models.DirectionIncoming); err != nil {
 		c.Error(fmt.Errorf("could not retrieve incoming secure envelope: %w", err))

@@ -53,8 +53,10 @@ func (s *Server) SendEnvelope(ctx context.Context, outgoing *envelope.Envelope, 
 
 	// Update the cryptography on the outgoing message for storage (it needs to be
 	// stored with local keys since it was encrypted for the recipient).
-	if err = storeOutgoing.Reseal(storageKey, outgoing.Crypto()); err != nil {
-		return fmt.Errorf("could not encrypt outgoing message for storage: %w", err)
+	if !storeOutgoing.IsError {
+		if err = storeOutgoing.Reseal(storageKey, outgoing.Crypto()); err != nil {
+			return fmt.Errorf("could not encrypt outgoing message for storage: %w", err)
+		}
 	}
 
 	// Save the outgoing envelope to the database
