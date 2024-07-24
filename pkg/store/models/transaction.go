@@ -21,12 +21,14 @@ import (
 const (
 	SourceLocal       = "local"
 	SourceRemote      = "remote"
+	StatusUnspecified = "unspecified"
 	StatusDraft       = "draft"
 	StatusPending     = "pending"
-	StatusAction      = "action required"
-	StatusComplete    = "completed"
-	StatusArchived    = "archived"
-	StatusErrored     = "errored"
+	StatusReview      = "review"
+	StatusRepair      = "repair"
+	StatusAccepted    = "accepted"
+	StatusCompleted   = "completed"
+	StatusRejected    = "rejected"
 	DirectionOut      = "out"
 	DirectionOutgoing = DirectionOut
 	DirectionIn       = "in"
@@ -37,7 +39,7 @@ const (
 func ValidStatus(status string) bool {
 	status = strings.TrimSpace(strings.ToLower(status))
 	switch status {
-	case StatusDraft, StatusPending, StatusAction, StatusComplete, StatusArchived, StatusErrored:
+	case StatusUnspecified, StatusDraft, StatusPending, StatusReview, StatusRepair, StatusAccepted, StatusCompleted, StatusRejected:
 		return true
 	default:
 		return false
@@ -47,7 +49,7 @@ func ValidStatus(status string) bool {
 type Transaction struct {
 	ID                 uuid.UUID         // Transaction IDs are UUIDs not ULIDs per the TRISA spec, this is also used for the envelope ID
 	Source             string            // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
-	Status             string            // Can be "draft", "pending", "action required", "completed", "archived", "errored"
+	Status             string            // Can be "unspecified", "started", "pending", "review", "repair", "accepted", "completed", or "rejected"
 	Counterparty       string            // The name of the counterparty in the transaction
 	CounterpartyID     ulids.NullULID    // A reference to the counterparty in the database, if any
 	Originator         sql.NullString    // Full name of the originator natural person or account
@@ -67,12 +69,15 @@ type SecureEnvelope struct {
 	Model
 	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
 	Direction     string              // Either "out" outgoing or "in" incoming
+	Remote        sql.NullString      // The common name of the remote peer this message was going to or coming from
+	ReplyTo       ulids.NullULID      // If this envelope is a response, a reference to the original request envelope
 	IsError       bool                // If the envelope contains an error/rejection rather than a payload
 	EncryptionKey []byte              // The encryption key, encrypted with the public key of the local node. Note this may differ from the value in the envelope for outgoing messages
 	HMACSecret    []byte              // The hmac secret, encrypted with the public key of the local node. Note that this may differ from the value in the envelope for outgoing messages
 	ValidHMAC     sql.NullBool        // If the hmac has been validated against the payload and non-repudiation properties are satisfied
 	Timestamp     time.Time           // The timestamp of the envelope as defined by the envelope
 	PublicKey     sql.NullString      // The signature of the public key that sealed the encryption key and hmac secret, may differ from the value in the envelope for ougoing envelopes.
+	TransferState int32               // The transfer state of the secure envelope
 	Envelope      *api.SecureEnvelope // The secure envelope protocol buffer stored as a BLOB
 	transaction   *Transaction        // The transaction this envelope is associated with
 }
@@ -319,6 +324,9 @@ func (e *SecureEnvelope) Scan(scanner Scanner) error {
 		&e.Envelope,
 		&e.Created,
 		&e.Modified,
+		&e.Remote,
+		&e.ReplyTo,
+		&e.TransferState,
 	)
 }
 
@@ -327,12 +335,15 @@ func (e *SecureEnvelope) Params() []any {
 		sql.Named("id", e.ID),
 		sql.Named("envelopeID", e.EnvelopeID),
 		sql.Named("direction", e.Direction),
+		sql.Named("remote", e.Remote),
+		sql.Named("replyTo", e.ReplyTo),
 		sql.Named("isError", e.IsError),
 		sql.Named("encryptionKey", e.EncryptionKey),
 		sql.Named("hmacSecret", e.HMACSecret),
 		sql.Named("validHMAC", e.ValidHMAC),
 		sql.Named("timestamp", e.Timestamp),
 		sql.Named("publicKey", e.PublicKey),
+		sql.Named("transferState", e.TransferState),
 		sql.Named("envelope", e.Envelope),
 		sql.Named("created", e.Created),
 		sql.Named("modified", e.Modified),
