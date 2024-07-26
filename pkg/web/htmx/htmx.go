@@ -51,3 +51,11 @@ func Redirect(c *gin.Context, code int, location string) {
 func IsHTMXRequest(c *gin.Context) bool {
 	return strings.ToLower(c.GetHeader(HXRequest)) == "true"
 }
+
+func Trigger(c *gin.Context, event string) {
+	if IsHTMXRequest(c) {
+		c.Header(HXTrigger, event)
+		c.Status(http.StatusNoContent)
+		return
+	}
+}

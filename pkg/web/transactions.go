@@ -581,7 +581,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	// respond with a 204 no content response and the front-end will handle the
 	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		c.Status(http.StatusNoContent)
+		htmx.Trigger(c, "transactionRejected")
 		return
 	}
 
