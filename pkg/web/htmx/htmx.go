@@ -52,6 +52,7 @@ func IsHTMXRequest(c *gin.Context) bool {
 	return strings.ToLower(c.GetHeader(HXRequest)) == "true"
 }
 
+// Trigger sets the HX-Trigger response header and returns a 204 no content to allow HTMX to handle the trigger.
 func Trigger(c *gin.Context, event string) {
 	if IsHTMXRequest(c) {
 		c.Header(HXTrigger, event)
