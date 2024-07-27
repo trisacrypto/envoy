@@ -1782,6 +1782,10 @@ details.collapse summary::-webkit-details-marker {
           mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' stroke='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.spinner_V8m1%7Btransform-origin:center;animation:spinner_zKoa 2s linear infinite%7D.spinner_V8m1 circle%7Bstroke-linecap:round;animation:spinner_YpZS 1.5s ease-out infinite%7D%40keyframes spinner_zKoa%7B100%25%7Btransform:rotate(360deg)%7D%7D%40keyframes spinner_YpZS%7B0%25%7Bstroke-dasharray:0 150;stroke-dashoffset:0%7D47.5%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-16%7D95%25%2C100%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-59%7D%7D%3C%2Fstyle%3E%3Cg class='spinner_V8m1'%3E%3Ccircle cx='12' cy='12' r='9.5' fill='none' stroke-width='3'%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 }
 
+.loading-md {
+  width: 1.5rem;
+}
+
 .loading-lg {
   width: 2.5rem;
 }
@@ -2834,14 +2838,6 @@ details.collapse summary::-webkit-details-marker {
   height: 1rem;
 }
 
-.h-5 {
-  height: 1.25rem;
-}
-
-.h-48 {
-  height: 12rem;
-}
-
 .max-h-\[450px\] {
   max-height: 450px;
 }
@@ -2874,6 +2870,10 @@ details.collapse summary::-webkit-details-marker {
   width: 11rem;
 }
 
+.w-48 {
+  width: 12rem;
+}
+
 .w-52 {
   width: 13rem;
 }
@@ -2888,14 +2888,6 @@ details.collapse summary::-webkit-details-marker {
 
 .w-full {
   width: 100%;
-}
-
-.w-5 {
-  width: 1.25rem;
-}
-
-.w-48 {
-  width: 12rem;
 }
 
 .min-w-0 {
@@ -2924,18 +2916,6 @@ details.collapse summary::-webkit-details-marker {
 
 .table-fixed {
   table-layout: fixed;
-}
-
-.scale-50 {
-  --tw-scale-x: .5;
-  --tw-scale-y: .5;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.scale-0 {
-  --tw-scale-x: 0;
-  --tw-scale-y: 0;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .transform {
@@ -3667,6 +3647,10 @@ body main {
   background-color: rgb(55 65 81 / 0.8);
 }
 
+.hover\:bg-primary\/80:hover {
+  background-color: var(--fallback-p,oklch(var(--p)/0.8));
+}
+
 .hover\:bg-primary\/90:hover {
   background-color: var(--fallback-p,oklch(var(--p)/0.9));
 }
@@ -3681,10 +3665,6 @@ body main {
 
 .hover\:bg-warning\/80:hover {
   background-color: var(--fallback-wa,oklch(var(--wa)/0.8));
-}
-
-.hover\:bg-primary\/80:hover {
-  background-color: var(--fallback-p,oklch(var(--p)/0.8));
 }
 
 .hover\:text-primary:hover {
@@ -3824,14 +3804,6 @@ body main {
 @media (min-width: 1024px) {
   .lg\:mb-0 {
     margin-bottom: 0px;
-  }
-
-  .lg\:ml-0 {
-    margin-left: 0px;
-  }
-
-  .lg\:ml-4 {
-    margin-left: 1rem;
   }
 
   .lg\:flex {

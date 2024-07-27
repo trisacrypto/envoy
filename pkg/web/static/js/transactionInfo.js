@@ -1,3 +1,5 @@
+import { setSuccessToast } from "./utils.js";
+
 const transactionEl = document.getElementById('transaction-id');
 const transactionID = transactionEl?.value
 
@@ -50,7 +52,10 @@ document.body.addEventListener('htmx:configRequest', (e) => {
 document.body.addEventListener('htmx:afterRequest', (e) => {
   if (e.detail.requestConfig.path === rejectEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     const transactionRejectForm = document.getElementById('transaction-reject-form')
+    const transactionRejectionModal = document.getElementById('transaction_rejection_modal')
+    transactionRejectionModal.close()
     transactionRejectForm.reset()
+    setSuccessToast('Success! The secure envelope has been rejected.')
   }
 });
 
