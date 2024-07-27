@@ -2,7 +2,6 @@ package trisa
 
 import (
 	"context"
-	"crypto/rsa"
 	"database/sql"
 	"fmt"
 	"io"
@@ -12,19 +11,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	"github.com/trisacrypto/trisa/pkg/trisa/crypto"
-	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
-	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -47,20 +41,27 @@ func (s *Server) Transfer(ctx context.Context, in *api.SecureEnvelope) (_ *api.S
 		return nil, status.Error(codes.Unauthenticated, "could not identify remote peer from mTLS certificates")
 	}
 
-	// Add peer to the log context and log message.
+	// Add peer to the log context and log message received.
 	log = log.With().Str("peer", peer.String()).Str("envelope_id", in.Id).Logger()
-	log.Debug().Msg("trisa transfer received")
+
+	// Create a packet to handle the incoming request
+	var packet *postman.Packet
+	if packet, err = postman.Receive(in, log, peer); err != nil {
+		log.Error().Err(err).Msg("could not start trisa transfer")
+		return nil, internalError
+	}
+
+	// Log that the incoming transfer has been received
+	packet.Log.Debug().Msg("trisa transfer received")
 
 	// Handle the incoming transfer
-	var outgoing *Outgoing
-	incoming := NewIncoming(ctx, peer, in, log)
-	if outgoing, err = s.HandleIncoming(incoming); err != nil {
-		log.Warn().Err(err).Str("envelope_id", in.Id).Msg("trisa transfer handler failed")
+	if err = s.Handle(ctx, packet); err != nil {
+		packet.Log.Warn().Err(err).Msg("trisa transfer handler failed")
 		return nil, err
 	}
 
-	log.Debug().Msg("trisa transfer completed")
-	return outgoing.env.Proto(), nil
+	packet.Log.Debug().Msg("trisa transfer completed")
+	return packet.Out.Proto(), nil
 }
 
 // The number of incoming secure envelopes to buffer for handling.
@@ -117,17 +118,20 @@ func (s *Server) TransferStream(stream api.TRISANetwork_TransferStreamServer) (e
 				return
 			}
 
-			// Handle the incoming transfer
-			incoming := NewIncoming(ctx, peer, in, log.With().Str("envelope_id", in.Id).Logger())
+			// Create a packet to handle the incoming request
+			var packet *postman.Packet
+			if packet, err = postman.Receive(in, log, peer); err != nil {
+				log.Error().Err(err).Msg("could not handle stream message, stream closing")
+				return
+			}
 
-			var out *Outgoing
-			if out, err = s.HandleIncoming(incoming); err != nil {
-				log.Warn().Err(err).Str("envelope_id", in.Id).Msg("unable to handle transfer request, stream closing")
+			if err = s.Handle(ctx, packet); err != nil {
+				packet.Log.Warn().Err(err).Msg("unable to handle transfer request, stream closing")
 				return
 			}
 
 			// Queue the message to be sent on the outgoing channel
-			outgoing <- out.env.Proto()
+			outgoing <- packet.Out.Proto()
 		}
 
 	}(outgoing)
@@ -155,467 +159,205 @@ func (s *Server) TransferStream(stream api.TRISANetwork_TransferStreamServer) (e
 }
 
 //===========================================================================
-// Incoming Message Definition
-//===========================================================================
-
-// Incoming stores the full context of an incoming transfer message for handling.
-type Incoming struct {
-	ctx  context.Context            // Context of the request
-	peer peers.Peer                 // The peer the message was received from
-	env  *envelope.Envelope         // NOTE: this value should not be replaced, only cloned
-	log  zerolog.Logger             // Logger updated with RPC details
-	db   models.PreparedTransaction // Access to the database model
-	hmac sql.NullBool               // Helper to set validated hmac information on
-}
-
-func NewIncoming(ctx context.Context, peer peers.Peer, env *api.SecureEnvelope, log zerolog.Logger) *Incoming {
-	incoming := &Incoming{
-		ctx:  ctx,
-		peer: peer,
-		log:  log,
-	}
-
-	var err error
-	if incoming.env, err = envelope.Wrap(env); err != nil {
-		panic(fmt.Errorf("could not wrap incoming secure envelope: %w", err))
-	}
-
-	return incoming
-}
-
-// Helper for retrieving the envelope ID directly from the envelope.
-func (i *Incoming) ID() string {
-	return i.env.ID()
-}
-
-// Helper for retrieving the envelope public key signature if available
-func (i *Incoming) PublicKeySignature() string {
-	return i.env.Proto().PublicKeySignature
-}
-
-// Mark the incoming HMAC as validated (or not).
-func (i *Incoming) SetHMACValid(valid bool) {
-	i.hmac = sql.NullBool{Valid: true, Bool: valid}
-}
-
-// Create a rejection envelope from the incoming envelope
-func (i *Incoming) Reject(code api.Error_Code, message string, retry bool) (*Outgoing, error) {
-	reject := &api.Error{
-		Code:    code,
-		Message: message,
-		Retry:   retry,
-	}
-	return i.Error(reject)
-}
-
-// Create a rejection envelope from the api error
-func (i *Incoming) Error(reject *api.Error) (out *Outgoing, err error) {
-	var msg *api.SecureEnvelope
-	if msg, err = envelope.Reject(reject, envelope.WithEnvelopeID(i.ID())); err != nil {
-		log.Error().Err(err).Msg("could not prepare rejection envelope")
-		return nil, status.Error(codes.Internal, "could not complete TRISA transfer")
-	}
-
-	if out, err = i.Outgoing(msg); err != nil {
-		return nil, err
-	}
-
-	i.log.Info().
-		Str("code", reject.Code.String()).
-		Str("message", reject.Message).
-		Bool("retry", reject.Retry).
-		Msg("trisa transfer rejected")
-
-	return out, nil
-}
-
-// Create an outgoing envelope associated with the incoming envelope
-func (i *Incoming) Outgoing(msg *api.SecureEnvelope) (out *Outgoing, err error) {
-	var env *envelope.Envelope
-	if env, err = envelope.Wrap(msg); err != nil {
-		log.Error().Err(err).Msg("could not prepare rejection envelope")
-		return nil, status.Error(codes.Internal, "could not complete TRISA transfer")
-	}
-	return &Outgoing{env: env, log: i.log, replyTo: i}, nil
-}
-
-// Converts the incoming message into a database model for storage. This method assumes
-// that the envelopeID has already been parsed as a uuid and panics if the envelopeID is
-// not a uuid. Since this is an incoming message, the encryption key and hmac secret are
-// assumed to be sealed using a public key of the local TRISA node, identified by the
-// public key signature.
-func (i *Incoming) Model() *models.SecureEnvelope {
-	// Create the incoming secure envelope model
-	se := i.env.Proto()
-	model := &models.SecureEnvelope{
-		Direction:     models.DirectionIncoming,
-		ReplyTo:       ulids.NullULID{Valid: false},
-		IsError:       i.env.IsError(),
-		EncryptionKey: se.EncryptionKey,
-		HMACSecret:    se.HmacSecret,
-		ValidHMAC:     i.hmac,
-		PublicKey:     sql.NullString{Valid: se.PublicKeySignature != "", String: se.PublicKeySignature},
-		TransferState: int32(se.TransferState),
-		Envelope:      se,
-	}
-
-	if peer, err := i.peer.Info(); err == nil {
-		model.Remote = sql.NullString{Valid: peer.CommonName != "", String: peer.CommonName}
-	}
-
-	model.EnvelopeID, _ = i.env.UUID()
-	model.Timestamp, _ = i.env.Timestamp()
-	return model
-}
-
-// Helper method to update the transaction with the incoming record details
-func (i *Incoming) UpdateRecord() (err error) {
-	// Update counterparty information from remote peer info (e.g. from the certificates)
-	var info *peers.Info
-	if info, err = i.peer.Info(); err != nil {
-		return fmt.Errorf("could not identify counterparty in transaction: %w", err)
-	}
-
-	// If the transaction is new and is being created, add the counterparty
-	// TODO: Make sure it's the same counterparty or return an error
-	if i.db.Created() {
-		if err = i.db.AddCounterparty(info.Model()); err != nil {
-			return fmt.Errorf("could not identify or create counterparty in database: %w", err)
-		}
-	}
-
-	timestamp, _ := i.env.Timestamp()
-
-	// Update the transaction with available information
-	transaction := &models.Transaction{
-		Status:     models.StatusFromTransferState(i.env.TransferState()),
-		LastUpdate: sql.NullTime{Valid: true, Time: timestamp},
-	}
-
-	if i.db.Created() {
-		transaction.Source = models.SourceRemote
-	}
-
-	if err = i.db.Update(transaction); err != nil {
-		return fmt.Errorf("could not update transaction in database: %w", err)
-	}
-
-	// Save the incoming envelope to disk
-	if err = i.db.AddEnvelope(i.Model()); err != nil {
-		return fmt.Errorf("could not store incoming secure envelope in database: %w", err)
-	}
-
-	return nil
-}
-
-//===========================================================================
-// Outgoing Message Definition
-//===========================================================================
-
-type Outgoing struct {
-	log        zerolog.Logger
-	env        *envelope.Envelope
-	replyTo    *Incoming
-	storageKey keys.PublicKey
-	crypto     crypto.Crypto
-	seal       crypto.Cipher
-}
-
-func (o *Outgoing) SetStorageCrypto(k keys.PublicKey, c crypto.Crypto) (err error) {
-	o.storageKey = k
-	o.crypto = c
-
-	var skey interface{}
-	if skey, err = k.SealingKey(); err != nil {
-		o.log.Error().Err(err).Msg("could not retrieve public key for storage encryption")
-		return internalError
-	}
-
-	switch t := skey.(type) {
-	case *rsa.PublicKey:
-		if o.seal, err = rsaoeap.New(t); err != nil {
-			o.log.Error().Err(err).Msg("could not create new rsa-oeap sealing cipher")
-			return internalError
-		}
-	default:
-		o.log.Error().Type("type", t).Msg("unknown cipher type for storage encryption")
-		return internalError
-	}
-
-	return nil
-}
-
-// Creates an model to save an outgoing secure envelope to disk. The complicated thing
-// about outgoing secure envelopes is that they're encrypted with the recipient's public
-// keys, so instead, original envelope is kept intact and the encryption key and hmac
-// secret are saved with the keys used to decrypt the associated incoming envelope.
-func (o *Outgoing) Model() (model *models.SecureEnvelope, err error) {
-	se := o.env.Proto()
-	model = &models.SecureEnvelope{
-		Direction:     models.DirectionOutgoing,
-		IsError:       o.env.IsError(),
-		EncryptionKey: nil,
-		HMACSecret:    nil,
-		ValidHMAC:     sql.NullBool{Valid: true, Bool: se.Sealed},
-		PublicKey:     sql.NullString{Valid: false},
-		Envelope:      se,
-		TransferState: int32(se.TransferState),
-	}
-
-	if !o.env.IsError() {
-		// Encrypt the outgoing envelope
-		if o.storageKey == nil || o.crypto == nil {
-			o.log.Error().Msg("missing storage key or crypto reference to encrypt outgoing envelope locally")
-			return nil, internalError
-		}
-
-		// Store the public key signature used to encrypt the locally stored envelope
-		if model.PublicKey.String, err = o.storageKey.PublicKeySignature(); err != nil {
-			o.log.Error().Err(err).Msg("unknown storage key public key signature")
-		}
-		model.PublicKey.Valid = model.PublicKey.String != ""
-
-		if model.EncryptionKey, err = o.seal.Encrypt(o.crypto.EncryptionKey()); err != nil {
-			o.log.Error().Err(err).Msg("unable to encrypt locally stored envelope encryption key")
-			return nil, internalError
-		}
-
-		if model.HMACSecret, err = o.seal.Encrypt(o.crypto.HMACSecret()); err != nil {
-			o.log.Error().Err(err).Msg("unable to encrypt locally stored envelope hmac secret")
-			return nil, internalError
-		}
-	}
-
-	model.EnvelopeID, _ = o.env.UUID()
-	model.Timestamp, _ = o.env.Timestamp()
-	return model, nil
-}
-
-//===========================================================================
 // TRISA Transfer Handler Methods
 //===========================================================================
 
-func (s *Server) HandleIncoming(in *Incoming) (out *Outgoing, err error) {
+func (s *Server) Handle(ctx context.Context, p *postman.Packet) (err error) {
+	// Ensure that the error returned from this function is a gRPC error
+	defer func() {
+		if err != nil {
+			if _, ok := status.FromError(err); !ok {
+				err = internalError
+			}
+		}
+	}()
+
 	// Validate the incoming message
-	if err = in.env.ValidateMessage(); err != nil {
-		in.log.Debug().Err(err).Bool("stored_to_database", false).Msg("received invalid secure envelope, no secure envelopes saved to the database")
-		return in.Reject(api.BadRequest, err.Error(), true)
+	if err = p.In.Envelope.ValidateMessage(); err != nil {
+		p.Log.Debug().Err(err).Bool("stored_to_database", false).Msg("received invalid secure envelope, no secure envelopes saved to the database")
+		return p.Reject(api.BadRequest, err.Error(), false)
 	}
 
 	// Parse the envelope ID
 	var envelopeID uuid.UUID
-	if envelopeID, err = in.env.UUID(); err != nil {
-		in.log.Warn().Err(err).Bool("stored_to_database", false).Msg("received invalid secure envelope id, no secure envelopes saved to the database")
-		return in.Reject(api.BadRequest, "could not parse envelope id as UUID", true)
+	if envelopeID, err = p.In.Envelope.UUID(); err != nil {
+		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("received invalid secure envelope id, no secure envelopes saved to the database")
+		return p.Reject(api.BadRequest, "could not parse envelope id as UUID", false)
 	}
 
 	// Create the prepared transaction to handle envelope storage
-	if in.db, err = s.store.PrepareTransaction(in.ctx, envelopeID); err != nil {
-		in.log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not prepare transaction for database storage")
-		return nil, internalError
+	if p.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not prepare transaction for database storage")
+		return internalError
 	}
 
-	// Rollback the prepared transaction if there are any errors.
-	defer in.db.Rollback()
+	// Rollback the prepared transaction if there are any errors in processing
+	defer p.DB.Rollback()
 
-	// Handle storing basic transaction details and counterparty information
-	if err = in.UpdateRecord(); err != nil {
-		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store basic transaction details and counterparty information")
-		return nil, internalError
+	// Update the transaction record and add counterparty information and status
+	// TODO: this may return an invalid counterparty error, which should return a different status error
+	if err = p.In.UpdateTransaction(); err != nil {
+		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not update transaction details and counterparty information")
+		return internalError
 	}
 
-	// Handle the envelope, depending on the incoming envelope state.
-	// NOTE: it is up to the handler to store the incoming secure envelope
-	switch in.env.State() {
+	// Handle the envelope, depending on the incoming envelope's state.
+	switch state := p.In.Envelope.State(); state {
 	case envelope.Sealed:
-		out, err = s.HandleSealed(in)
+		err = s.HandleSealed(ctx, p)
 	case envelope.Error:
-		// If the envelope only contains an error, handle it without decryption
-		out, err = s.HandleIncomingError(in)
+		err = s.HandleError(ctx, p)
 	case envelope.Corrupted:
-		out, err = in.Reject(api.BadRequest, "received envelope in corrupted state", false)
+		p.Log.Warn().Str("state", state.String()).Msg("received envelope in corrupted state")
+		return status.Error(codes.InvalidArgument, "received envelope in corrupted state")
 	default:
-		out, err = in.Reject(api.BadRequest, "received envelope in unhandled state", true)
+		p.Log.Warn().Str("state", state.String()).Msg("received envelope in unhandled state")
+		return status.Error(codes.InvalidArgument, "received envelope in unhandled state")
 	}
 
-	// Return any errors directly to the user, with a warning that no envelopes were stored
 	if err != nil {
-		in.log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not process incoming trisa transfer, no secure envelopes saved to the database")
-		return nil, err
+		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not process incoming trisa transfer")
+		return err
 	}
 
-	// Store the outgoing message to the database
-	var outse *models.SecureEnvelope
-	if outse, err = out.Model(); err != nil {
-		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not create outgoing envelope for storage")
-		return nil, internalError
+	// Store Incoming Message
+	if err = p.DB.AddEnvelope(p.In.Model()); err != nil {
+		p.Log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store incoming trisa envelope in database")
+		return internalError
 	}
 
-	if err = in.db.AddEnvelope(outse); err != nil {
-		in.log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing envelope")
-		return nil, internalError
+	// Store Outgoing message
+	if err = p.DB.AddEnvelope(p.Out.Model()); err != nil {
+		p.Log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing trisa envelope in database")
+		return internalError
 	}
 
-	// Commit the transaction to the database
-	if err = in.db.Commit(); err != nil {
-		in.log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not commit incoming transfer and response to database")
-		return nil, internalError
+	// Commit the transaction to the database (success!)
+	if err = p.DB.Commit(); err != nil {
+		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not commit incoming trisa transfer to database")
+		return internalError
 	}
 
-	in.log.Info().Bool("stored_to_database", true).Msg("incoming transfer handling complete")
-	return out, nil
+	p.Log.Info().Bool("stored_to_database", true).Msg("incoming trisa transfer handling complete")
+	return nil
 }
 
-func (s *Server) HandleSealed(in *Incoming) (out *Outgoing, err error) {
+func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error) {
+	// Identify the unsealing keys to decrypt the incoming envelope
+	if p.In.UnsealingKey, err = s.network.UnsealingKey(p.In.PublicKeySignature(), p.Peer.Name()); err != nil {
+		// Return TRISA rejection message if we cannot unseal the envelope
+		p.Log.Warn().Err(err).Str("pks", p.In.PublicKeySignature()).Msg("could not identify unsealing key for envelope")
+		return p.Reject(api.InvalidKey, "unknown public key signature", true)
+	}
+
 	// Identify the sealing key of the counterparty to return an encrypted response, if
 	// it's not available, perform a side-channel RPC to fetch the keys.
-	var sealingKey keys.PublicKey
-	if sealingKey, err = s.network.SealingKey(in.peer.Name()); err != nil {
-		in.log.Info().Msg("conducting mid-transfer key exchange")
-		if sealingKey, err = s.network.KeyExchange(in.ctx, in.peer); err != nil {
+	if p.Out.SealingKey, err = s.network.SealingKey(p.Peer.Name()); err != nil {
+		p.Log.Info().Msg("conducting mid-transfer key exchange")
+		if p.Out.SealingKey, err = s.network.KeyExchange(ctx, p.Peer); err != nil {
 			// If we cannot exchange keys, return a TRISA rejection error for retry
-			in.log.Warn().Err(err).Msg("cannot complete transfer without counterparty sealing keys")
-			return in.Reject(api.NoSigningKey, "unable to identify sender's sealing keys to complete transfer", true)
+			p.Log.Warn().Err(err).Msg("cannot complete transfer without counterparty sealing keys")
+			return p.Reject(api.NoSigningKey, "unable to identify sender's sealing keys to complete transfer", true)
 		}
 	}
 
-	// Identify local unsealing keys to decrypt the incoming envelope
-	var unsealingKey keys.PrivateKey
-	if unsealingKey, err = s.network.UnsealingKey(in.PublicKeySignature(), in.peer.Name()); err != nil {
-		// Return TRISA rejection message if we cannot unseal the envelope
-		in.log.Warn().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not identify unsealing key for envelope")
-		return in.Reject(api.InvalidKey, "unknown public key signature", true)
+	// Identify the local keys used to store the outgoing envelope
+	// These are usually the public key component of the unsealing keys
+	if p.Out.StorageKey, err = s.network.StorageKey(p.In.PublicKeySignature(), p.Peer.Name()); err != nil {
+		p.Log.Warn().Err(err).Str("pks", p.In.PublicKeySignature()).Msg("could not identify storage key for envelope")
+		return p.Reject(api.InvalidKey, "unknown public key signature", true)
 	}
 
-	// Identify the local keys to store the outgoing envelope (usually the public key component of the unsealing key)
-	var storageKey keys.PublicKey
-	if storageKey, err = s.network.StorageKey(in.PublicKeySignature(), in.peer.Name()); err != nil {
-		in.log.Warn().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not identify storage key for envelope")
-		return in.Reject(api.InvalidKey, "unknown public key signature", true)
-	}
-
-	// Decryption and validation
-	var (
-		reject    *api.Error
-		payload   *api.Payload
-		unseal    interface{}
-		unsealed  *envelope.Envelope
-		decrypted *envelope.Envelope
-	)
-
-	if unseal, err = unsealingKey.UnsealingKey(); err != nil {
-		in.log.Error().Err(err).Str("pks", in.PublicKeySignature()).Msg("unsealing private key not available")
-		return nil, internalError
-	}
-
-	if unsealed, reject, err = in.env.Unseal(envelope.WithUnsealingKey(unseal)); err != nil {
+	// Decryption and Validation
+	var reject *api.Error
+	if reject, err = p.In.Open(); err != nil {
 		if reject != nil {
-			return in.Error(reject)
+			return p.Error(reject)
 		}
-
-		in.log.Error().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not unseal incoming secure envelope")
-		return nil, internalError
+		return err
 	}
 
-	if decrypted, reject, err = unsealed.Decrypt(); err != nil {
-		if reject != nil {
-			// Record if the HMAC was not valid
-			if reject.Code == api.InvalidSignature {
-				in.SetHMACValid(false)
-			}
-			return in.Error(reject)
-		}
-
-		in.log.Error().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not decrypt incoming secure envelope")
-		return nil, internalError
-	}
-
-	// At this point if we've successfully decrypted the message, we know the HMAC is valid
-	in.SetHMACValid(true)
-
-	if payload, err = decrypted.Payload(); err != nil {
-		in.log.Error().Err(err).Str("pks", in.PublicKeySignature()).Msg("could not decrypt incoming secure envelope")
-		return nil, internalError
+	var payload *api.Payload
+	if payload, err = p.In.Envelope.Payload(); err != nil {
+		p.Log.Error().Err(err).Msg("could not retrieve payload from decrypted envelope")
+		return internalError
 	}
 
 	if reject = Validate(payload); reject != nil {
-		return in.Error(reject)
+		return p.Error(reject)
 	}
 
 	// Update transaction with decrypted details if available
-	if err = in.db.Update(transactionFromPayload(payload)); err != nil {
-		in.log.Error().Err(err).Msg("could not update transaction in database with decrypted details")
-		return nil, internalError
+	// TODO: move transaction from payload to Postman
+	if err = p.DB.Update(transactionFromPayload(payload)); err != nil {
+		p.Log.Error().Err(err).Msg("could not update transaction in database with decrypted details")
+		return internalError
 	}
 
 	// TODO: load auto approve/reject policies for counterparty to determine response
-	// TODO: send message to callback server on backend
+	// TODO: send message to callback webhook and attempt to recieve a response
 
-	// NOTE: for now, the server will always simply return a pending response
-	if payload, err = pendingPayload(payload, in.ID()); err != nil {
-		in.log.Error().Err(err).Msg("could not create outgoing payload")
-		return nil, internalError
+	// NOTE: for now, the server will always simple return a pending response.
+	if payload, err = pendingPayload(payload, p.EnvelopeID()); err != nil {
+		p.Log.Error().Err(err).Msg("could not create outgoing pending payload")
+		return internalError
 	}
 
-	var seal interface{}
-	if seal, err = sealingKey.SealingKey(); err != nil {
-		in.log.Error().Err(err).Msg("sealing public key not available")
-		return nil, internalError
+	// TODO: determine the transfer state to send a message back
+	// NOTE: right now we're always just sending back pending
+	if err = p.Send(payload, api.TransferPending); err != nil {
+		p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+		return internalError
 	}
 
-	var msg *api.SecureEnvelope
-	if msg, reject, err = envelope.SealPayload(payload, envelope.WithSealingKey(seal), envelope.WithEnvelopeID(in.ID()), envelope.WithCrypto(decrypted.Crypto())); err != nil {
+	// Seal the outgoing envelope so it's ready to return to the requestor
+	if reject, err = p.Out.Seal(); err != nil {
 		if reject != nil {
-			return in.Error(reject)
+			return p.Error(reject)
 		}
-
-		pks, _ := sealingKey.PublicKeySignature()
-		in.log.Error().Err(err).Str("pks", pks).Msg("could not seal outgoing envelope")
-		return nil, internalError
+		return err
 	}
 
-	// Ensure the public key signature is set on the outgoing message
-	msg.PublicKeySignature, _ = sealingKey.PublicKeySignature()
-	in.log.Debug().Str("pks", msg.PublicKeySignature).Msg("outgoing envelope sealed")
-
-	// Create outgoing message
-	if out, err = in.Outgoing(msg); err != nil {
-		return nil, err
-	}
-
-	// Set the ougoing message cryptography
-	if err = out.SetStorageCrypto(storageKey, decrypted.Crypto()); err != nil {
-		return nil, err
-	}
-
-	return out, nil
+	return nil
 }
 
-// Handles envelopes that only contain errors and require no decryption. The error is
-// stored locally and to complete the transfer, the error is echoed back to the sender.
-func (s *Server) HandleIncomingError(in *Incoming) (out *Outgoing, err error) {
+func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error) {
 	// If the transaction doesn't exist, why are we receiving an error?
-	if in.db.Created() {
-		return nil, status.Error(codes.NotFound, "transaction does not exist")
+	if p.DB.Created() {
+		return status.Error(codes.NotFound, "transaction does not exist")
 	}
 
 	// Fetch the error and log it
-	trisaError := in.env.Error()
-	in.log.Debug().
+	trisaError := p.In.Envelope.Error()
+	p.Log.Debug().
 		Str("code", trisaError.Code.String()).
 		Str("message", trisaError.Message).
 		Bool("retry", trisaError.Retry).
 		Msg("received trisa rejection")
 
-	// Construct a reply that simply echos back the received error.
-	// NOTE: do not use in.Error() as that logs that we are sending a rejection response
-	var msg *api.SecureEnvelope
-	if msg, err = envelope.Reject(trisaError, envelope.WithEnvelopeID(in.ID())); err != nil {
-		log.Error().Err(err).Msg("could not prepare rejection envelope")
-		return nil, status.Error(codes.Internal, "could not complete TRISA transfer")
+	// Update the transaction status to indicate that an error was received.
+	var status string
+	switch p.In.Envelope.TransferState() {
+	case api.TransferRejected:
+		status = models.StatusRejected
+	case api.TransferRepair:
+		status = models.StatusRepair
+	default:
+		status = models.StatusUnspecified
 	}
 
-	return in.Outgoing(msg)
+	if err = p.DB.Update(&models.Transaction{Status: status}); err != nil {
+		p.Log.Error().Err(err).Msg("could not update transaction status on error")
+		return internalError
+	}
+
+	// Construct a reply that simply echos back the received error.
+	transferState := api.TransferPending
+	if status == models.StatusRejected {
+		transferState = api.TransferRejected
+	}
+
+	return p.Error(trisaError, envelope.WithTransferState(transferState))
 }
 
 //===========================================================================
