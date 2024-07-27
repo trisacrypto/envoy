@@ -14,6 +14,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -235,7 +236,7 @@ func (i *Incoming) Outgoing(msg *api.SecureEnvelope) (out *Outgoing, err error) 
 		log.Error().Err(err).Msg("could not prepare rejection envelope")
 		return nil, status.Error(codes.Internal, "could not complete TRISA transfer")
 	}
-	return &Outgoing{env: env, log: i.log}, nil
+	return &Outgoing{env: env, log: i.log, replyTo: i}, nil
 }
 
 // Converts the incoming message into a database model for storage. This method assumes
@@ -248,12 +249,18 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 	se := i.env.Proto()
 	model := &models.SecureEnvelope{
 		Direction:     models.DirectionIncoming,
+		ReplyTo:       ulids.NullULID{Valid: false},
 		IsError:       i.env.IsError(),
 		EncryptionKey: se.EncryptionKey,
 		HMACSecret:    se.HmacSecret,
 		ValidHMAC:     i.hmac,
 		PublicKey:     sql.NullString{Valid: se.PublicKeySignature != "", String: se.PublicKeySignature},
+		TransferState: int32(se.TransferState),
 		Envelope:      se,
+	}
+
+	if peer, err := i.peer.Info(); err == nil {
+		model.Remote = sql.NullString{Valid: peer.CommonName != "", String: peer.CommonName}
 	}
 
 	model.EnvelopeID, _ = i.env.UUID()
@@ -280,9 +287,8 @@ func (i *Incoming) UpdateRecord() (err error) {
 	timestamp, _ := i.env.Timestamp()
 
 	// Update the transaction with available information
-	// TODO: identify if this is a completed transaction
 	transaction := &models.Transaction{
-		Status:     models.StatusPending,
+		Status:     models.StatusFromTransferState(i.env.TransferState()),
 		LastUpdate: sql.NullTime{Valid: true, Time: timestamp},
 	}
 
@@ -309,6 +315,7 @@ func (i *Incoming) UpdateRecord() (err error) {
 type Outgoing struct {
 	log        zerolog.Logger
 	env        *envelope.Envelope
+	replyTo    *Incoming
 	storageKey keys.PublicKey
 	crypto     crypto.Crypto
 	seal       crypto.Cipher
@@ -352,6 +359,7 @@ func (o *Outgoing) Model() (model *models.SecureEnvelope, err error) {
 		ValidHMAC:     sql.NullBool{Valid: true, Bool: se.Sealed},
 		PublicKey:     sql.NullString{Valid: false},
 		Envelope:      se,
+		TransferState: int32(se.TransferState),
 	}
 
 	if !o.env.IsError() {

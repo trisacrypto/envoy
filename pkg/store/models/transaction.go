@@ -46,6 +46,29 @@ func ValidStatus(status string) bool {
 	}
 }
 
+func StatusFromTransferState(state api.TransferState) string {
+	switch state {
+	case api.TransferStateUnspecified:
+		return StatusUnspecified
+	case api.TransferStarted:
+		return StatusDraft
+	case api.TransferPending:
+		return StatusPending
+	case api.TransferReview:
+		return StatusReview
+	case api.TransferRepair:
+		return StatusRepair
+	case api.TransferAccepted:
+		return StatusAccepted
+	case api.TransferCompleted:
+		return StatusCompleted
+	case api.TransferRejected:
+		return StatusRejected
+	default:
+		return StatusUnspecified
+	}
+}
+
 type Transaction struct {
 	ID                 uuid.UUID         // Transaction IDs are UUIDs not ULIDs per the TRISA spec, this is also used for the envelope ID
 	Source             string            // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
