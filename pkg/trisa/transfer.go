@@ -2,10 +2,7 @@ package trisa
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
@@ -15,7 +12,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
-	"github.com/trisacrypto/trisa/pkg/ivms101"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -288,8 +284,7 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error
 	}
 
 	// Update transaction with decrypted details if available
-	// TODO: move transaction from payload to Postman
-	if err = p.DB.Update(transactionFromPayload(payload)); err != nil {
+	if err = p.DB.Update(postman.TransactionFromPayload(payload)); err != nil {
 		p.Log.Error().Err(err).Msg("could not update transaction in database with decrypted details")
 		return internalError
 	}
@@ -375,7 +370,7 @@ func pendingPayload(in *api.Payload, envelopeID string) (out *api.Payload, err e
 	// TODO: populate pending from configuration
 	pending := &generic.Pending{
 		EnvelopeId:     envelopeID,
-		ReceivedBy:     "TRISA Self Hosted Node",
+		ReceivedBy:     "TRISA Envoy Node",
 		ReceivedAt:     ts.Format(time.RFC3339),
 		Message:        "We are reviewing your travel rule exchange request and will reply once we have completed our internal compliance checks",
 		ReplyNotAfter:  ts.Add(24 * time.Hour).Format(time.RFC3339),
@@ -393,128 +388,6 @@ func pendingPayload(in *api.Payload, envelopeID string) (out *api.Payload, err e
 		return nil, err
 	}
 	return out, nil
-}
-
-func transactionFromPayload(in *api.Payload) *models.Transaction {
-	var (
-		err                error
-		originator         string
-		originatorAddress  string
-		beneficiary        string
-		beneficiaryAddress string
-		virtualAsset       string
-		amount             float64
-	)
-
-	data := &generic.Transaction{}
-	if err = in.Transaction.UnmarshalTo(data); err == nil {
-		switch {
-		case data.Network != "" && data.AssetType != "":
-			virtualAsset = fmt.Sprintf("%s (%s)", data.Network, data.AssetType)
-		case data.Network != "":
-			virtualAsset = data.Network
-		case data.AssetType != "":
-			virtualAsset = data.AssetType
-		}
-
-		amount = data.Amount
-		originatorAddress = data.Originator
-		beneficiaryAddress = data.Beneficiary
-	}
-
-	identity := &ivms101.IdentityPayload{}
-	if err = in.Identity.UnmarshalTo(identity); err == nil {
-		if identity.Originator != nil {
-			originator = findName(identity.Originator.OriginatorPersons...)
-		}
-
-		if identity.Beneficiary != nil {
-			beneficiary = findName(identity.Beneficiary.BeneficiaryPersons...)
-		}
-
-		if originatorAddress == "" {
-			originatorAddress = findAccount(identity.Originator)
-		}
-
-		if beneficiaryAddress == "" {
-			beneficiaryAddress = findAccount(identity.Beneficiary)
-		}
-	}
-
-	return &models.Transaction{
-		Originator:         sql.NullString{Valid: originator != "", String: originator},
-		OriginatorAddress:  sql.NullString{Valid: originatorAddress != "", String: originatorAddress},
-		Beneficiary:        sql.NullString{Valid: beneficiary != "", String: beneficiary},
-		BeneficiaryAddress: sql.NullString{Valid: beneficiaryAddress != "", String: beneficiaryAddress},
-		VirtualAsset:       virtualAsset,
-		Amount:             amount,
-	}
-
-}
-
-func findName(persons ...*ivms101.Person) (name string) {
-	// Search all persons for the first legal name available. Use the last available
-	// non-zero name for any other name identifier types.
-	for _, person := range persons {
-		switch t := person.Person.(type) {
-		case *ivms101.Person_LegalPerson:
-			if t.LegalPerson.Name != nil {
-				for _, identifier := range t.LegalPerson.Name.NameIdentifiers {
-					// Set the name found to the current legal person name
-					if identifier.LegalPersonName != "" {
-						name = identifier.LegalPersonName
-
-						// If this is the legal name, short circuit and return it.
-						if identifier.LegalPersonNameIdentifierType == ivms101.LegalPersonLegal {
-							return name
-						}
-					}
-				}
-			}
-		case *ivms101.Person_NaturalPerson:
-			if t.NaturalPerson.Name != nil {
-				for _, identifier := range t.NaturalPerson.Name.NameIdentifiers {
-					// Set the name found to the current natural person name
-					if identifier.PrimaryIdentifier != "" {
-						name = strings.TrimSpace(fmt.Sprintf("%s %s", identifier.SecondaryIdentifier, identifier.PrimaryIdentifier))
-
-						// If this is the legal name of the person, short circuit and return it.
-						if identifier.NameIdentifierType == ivms101.NaturalPersonLegal {
-							return name
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	// Return whatever non-zero name we found, or empty string if we found nothing.
-	return name
-}
-
-func findAccount(person any) (account string) {
-	if person == nil {
-		return ""
-	}
-
-	switch t := person.(type) {
-	case *ivms101.Originator:
-		for _, account = range t.AccountNumbers {
-			if account != "" {
-				return account
-			}
-		}
-	case *ivms101.Beneficiary:
-		for _, account = range t.AccountNumbers {
-			if account != "" {
-				return account
-			}
-		}
-	}
-
-	// Return whatever non-zero account we found, or empty string if we found nothing.
-	return account
 }
 
 func streamClosed(err error) bool {
