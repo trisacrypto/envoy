@@ -51,8 +51,10 @@ type Transaction struct {
 
 type SecureEnvelope struct {
 	ID                  ulid.ULID    `json:"id"`
-	Direction           string       `json:"direction"`
 	EnvelopeID          uuid.UUID    `json:"envelope_id"`
+	Direction           string       `json:"direction"`
+	Remote              string       `json:"remote,omitempty"`
+	ReplyTo             ulid.ULID    `json:"reply_to,omitempty"`
 	Payload             []byte       `json:"payload,omitempty"`
 	EncryptionKey       []byte       `json:"encryption_key,omitempty"`
 	EncryptionAlgorithm string       `json:"encryption_algorithm,omitempty"`
@@ -65,13 +67,16 @@ type SecureEnvelope struct {
 	Timestamp           time.Time    `json:"timestamp"`
 	Sealed              bool         `json:"sealed"`
 	PublicKeySignature  string       `json:"public_key_signature,omitempty"`
+	TransferState       string       `json:"transfer_state,omitempty"`
 	Original            []byte       `json:"original,omitempty"`
 }
 
 type Envelope struct {
 	ID                 ulid.ULID                `json:"id"`
-	Direction          string                   `json:"direction"`
 	EnvelopeID         string                   `json:"envelope_id,omitempty"`
+	Direction          string                   `json:"direction"`
+	Remote             string                   `json:"remote,omitempty"`
+	ReplyTo            ulid.ULID                `json:"reply_to,omitempty"`
 	IsError            bool                     `json:"is_error"`
 	Error              *trisa.Error             `json:"error,omitempty"`
 	Identity           *ivms101.IdentityPayload `json:"identity,omitempty"`
@@ -81,6 +86,7 @@ type Envelope struct {
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
 	Timestamp          time.Time                `json:"timestamp"`
 	PublicKeySignature string                   `json:"public_key_signature,omitempty"`
+	TransferState      string                   `json:"transfer_state,omitempty"`
 	Original           []byte                   `json:"original,omitempty"`
 }
 
@@ -226,8 +232,10 @@ func (c *Transaction) TitleStatus() string {
 func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err error) {
 	out = &SecureEnvelope{
 		ID:                  model.ID,
-		Direction:           model.Direction,
 		EnvelopeID:          model.EnvelopeID,
+		Direction:           model.Direction,
+		Remote:              model.Remote.String,
+		ReplyTo:             model.ReplyTo.ULID,
 		Payload:             model.Envelope.Payload,
 		EncryptionKey:       model.EncryptionKey,
 		EncryptionAlgorithm: model.Envelope.EncryptionAlgorithm,
@@ -240,6 +248,7 @@ func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err e
 		Timestamp:           model.Timestamp,
 		Sealed:              model.Envelope.Sealed,
 		PublicKeySignature:  model.PublicKey.String,
+		TransferState:       model.Envelope.TransferState.String(),
 	}
 
 	if out.Original, err = proto.Marshal(model.Envelope); err != nil {
@@ -272,10 +281,13 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Envelope, err error) {
 	out = &Envelope{
 		ID:                 model.ID,
-		Direction:          model.Direction,
 		EnvelopeID:         model.EnvelopeID.String(),
+		Direction:          model.Direction,
+		Remote:             model.Remote.String,
+		ReplyTo:            model.ReplyTo.ULID,
 		Timestamp:          model.Timestamp,
 		PublicKeySignature: model.PublicKey.String,
+		TransferState:      env.TransferState().String(),
 	}
 
 	if out.Original, err = proto.Marshal(model.Envelope); err != nil {
@@ -412,6 +424,11 @@ func (e *Envelope) Payload() (payload *trisa.Payload, err error) {
 	}
 
 	return payload, nil
+}
+
+func (e *Envelope) ParseTransferState() trisa.TransferState {
+	state, _ := trisa.ParseTransferState(e.TransferState)
+	return state
 }
 
 //===========================================================================

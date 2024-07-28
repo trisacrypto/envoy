@@ -228,6 +228,12 @@ func (s *Server) Handle(ctx context.Context, p *postman.Packet) (err error) {
 		return internalError
 	}
 
+	// Update the transaction with the outgoing message info
+	if err = p.Out.UpdateTransaction(); err != nil {
+		p.Log.Error().Err(err).Bool("stored_to_database", false).Msg("could not update transaction with outgoing info in database")
+		return internalError
+	}
+
 	// Commit the transaction to the database (success!)
 	if err = p.DB.Commit(); err != nil {
 		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not commit incoming trisa transfer to database")

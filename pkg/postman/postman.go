@@ -24,6 +24,7 @@ package postman
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -56,6 +57,52 @@ type Packet struct {
 	APIKey       *models.APIKey             // The api key that created the request, if any
 	Request      Direction                  // Determines if the initial message was incoming or outgoing
 	Reply        Direction                  // Determines if the reply was incoming or outgoing
+}
+
+func Send(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState, log zerolog.Logger) (packet *Packet, err error) {
+	packet = &Packet{
+		In:      &Incoming{},
+		Out:     &Outgoing{},
+		Log:     log,
+		Request: DirectionOutgoing,
+		Reply:   DirectionIncoming,
+	}
+
+	// Add parent to submessages
+	packet.In.packet = packet
+	packet.Out.packet = packet
+
+	opts := []envelope.Option{
+		envelope.WithEnvelopeID(envelopeID.String()),
+		envelope.WithTransferState(transferState),
+	}
+
+	if packet.Out.Envelope, err = envelope.New(payload, opts...); err != nil {
+		return nil, fmt.Errorf("could not create envelope for payload: %w", err)
+	}
+
+	return packet, nil
+}
+
+func SendReject(reject *api.Error, envelopeID uuid.UUID, log zerolog.Logger) (packet *Packet, err error) {
+	packet = &Packet{
+		In:      &Incoming{},
+		Out:     &Outgoing{},
+		Log:     log,
+		Request: DirectionOutgoing,
+		Reply:   DirectionIncoming,
+	}
+
+	// Add parent to submessages
+	packet.In.packet = packet
+	packet.Out.packet = packet
+
+	// The envelope package should set the correct transfer state based on retry.
+	if packet.Out.Envelope, err = envelope.WrapError(reject, envelope.WithEnvelopeID(envelopeID.String())); err != nil {
+		return nil, fmt.Errorf("could not create rejection envelope: %w", err)
+	}
+
+	return packet, nil
 }
 
 func Receive(in *api.SecureEnvelope, log zerolog.Logger, peer peers.Peer) (packet *Packet, err error) {
@@ -154,6 +201,13 @@ func (p *Packet) ResolveCounterparty() (err error) {
 		}
 
 		p.Counterparty = p.PeerInfo.Model()
+	}
+	return nil
+}
+
+func (p *Packet) RefreshTransaction() (err error) {
+	if p.Transaction, err = p.DB.Fetch(); err != nil {
+		return err
 	}
 	return nil
 }

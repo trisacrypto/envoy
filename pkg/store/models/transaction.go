@@ -1,9 +1,7 @@
 package models
 
 import (
-	"crypto/rsa"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -12,10 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	"github.com/trisacrypto/trisa/pkg/trisa/crypto"
-	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
-	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 const (
@@ -43,29 +38,6 @@ func ValidStatus(status string) bool {
 		return true
 	default:
 		return false
-	}
-}
-
-func StatusFromTransferState(state api.TransferState) string {
-	switch state {
-	case api.TransferStateUnspecified:
-		return StatusUnspecified
-	case api.TransferStarted:
-		return StatusDraft
-	case api.TransferPending:
-		return StatusPending
-	case api.TransferReview:
-		return StatusReview
-	case api.TransferRepair:
-		return StatusRepair
-	case api.TransferAccepted:
-		return StatusAccepted
-	case api.TransferCompleted:
-		return StatusCompleted
-	case api.TransferRejected:
-		return StatusRejected
-	default:
-		return StatusUnspecified
 	}
 }
 
@@ -259,9 +231,14 @@ func (t *Transaction) Update(other *Transaction) {
 	}
 }
 
+// FromEnvelope creates a SecureEnvelope model from a trisa wrapped secure envelope
+// protocol buffer; this is primarily used for testing and should not be relied on for
+// production work without testing and verification that the complete model is present.
 func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	model := &SecureEnvelope{
 		Direction: "",
+		Remote:    sql.NullString{},
+		ReplyTo:   ulids.NullULID{},
 		IsError:   env.IsError(),
 		Envelope:  env.Proto(),
 	}
@@ -269,68 +246,15 @@ func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	model.EnvelopeID, _ = env.UUID()
 	model.EncryptionKey = model.Envelope.EncryptionKey
 	model.HMACSecret = model.Envelope.HmacSecret
+
+	model.ValidHMAC.Bool, _ = env.ValidateHMAC()
+	model.ValidHMAC.Valid = true
+
 	model.Timestamp, _ = env.Timestamp()
 	model.PublicKey = sql.NullString{Valid: model.Envelope.PublicKeySignature != "", String: model.Envelope.PublicKeySignature}
+	model.TransferState = int32(model.Envelope.TransferState)
 
 	return model
-}
-
-func FromOutgoingEnvelope(env *envelope.Envelope) *SecureEnvelope {
-	out := FromEnvelope(env)
-	out.Direction = DirectionOutgoing
-	out.ValidHMAC = sql.NullBool{Valid: true, Bool: true}
-	return out
-}
-
-func FromIncomingEnvelope(env *envelope.Envelope) *SecureEnvelope {
-	in := FromEnvelope(env)
-	in.Direction = DirectionIncoming
-	in.ValidHMAC = sql.NullBool{Valid: true, Bool: in.Envelope.Sealed}
-
-	in.PublicKey.String = env.Proto().PublicKeySignature
-	in.PublicKey.Valid = in.PublicKey.String != ""
-
-	return in
-}
-
-func (e *SecureEnvelope) Reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err error) {
-	// Set the public key signature of the storage key on the model
-	if e.PublicKey.String, err = storageKey.PublicKeySignature(); err != nil {
-		return err
-	}
-
-	// Ensure the null value is set to valid
-	e.PublicKey.Valid = e.PublicKey.String != ""
-
-	// Create a cipher to seal the new storage keys
-	var (
-		pubkey interface{}
-		seal   crypto.Cipher
-	)
-
-	if pubkey, err = storageKey.SealingKey(); err != nil {
-		return err
-	}
-
-	switch t := pubkey.(type) {
-	case *rsa.PublicKey:
-		if seal, err = rsaoeap.New(t); err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("unknown key type %T", t)
-	}
-
-	// Encrypt the encryption key and hmac secret with the new cipher
-	if e.EncryptionKey, err = seal.Encrypt(sec.EncryptionKey()); err != nil {
-		return err
-	}
-
-	if e.HMACSecret, err = seal.Encrypt(sec.HMACSecret()); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (e *SecureEnvelope) Scan(scanner Scanner) error {

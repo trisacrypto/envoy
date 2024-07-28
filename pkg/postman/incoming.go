@@ -30,11 +30,12 @@ func (i *Incoming) Proto() *api.SecureEnvelope {
 	return i.original
 }
 
-// Returns the public key signature from the original message
+// Returns the public key signature from the original message.
 func (i *Incoming) PublicKeySignature() string {
 	return i.original.PublicKeySignature
 }
 
+// Opens the incoming envelope, unsealing and decrypting it for handling.
 func (i *Incoming) Open() (reject *api.Error, err error) {
 	if i.UnsealingKey == nil {
 		return nil, ErrNoUnsealingKey
@@ -103,14 +104,14 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 	return i.model
 }
 
+// Updates the transaction info and status based on the incoming envelope.
 func (i *Incoming) UpdateTransaction() (err error) {
 	// Ensure that we have a counterparty
 	if err = i.packet.ResolveCounterparty(); err != nil {
 		return err
 	}
 
-	// If the transaction on the packet is empty, create a stub; though this indicates
-	// that the incoming message may not have been propertly instantiated.
+	// If the transaction on the packet is empty, create a stub.
 	if i.packet.Transaction == nil {
 		i.packet.Transaction = &models.Transaction{}
 	}
@@ -127,9 +128,9 @@ func (i *Incoming) UpdateTransaction() (err error) {
 		i.packet.Transaction.Source = models.SourceRemote
 	}
 
-	// Update the status, last update, and source if necessary
+	// Update the status and last update on the transaction.
 	timestamp, _ := i.Envelope.Timestamp()
-	i.packet.Transaction.Status = models.StatusFromTransferState(i.original.TransferState)
+	i.packet.Transaction.Status = i.StatusFromTransferState()
 	i.packet.Transaction.LastUpdate = sql.NullTime{
 		Valid: !timestamp.IsZero(), Time: timestamp,
 	}
@@ -140,4 +141,30 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	}
 
 	return nil
+}
+
+// StatusFromTransferState determines what the status should be based on the incoming
+// message transfer state. For example, if the incoming transfer state is accepted, then
+// the Transfer can be marked as completed.
+func (i *Incoming) StatusFromTransferState() string {
+	switch ts := i.original.TransferState; ts {
+	case api.TransferStateUnspecified:
+		return models.StatusUnspecified
+	case api.TransferStarted:
+		return models.StatusReview
+	case api.TransferPending:
+		return models.StatusPending
+	case api.TransferReview:
+		return models.StatusReview
+	case api.TransferRepair:
+		return models.StatusRepair
+	case api.TransferAccepted:
+		return models.StatusAccepted
+	case api.TransferCompleted:
+		return models.StatusCompleted
+	case api.TransferRejected:
+		return models.StatusRejected
+	default:
+		panic(fmt.Errorf("unknown transfer state %s", ts.String()))
+	}
 }

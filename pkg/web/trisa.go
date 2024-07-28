@@ -7,14 +7,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trisacrypto/envoy/pkg/logger"
+	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	"github.com/trisacrypto/trisa/pkg/trisa/crypto/rsaoeap"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
@@ -23,135 +21,93 @@ import (
 // counterparty specified and storing both the outgoing and incoming secure envelopes in
 // the database. This method is used to send the prepared transaction, to send envelopes
 // for a transaction, and in the accept/reject workflows.
-func (s *Server) SendEnvelope(ctx context.Context, outgoing *envelope.Envelope, counterparty *models.Counterparty, db models.EnvelopeStorage) (err error) {
+func (s *Server) SendEnvelope(ctx context.Context, packet *postman.Packet) (err error) {
 	// Step 1: Determine if this is a TRISA or TRP transaction and use the correct handler
 	// to send the outgoing message (which might be updated during the send process) and to
 	// receive the incoming reply from the counterparty.
-	var incoming *envelope.Envelope
-	switch counterparty.Protocol {
+	switch packet.Counterparty.Protocol {
 	case models.ProtocolTRISA:
-		if outgoing, incoming, err = s.SendTRISATransfer(ctx, outgoing, counterparty); err != nil {
+		if err = s.SendTRISATransfer(ctx, packet); err != nil {
 			return err
 		}
 	case models.ProtocolTRP:
 		// TODO: handle TRP transfers
 		return errors.New("the outgoing TRP send protocol is not implemented yet but is coming soon")
 	default:
-		return fmt.Errorf("could not send secure envelope: unknown protocol %q", counterparty.Protocol)
+		return fmt.Errorf("could not send secure envelope: unknown protocol %q", packet.Counterparty.Protocol)
 	}
 
-	// Step 2: Prepare to store the outgoing envelope by fetching the public key used to
-	// seal the incoming envelope from key storage.
-	var storageKey keys.PublicKey
-	if storageKey, err = s.trisa.StorageKey(incoming.Proto().PublicKeySignature, counterparty.CommonName); err != nil {
+	// Step 2: Store the outgoing envelope by fetching the public key used to seal the
+	// incoming envelope from key storage. and saving to the database.
+	if packet.Out.StorageKey, err = s.trisa.StorageKey(packet.In.PublicKeySignature(), packet.Counterparty.CommonName); err != nil {
 		// TODO: use the default keys if the incoming key is not known
 		return fmt.Errorf("could not fetch storage key: %w", err)
 	}
 
-	// Create the secure envelope model for the outgoing message
-	storeOutgoing := models.FromOutgoingEnvelope(outgoing)
-
-	// Update the cryptography on the outgoing message for storage (it needs to be
-	// stored with local keys since it was encrypted for the recipient).
-	if !storeOutgoing.IsError {
-		if err = storeOutgoing.Reseal(storageKey, outgoing.Crypto()); err != nil {
-			return fmt.Errorf("could not encrypt outgoing message for storage: %w", err)
-		}
-	}
-
-	// Save the outgoing envelope to the database
-	if err = db.AddEnvelope(storeOutgoing); err != nil {
-		return fmt.Errorf("could not store outgoing message: %w", err)
+	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+		return fmt.Errorf("could not store outgoing envelope: %w", err)
 	}
 
 	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
 	// sent during the key exchange process of the transfer).
-	storeIncoming := models.FromIncomingEnvelope(incoming)
-	if err = db.AddEnvelope(storeIncoming); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
 		return fmt.Errorf("could not store incoming message: %w", err)
 	}
 
 	return nil
 }
 
-func (s *Server) SendTRISATransfer(ctx context.Context, outgoing *envelope.Envelope, counterparty *models.Counterparty) (_, incoming *envelope.Envelope, err error) {
+func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.Packet) (err error) {
 	// Get the peer from the specified counterparty
-	var peer peers.Peer
-	if peer, err = s.trisa.LookupPeer(ctx, counterparty.CommonName, ""); err != nil {
-		return nil, nil, fmt.Errorf("could not lookup peer for counterparty %q (%s): %w", counterparty.CommonName, counterparty.ID, err)
+	if p.Peer, err = s.trisa.LookupPeer(ctx, p.Counterparty.CommonName, ""); err != nil {
+		return fmt.Errorf("could not lookup peer for counterparty %q (%s): %w", p.Counterparty.CommonName, p.Counterparty.ID, err)
 	}
 
-	log := logger.Tracing(ctx).With().Str("peer", peer.Name()).Str("envelope_id", outgoing.ID()).Logger()
-	log.Debug().Msg("started outgoing TRISA transfer")
+	p.Log = p.Log.With().Str("peer", p.Peer.Name()).Str("envelope_id", p.EnvelopeID()).Logger()
+	p.Log.Debug().Msg("started outgoing TRISA transfer")
 
 	// Fetch cached sealing keys, if not available, perform a key exchange
-	var sealingKey keys.PublicKey
-	if sealingKey, err = s.trisa.SealingKey(peer.Name()); err != nil {
-		log.Debug().Msg("conducting key exchange prior to transer")
-		if sealingKey, err = s.trisa.KeyExchange(ctx, peer); err != nil {
-			log.Error().Err(err).Msg("cannot complete transfer without remote sealing keys")
-			return nil, nil, fmt.Errorf("remote sealing keys unavailable, key exchange failed: %w", err)
+	if p.Out.SealingKey, err = s.trisa.SealingKey(p.Peer.Name()); err != nil {
+		p.Log.Debug().Msg("conducting key exchange prior to transer")
+		if p.Out.SealingKey, err = s.trisa.KeyExchange(ctx, p.Peer); err != nil {
+			p.Log.Error().Err(err).Msg("cannot complete transfer without remote sealing keys")
+			return fmt.Errorf("remote sealing keys unavailable, key exchange failed: %w", err)
 		}
 	}
-
-	skey, _ := sealingKey.SealingKey()
-	seal, _ := rsaoeap.New(skey)
-
 	// Prepare outgoing envelope
-	if !outgoing.IsError() {
-		// Encrypt and seal the payload if this doesn't contain an error message
-		if outgoing, _, err = outgoing.Encrypt(); err != nil {
-			log.Error().Err(err).Msg("could not encrypt the outgoing secure envelope")
-			return outgoing, nil, fmt.Errorf("outgoing encryption error occurred: %w", err)
-		}
-
-		if outgoing, _, err = outgoing.Seal(envelope.WithSeal(seal)); err != nil {
-			log.Error().Err(err).Msg("could not seal the outgoing secure envelope")
-			return outgoing, nil, fmt.Errorf("outgoing public key encryption error occurred: %w", err)
+	if !p.Out.Envelope.IsError() {
+		if _, err = p.Out.Seal(); err != nil {
+			p.Log.Error().Err(err).Msg("could not seal outgoing envelope")
+			return fmt.Errorf("could not seal outgoing envelope: %w", err)
 		}
 	}
 
 	var reply *trisa.SecureEnvelope
-	if reply, err = peer.Transfer(ctx, outgoing.Proto()); err != nil {
-		log.Error().Err(err).Msg("unable to send trisa transfer to remote peer")
-		return outgoing, nil, fmt.Errorf("unexpected error returned from remote peer on transfer: %w", err)
+	if reply, err = p.Peer.Transfer(ctx, p.Out.Proto()); err != nil {
+		p.Log.Error().Err(err).Msg("unable to send trisa transfer to remote peer")
+		return fmt.Errorf("unexpected error returned from remote peer on transfer: %w", err)
+	}
+
+	if err = p.Receive(reply); err != nil {
+		p.Log.Error().Err(err).Msg("unable to prepare incoming message")
+		return err
 	}
 
 	// Load the unsealing key to unseal the response after transfer
-	var unsealingKey keys.PrivateKey
-	if unsealingKey, err = s.trisa.UnsealingKey(reply.PublicKeySignature, peer.Name()); err != nil {
-		log.Error().Err(err).Str("pks", reply.PublicKeySignature).Msg("cannot identify unsealing keys used by remote")
-		return nil, nil, fmt.Errorf("unsealing keys unavailable: %w", err)
-	}
-
-	if incoming, err = envelope.Wrap(reply, envelope.WithUnsealingKey(unsealingKey)); err != nil {
-		log.Error().Err(err).Msg("unable to handle incoming secure envelope response from remote peer")
-		return outgoing, nil, fmt.Errorf("unable to handle secure envelope from peer: %w", err)
+	if p.In.UnsealingKey, err = s.trisa.UnsealingKey(reply.PublicKeySignature, p.Peer.Name()); err != nil {
+		p.Log.Error().Err(err).Str("pks", reply.PublicKeySignature).Msg("cannot identify unsealing keys used by remote")
+		return fmt.Errorf("unsealing keys unavailable: %w", err)
 	}
 
 	// If the response is sealed, unseal and decrypt it (validating the HMAC signature)
-	if incoming.State() == envelope.Sealed {
-		var privateKey interface{}
-		if privateKey, err = unsealingKey.UnsealingKey(); err != nil {
-			log.Error().Err(err).Msg("no private key available for unsealing")
-			return outgoing, nil, fmt.Errorf("no private key available: %w", err)
-		}
-
-		if incoming, _, err = incoming.Unseal(envelope.WithUnsealingKey(privateKey)); err != nil {
-			log.Error().Err(err).Msg("unable to unseal incoming secure envelope response from remote peer")
-			return outgoing, nil, fmt.Errorf("unable to unseal secure envelope from peer: %w", err)
-		}
-
-		if incoming, _, err = incoming.Decrypt(); err != nil {
-			log.Error().Err(err).Msg("unable to decrypt incoming secure envelope response from remote peer")
-			return outgoing, nil, fmt.Errorf("unable to decrypt secure envelope from peer: %w", err)
+	if p.In.Envelope.State() == envelope.Sealed {
+		if _, err = p.In.Open(); err != nil {
+			p.Log.Error().Err(err).Msg("unable to unseal incoming secure envelope response from remote peer")
+			return fmt.Errorf("unable to unseal secure envelope from peer: %w", err)
 		}
 	}
 
-	// HACK: Make sure the public key signature is on the incoming envelope
-	// TODO: ensure that envelope package doesn't erase public key signature from envelope!
-	incoming.Proto().PublicKeySignature = reply.PublicKeySignature
-	return outgoing, incoming, nil
+	return nil
 }
 
 func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (cp *models.Counterparty, err error) {
@@ -221,15 +177,9 @@ func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err
 		return nil, ErrNoPublicKey
 	}
 
-	// TODO: pass in the common name from the model when the remote is stored there.
 	var unsealingKey keys.PrivateKey
-	if unsealingKey, err = s.trisa.UnsealingKey(in.PublicKey.String, ""); err != nil {
+	if unsealingKey, err = s.trisa.UnsealingKey(in.PublicKey.String, in.Remote.String); err != nil {
 		return nil, fmt.Errorf("could not lookup unsealing key for secure envelope: %w", err)
-	}
-
-	var unseal interface{}
-	if unseal, err = unsealingKey.UnsealingKey(); err != nil {
-		return nil, fmt.Errorf("could not retrieve unsealing key for secure envelope: %w", err)
 	}
 
 	// If the direction is outgoing, update the keys on the envelope
@@ -238,16 +188,7 @@ func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err
 		in.Envelope.HmacSecret = in.HMACSecret
 	}
 
-	// Wrap the secure envelope and unseal then decrypt it
-	if out, err = envelope.Wrap(in.Envelope); err != nil {
-		return nil, err
-	}
-
-	if out, _, err = out.Unseal(envelope.WithUnsealingKey(unseal)); err != nil {
-		return nil, err
-	}
-
-	if out, _, err = out.Decrypt(); err != nil {
+	if out, _, err = envelope.Open(in.Envelope, envelope.WithUnsealingKey(unsealingKey)); err != nil {
 		return nil, err
 	}
 
