@@ -35,6 +35,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Default Roles",
 			Path: "0003_default_roles.sql",
 		},
+		{
+			ID:   4,
+			Name: "Secure Envelope Meta",
+			Path: "0004_secure_envelope_meta.sql",
+		},
 	}
 
 	for i, migration := range migrations {

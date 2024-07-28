@@ -1,0 +1,11 @@
+{
+  "@type": "type.googleapis.com/trisa.data.generic.v1beta1.Transaction",
+  "txid": "27bc6097dfa68daa3b4f73bbc5fc04af8598f35ba5584d92d7730e171d1205d9",
+  "originator": "mrfAEzGzK23kU23FxrToDRPmV1ReNfX43G",
+  "beneficiary": "n3Vgn8wF6ZkpKSe186NnytLPXdZ6j1JbHg",
+  "amount": "0.46602501",
+  "network": "BTC",
+  "timestamp": "2024-03-29T16:50:30Z",
+  "extra_json": "{\"value_when_transacted\": \"USD $32,386.61\"}",
+  "asset_type": ""
+}
