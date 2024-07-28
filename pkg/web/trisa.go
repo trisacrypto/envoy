@@ -66,6 +66,12 @@ func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.Packet) (err 
 	p.Log = p.Log.With().Str("peer", p.Peer.Name()).Str("envelope_id", p.EnvelopeID()).Logger()
 	p.Log.Debug().Msg("started outgoing TRISA transfer")
 
+	// Add the peer info to the packet
+	if p.PeerInfo, err = p.Peer.Info(); err != nil {
+		p.Log.Debug().Err(err).Msg("unable to update peer info on packet")
+		return fmt.Errorf("could not fetch peer info for counterparty: %w", err)
+	}
+
 	// Fetch cached sealing keys, if not available, perform a key exchange
 	if p.Out.SealingKey, err = s.trisa.SealingKey(p.Peer.Name()); err != nil {
 		p.Log.Debug().Msg("conducting key exchange prior to transer")

@@ -156,8 +156,6 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	// Add the counterparty to the database associated with the transaction
 	if err = packet.Out.UpdateTransaction(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
-		return
 	}
 
 	// Send the secure envelope and get secure envelope response
@@ -168,7 +166,10 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		return
 	}
 
-	// TODO: update transaction state based on response from counterparty
+	// Update transaction state based on response from counterparty
+	if err = packet.In.UpdateTransaction(); err != nil {
+		c.Error(err)
+	}
 
 	// Read the record from the database to return to the user
 	if err = packet.RefreshTransaction(); err != nil {
