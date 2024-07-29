@@ -1,3 +1,4 @@
+import { REJECT_CODES } from "./constants.js";
 import { setSuccessToast } from "./utils.js";
 
 const transactionEl = document.getElementById('transaction-id');
@@ -31,7 +32,17 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     const lastUpdate = document.querySelector('.trans-last-update');
     const humanizeLastUpdate = dayjs(lastUpdate.textContent).fromNow();
     lastUpdate.textContent = humanizeLastUpdate;
-  }
+  };
+
+  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}/secure-envelopes` && e.detail.requestConfig.verb === 'get') {
+    // Humanize the reject error code.
+    const errorCode = document.querySelectorAll('.error-code');
+    errorCode?.forEach((code) => {
+      const errorCodeText = code?.textContent;
+      const readableErrorCode = REJECT_CODES[errorCodeText];
+      code.textContent = readableErrorCode;
+    });
+  };
 });
 
 // Add code to amend the request parameters before the request is sent.

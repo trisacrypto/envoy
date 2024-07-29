@@ -1,6 +1,6 @@
 {{ if .DecryptedEnvelopes }}
 {{ range .DecryptedEnvelopes }}
-<p>Envelope ID: {{ .Envelope.Pending.EnvelopeID }}</p>
+<p>Envelope ID: {{ .EnvelopeID }}</p>
 <div class="flex items-center">
   {{ $sentAt := .SentAt.Format "January 2, 2006 3:04:05 PM" }}
   {{ $receivedAt := .ReceivedAt.Format "January 2, 2006 3:04:05 PM" }}
@@ -18,34 +18,34 @@
   <dl>
     <div class="grid grid-cols-2">
       <dt>Blockchain Tx ID</dt>
-      {{ $txid := .Envelope.Transaction.Txid }}
+      {{ $txid := .Transaction.Txid }}
       <dd>{{ if $txid }} {{ $txid }} {{ else }} &mdash; {{ end }}</dd>
     </div>
     <div class="grid grid-cols-2">
       <dt>Originator Wallet Address</dt>
-      {{ $originator := .Envelope.Transaction.Originator }}
+      {{ $originator := .Transaction.Originator }}
       <dd>{{ if $originator }} {{ $originator }} {{ else }} &mdash; {{ end }}</dd>
     </div>
     <div class="grid grid-cols-2">
       <dt>Beneficiary Wallet Address</dt>
-      {{ $beneficiary := .Envelope.Transaction.Beneficiary }}
+      {{ $beneficiary := .Transaction.Beneficiary }}
       <dd>{{ if $beneficiary }} {{ $beneficiary }} {{ else }} &mdash; {{ end }}</dd>
     </div>
     <div class="flex items-center">
       <div class="grid grid-cols-2">
         <dt>Network</dt>
-        {{ $network := .Envelope.Transaction.Network }}
+        {{ $network := .Transaction.Network }}
         <dd>{{ if $network }} {{ $network }} {{ else }} &mdash; {{ end }}</dd>
       </div>
       <div class="grid grid-cols-2">
         <dt>Asset Type</dt>
-        {{ $assetType := .Envelope.Transaction.AssetType }}
+        {{ $assetType := .Transaction.AssetType }}
         <dd>{{ if $assetType }} {{ $assetType }} {{ else }} &mdash; {{ end }}</dd>
       </div>
     </div>
     <div class="grid grid-cols-2">
       <dt>Transfer Amount</dt>
-      {{ $amount := .Envelope.Transaction.Amount }}
+      {{ $amount := .Transaction.Amount }}
       <dd>{{ if $amount }} {{ $amount }} {{ else }} &mdash; {{ end }}</dd>
     </div>
     <div class="grid grid-cols-2">
@@ -65,21 +65,25 @@
   <div class="envelope-accordion collapse collapse-close collapse-arrow bg-base-200 border-2 border-gray-300">
     <input type="radio" name="my-accordion-1" checked="checked" />
     {{ if .IsError }}
-    <div class="collapse-title bg-red-200 text-xl font-medium">
+    <div class="collapse-title bg-red-200">
       {{ else }}
-    <div class="collapse-title text-xl font-medium">
+    <div class="collapse-title">
       {{ end }}
-        <h3 class="font-semibold text-lg">ID: {{ .ID }}</h3>
+      <div class="flex items-center gap-x-1 pb-2 text-lg font-semibold">
+        {{ if eq .Direction "in" }}
+        <h3>Incoming:</h3>
+        {{ else if eq .Direction "out" }}
+        <h3>Outgoing:</h3>
+         {{ end }}
+        {{ $timestamp := .Timestamp.Format "2006-01-02T15:04:05-0700" }}
+        <span class="datetime">{{ $timestamp }}</span>
       </div>
+      <span>ID: {{ .ID }}</span>
+    </div>
       <div class="collapse-content">
         <div class="mt-4">
           <h3 class="font-semibold">Secure Envelope Meta Data</h3>
           <dl class="mt-2">
-            <div class="py-1 grid grid-cols-2">
-              <dt>Envelope Timestamp</dt>
-              {{ $timestamp := .Timestamp.Format "January 2, 2006 15:04:05 -0700" }}
-              <dd class="datetime">{{ $timestamp }}</dd>
-            </div>
             <div class="py-1 grid grid-cols-2">
               <dt>Status</dt>
               {{ if .Sealed}}
@@ -100,6 +104,16 @@
               </dd>
               {{ end }}
             </div>
+            {{ if .Error }}
+            <div class="py-1 grid grid-cols-2">
+              <dt>Error Code</dt>
+              <dd class="error-code">{{ .Error.Code }}</dd>
+            </div>
+            <div class="py-1 grid grid-cols-2">
+              <dt>Error Message</dt>
+              <dd>{{ .Error.Message }}</dd>
+            </div>
+            {{ end }}
             <div class="py-1 grid grid-cols-2">
               <dt>HMAC Valid</dt>
               <dd>
@@ -118,14 +132,18 @@
                 {{ end }}
               </dd>
             </div>
+            {{ if .EncryptionAlgorithm }}
             <div class="py-1 grid grid-cols-2">
               <dt>Encryption Algorithm</dt>
               <dd>{{ .EncryptionAlgorithm }}</dd>
             </div>
+            {{ end }}
+            {{ if .HMACAlgorithm }}
             <div class="py-1 grid grid-cols-2">
               <dt>HMAC Algorithm</dt>
               <dd>{{ .HMACAlgorithm }}</dd>
             </div>
+            {{ end }}
           </dl>
         </div>
       </div>
