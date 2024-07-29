@@ -12,7 +12,7 @@ document.body.addEventListener('htmx:afterSettle', () => {
   // Set the list of options in the network dropdown and display the value selected by the requester.
   const networkEl = document.getElementById('selected-network');
   const networkValue = networkEl?.value;
-  // Add placeholder in case the network value is empty. Importing the options with the placeholder 
+  // Add placeholder in case the network value is empty. Importing the options with the placeholder
   // from the constants file resulted in the options not being displayed.
   networksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
   transactionNetwork.setData(networksArray);
@@ -53,7 +53,7 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
 // Set the country options and selected value in a SlimSelect dropdown for each country selection.
 function setCountryData(el, value) {
-  // Add placeholder in case the country value is empty. Importing the options with the placeholder 
+  // Add placeholder in case the country value is empty. Importing the options with the placeholder
   // from the constants file resulted in the options not being displayed.
   countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
   el.slim.setData(countriesArray)
@@ -65,7 +65,7 @@ function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
   switch (identifierDataID) {
     case 'legal-person-name-type':
-      // Add placeholder in case the legal name type value is empty. Importing the options with the placeholder 
+      // Add placeholder in case the legal name type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
@@ -86,7 +86,7 @@ function setIdentifierData(el, identifier) {
       el.slim.setSelected(identifier.value)
       break;
     case 'national-identifier-type':
-      // Add placeholder in case the national identifier type value is empty. Importing the options with the placeholder 
+      // Add placeholder in case the national identifier type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
@@ -169,7 +169,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           }
         },
       },
-      transaction: {}
+      transaction: {},
+      transfer_state: "accepted" // NOTE: this is only for the accept endpoint.
     }
 
     const originatorPerson = data.identity.originator.originator_persons[0].natural_person;

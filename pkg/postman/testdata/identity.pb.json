@@ -1,0 +1,126 @@
+{
+  "@type": "type.googleapis.com/ivms101.IdentityPayload",
+  "originator": {
+    "originator_persons": [{
+      "natural_person": {
+        "name": {
+          "name_identifiers": [{
+            "primary_identifier": "Cremonesi",
+            "secondary_identifier": "Alessia",
+            "name_identifier_type": "NATURAL_PERSON_NAME_TYPE_CODE_LEGL"
+          }]
+        },
+        "geographic_addresses": [{
+          "address_type": "ADDRESS_TYPE_CODE_HOME",
+          "address_line": [
+            "Via Foria, 124",
+            "47042-Cesenatico FO"
+          ],
+          "country": "IT"
+        }],
+        "national_identification": {
+          "national_identifier": "YY47599456",
+          "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_IDCD",
+          "country_of_issue": "IT",
+          "registration_authority": "RA777777"
+        },
+        "customer_identification": "0043898373",
+        "date_and_place_of_birth": {
+          "date_of_birth": "1972-06-18",
+          "place_of_birth": "Montenero Sabino, Italy"
+        },
+        "country_of_residence": "IT"
+      }
+    }],
+    "account_numbers": [
+      "mrfAEzGzK23kU23FxrToDRPmV1ReNfX43G"
+    ]
+  },
+  "originating_vasp": {
+    "originating_vasp": {
+      "legal_person": {
+        "name": {
+          "name_identifiers": [{
+            "legal_person_name": "FireFly DEX, PTE",
+            "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+          }]
+        },
+        "geographic_addresses": [{
+          "address_type": "ADDRESS_TYPE_CODE_BIZZ",
+          "address_line": [
+            "Pappelallee 76",
+            "36452 Andenhausen"
+          ],
+          "country": "DE"
+        }],
+        "national_identification": {
+          "national_identifier": "50OA00RCAFFIGIRUZR92",
+          "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_LEIX"
+        },
+        "country_of_registration": "DE"
+      }
+    }
+  },
+  "beneficiary": {
+    "beneficiary_persons": [{
+      "natural_person": {
+        "name": {
+          "name_identifiers": [{
+            "primary_identifier": "Calvillo",
+            "secondary_identifier": "Alesia Sosa",
+            "name_identifier_type": "NATURAL_PERSON_NAME_TYPE_CODE_LEGL"
+          }]
+        },
+        "geographic_addresses": [{
+          "address_type": "ADDRESS_TYPE_CODE_HOME",
+          "address_line": [
+            "Piedras 1566",
+            "20001 La Barra"
+          ],
+          "country": "UY"
+        }],
+        "national_identification": {
+          "national_identifier": "259.036.5594-72",
+          "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_SOCS",
+          "country_of_issue": "UY",
+          "registration_authority": "RA777777"
+        },
+        "customer_identification": "6051-3244-50",
+        "date_and_place_of_birth": {
+          "date_of_birth": "1994-10-24",
+          "place_of_birth": "Pilar, Paraguay"
+        },
+        "country_of_residence": "UY"
+      }
+    }],
+    "account_numbers": [
+      "n3Vgn8wF6ZkpKSe186NnytLPXdZ6j1JbHg"
+    ]
+  },
+  "beneficiary_vasp": {
+    "beneficiary_vasp": {
+      "legal_person": {
+        "name": {
+          "name_identifiers": [{
+            "legal_person_name": "Zip Wallet, Inc.",
+            "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+          }]
+        },
+        "geographic_addresses": [{
+          "address_type": "ADDRESS_TYPE_CODE_BIZZ",
+          "address_line": [
+            "Rua Marquesa de Santos, 987",
+            "Rio de Janeiro-RJ",
+            "22221-080"
+          ],
+          "country": "BR"
+        }],
+        "national_identification": {
+          "national_identifier": "ER5Q002MCBIAYWT7EX36",
+          "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_LEIX"
+        },
+        "country_of_registration": "BR"
+      }
+    }
+  }
+}

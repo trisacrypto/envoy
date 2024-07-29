@@ -271,7 +271,7 @@ func (s *Store) listSecureEnvelopes(tx *sql.Tx, transaction *models.Transaction)
 	return nil
 }
 
-const createSecureEnvelopeSQL = "INSERT INTO secure_envelopes (id, envelope_id, direction, is_error, encryption_key, hmac_secret, valid_hmac, timestamp, public_key, envelope, created, modified) VALUES (:id, :envelopeID, :direction, :isError, :encryptionKey, :hmacSecret, :validHMAC, :timestamp, :publicKey, :envelope, :created, :modified)"
+const createSecureEnvelopeSQL = "INSERT INTO secure_envelopes (id, envelope_id, direction, remote, reply_to, is_error, encryption_key, hmac_secret, valid_hmac, timestamp, public_key, transfer_state, envelope, created, modified) VALUES (:id, :envelopeID, :direction, :remote, :replyTo, :isError, :encryptionKey, :hmacSecret, :validHMAC, :timestamp, :publicKey, :transferState, :envelope, :created, :modified)"
 
 func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
 	if !ulids.IsZero(env.ID) {
@@ -326,7 +326,7 @@ func (s *Store) RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envI
 	return env, nil
 }
 
-const updateSecureEnvelopeSQL = "UPDATE secure_envelopes SET direction=:direction, is_error=:is_error, encryption_key=:encryptionKey, hmac_secret=:hmacSecret, valid_hmac=:validHMAC, timestamp=:timestamp, public_key=:publicKey, envelope=:envelope, modified=:modified WHERE id=:id and envelope_id=:envelopeID"
+const updateSecureEnvelopeSQL = "UPDATE secure_envelopes SET direction=:direction, remote=:remote, reply_to=:replyTo, is_error=:is_error, encryption_key=:encryptionKey, hmac_secret=:hmacSecret, valid_hmac=:validHMAC, timestamp=:timestamp, public_key=:publicKey, transfer_state=:transferState, envelope=:envelope, modified=:modified WHERE id=:id and envelope_id=:envelopeID"
 
 func (s *Store) UpdateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
 	// Basic validation
