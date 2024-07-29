@@ -2997,10 +2997,6 @@ details.collapse summary::-webkit-details-marker {
   overflow-y: auto;
 }
 
-.text-wrap {
-  text-wrap: wrap;
-}
-
 .text-balance {
   text-wrap: balance;
 }
