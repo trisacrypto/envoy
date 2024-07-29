@@ -3835,6 +3835,11 @@ body main {
     font-size: 1.5rem;
     line-height: 2rem;
   }
+
+  .lg\:text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
 }
 
 @media (min-width: 1280px) {
