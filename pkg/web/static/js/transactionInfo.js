@@ -34,7 +34,8 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     lastUpdate.textContent = humanizeLastUpdate;
   };
 
-  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}/secure-envelopes` && e.detail.requestConfig.verb === 'get') {
+  const envelopeID = document.getElementById('envelope-id')?.value;
+  if (e.detail.requestConfig.path === `/v1/transactions/${transactionID}/secure-envelopes/${envelopeID}` && e.detail.requestConfig.verb === 'get') {
     // Humanize the reject error code.
     const errorCode = document.querySelectorAll('.error-code');
     errorCode?.forEach((code) => {
