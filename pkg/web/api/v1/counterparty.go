@@ -80,7 +80,9 @@ func NewCounterparty(model *models.Counterparty) (out *Counterparty, err error) 
 
 func NewCounterpartyList(page *models.CounterpartyPage) (out *CounterpartyList, err error) {
 	out = &CounterpartyList{
-		Page:           &PageQuery{},
+		Page: &PageQuery{
+			PageSize: int(page.Page.PageSize),
+		},
 		Counterparties: make([]*Counterparty, 0, len(page.Counterparties)),
 	}
 

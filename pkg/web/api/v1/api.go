@@ -102,8 +102,8 @@ type StatusReply struct {
 // PageQuery manages paginated list requests.
 type PageQuery struct {
 	PageSize      int    `json:"page_size,omitempty" url:"page_size,omitempty" form:"page_size"`
-	NextPageToken string `json:"next_page_token" url:"next_page_token,omitempty" form:"next_page_token"`
-	PrevPageToken string `json:"prev_page_token" url:"prev_page_token,omitempty" form:"prev_page_token"`
+	NextPageToken string `json:"next_page_token,omitempty" url:"next_page_token,omitempty" form:"next_page_token"`
+	PrevPageToken string `json:"prev_page_token,omitempty" url:"prev_page_token,omitempty" form:"prev_page_token"`
 }
 
 type SearchQuery struct {
