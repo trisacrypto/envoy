@@ -66,11 +66,40 @@ func (p *Prepared) Dump() string {
 	return string(data)
 }
 
-func (p *Prepare) Validate() error {
+func (p *Prepare) Validate() (err error) {
 	if strings.TrimSpace(p.TravelAddress) == "" {
-		return MissingField("travel_address")
+		err = ValidationError(err, MissingField("travel_address"))
 	}
-	return nil
+
+	if p.Originator == nil {
+		err = ValidationError(err, MissingField("originator"))
+	} else {
+		if p.Originator.CryptoAddress == "" {
+			err = ValidationError(err, MissingField("originator.crypto_address"))
+		}
+
+		if p.Originator.Identification == nil {
+			p.Originator.Identification = &Identification{}
+		}
+	}
+
+	if p.Beneficiary == nil {
+		err = ValidationError(err, MissingField("beneficiary"))
+	} else {
+		if p.Beneficiary.CryptoAddress == "" {
+			err = ValidationError(err, MissingField("beneficiary.crypto_address"))
+		}
+
+		if p.Beneficiary.Identification == nil {
+			p.Beneficiary.Identification = &Identification{}
+		}
+	}
+
+	if p.Transfer == nil {
+		err = ValidationError(err, MissingField("transfer"))
+	}
+
+	return err
 }
 
 func (p *Prepared) Validate() error {
