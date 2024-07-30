@@ -48,46 +48,12 @@
           </div>
           {{ end }}
         </td>
-        {{ if .Status }}
-          {{ if eq .Status "draft" }}
-          <td>
-            <div class="flex justify-center items-center gap-x-1">
-              <img src="/static/draftStatusIcon.svg" alt="" />
-              <span class="text-gray-500">{{ .TitleStatus }}</span>
-            </div>
-          </td>
-          {{ else if eq .Status "pending" }}
-          <td>
-            <div class="flex justify-center items-center gap-x-1">
-              <img src="/static/pendingStatusIcon.svg" alt="" />
-              <span class="text-yellow-700">{{ .TitleStatus }}</span>
-            </div>
-          </td>
-          {{ else if eq .Status "action required" }}
-          <td>
-            <div class="flex justify-center items-center gap-x-1">
-              <img src="/static/actionStatusIcon.svg" alt="" />
-              <span class="text-blue-700">{{ .TitleStatus }}</span>
-            </div>
-          </td>
-          {{ else if eq .Status "completed" }}
-          <td>
-            <div class="flex justify-center items-center gap-x-1">
-              <img src="/static/completeStatusIcon.svg" alt="" />
-              <span class="text-green-700">{{ .TitleStatus }}</span>
-            </div>
-          </td>
-          {{ else if eq .Status "archived" }}
-          <td>
-            <div class="flex justify-center items-center gap-x-1">
-              <img src="/static/archiveStatusIcon.svg" alt="" />
-              <span class="text-gray-700">{{ .TitleStatus }}</span>
-            </div>
-          </td>
-          {{ else }}
-          <td>&mdash;</td>
-          {{ end }}
-        {{ end }}
+        <td>
+          <div class="tooltip flex justify-center items-center gap-x-1" data-tip="{{ .TooltipStatus }}">
+            <i class="fa-solid fa-circle {{ .ColorStatus }} text-[6px]"></i>
+            <span class="{{ .ColorStatus }}">{{ .TitleStatus }}</span>
+          </div>
+        </td>
         <td>{{ .Counterparty }}</td>
         <td>
           <div>

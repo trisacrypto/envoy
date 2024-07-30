@@ -225,6 +225,48 @@ func (c *Transaction) TitleStatus() string {
 	return cases.Title(language.English).String(c.Status)
 }
 
+func (c *Transaction) ColorStatus() string {
+	switch c.Status {
+	case models.StatusUnspecified:
+		return "text-gray-500"
+	case models.StatusPending:
+		return "text-yellow-700"
+	case models.StatusReview:
+		return "text-blue-700"
+	case models.StatusRepair:
+		return "text-red-700"
+	case models.StatusAccepted:
+		return "The TRISA exchange is accepted and the counterparty is awaiting the on-chain transaction."
+	case models.StatusCompleted:
+		return "text-green-700"
+	case models.StatusRejected:
+		return "text-red-700"
+	default:
+		return "text-gray-500"
+	}
+}
+
+func (c *Transaction) TooltipStatus() string {
+	switch c.Status {
+	case models.StatusUnspecified:
+		return "The transfer state is unknown or purposefully not specified."
+	case models.StatusPending:
+		return "Action is required by the sending party, await a following RPC."
+	case models.StatusReview:
+		return "Action is required by the receiving party."
+	case models.StatusRepair:
+		return "Some part of the payload of the TRISA exchange requires repair."
+	case models.StatusAccepted:
+		return "The TRISA exchange is accepted and the counterparty is awaiting the on-chain transaction."
+	case models.StatusCompleted:
+		return "The TRISA exchange and the on-chain transaction have been completed."
+	case models.StatusRejected:
+		return "The TRISA exchange is rejected and no on-chain transaction should proceed."
+	default:
+		return "The transfer state is unknown or purposefully not specified."
+	}
+}
+
 //===========================================================================
 // SecureEnvelopes
 //===========================================================================
