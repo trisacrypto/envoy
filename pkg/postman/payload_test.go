@@ -6,24 +6,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
-	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func TestTransactionFromPayload(t *testing.T) {
 	t.Run("Complete", func(t *testing.T) {
-		payload := &api.Payload{
-			Transaction: &anypb.Any{},
-			Identity:    &anypb.Any{},
-			SentAt:      "2024-07-28T07:41:42-05:00",
-			ReceivedAt:  "2024-07-28T12:22:19-05:00",
-		}
-
-		err := loadFixture("testdata/transaction.pb.json", payload.Transaction)
-		require.NoError(t, err, "could not load transaction.pb.json fixture")
-
-		err = loadFixture("testdata/identity.pb.json", payload.Identity)
-		require.NoError(t, err, "could not load identity.pb.json fixture")
+		payload, err := loadPayloadFixture("testdata/identity.pb.json", "testdata/transaction.pb.json")
+		require.NoError(t, err, "could not load payload from fixtures")
 
 		transaction := postman.TransactionFromPayload(payload)
 		require.True(t, transaction.Originator.Valid)
