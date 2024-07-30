@@ -108,7 +108,7 @@ type PageQuery struct {
 
 type SearchQuery struct {
 	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
-	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"omitempty"`
+	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"limit"`
 }
 
 func (q *SearchQuery) Validate() error {

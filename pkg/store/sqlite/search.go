@@ -39,6 +39,7 @@ func (r stubs) Less(i, j int) bool {
 
 func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQuery) (out *models.CounterpartyPage, err error) {
 	log := logger.Tracing(ctx)
+	log.Debug().Str("query", query.Query).Int("limit", query.Limit).Msg("counterparty search")
 
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
