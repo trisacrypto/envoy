@@ -15,6 +15,50 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+const defaultSearchLimit = 10
+
+func (s *Server) SearchCounterparties(c *gin.Context) {
+	var (
+		err  error
+		in   *api.CounterpartySearchQuery
+		page *models.CounterpartyPage
+		out  *api.CounterpartyList
+	)
+
+	// Parse the URL parameters from the input request
+	in = &api.CounterpartySearchQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse counterparties search request"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Set the default value on the limit
+	if in.Limit == 0 {
+		in.Limit = defaultSearchLimit
+	}
+
+	page = &models.CounterpartyPage{
+		Page:           &models.PageInfo{PageSize: uint32(in.Limit)},
+		Counterparties: make([]*models.Counterparty, 0, in.Limit),
+	}
+
+	// Convert the counterparties page into an api response
+	if out, err = api.NewCounterpartyList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process counterparty list request"))
+		return
+	}
+
+	c.JSON(http.StatusOK, out)
+}
+
 func (s *Server) ListCounterparties(c *gin.Context) {
 	var (
 		err   error

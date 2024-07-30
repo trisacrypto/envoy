@@ -59,6 +59,7 @@ type Client interface {
 	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
 
 	// Counterparty Resource
+	SearchCounterparties(context.Context, *CounterpartySearchQuery) (*CounterpartyList, error)
 	ListCounterparties(context.Context, *PageQuery) (*CounterpartyList, error)
 	CreateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	CounterpartyDetail(context.Context, ulid.ULID) (*Counterparty, error)

@@ -11,7 +11,7 @@
       "name": "MIT Licensed",
       "url": "https://github.com/trisacrypto/trisa/blob/main/LICENSE"
     },
-    "version": "v0.1.1"
+    "version": "v0.23.0"
   },
   "externalDocs": {
     "description": "TRISA Developer Documentation",
@@ -594,7 +594,7 @@
             "description": "Transaction not found"
           },
           "501": {
-            "description": "Not implemented" 
+            "description": "Not implemented"
           }
         }
       }
@@ -677,6 +677,14 @@
             }
           },
           {
+            "name": "decrypt",
+            "in": "query",
+            "description": "if specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "page_size",
             "in": "query",
             "schema": {
@@ -701,6 +709,16 @@
         "responses": {
           "200": {
             "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvelopesList"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Not all enveloeps were able to be decrypted",
             "content": {
               "application/json": {
                 "schema": {
@@ -745,11 +763,29 @@
               "type": "string",
               "format": "ULID"
             }
+          },
+          {
+            "name": "decrypt",
+            "in": "query",
+            "description": "if specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecureEnvelope"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Partial content returned (could not decrypt secure envelope)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1402,6 +1438,57 @@
         }
       }
     },
+    "/v1/counterparties/search": {
+      "get": {
+        "tags": [
+          "counterparty"
+        ],
+        "summary": "Search for a counterparty by name",
+        "description": "Performs a fuzzy string matching search of the query against all of the counterparty names in the database, returning a ranked list of search results that can be limited by the number of items returned.",
+        "security": [
+          {
+            "bearer-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Search query to execute against counterparty names",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit the number of search results to return in the query",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 0,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CounterpartyList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
     "/v1/counterparties/{counterpartyID}": {
       "get": {
         "tags": [
@@ -1537,7 +1624,7 @@
           "user"
         ],
         "summary": "List users",
-        "description": "Paginated list of all users",
+        "description": "Paginated list of all  users",
         "operationId": "listUsers",
         "security": [
           {
@@ -1581,7 +1668,7 @@
         }
       },
       "post": {
-        "tags":[
+        "tags": [
           "user"
         ],
         "summary": "Create user",
@@ -1625,7 +1712,7 @@
     },
     "/v1/users/{userID}": {
       "get": {
-        "tags":[
+        "tags": [
           "user"
         ],
         "summary": "Find user by ID",
@@ -1790,12 +1877,12 @@
         },
         "responses": {
           "200": {
-            "description": "User password changed.",
+            "description": "User password changed",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "string",
-                  "description": "The new password for the user."
+                  "description": "The new password for the user"
                 }
               }
             }
@@ -2159,77 +2246,6 @@
             "type": "string",
             "format": "date-time",
             "description": "The date and time when the transaction was last modified."
-          }
-        }
-      },
-      "User": {
-        "type": "object",
-        "description": "The user object.",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "ULID",
-            "description": "The unique identifier of the user."
-          },
-          "name": {
-            "type": "string",
-            "description": "The name of the user."
-          },
-          "email": {
-            "type": "string",
-            "description": "The email address of the user."
-          },
-          "password": {
-            "type": "string",
-            "description": "The password of the user."
-          },
-          "role": {
-            "type": "string",
-            "description": "The role of the user."
-          },
-          "last_login": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date and time when the user last logged in."
-          },
-          "created": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date and time when the user was created."
-          },
-          "modified": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date and time when the user was last modified."
-          }
-        }
-      },
-      "UserList": {
-        "type": "object",
-        "description": "The response object for the users endpoint.",
-        "properties": {
-          "page": {
-            "$ref": "#/components/schemas/PageQuery"
-          },
-          "users": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/User"
-            }
-          }
-        }
-      },
-      "UserPassword": {
-        "type": "object",
-        "description": "The request object for changing a user's password.",
-        "properties": {
-          "password": {
-            "type": "string",
-            "description": "The new password for the user."
-          },
-          "send_email": {
-            "type": "boolean",
-            "description": "Indicates whether an email should be sent to the user."
           }
         }
       },
@@ -2801,6 +2817,77 @@
             "items": {
               "$ref": "#/components/schemas/Counterparty"
             }
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "description": "The user object.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ULID",
+            "description": "The unique identifier of the user."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the user."
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the user."
+          },
+          "password": {
+            "type": "string",
+            "description": "The password of the user."
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the user."
+          },
+          "last_login": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the user last logged in."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the user was created."
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the user was last modified."
+          }
+        }
+      },
+      "UserList": {
+        "type": "object",
+        "description": "The response object for the users endpoint.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageQuery"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          }
+        }
+      },
+      "UserPassword": {
+        "type": "object",
+        "description": "The request object for changing a user's password.",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The new password for the user."
+          },
+          "send_email": {
+            "type": "boolean",
+            "description": "Indicates whether to send an email to the user."
           }
         }
       },

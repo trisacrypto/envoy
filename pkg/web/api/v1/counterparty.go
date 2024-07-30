@@ -44,6 +44,11 @@ type CounterpartyList struct {
 	Counterparties []*Counterparty `json:"counterparties"`
 }
 
+type CounterpartySearchQuery struct {
+	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
+	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"omitempty"`
+}
+
 func NewCounterparty(model *models.Counterparty) (out *Counterparty, err error) {
 	out = &Counterparty{
 		ID:                  model.ID,
@@ -182,6 +187,23 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 	}
 
 	return model, nil
+}
+
+func (q *CounterpartySearchQuery) Validate() error {
+	q.Query = strings.TrimSpace(q.Query)
+	if q.Query == "" {
+		return MissingField("query")
+	}
+
+	if q.Limit < 0 {
+		return IncorrectField("limit", "limit cannot be less than zero")
+	}
+
+	if q.Limit > 50 {
+		return IncorrectField("limit", "maximum number of search results that can be returned is 50")
+	}
+
+	return nil
 }
 
 func EndpointTravelAddress(endpoint, protocol string) (string, error) {

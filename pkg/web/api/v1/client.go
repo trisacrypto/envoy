@@ -431,7 +431,28 @@ func (s *APIv1) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 // Counterparty Resource
 //===========================================================================
 
-const counterpartiesEP = "/v1/counterparties"
+const (
+	counterpartiesEP       = "/v1/counterparties"
+	counterpartiesSearchEP = "/v1/counterparties/search"
+)
+
+func (s *APIv1) SearchCounterparties(ctx context.Context, in *CounterpartySearchQuery) (out *CounterpartyList, err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode counterparties search query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, counterpartiesSearchEP, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
 
 func (s *APIv1) ListCounterparties(ctx context.Context, in *PageQuery) (out *CounterpartyList, err error) {
 	if err = s.List(ctx, counterpartiesEP, in, &out); err != nil {
