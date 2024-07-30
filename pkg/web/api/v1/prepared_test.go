@@ -1,12 +1,51 @@
 package api_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	. "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
+
+func TestPrepareValidate(t *testing.T) {
+	testCases := []struct {
+		input string
+		err   error
+	}{
+		{
+			// This is the case that created the original bug
+			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+			ValidationError(nil, MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
+		},
+		{
+			`{}`,
+			ValidationError(nil, MissingField("travel_address"), MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
+		},
+		{
+			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {}, "beneficiary": {}, "transfer": {}}`,
+			ValidationError(nil, MissingField("originator.crypto_address"), MissingField("beneficiary.crypto_address")),
+		},
+		{
+			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
+			nil,
+		},
+	}
+
+	for i, tc := range testCases {
+		prepare := &Prepare{}
+		require.NoError(t, json.Unmarshal([]byte(tc.input), prepare), "could not unmarshal test input for test %d", i)
+		err := prepare.Validate()
+
+		if tc.err == nil {
+			require.NoError(t, err, "was expecting no error for test case %d", i)
+		} else {
+			require.EqualError(t, err, tc.err.Error(), "did not match expected error for test case %d", i)
+		}
+	}
+
+}
 
 func TestParseNationalIdentifierType(t *testing.T) {
 	testCases := []struct {
@@ -58,7 +97,7 @@ func TestParseNationalIdentifierType(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		identification := &api.Identification{TypeCode: tc.input}
+		identification := &Identification{TypeCode: tc.input}
 		require.Equal(t, tc.expected, identification.NationalIdentifierTypeCode(), "test case %d failed", i)
 	}
 }
