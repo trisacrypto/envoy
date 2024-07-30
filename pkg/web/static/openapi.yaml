@@ -424,7 +424,7 @@ paths:
             format: UUID
         - name: decrypt
           in: query
-          description: if specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption
+          description: If specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption.
           schema:
             type: boolean
         - name: page_size
@@ -478,7 +478,7 @@ paths:
             format: ULID
         - name: decrypt
           in: query
-          description: if specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption
+          description: If specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption.
           schema:
             type: boolean
       responses:
