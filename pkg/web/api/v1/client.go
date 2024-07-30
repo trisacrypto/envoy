@@ -436,7 +436,7 @@ const (
 	counterpartiesSearchEP = "/v1/counterparties/search"
 )
 
-func (s *APIv1) SearchCounterparties(ctx context.Context, in *CounterpartySearchQuery) (out *CounterpartyList, err error) {
+func (s *APIv1) SearchCounterparties(ctx context.Context, in *SearchQuery) (out *CounterpartyList, err error) {
 	var params url.Values
 	if params, err = query.Values(in); err != nil {
 		return nil, fmt.Errorf("could not encode counterparties search query: %w", err)

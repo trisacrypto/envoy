@@ -447,7 +447,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnvelopesList'
         '206':
-          description: Not all enveloeps were able to be decrypted
+          description: Not all envelopes were able to be decrypted
           content:
             application/json:
               schema:

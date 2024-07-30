@@ -13,6 +13,11 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQuery) (out *models.CounterpartyPage, err error) {
+
+	return out, nil
+}
+
 const listCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties"
 
 func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (out *models.CounterpartyPage, err error) {

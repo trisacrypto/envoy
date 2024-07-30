@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 )
 
 //===========================================================================
@@ -59,7 +61,7 @@ type Client interface {
 	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
 
 	// Counterparty Resource
-	SearchCounterparties(context.Context, *CounterpartySearchQuery) (*CounterpartyList, error)
+	SearchCounterparties(context.Context, *SearchQuery) (*CounterpartyList, error)
 	ListCounterparties(context.Context, *PageQuery) (*CounterpartyList, error)
 	CreateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	CounterpartyDetail(context.Context, ulid.ULID) (*Counterparty, error)
@@ -102,4 +104,30 @@ type PageQuery struct {
 	PageSize      int    `json:"page_size,omitempty" url:"page_size,omitempty" form:"page_size"`
 	NextPageToken string `json:"next_page_token" url:"next_page_token,omitempty" form:"next_page_token"`
 	PrevPageToken string `json:"prev_page_token" url:"prev_page_token,omitempty" form:"prev_page_token"`
+}
+
+type SearchQuery struct {
+	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
+	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"omitempty"`
+}
+
+func (q *SearchQuery) Validate() error {
+	q.Query = strings.TrimSpace(q.Query)
+	if q.Query == "" {
+		return MissingField("query")
+	}
+
+	if q.Limit < 0 {
+		return IncorrectField("limit", "limit cannot be less than zero")
+	}
+
+	if q.Limit > 50 {
+		return IncorrectField("limit", "maximum number of search results that can be returned is 50")
+	}
+
+	return nil
+}
+
+func (q *SearchQuery) Model() *models.SearchQuery {
+	return &models.SearchQuery{Query: q.Query, Limit: q.Limit}
 }

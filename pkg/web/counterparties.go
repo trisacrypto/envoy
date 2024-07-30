@@ -20,13 +20,13 @@ const defaultSearchLimit = 10
 func (s *Server) SearchCounterparties(c *gin.Context) {
 	var (
 		err  error
-		in   *api.CounterpartySearchQuery
+		in   *api.SearchQuery
 		page *models.CounterpartyPage
 		out  *api.CounterpartyList
 	)
 
 	// Parse the URL parameters from the input request
-	in = &api.CounterpartySearchQuery{}
+	in = &api.SearchQuery{}
 	if err = c.BindQuery(in); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not parse counterparties search request"))
@@ -44,9 +44,10 @@ func (s *Server) SearchCounterparties(c *gin.Context) {
 		in.Limit = defaultSearchLimit
 	}
 
-	page = &models.CounterpartyPage{
-		Page:           &models.PageInfo{PageSize: uint32(in.Limit)},
-		Counterparties: make([]*models.Counterparty, 0, in.Limit),
+	if page, err = s.store.SearchCounterparties(c.Request.Context(), in.Model()); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process counterparty list request"))
+		return
 	}
 
 	// Convert the counterparties page into an api response
