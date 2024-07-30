@@ -113,6 +113,7 @@ type CryptoAddressStore interface {
 
 // Counterparty store provides CRUD interactions with Counterparty models.
 type CounterpartyStore interface {
+	SearchCounterparties(ctx context.Context, query *models.SearchQuery) (*models.CounterpartyPage, error)
 	ListCounterparties(ctx context.Context, page *models.PageInfo) (*models.CounterpartyPage, error)
 	ListCounterpartySourceInfo(ctx context.Context, source string) ([]*models.CounterpartySourceInfo, error)
 	CreateCounterparty(context.Context, *models.Counterparty) error
