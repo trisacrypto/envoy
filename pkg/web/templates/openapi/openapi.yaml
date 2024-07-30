@@ -13,10 +13,14 @@ info:
   license:
     name: MIT Licensed
     url: https://github.com/trisacrypto/trisa/blob/main/LICENSE
-  version: v0.23.0
+  version: v{{ .Version }}
 externalDocs:
   description: TRISA Developer Documentation
   url: https://trisa.dev
+servers:
+  - url: {{ .Origin }}
+    variables: { }
+    description: {{ .Description }}
 tags:
   - name: authentication
     description: Allow for authentication against Envoy node.
@@ -1921,7 +1925,3 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-servers:
-  - url: http://localhost:8000
-    variables: { }
-    description: Local Development Server
