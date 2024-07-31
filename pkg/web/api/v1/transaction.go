@@ -268,7 +268,7 @@ func getStatus(status, attr string) string {
 
 	case models.StatusRepair:
 		if attr == color {
-			return "text-red-700"
+			return "text-warning"
 		}
 		if attr == tooltip {
 			return "Some part of the payload of the TRISA exchange requires repair."
@@ -276,7 +276,7 @@ func getStatus(status, attr string) string {
 
 	case models.StatusAccepted:
 		if attr == color {
-			return "text-green-700"
+			return "text-success"
 		}
 		if attr == tooltip {
 			return "The TRISA exchange is accepted and the counterparty is awaiting the on-chain transaction."
@@ -284,7 +284,7 @@ func getStatus(status, attr string) string {
 
 	case models.StatusCompleted:
 		if attr == color {
-			return "text-green-700"
+			return "text-success"
 		}
 		if attr == tooltip {
 			return "The TRISA exchange and the on-chain transaction have been completed."
@@ -292,7 +292,7 @@ func getStatus(status, attr string) string {
 
 	case models.StatusRejected:
 		if attr == color {
-			return "text-red-700"
+			return "text-warning"
 		}
 		if attr == tooltip {
 			return "The TRISA exchange is rejected and no on-chain transaction should proceed."
