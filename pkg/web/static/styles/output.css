@@ -3395,6 +3395,16 @@ details.collapse summary::-webkit-details-marker {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+.text-gray-500 {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
+.text-yellow-700 {
+  --tw-text-opacity: 1;
+  color: rgb(161 98 7 / var(--tw-text-opacity));
+}
+
 .underline {
   text-decoration-line: underline;
 }
@@ -3612,6 +3622,8 @@ body main {
 .htmx-request.htmx-indicator{
   display: inline;
 }
+
+/* Tooltip styles */
 
 #status-tooltip:after {
   margin-left: 1.5rem;

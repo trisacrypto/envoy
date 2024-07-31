@@ -77,6 +77,7 @@ body main {
   display: inline;
 }
 
+/* Tooltip styles */
 #status-tooltip:after {
   margin-left: 1.5rem;
 }
