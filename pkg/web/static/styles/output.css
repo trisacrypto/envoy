@@ -2948,10 +2948,6 @@ details.collapse summary::-webkit-details-marker {
   align-items: center;
 }
 
-.justify-start {
-  justify-content: flex-start;
-}
-
 .justify-center {
   justify-content: center;
 }
@@ -3299,6 +3295,10 @@ details.collapse summary::-webkit-details-marker {
   line-height: 1;
 }
 
+.text-\[6px\] {
+  font-size: 6px;
+}
+
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
@@ -3322,14 +3322,6 @@ details.collapse summary::-webkit-details-marker {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
-}
-
-.text-\[2px\] {
-  font-size: 2px;
-}
-
-.text-\[6px\] {
-  font-size: 6px;
 }
 
 .font-black {
@@ -3401,31 +3393,6 @@ details.collapse summary::-webkit-details-marker {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.text-blue-700 {
-  --tw-text-opacity: 1;
-  color: rgb(29 78 216 / var(--tw-text-opacity));
-}
-
-.text-gray-500 {
-  --tw-text-opacity: 1;
-  color: rgb(107 114 128 / var(--tw-text-opacity));
-}
-
-.text-red-600 {
-  --tw-text-opacity: 1;
-  color: rgb(220 38 38 / var(--tw-text-opacity));
-}
-
-.text-red-800 {
-  --tw-text-opacity: 1;
-  color: rgb(153 27 27 / var(--tw-text-opacity));
-}
-
-.text-yellow-700 {
-  --tw-text-opacity: 1;
-  color: rgb(161 98 7 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -3644,6 +3611,10 @@ body main {
 
 .htmx-request.htmx-indicator{
   display: inline;
+}
+
+#status-tooltip:after {
+  margin-left: 1.5rem;
 }
 
 @media (min-width: 768px) {

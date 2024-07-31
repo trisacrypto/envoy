@@ -76,3 +76,7 @@ body main {
 .htmx-request.htmx-indicator{
   display: inline;
 }
+
+#status-tooltip:after {
+  margin-left: 1.5rem;
+}
