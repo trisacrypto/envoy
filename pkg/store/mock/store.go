@@ -111,6 +111,10 @@ func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 	return nil
 }
 
+func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQuery) (out *models.CounterpartyPage, err error) {
+	return out, nil
+}
+
 func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (*models.CounterpartyPage, error) {
 	return nil, nil
 }

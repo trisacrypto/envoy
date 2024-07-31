@@ -186,6 +186,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			counterparties.GET("", authorize(permiss.CounterpartiesView), s.ListCounterparties)
 			counterparties.POST("", authorize(permiss.CounterpartiesManage), s.CreateCounterparty)
+			counterparties.GET("/search", authorize(permiss.CounterpartiesView), s.SearchCounterparties)
 			counterparties.GET("/:id", authorize(permiss.CounterpartiesView), s.CounterpartyDetail)
 			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
