@@ -2,19 +2,18 @@
   "openapi": "3.0.3",
   "info": {
     "title": "TRISA Envoy API",
-    "description": "The TRISA Envoy API allows users to interact with the an Envoy Node in a programmatic fashion.\nIt is intended that this API is served on an internal IP address with routing only available to internal services.",
-    "termsOfService": "https://trisa.io/terms/",
+    "description": "The TRISA Envoy API allows users to interact with their TRISA open source Envoy node in a programmatic fashion. The API allows users to manage server objects such as accounts and counterparties and to send and manage Travel Rule transactions without having to know the details of the TRISA or TRP protocols.",
     "contact": {
       "email": "support@rotational.io"
     },
     "license": {
       "name": "MIT Licensed",
-      "url": "https://github.com/trisacrypto/trisa/blob/main/LICENSE"
+      "url": "https://github.com/trisacrypto/envoy/blob/main/LICENSE"
     },
     "version": "v{{ .Version }}"
   },
   "externalDocs": {
-    "description": "TRISA Developer Documentation",
+    "description": "TRISA Documentation",
     "url": "https://trisa.dev"
   },
   "servers": [
@@ -1631,7 +1630,7 @@
           "user"
         ],
         "summary": "List users",
-        "description": "Paginated list of all users",
+        "description": "Paginated list of all  users",
         "operationId": "listUsers",
         "security": [
           {

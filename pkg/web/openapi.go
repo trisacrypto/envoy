@@ -25,7 +25,7 @@ func (s *Server) OpenAPI(c *gin.Context) {
 		data = gin.H{
 			"Version":     pkg.Version(),
 			"Origin":      s.conf.Web.Origin,
-			"Description": "Envoy",
+			"Description": s.conf.Web.DocsName,
 		}
 
 		var files fs.FS

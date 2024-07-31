@@ -1,26 +1,26 @@
 openapi: 3.0.3
 info:
-  title: TRISA Node API
+  title: TRISA Envoy API
   description: >-
-    The TRISA Node API allows users to interact with the TRISA Self-Hosted Node
-    in a programmatic fashion.
-
-    It is intended that this API is served on an internal IP address with
-    routing only available to internal services.
-  termsOfService: https://trisa.io/terms/
+    The TRISA Envoy API allows users to interact with their TRISA open source
+    Envoy node in a programmatic fashion. The API allows users to manage server
+    objects such as accounts and counterparties and to send and manage Travel
+    Rule transactions without having to know the details of the TRISA or TRP
+    protocols.
+  # termsOfService: https://trisa.io/terms/
   contact:
     email: support@rotational.io
   license:
     name: MIT Licensed
-    url: https://github.com/trisacrypto/trisa/blob/main/LICENSE
-  version: v{{ .Version }}
+    url: https://github.com/trisacrypto/envoy/blob/main/LICENSE
+  version: "v{{ .Version }}"
 externalDocs:
-  description: TRISA Developer Documentation
+  description: TRISA Documentation
   url: https://trisa.dev
 servers:
-  - url: {{ .Origin }}
+  - url: "{{ .Origin }}"
     variables: { }
-    description: {{ .Description }}
+    description: "{{ .Description }}"
 tags:
   - name: authentication
     description: Allow for authentication against Envoy node.
