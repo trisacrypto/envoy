@@ -324,3 +324,22 @@ export const naturalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
   .filter(([key]) => key.includes('NATURAL_PERSON_NAME_TYPE_CODE'))
   .map(([value, text]) => ({ text, value }));
 
+
+// Reject error codes
+export const REJECT_CODES = {
+  REJECTED: "Rejected",
+  UNKNOWN_WALLET_ADDRESS: "Unknown Wallet Address",
+  UNKNOWN_IDENTITY: "Unknown Identity",
+  UNKNOWN_ORIGINATOR: "Unknown Originator",
+  UNKNOWN_BENEFICIARY: "Unknown Beneficiary",
+  UNSUPPORTED_CURRENCY: "Unsupported Currency",
+  EXCEEDED_TRADING_VOLUME: "Exceeded Trading Volume",
+  COMPLIANCE_CHECK_FAIL: "Compliance Check Fail",
+  NO_COMPLIANCE: "No Compliance",
+  HIGH_RISK: "High Risk",
+  OUT_OF_NETWORK: "Out of Network",
+  UNPARSEABLE_IDENTITY: "Unable to parse identity record",
+  UNPARSEABLE_TRANSACTION: "Unable to parse transaction data record",
+  MISSING_FIELDS: "Missing required fields in transaction data",
+  INCOMPLETE_IDENTITY: "Identity record is not complete"
+};
