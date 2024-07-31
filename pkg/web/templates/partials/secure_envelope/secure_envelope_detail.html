@@ -1,9 +1,84 @@
-{{ if .SecureEnvelope.Payload }}
-{{ range .SecureEnvelope.Payload }}
-<div>{{ . }}</div>
-{{ end }}
-{{ end }}
-
-{{ if .SecureEnvelope.Error }}
-<p>{{ .SecureEnvelope.Error }}</p>
-{{ end }}
+<input type="radio" name="my-accordion-1" checked="checked" />
+{{ if .IsError }}
+<div class="collapse-title bg-red-200">
+  {{ else }}
+  <div class="collapse-title">
+    {{ end }}
+    <div class="flex items-center gap-x-1 pb-2 lg:text-lg font-semibold">
+      {{ if eq .Direction "in" }}
+      <h3>Incoming:</h3>
+      {{ else if eq .Direction "out" }}
+      <h3>Outgoing:</h3>
+      {{ end }} 
+      {{ $timestamp := .Timestamp.Format "2006-01-02T15:04:05-0700" }}
+      <span class="datetime">{{ $timestamp }}</span>
+    </div>
+    <span>ID: {{ .ID }}</span>
+  </div>
+  <div class="collapse-content">
+    <div class="mt-4">
+      <h3 class="font-semibold">Secure Envelope Meta Data</h3>
+      <dl class="mt-2">
+        <div class="py-1 grid grid-cols-2">
+          <dt>Status</dt>
+          {{ if .Sealed}}
+          <dd>
+            <div class="tooltip" data-tip="Sealed envelope">
+              <button>
+                <i class="fa-solid fa-envelope-circle-check text-lg"></i>
+              </button>
+            </div>
+          </dd>
+          {{ else }}
+          <dd>
+            <div class="tooltip" data-tip="Unsealed envelope">
+              <button>
+                <i class="fa-solid fa-envelope-open-text text-lg"></i>
+              </button>
+            </div>
+          </dd>
+          {{ end }}
+        </div>
+        {{ if .Error }}
+        <div class="py-1 grid grid-cols-2">
+          <dt>Error Code</dt>
+          <dd class="error-code">{{ .Error.Code }}</dd>
+        </div>
+        <div class="py-1 grid grid-cols-2">
+          <dt>Error Message</dt>
+          <dd>{{ .Error.Message }}</dd>
+        </div>
+        {{ end }}
+        <div class="py-1 grid grid-cols-2">
+          <dt>HMAC Valid</dt>
+          <dd>
+            {{ if .ValidHMAC }}
+            <div class="tooltip" data-tip="HMAC is valid">
+              <button>
+                <i class="fa-solid fa-circle-check text-lg text-green-700"></i>
+              </button>
+            </div>
+            {{ else }}
+            <div class="tooltip" data-tip="HMAC is not valid">
+              <button>
+                <i class="fa-solid fa-circle-xmark text-lg text-red-700"></i>
+              </button>
+            </div>
+            {{ end }}
+          </dd>
+        </div>
+        {{ if .EncryptionAlgorithm }}
+        <div class="py-1 grid grid-cols-2">
+          <dt>Encryption Algorithm</dt>
+          <dd>{{ .EncryptionAlgorithm }}</dd>
+        </div>
+        {{ end }} {{ if .HMACAlgorithm }}
+        <div class="py-1 grid grid-cols-2">
+          <dt>HMAC Algorithm</dt>
+          <dd>{{ .HMACAlgorithm }}</dd>
+        </div>
+        {{ end }}
+      </dl>
+    </div>
+  </div>
+</div>
