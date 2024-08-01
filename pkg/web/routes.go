@@ -107,9 +107,10 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
+	s.router.GET("/v1/docs/openapi.:ext", s.OpenAPI)
 	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
 		"TRISA Node API Documentation",
-		"/static/openapi.json",
+		"/v1/docs/openapi.json",
 		"/v1/docs",
 	)))
 

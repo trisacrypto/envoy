@@ -8,6 +8,13 @@ module.exports = {
     extend: {},
   },
   plugins: [require("daisyui")],
+  safelist: [
+    "text-blue-700",
+    "text-gray-500",
+    "text-yellow-700",
+    "text-warning",
+    "text-success",
+  ],
   daisyui: {
     themes: [
       {
