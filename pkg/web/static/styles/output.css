@@ -3263,6 +3263,10 @@ details.collapse summary::-webkit-details-marker {
   padding-top: 1rem;
 }
 
+.text-left {
+  text-align: left;
+}
+
 .text-center {
   text-align: center;
 }
@@ -3289,6 +3293,10 @@ details.collapse summary::-webkit-details-marker {
 .text-8xl {
   font-size: 6rem;
   line-height: 1;
+}
+
+.text-\[6px\] {
+  font-size: 6px;
 }
 
 .text-base {
@@ -3385,6 +3393,11 @@ details.collapse summary::-webkit-details-marker {
 .text-red-700 {
   --tw-text-opacity: 1;
   color: rgb(185 28 28 / var(--tw-text-opacity));
+}
+
+.text-success {
+  --tw-text-opacity: 1;
+  color: var(--fallback-su,oklch(var(--su)/var(--tw-text-opacity)));
 }
 
 .text-warning {
@@ -3618,6 +3631,12 @@ body main {
 
 .htmx-request.htmx-indicator{
   display: inline;
+}
+
+/* Tooltip styles */
+
+#status-tooltip:after {
+  margin-left: 1.5rem;
 }
 
 @media (min-width: 768px) {

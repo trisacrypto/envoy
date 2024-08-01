@@ -40,9 +40,9 @@
             <dt>Unknown</dt>
           {{ end }}
         </div>
-        <div class="grid grid-cols-2 p-2">
-          <dd class="font-bold">Status</dd>
-          <dt>{{ if .Status }} {{ .TitleStatus }} {{ else }} Unknown {{ end }}</dt>
+        <div id="status-tooltip" class="tooltip grid grid-cols-2 p-2" data-tip="{{ .TooltipStatus }}">
+          <dd class="text-left font-bold">Status</dd>
+          <dt class="text-left">{{ if .Status }} {{ .TitleStatus }} {{ else }} Unknown {{ end }}</dt>
         </div>
         <div class="grid grid-cols-2 p-2">
           <dd class="font-bold">Network</dd>
