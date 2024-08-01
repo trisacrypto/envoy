@@ -290,8 +290,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     const amount = parseFloat(data.transaction.amount);
     data.transaction.amount = isNaN(amount) ? data.transaction.amount : amount;
     e.detail.parameters = data;
-
-    disableSubmitButton();
   };
 });
 
@@ -306,3 +304,5 @@ function disableSubmitButton() {
     acceptSbmtBtn.disabled = true;
   });
 };
+
+document.body.addEventListener('htmx:afterSettle', disableSubmitButton);
