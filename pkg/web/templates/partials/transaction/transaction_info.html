@@ -13,7 +13,7 @@
         </div>
           <div class="flex gap-x-4">
           {{ if $canMngTrans }}
-           {{ if and (eq .Source "remote") (ne .Status "completed") }}
+           {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
             <a href="/transactions/{{ .ID }}/accept" class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Accept</a>
             <a href="/transactions/{{ .ID }}/info" class="p-1 rounded w-32 bg-warning font-semibold text-white text-center md:p-2 hover:bg-warning/80">Reject</a>
             {{ end }}
