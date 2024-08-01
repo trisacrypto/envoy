@@ -414,10 +414,10 @@ func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_
 		now := time.Now()
 		transaction := &models.Transaction{
 			ID:           envelopeID,
-			Source:       "unknown",
-			Status:       "initialized",
-			Counterparty: "unknown",
-			VirtualAsset: "UNK",
+			Source:       models.SourceUnknown,
+			Status:       models.StatusDraft,
+			Counterparty: models.CounterpartyUnknown,
+			VirtualAsset: models.VirtualAssetUnknown,
 			Amount:       0.0,
 			Created:      now,
 			Modified:     now,
