@@ -14,21 +14,24 @@ import (
 )
 
 const (
-	SourceLocal       = "local"
-	SourceRemote      = "remote"
-	StatusUnspecified = "unspecified"
-	StatusDraft       = "draft"
-	StatusPending     = "pending"
-	StatusReview      = "review"
-	StatusRepair      = "repair"
-	StatusAccepted    = "accepted"
-	StatusCompleted   = "completed"
-	StatusRejected    = "rejected"
-	DirectionOut      = "out"
-	DirectionOutgoing = DirectionOut
-	DirectionIn       = "in"
-	DirectionIncoming = DirectionIn
-	DirectionAny      = "any"
+	SourceUnknown       = "unknown"
+	SourceLocal         = "local"
+	SourceRemote        = "remote"
+	StatusUnspecified   = "unspecified"
+	StatusDraft         = "draft"
+	StatusPending       = "pending"
+	StatusReview        = "review"
+	StatusRepair        = "repair"
+	StatusAccepted      = "accepted"
+	StatusCompleted     = "completed"
+	StatusRejected      = "rejected"
+	DirectionOut        = "out"
+	DirectionOutgoing   = DirectionOut
+	DirectionIn         = "in"
+	DirectionIncoming   = DirectionIn
+	DirectionAny        = "any"
+	CounterpartyUnknown = "unknown"
+	VirtualAssetUnknown = "UNK"
 )
 
 func ValidStatus(status string) bool {
