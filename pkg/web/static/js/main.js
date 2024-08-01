@@ -66,3 +66,22 @@ const updateDatetimes = () => {
 };
 
 document.body.addEventListener('htmx:afterSettle', updateDatetimes);
+
+// Disable submit button after form submission and enable it after a request.
+const submitBtn = document.querySelector('.submit-btn');
+const submitBtnText = document.querySelector('.submit-btn-text');
+
+function disableSubmitBtn() {
+  document.body.addEventListener('submit', () => {
+    submitBtnText?.classList.add('hidden');
+    submitBtn?.setAttribute('disabled', 'disabled');
+  });
+};
+
+function enableSubmitBtn() {
+  submitBtnText?.classList.remove('hidden');
+  submitBtn?.removeAttribute('disabled');
+};
+
+document.body.addEventListener('htmx:afterSettle', disableSubmitBtn);
+document.body.addEventListener('htmx:afterRequest', enableSubmitBtn)
