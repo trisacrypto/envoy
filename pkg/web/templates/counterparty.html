@@ -25,15 +25,7 @@
       </div>
       <p class="py-4">Add new counterparty VASP details.</p>
       <div>
-        <form 
-        _="on htmx:afterRequest
-          if event.detail.successful
-          remove .hidden from #success-toast
-          put 'Success! A new counterparty VASP has been created.' into #success-toast-msg
-          wait 5s
-          add .hidden to #success-toast
-          end"    
-        id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
+        <form id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
           <div class="mb-4 grid gap-6 md:grid-cols-2">
             <div>
               <label for="name" class="label-style">VASP Name</label>

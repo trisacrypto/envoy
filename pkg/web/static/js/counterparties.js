@@ -1,13 +1,17 @@
 import { countriesArray } from './constants.js';
+import { setSuccessToast } from './utils.js';
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
-  const addCpartyForm = 'new-cparty-form';
+  const addCpartyForm = document.getElementById('new-cparty-form');
+  const cpartyModal = document.getElementById('add_cparty_modal');
   // Check if the request to add a new counterparty was successful.
-  if (e.detail.elt.id === addCpartyForm && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+  if (e.detail.requestConfig.path === '/v1/counterparties' && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     // Close the add counterparty modal and reset the form.
-    document.getElementById('add_cparty_modal').close();
-    document.getElementById(addCpartyForm).reset();
+    cpartyModal.close();
+    addCpartyForm.reset();
     countrySelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
+
+    setSuccessToast('Success! A new counterparty VASP has been created.');
   }
 });
 
