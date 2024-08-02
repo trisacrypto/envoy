@@ -1,10 +1,10 @@
 {{ template "base" . }}
 {{ define "content" }}
   <section class="mx-8 py-14">
-    <section class="flex gap-x-6 mb-12">
+    <section class="md:flex md:items-center md:gap-x-6 mb-12">
       <h1 class="font-bold text-2xl">Counterparty VASPs</h1>
       {{ if not .IsViewOnly }}
-      <button onclick="add_cparty_modal.showModal()" class="btn btn-sm bg-primary text-white hover:bg-primary/90">Add New VASP</button>
+      <button onclick="add_cparty_modal.showModal()" class="mt-3 md:mt-0 btn btn-sm bg-primary text-white hover:bg-primary/90">Add New VASP</button>
       {{ end }}
     </section>
     <section id="counterparties" hx-get="/v1/counterparties" hx-trigger="load">
