@@ -1,4 +1,6 @@
 import { networksArray } from "./constants.js";
+import { networkSelect } from "./networkSelect.js";
+import { setSuccessToast } from "./utils.js";
 
 const addWalletBttn = document.getElementById('add-wallet-bttn')
 const extractWalletRE = /(crypto_address|network)_(\d+)/g;
@@ -95,6 +97,7 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     newAcctModal?.close()
     document.getElementById(newAcctForm).reset()
     networkSelect.setSelected({ 'placeholder': true, 'text': 'Select a country', 'value': '' })
+    setSuccessToast('Success! A new customer account has been created.');
 
     // If user added more than 1 wallet, remove the additional wallets.
     while (walletDiv?.children.length > 1) {
