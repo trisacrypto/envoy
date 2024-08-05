@@ -3029,6 +3029,10 @@ details.collapse summary::-webkit-details-marker {
   border-width: 2px;
 }
 
+.border-0 {
+  border-width: 0px;
+}
+
 .border-b-0 {
   border-bottom-width: 0px;
 }

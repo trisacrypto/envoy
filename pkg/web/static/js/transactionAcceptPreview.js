@@ -292,3 +292,17 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     e.detail.parameters = data;
   };
 });
+
+
+// Disable submit button to prevent multiple form submissions.
+function disableSubmitButton() {
+  const acceptForm = document.getElementById('accept-form');
+  const acceptSbmtBtn = document.getElementById('accept-sbmt-btn');
+  const acceptBtnText = document.getElementById('accept-btn-text');
+  acceptForm?.addEventListener('submit', () => {
+    acceptBtnText?.classList.add('hidden');
+    acceptSbmtBtn.disabled = true;
+  });
+};
+
+document.body.addEventListener('htmx:afterSettle', disableSubmitButton);
