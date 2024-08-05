@@ -37,7 +37,8 @@
           hx-post="/v1/accounts" 
           hx-ext="json-enc" 
           hx-target="#accounts" 
-          hx-swap-oob="outerHTML:#accounts" 
+          hx-swap-oob="outerHTML:#accounts"
+          hx-indicator="#loader" 
           method="post"
           >
           <div class="mb-4">
@@ -77,7 +78,10 @@
             <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
           </div>
           <div class="flex justify-center">
-            <button id="acct-submit-bttn" class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Register</button>
+            <button id="acct-submit-bttn" class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
+              <span class="submit-btn-text">Register</span>
+              <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+            </button>
           </div>
         </form>
       </div>
