@@ -108,7 +108,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     window.scrollTo(0, 0);
     setSuccessToast('Success! Secure envelope sent.');
   };
-  
+
   disableSubmitButton();
 });
 

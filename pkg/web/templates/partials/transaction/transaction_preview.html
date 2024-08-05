@@ -8,7 +8,7 @@
           Secure Envelope Details: Preview
         </h1>
       </div>
-      <form hx-post="/v1/transactions/send-prepared" hx-swap="none" hx-ext="json-enc" method="post">
+      <form id="preview-form" hx-post="/v1/transactions/send-prepared" hx-swap="none" hx-indicator="#loader" hx-ext="json-enc" method="post">
         <input type="hidden" id="prepared_payload" name="prepared_payload" value="{{ .Dump }}" />
         <div class="flex flex-row gap-x-2 md:gap-4">
           <button id="preview-sbmt-btn" type="submit"
