@@ -1,4 +1,5 @@
 import { IDENTIFIER_TYPE, countriesArray, naturalPersonNtlIdTypeArray } from './constants.js';
+import { setSuccessToast } from './utils.js';
 
 const birthplace = 'birthplace';
 const country = 'country';
@@ -96,11 +97,20 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
       const readableIdentifierType = IDENTIFIER_TYPE[identifierCode];
       identifierType.textContent = readableIdentifierType || identifierCode;
     });
+  }
+
+  if (e.detail.requestConfig.path === '/v1/transactions/send-prepared' && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    const previewEnvModal = document.getElementById('preview_envelope');
+    const secureEnvForm = document.getElementById('secure-envelope-form');
+    secureEnvForm.reset();
+    previewEnvModal.close();
+    // Manually reset the screen position to ensure user is at the top of the page.
+    window.scrollTo(0, 0);
+    setSuccessToast('Success! Secure envelope sent.');
   };
 
   disableSubmitButton();
-}
-);
+});
 
 // Disable submit button to prevent multiple form submissions.
 function disableSubmitButton() {
