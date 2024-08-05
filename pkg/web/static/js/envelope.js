@@ -38,14 +38,14 @@ document.body.addEventListener('htmx:configRequest', (e) => {
 
     let data = {
       travel_address: params.travel_address,
-      originator:{
+      originator: {
         identification: {},
       },
-      beneficiary:{
+      beneficiary: {
         identification: {},
       },
       // TODO: Add notes to data
-      transfer:{
+      transfer: {
         amount: parseFloat(params.amount),
         network: params.network,
         asset_type: params.asset_type,
@@ -108,5 +108,17 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     window.scrollTo(0, 0);
     setSuccessToast('Success! Secure envelope sent.');
   };
-})
+  
+  disableSubmitButton();
+});
 
+// Disable submit button to prevent multiple form submissions.
+function disableSubmitButton() {
+  const previewForm = document.getElementById('preview-form');
+  const previewSbmtBtn = document.getElementById('preview-sbmt-btn');
+  const previewBtnText = document.getElementById('preview-btn-text');
+  previewForm?.addEventListener('submit', () => {
+    previewBtnText?.classList.add('hidden');
+    previewSbmtBtn.disabled = true;
+  });
+};
