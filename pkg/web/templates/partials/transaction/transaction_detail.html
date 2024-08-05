@@ -10,7 +10,7 @@
     </div>
     <div class="flex gap-x-4">
       {{ if $canMngTrans }}
-      {{ if and (eq .Source "remote") (ne .Status "completed") }}
+      {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
       <a href="/transactions/{{ .ID }}/accept"
         class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Accept</a>
       <button onclick="transaction_rejection_modal.showModal()"
@@ -30,7 +30,7 @@
         <h2 class="font-bold text-lg">Transfer Details:</h2>
       </div>
       <dl>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Type</dd>
           {{ if eq .Source "local" }}
           <dt>Outgoing</dt>
@@ -40,23 +40,23 @@
             <dt>Unknown</dt>
           {{ end }}
         </div>
-        <div id="status-tooltip" class="tooltip grid grid-cols-2 p-2" data-tip="{{ .TooltipStatus }}">
+        <div id="status-tooltip" class="tooltip grid md:grid-cols-2 p-2" data-tip="{{ .TooltipStatus }}">
           <dd class="text-left font-bold">Status</dd>
           <dt class="text-left">{{ if .Status }} {{ .TitleStatus }} {{ else }} Unknown {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Network</dd>
           <dt>{{ if .VirtualAsset }} {{ .VirtualAsset }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Amount</dd>
           <dt>{{ if .Amount }} {{ .Amount }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Number of Envelopes</dd>
           <dt>{{ if .EnvelopeCount }} {{ .EnvelopeCount }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Created</dd>
           {{ if .Created }}
           {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
@@ -65,7 +65,7 @@
           <dt>N/A</dt>
           {{ end }}
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Last Update</dd>
           {{ if .LastUpdate }}
           {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05 -0700" }}
@@ -77,34 +77,34 @@
       </dl>
     </section>
 
-    <section class="p-4">
+    <section class="p-4 break-words">
       <div class="">
         <h2 class="font-bold text-lg">Identity Details:</h2>
       </div>
       <dl>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Counterparty VASP</dd>
           <dt>{{ if .Counterparty }} {{ .Counterparty }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Counterparty ID</dd>
-          <dt>{{ if .CounterpartyID }} {{ .CounterpartyID }} {{ else }} N/A {{ end }}</dt>
+          <dt class="max-w-36 md:max-w-full">{{ if .CounterpartyID }} {{ .CounterpartyID }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Originator Name</dd>
           <dt>{{ if .Originator }} {{ .Originator }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Originator Wallet Address</dd>
-          <dt>{{ if .OriginatorAddress}} {{ .OriginatorAddress }} {{ else }} N/A {{ end }}</dt>
+          <dt class="max-w-36 md:max-w-full">{{ if .OriginatorAddress}} {{ .OriginatorAddress }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Beneficiary Name</dd>
           <dt>{{ if .Beneficiary }} {{ .Beneficiary }} {{ else }} N/A {{ end }}</dt>
         </div>
-        <div class="grid grid-cols-2 p-2">
+        <div class="grid md:grid-cols-2 p-2">
           <dd class="font-bold">Beneficiary Wallet Address</dd>
-          <dt>{{ if .BeneficiaryAddress }} {{ .BeneficiaryAddress }} {{ else }} N/A {{ end }}</dt>
+          <dt class="max-w-36 md:max-w-full">{{ if .BeneficiaryAddress }} {{ .BeneficiaryAddress }} {{ else }} N/A {{ end }}</dt>
         </div>
       </dl>
     </section>

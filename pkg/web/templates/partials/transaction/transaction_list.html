@@ -96,7 +96,7 @@
             <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 text-sm shadow bg-black font-semibold text-white rounded-box">
               <li><a href="/transactions/{{ .ID }}/info">View</a></li>
               {{ if $canMngTrans }}
-              {{ if eq .Source "remote" }}
+              {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
               <li><a href="/transactions/{{ .ID }}/info">Reject</a></li>
               {{ end }}

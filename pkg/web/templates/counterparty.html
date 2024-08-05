@@ -33,7 +33,7 @@
           wait 5s
           add .hidden to #success-toast
           end"    
-        id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
+        id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post" hx-indicator="#loader">
           <div class="mb-4 grid gap-6 md:grid-cols-2">
             <div>
               <label for="name" class="label-style">VASP Name</label>
@@ -99,7 +99,10 @@
             <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
           </div>
           <div class="flex justify-center">
-            <button class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Save</button>
+            <button class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
+              <span class="submit-btn-text">Save</span>
+              <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+            </button>
           </div>
         </form>
       </div>
