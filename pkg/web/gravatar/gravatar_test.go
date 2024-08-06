@@ -10,7 +10,7 @@ import (
 func TestGravatar(t *testing.T) {
 	email := "MyEmailAddress@example.com "
 	url := gravatar.New(email, nil)
-	require.Equal(t, "https://www.gravatar.com/avatar/0bc83cb571cd1c50ba6f3e8a78ef1346?d=identicon&r=pg&s=80", url)
+	require.Equal(t, "https://www.gravatar.com/avatar/0bc83cb571cd1c50ba6f3e8a78ef1346?d=mp&r=pg&s=80", url)
 }
 
 func TestHash(t *testing.T) {
