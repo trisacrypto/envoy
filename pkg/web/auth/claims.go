@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"
@@ -46,7 +47,7 @@ func NewClaimsForUser(ctx context.Context, user *models.User) (claims *Claims, e
 	claims = &Claims{
 		Name:         user.Name.String,
 		Email:        user.Email,
-		Gravatar:     "",
+		Gravatar:     gravatar.New(user.Email, nil),
 		Organization: organization,
 		Permissions:  user.Permissions(),
 	}
