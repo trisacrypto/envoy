@@ -211,6 +211,51 @@ func (o *Outgoing) reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err err
 // message transfer state. For example, if the outgiong transfer state is pending, then
 // the Transfer should be marked as needing review.
 func (o *Outgoing) StatusFromTransferState() string {
+	if o.packet.Reply == DirectionOutgoing {
+		// If this is a reply to an incoming packet and the response is Pending, then
+		// we need to determine what state the incoming message was in to determine
+		// what pending action needs to be completed.
+		switch ts := o.Envelope.TransferState(); ts {
+
+		// If we sent back pending then we're either in review or repair mode,
+		// depending on what the incoming transfer state was (e.g. the request)
+		case api.TransferPending:
+			switch ints := o.packet.In.original.TransferState; ints {
+
+			// If we were sent started or review, then review action needs to be taken.
+			// Also in the case of an unspecified transfer state, we will review.
+			case api.TransferStateUnspecified, api.TransferStarted, api.TransferReview:
+				return models.StatusReview
+
+			// If we were sent a repair request, then we need to make a repair.
+			case api.TransferRepair:
+				return models.StatusRepair
+
+			// If the incoming message is pending, we should have sent back review.
+			// If the incoming messages is accepted, completed, or rejected, we should
+			// have echoed those states back to the sender, not pending.
+			default:
+				panic(fmt.Errorf("unhandled incoming transfer state %q to determine transaction status after pending reply", ints.String()))
+			}
+
+		// If we're sending review or repair, we're waiting for the recipient to take action
+		case api.TransferReview, api.TransferRepair:
+			return models.StatusPending
+
+		// These are the echo back statuses; we assume the incoming message matches.
+		case api.TransferAccepted:
+			return models.StatusAccepted
+		case api.TransferCompleted:
+			return models.StatusCompleted
+		case api.TransferRejected:
+			return models.StatusRejected
+		default:
+			panic(fmt.Errorf("unhandled outgoing transfer state %q for reply to incoming message", ts.String()))
+		}
+	}
+
+	// These states will likely be temporarily set on the transaction as a request, but
+	// then will be overrided depending on the state of the incoming reply to our message.
 	switch ts := o.Envelope.TransferState(); ts {
 	case api.TransferStateUnspecified:
 		return models.StatusUnspecified
