@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
-	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
@@ -296,18 +296,37 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error
 	}
 
 	// TODO: load auto approve/reject policies for counterparty to determine response
-	// TODO: send message to callback webhook and attempt to recieve a response
+	// TODO: send message to callback webhook and attempt to receive a response
 
-	// NOTE: for now, the server will always simple return a pending response.
-	if payload, err = pendingPayload(payload, p.EnvelopeID()); err != nil {
-		p.Log.Error().Err(err).Msg("could not create outgoing pending payload")
-		return internalError
-	}
+	// Automatic response determination based on incoming state.
+	switch p.In.TransferState() {
+	// If the incoming state is unspecified, started, review, or repair, return pending
+	case api.TransferStateUnspecified, api.TransferStarted, api.TransferReview, api.TransferRepair:
+		if payload, err = pendingPayload(payload, p.EnvelopeID()); err != nil {
+			p.Log.Error().Err(err).Msg("could not create outgoing pending payload")
+			return internalError
+		}
 
-	// TODO: determine the transfer state to send a message back
-	// NOTE: right now we're always just sending back pending
-	if err = p.Send(payload, api.TransferPending); err != nil {
-		p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+		if err = p.Send(payload, api.TransferPending); err != nil {
+			p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+			return internalError
+		}
+
+	// Echo back the original message with a review status
+	case api.TransferPending:
+		if err = p.Send(payload, api.TransferReview); err != nil {
+			p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+			return internalError
+		}
+
+	// Echo back the original message with the same transfer state
+	case api.TransferAccepted, api.TransferCompleted, api.TransferRejected:
+		if err = p.Send(payload, p.In.TransferState()); err != nil {
+			p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+			return internalError
+		}
+	default:
+		p.Log.WithLevel(zerolog.PanicLevel).Str("state", p.In.TransferState().String()).Msg("unhandled incoming transfer state to send automated response")
 		return internalError
 	}
 
@@ -336,28 +355,25 @@ func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error)
 		Bool("retry", trisaError.Retry).
 		Msg("received trisa rejection")
 
-	// Update the transaction status to indicate that an error was received.
-	var status string
-	switch p.In.Envelope.TransferState() {
+	// Determine the outgoing transfer state based on the incoming request.
+	var transferState api.TransferState
+	switch p.In.TransferState() {
+	case api.TransferStateUnspecified:
+		if trisaError.Retry {
+			transferState = api.TransferPending
+		} else {
+			transferState = api.TransferRejected
+		}
 	case api.TransferRejected:
-		status = models.StatusRejected
+		transferState = api.TransferRejected
 	case api.TransferRepair:
-		status = models.StatusRepair
+		transferState = api.TransferPending
 	default:
-		status = models.StatusUnspecified
-	}
-
-	if err = p.DB.Update(&models.Transaction{Status: status}); err != nil {
-		p.Log.Error().Err(err).Msg("could not update transaction status on error")
+		p.Log.WithLevel(zerolog.PanicLevel).Str("state", p.In.TransferState().String()).Msg("unhandled incoming error transfer state to send automated response")
 		return internalError
 	}
 
 	// Construct a reply that simply echos back the received error.
-	transferState := api.TransferPending
-	if status == models.StatusRejected {
-		transferState = api.TransferRejected
-	}
-
 	return p.Error(trisaError, envelope.WithTransferState(transferState))
 }
 

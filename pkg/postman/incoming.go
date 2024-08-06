@@ -35,6 +35,11 @@ func (i *Incoming) PublicKeySignature() string {
 	return i.original.PublicKeySignature
 }
 
+// Returns the original transfer state on the envelope.
+func (i *Incoming) TransferState() api.TransferState {
+	return i.original.TransferState
+}
+
 // Opens the incoming envelope, unsealing and decrypting it for handling.
 func (i *Incoming) Open() (reject *api.Error, err error) {
 	if i.UnsealingKey == nil {
