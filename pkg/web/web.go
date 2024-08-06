@@ -36,6 +36,9 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 		return nil, err
 	}
 
+	// Configure the claims issuer with the name of the organization
+	auth.SetOrganization(conf.Organization)
+
 	// Configure the gin router if enabled
 	s.router = gin.New()
 	s.router.RedirectTrailingSlash = true

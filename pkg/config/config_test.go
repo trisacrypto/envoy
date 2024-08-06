@@ -16,6 +16,7 @@ import (
 
 var testEnv = map[string]string{
 	"TRISA_MAINTENANCE":                     "true",
+	"TRISA_ORGANIZATION":                    "Testing Organization",
 	"TRISA_MODE":                            "test",
 	"TRISA_LOG_LEVEL":                       "debug",
 	"TRISA_CONSOLE_LOG":                     "true",
@@ -67,6 +68,7 @@ func TestConfig(t *testing.T) {
 
 	// Ensure configuration is correctly set from the environment
 	require.True(t, conf.Maintenance)
+	require.Equal(t, testEnv["TRISA_ORGANIZATION"], conf.Organization)
 	require.Equal(t, testEnv["TRISA_MODE"], conf.Mode)
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)

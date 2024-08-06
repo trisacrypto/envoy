@@ -13,6 +13,12 @@ import (
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 )
 
+const (
+	keyVersion     = "Version"
+	keyOrigin      = "Origin"
+	keyDescription = "Description"
+)
+
 func (s *Server) OpenAPI(c *gin.Context) {
 	var (
 		err        error
@@ -23,9 +29,13 @@ func (s *Server) OpenAPI(c *gin.Context) {
 
 	initialize.Do(func() {
 		data = gin.H{
-			"Version":     pkg.Version(),
-			"Origin":      s.conf.Web.Origin,
-			"Description": s.conf.Web.DocsName,
+			keyVersion:     pkg.Version(),
+			keyOrigin:      s.conf.Web.Origin,
+			keyDescription: s.conf.Web.DocsName,
+		}
+
+		if s.conf.Web.DocsName == "" {
+			data[keyDescription] = s.conf.Organization
 		}
 
 		var files fs.FS
