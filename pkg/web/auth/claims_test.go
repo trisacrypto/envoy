@@ -38,11 +38,12 @@ func TestNewClaims(t *testing.T) {
 			RegisteredClaims: jwt.RegisteredClaims{
 				Subject: "u01HVEH4E88XMYDXFAE4Y48CE9F",
 			},
-			Name:        "Carlos Hanger",
-			Email:       "carlos@example.com",
-			Gravatar:    "",
-			Role:        "editor",
-			Permissions: []string{"foo:manage", "foo:view", "foo:delete", "bar:view"},
+			Name:         "Carlos Hanger",
+			Email:        "carlos@example.com",
+			Gravatar:     "https://www.gravatar.com/avatar/9f57a0b8bcfd77585fa2fd171455054e?d=mp&r=pg&s=80",
+			Organization: "",
+			Role:         "editor",
+			Permissions:  []string{"foo:manage", "foo:view", "foo:delete", "bar:view"},
 		}
 
 		actual, err := NewClaims(ctx, model)
@@ -76,6 +77,58 @@ func TestNewClaims(t *testing.T) {
 		claims, err := NewClaims(ctx, "foo")
 		require.EqualError(t, err, "unknown model type string: cannot create claims")
 		require.Nil(t, claims, "expected no claims returned on error")
+	})
+}
+
+func TestNewClaimsWithOrganization(t *testing.T) {
+	ctx := context.Background()
+	SetOrganization("Rotational")
+	defer SetOrganization("")
+
+	t.Run("User", func(t *testing.T) {
+		model := &models.User{
+			Model: models.Model{
+				ID: ulid.MustParse("01HVEH4E88XMYDXFAE4Y48CE9F"),
+			},
+			Name:   sql.NullString{Valid: true, String: "Laura Dewilder"},
+			Email:  "laura@example.com",
+			RoleID: 3,
+		}
+		model.SetRole(&models.Role{ID: 3, Title: "observer"})
+		model.SetPermissions([]string{"foo:view", "bar:view"})
+
+		expected := &Claims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Subject: "u01HVEH4E88XMYDXFAE4Y48CE9F",
+			},
+			Name:         "Laura Dewilder",
+			Email:        "laura@example.com",
+			Gravatar:     "https://www.gravatar.com/avatar/1d9fdac54add801f681bea83c05b13fb?d=mp&r=pg&s=80",
+			Organization: "Rotational",
+			Role:         "observer",
+			Permissions:  []string{"foo:view", "bar:view"},
+		}
+
+		actual, err := NewClaims(ctx, model)
+		require.NoError(t, err, "could not create claims for user")
+		require.Equal(t, expected, actual, "created claims did not match expectation")
+	})
+
+	t.Run("APIKey", func(t *testing.T) {
+		model := &models.APIKey{
+			Model: models.Model{
+				ID: ulid.MustParse("01HVEH4E88XMYDXFAE4Y48CE9F"),
+			},
+			ClientID: "abc1234",
+		}
+
+		actual, err := NewClaims(ctx, model)
+		require.NoError(t, err, "could not create claims for api key")
+		require.Empty(t, actual.Organization, "api keys should not have organization claims")
+	})
+
+	t.Run("GetOrganization", func(t *testing.T) {
+		require.Equal(t, "Rotational", GetOrganization())
 	})
 }
 

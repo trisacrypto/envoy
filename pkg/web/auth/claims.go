@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/oklog/ulid/v2"
@@ -13,12 +14,13 @@ import (
 
 type Claims struct {
 	jwt.RegisteredClaims
-	ClientID    string   `json:"clientID,omitempty"`
-	Name        string   `json:"name,omitempty"`
-	Email       string   `json:"email,omitempty"`
-	Gravatar    string   `json:"gravatar,omitempty"`
-	Role        string   `json:"role,omitempty"`
-	Permissions []string `json:"permissions,omitempty"`
+	ClientID     string   `json:"clientID,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	Email        string   `json:"email,omitempty"`
+	Gravatar     string   `json:"gravatar,omitempty"`
+	Organization string   `json:"org,omitempty"`
+	Role         string   `json:"role,omitempty"`
+	Permissions  []string `json:"permissions,omitempty"`
 }
 
 type SubjectType rune
@@ -27,6 +29,8 @@ const (
 	SubjectUser   = SubjectType('u')
 	SubjectAPIKey = SubjectType('k')
 )
+
+var organization string
 
 func NewClaims(ctx context.Context, model any) (*Claims, error) {
 	switch t := model.(type) {
@@ -41,10 +45,11 @@ func NewClaims(ctx context.Context, model any) (*Claims, error) {
 
 func NewClaimsForUser(ctx context.Context, user *models.User) (claims *Claims, err error) {
 	claims = &Claims{
-		Name:        user.Name.String,
-		Email:       user.Email,
-		Gravatar:    "",
-		Permissions: user.Permissions(),
+		Name:         user.Name.String,
+		Email:        user.Email,
+		Gravatar:     gravatar.New(user.Email, nil),
+		Organization: organization,
+		Permissions:  user.Permissions(),
 	}
 
 	var role *models.Role
@@ -124,4 +129,14 @@ func NotBefore(tks string) (_ time.Time, err error) {
 		return time.Time{}, err
 	}
 	return claims.NotBefore.Time, nil
+}
+
+// Set the organization for any new user claims.
+func SetOrganization(o string) {
+	organization = o
+}
+
+// Get the current organization that is being used for all new user claims.
+func GetOrganization() string {
+	return organization
 }

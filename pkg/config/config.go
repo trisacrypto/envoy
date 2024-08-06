@@ -26,6 +26,7 @@ const Prefix = "trisa"
 // the server to ensure that all server operations work as expected.
 type Config struct {
 	Maintenance   bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
+	Organization  string              `default:"Envoy" desc:"specify the name of the organization of the Envoy node for display purposes"`
 	Mode          string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
 	LogLevel      logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
 	ConsoleLog    bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
@@ -50,7 +51,7 @@ type WebConfig struct {
 	Origin        string     `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
 	TRISAEndpoint string     `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
 	TRPEndpoint   string     `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
-	DocsName      string     `default:"Envoy" split_words:"true" desc:"the name for the API docs server in the Swagger app"`
+	DocsName      string     `split_words:"true" desc:"the display name for the API docs server in the Swagger app"`
 	Auth          AuthConfig `split_words:"true"`
 }
 
