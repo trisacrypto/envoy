@@ -27,9 +27,12 @@
   </div>
   <div class="navbar-end">
    <div class="dropdown dropdown-bottom dropdown-left">
-    <div tabindex="0" role="button" class="mr-4">
-      <i class="fa-solid fa-user text-lg"></i>
-      <span class="sr-only">Open User Management Page</span>
+    <div class="flex gap-x-4 items-center">
+      <span class="text-sm font-bold">{{ .User.Organization }}</span>
+      <div tabindex="0" role="button" class="mr-4">
+        <img src="{{ .User.Gravatar }}" alt="" class="h-[28px] w-[28px] rounded-full" />
+        <span class="sr-only">Open User Management Page</span>
+      </div>
     </div>
     <ul tabindex="0" class="dropdown-content z-[1] bg-black text-white shadow menu menu-sm p-2 rounded-box w-52 font-semibold">
       <li><a href="/profile"><i class="fa-solid fa-user-gear"></i>User Profile</a></li>

@@ -2766,10 +2766,6 @@ details.collapse summary::-webkit-details-marker {
   margin-bottom: 1.5rem;
 }
 
-.me-3 {
-  margin-inline-end: 0.75rem;
-}
-
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -2814,10 +2810,6 @@ details.collapse summary::-webkit-details-marker {
   display: block;
 }
 
-.inline {
-  display: inline;
-}
-
 .flex {
   display: flex;
 }
@@ -2836,6 +2828,10 @@ details.collapse summary::-webkit-details-marker {
 
 .h-4 {
   height: 1rem;
+}
+
+.h-\[28px\] {
+  height: 28px;
 }
 
 .max-h-\[450px\] {
@@ -2882,6 +2878,10 @@ details.collapse summary::-webkit-details-marker {
   width: 24rem;
 }
 
+.w-\[28px\] {
+  width: 28px;
+}
+
 .w-\[350px\] {
   width: 350px;
 }
@@ -2896,6 +2896,10 @@ details.collapse summary::-webkit-details-marker {
 
 .max-w-2xl {
   max-width: 42rem;
+}
+
+.max-w-36 {
+  max-width: 9rem;
 }
 
 .max-w-3xl {
@@ -2919,43 +2923,12 @@ details.collapse summary::-webkit-details-marker {
   max-width: 24rem;
 }
 
-.max-w-full {
-  max-width: 100%;
-}
-
-.max-w-min {
-  max-width: -moz-min-content;
-  max-width: min-content;
-}
-
-.max-w-48 {
-  max-width: 12rem;
-}
-
-.max-w-20 {
-  max-width: 5rem;
-}
-
-.max-w-36 {
-  max-width: 9rem;
-}
-
 .table-fixed {
   table-layout: fixed;
 }
 
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
 }
 
 .grid-cols-2 {
@@ -2968,10 +2941,6 @@ details.collapse summary::-webkit-details-marker {
 
 .flex-col {
   flex-direction: column;
-}
-
-.flex-wrap {
-  flex-wrap: wrap;
 }
 
 .items-center {
@@ -3051,6 +3020,10 @@ details.collapse summary::-webkit-details-marker {
   border-radius: var(--rounded-box, 1rem);
 }
 
+.rounded-full {
+  border-radius: 9999px;
+}
+
 .rounded-lg {
   border-radius: 0.5rem;
 }
@@ -3063,12 +3036,12 @@ details.collapse summary::-webkit-details-marker {
   border-width: 1px;
 }
 
-.border-2 {
-  border-width: 2px;
-}
-
 .border-0 {
   border-width: 0px;
+}
+
+.border-2 {
+  border-width: 2px;
 }
 
 .border-b-0 {
