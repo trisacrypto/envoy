@@ -51,7 +51,7 @@
       <h2 class="my-4 font-bold">2. ORIGINATOR DETAILS</h2>
       {{ $originatorPersons := .Identity.Originator.OriginatorPersons }}
       {{ if gt (len $originatorPersons) 0 }}
-        {{ $originator := (index .Identity.Originator.OriginatorPersons 0).Person.NaturalPerson }}
+        {{ $originator := (index $originatorPersons 0).Person.NaturalPerson }}
         {{ $originatorName := $originator.Name.NameIdentifiers }}
         {{ $originatorAddress := $originator.GeographicAddresses }}
       <div class="my-5">
