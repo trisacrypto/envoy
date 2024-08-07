@@ -17,6 +17,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/trp"
 	"github.com/trisacrypto/envoy/pkg/web"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -75,6 +76,11 @@ func New(conf config.Config) (node *Node, err error) {
 		node.store.UseTravelAddressFactory(factory)
 	}
 
+	// Configure the webhook if it's enabled
+	if conf.WebhookEnabled() {
+		node.webhook = webhook.New(conf.Webhook())
+	}
+
 	// Create the TRISA management system
 	if node.network, err = network.New(conf.Node); err != nil {
 		return nil, err
@@ -86,7 +92,7 @@ func New(conf config.Config) (node *Node, err error) {
 	}
 
 	// Create the TRISA API server
-	if node.trisa, err = trisa.New(conf.Node, node.network, node.store, node.errc); err != nil {
+	if node.trisa, err = trisa.New(conf.Node, node.network, node.store, node.webhook, node.errc); err != nil {
 		return nil, err
 	}
 
@@ -114,6 +120,7 @@ type Node struct {
 	syncd   *directory.Sync
 	store   store.Store
 	network network.Network
+	webhook webhook.Handler
 	errc    chan error
 }
 

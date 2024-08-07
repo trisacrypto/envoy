@@ -2,12 +2,15 @@ package postman
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
-	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
@@ -22,11 +25,11 @@ type Incoming struct {
 	UnsealingKey keys.PrivateKey
 	packet       *Packet
 	model        *models.SecureEnvelope
-	original     *api.SecureEnvelope
+	original     *trisa.SecureEnvelope
 }
 
 // Returns the original protocol buffers that was wrapped by the incoming message.
-func (i *Incoming) Proto() *api.SecureEnvelope {
+func (i *Incoming) Proto() *trisa.SecureEnvelope {
 	return i.original
 }
 
@@ -36,12 +39,12 @@ func (i *Incoming) PublicKeySignature() string {
 }
 
 // Returns the original transfer state on the envelope.
-func (i *Incoming) TransferState() api.TransferState {
+func (i *Incoming) TransferState() trisa.TransferState {
 	return i.original.TransferState
 }
 
 // Opens the incoming envelope, unsealing and decrypting it for handling.
-func (i *Incoming) Open() (reject *api.Error, err error) {
+func (i *Incoming) Open() (reject *trisa.Error, err error) {
 	if i.UnsealingKey == nil {
 		return nil, ErrNoUnsealingKey
 	}
@@ -148,26 +151,45 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	return nil
 }
 
+// Creates a webhook callback request from the incoming envelope. Note that the packet
+// must have the counterparty set and that the envelope UUID has been validated.
+func (i *Incoming) WebhookRequest() *webhook.Request {
+	request := &webhook.Request{
+		Timestamp:     i.original.Timestamp,
+		HMAC:          base64.RawStdEncoding.EncodeToString(i.original.Hmac),
+		PKS:           i.original.PublicKeySignature,
+		TransferState: i.original.TransferState.String(),
+		Error:         i.original.Error,
+		Payload:       nil,
+	}
+
+	// Ignore any errors: we expect that this has been validated already
+	request.TransactionID, _ = i.Envelope.UUID()
+	request.Counterparty, _ = api.NewCounterparty(i.packet.Counterparty)
+
+	return request
+}
+
 // StatusFromTransferState determines what the status should be based on the incoming
 // message transfer state. For example, if the incoming transfer state is accepted, then
 // the Transfer can be marked as completed.
 func (i *Incoming) StatusFromTransferState() string {
 	switch ts := i.original.TransferState; ts {
-	case api.TransferStateUnspecified:
+	case trisa.TransferStateUnspecified:
 		return models.StatusUnspecified
-	case api.TransferStarted:
+	case trisa.TransferStarted:
 		return models.StatusReview
-	case api.TransferPending:
+	case trisa.TransferPending:
 		return models.StatusPending
-	case api.TransferReview:
+	case trisa.TransferReview:
 		return models.StatusReview
-	case api.TransferRepair:
+	case trisa.TransferRepair:
 		return models.StatusRepair
-	case api.TransferAccepted:
+	case trisa.TransferAccepted:
 		return models.StatusAccepted
-	case api.TransferCompleted:
+	case trisa.TransferCompleted:
 		return models.StatusCompleted
-	case api.TransferRejected:
+	case trisa.TransferRejected:
 		return models.StatusRejected
 	default:
 		panic(fmt.Errorf("unknown transfer state %s", ts.String()))

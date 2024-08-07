@@ -69,7 +69,7 @@ func (s *trisaTestSuite) SetupSuite() {
 	s.store, err = store.Open("mock:///")
 	assert.NoError(err, "could not create mock store")
 
-	s.svc, err = trisa.New(s.conf, s.network, s.store, s.echan)
+	s.svc, err = trisa.New(s.conf, s.network, s.store, nil, s.echan)
 	assert.NoError(err, "could not create a new TRISA server")
 
 	// Run the TRISA server on the bufconn for tests

@@ -47,9 +47,10 @@ type Payload struct {
 // Either an error or a pending message is returned in the common case, though Envoy
 // will also handle synchronous compliance responses.
 type Reply struct {
-	TransactionID uuid.UUID    `json:"transaction_id"`
-	Error         *trisa.Error `json:"error,omitempty"`
-	Payload       *Payload     `json:"payload,omitempty"`
+	TransactionID  uuid.UUID    `json:"transaction_id"`
+	Error          *trisa.Error `json:"error,omitempty"`
+	Payload        *Payload     `json:"payload,omitempty"`
+	TransferAction string       `json:"transfer_action,omitempty"`
 }
 
 const (
@@ -60,6 +61,13 @@ const (
 // Add a TRISA protocol buffer payload to the webhook request, unmarshaling it into its
 // denormalized JSON representation to conduct the request.
 func (r *Request) AddPayload(payload *trisa.Payload) (err error) {
+	// Nil payloads (e.g. in the case of a TRISA error) will set the payload to nil.
+	if payload == nil {
+		r.Payload = nil
+		return nil
+	}
+
+	// Construct the payload object.
 	r.Payload = &Payload{
 		SentAt:     payload.SentAt,
 		ReceivedAt: payload.ReceivedAt,
@@ -86,6 +94,36 @@ func (r *Request) AddPayload(payload *trisa.Payload) (err error) {
 	}
 
 	return nil
+}
+
+// Determine the API transfer state based on the reply
+func (r *Reply) TransferState() trisa.TransferState {
+	// If the callback specifies "accepted" or "completed" then send that state on.
+	if r.TransferAction != "" {
+		if state, _ := trisa.ParseTransferState(r.TransferAction); state != trisa.TransferStateUnspecified {
+			return state
+		}
+	}
+
+	// Otherwise try to determine the state of the response based on the payload.
+	switch {
+	case r.Error != nil:
+		if r.Error.Retry {
+			return trisa.TransferRepair
+		}
+		return trisa.TransferRejected
+	case r.Payload != nil:
+		switch {
+		case r.Payload.Transaction != nil:
+			return trisa.TransferReview
+		case r.Payload.Pending != nil:
+			return trisa.TransferPending
+		default:
+			return trisa.TransferStateUnspecified
+		}
+	default:
+		return trisa.TransferStateUnspecified
+	}
 }
 
 // Convert payload (usually from a reply) into a TRISA protocol buffer struct.
