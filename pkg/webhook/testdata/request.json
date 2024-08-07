@@ -1,0 +1,21 @@
+{
+  "transaction_id": "d0a3dcb5-589c-4450-a84d-54ef0b74ae78",
+  "timestamp": "2024-08-07T15:50:54.542992Z",
+  "counterparty": {
+    "id": "01J4QDVY75S53Y9W2P4AH6Q5WY",
+    "source": "gds",
+    "directory_id": "ec20a278-d801-4a49-87ec-d64a3ee6b438",
+    "registered_directory": "trisatest.net",
+    "protocol": "trisa",
+    "common_name": "trisa.jounty.fr",
+    "endpoint": "trisa.jounty.fr:443",
+    "name": "Jounty, Pvt LTD",
+    "country": "FR",
+    "verified_on": "2022-04-22T09:38:12Z"
+  },
+  "hmac_signature": "SkWCLZvUqlpOujzfsM1anVuHZAVC5EZcJ95fkcb2CxA",
+  "public_key_signature": "SHA256:9ijfNWjwOLzbhkamSp8LvQ",
+  "transfer_state": "STARTED",
+  "error": {},
+  "payload": {}
+}

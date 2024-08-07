@@ -1,0 +1,100 @@
+{
+	"identity": {
+		"originator": {
+			"originatorPersons": [{
+				"naturalPerson": {
+					"name": {
+						"nameIdentifier": [{
+							"primaryIdentifier": "Carvalho",
+							"secondaryIdentifier": "Erick Ferreira",
+							"nameIdentifierType": "LEGL"
+						}]
+					},
+					"geographicAddress": [{
+						"addressType": "GEOG",
+						"address_lines": [
+              "Rua Idílio Mendes, 857",
+              "Paranaguá-PR",
+              "83221-140"
+            ],
+						"country": "BR"
+					}],
+					"customerIdentification": "3894550769",
+          "countryOfResidence": "BR"
+				}
+			}],
+			"accountNumber": [
+				"0x57D6F8A3BEA1FD74373C7C4B55F77EA8445BD4C5"
+			]
+		},
+		"beneficiary": {
+			"beneficiaryPersons": [{
+				"naturalPerson": {
+					"name": {
+						"nameIdentifier": [{
+							"primaryIdentifier": "Hachée",
+							"secondaryIdentifier": "Flordelis",
+							"nameIdentifierType": "LEGL"
+						}]
+					},
+          "geographicAddress": [{
+						"addressType": "GEOG",
+						"address_lines": [
+              "35, avenue de Bouvines",
+              "97233 SCHOELCHER"
+            ],
+						"country": "FR"
+					}],
+          "countryOfResidence": "FR"
+				}
+			}],
+			"accountNumber": [
+				"0xC9D4F29C353F774F1F95FCC64C3AFE453E9FD10B"
+			]
+		},
+		"originatingVASP": {
+			"originatingVASP": {
+				"legalPerson": {
+					"name": {
+						"nameIdentifier": [{
+							"legalPersonName": "DigiGreen, Inc.",
+							"legalPersonNameIdentifierType": "LEGL"
+						}]
+					},
+					"nationalIdentification": {
+						"nationalIdentifier": "CSE800XEPUNW0ZZEJZ12",
+						"nationalIdentifierType": "LEIX"
+					}
+				}
+			}
+		},
+    "beneficiaryVASP": {
+			"beneficiaryVASP": {
+				"legalPerson": {
+					"name": {
+						"nameIdentifier": [{
+							"legalPersonName": "Jounty, Pvt LTD",
+							"legalPersonNameIdentifierType": "LEGL"
+						}]
+					},
+					"nationalIdentification": {
+						"nationalIdentifier": "NNSF00AERZRYHGRW4H82",
+						"nationalIdentifierType": "LEIX"
+					}
+				}
+			}
+		}
+	},
+  "transaction":{
+    "txid": "",
+    "originator": "0x57D6F8A3BEA1FD74373C7C4B55F77EA8445BD4C5",
+    "beneficiary": "0xC9D4F29C353F774F1F95FCC64C3AFE453E9FD10B",
+    "amount": 4200000,
+    "network": "ETH",
+    "timestamp": "",
+    "extra_json": "{\"gas\": \"0x55555\", \"maxFeePerGas\": \"0x1234\", \"maxPriorityFeePerGas\": \"0x1234\", \"input\": \"0xabcd\", \"nonce\": \"0x0\", \"value\": \"0x1234\"}",
+    "asset_type": "",
+    "tag": ""
+  },
+	"sent_at": "2024-08-07T15:50:54Z"
+}

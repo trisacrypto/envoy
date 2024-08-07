@@ -1,0 +1,5 @@
+{
+  "code": 90,
+  "message": "the beneficiary account has not completed required KYC validation",
+  "retry": false
+}
