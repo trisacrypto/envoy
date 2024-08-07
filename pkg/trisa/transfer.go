@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -296,9 +297,128 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error
 	}
 
 	// TODO: load auto approve/reject policies for counterparty to determine response
-	// TODO: send message to callback webhook and attempt to receive a response
 
-	// Automatic response determination based on incoming state.
+	// Determine how to construct a response back to the remote counterparty; e.g. by
+	// using the webhook, using an automated policy, or making an automatic response
+	// determined by the transfer state. We expect the response method to call p.Send()
+	switch {
+	case s.WebhookEnabled():
+		if err = s.WebhookResponse(ctx, payload, p); err != nil {
+			return err
+		}
+	default:
+		if err = s.DefaultResponse(payload, p); err != nil {
+			return err
+		}
+	}
+
+	// Seal the outgoing envelope so it's ready to return to the requestor
+	if reject, err = p.Out.Seal(); err != nil {
+		if reject != nil {
+			return p.Error(reject)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error) {
+	// If the transaction doesn't exist, why are we receiving an error?
+	if p.DB.Created() {
+		return status.Error(codes.NotFound, "transaction does not exist")
+	}
+
+	// Fetch the error and log it
+	trisaError := p.In.Envelope.Error()
+	p.Log.Debug().
+		Str("code", trisaError.Code.String()).
+		Str("message", trisaError.Message).
+		Bool("retry", trisaError.Retry).
+		Msg("received trisa rejection")
+
+	// Make a webhook callback if required but the response won't be used since the
+	// error must be echoed back to the recipient. The webhook can respond with 204.
+	if s.WebhookEnabled() {
+		if _, err = s.webhook.Callback(ctx, p.In.WebhookRequest()); err != nil {
+			p.Log.Error().Err(err).Msg("could not execute webhook callback")
+		}
+	}
+
+	// Determine the outgoing transfer state based on the incoming request.
+	var transferState api.TransferState
+	switch p.In.TransferState() {
+	case api.TransferStateUnspecified:
+		if trisaError.Retry {
+			transferState = api.TransferPending
+		} else {
+			transferState = api.TransferRejected
+		}
+	case api.TransferRejected:
+		transferState = api.TransferRejected
+	case api.TransferRepair:
+		transferState = api.TransferPending
+	default:
+		p.Log.WithLevel(zerolog.PanicLevel).Str("state", p.In.TransferState().String()).Msg("unhandled incoming error transfer state to send automated response")
+		return internalError
+	}
+
+	// Construct a reply that simply echos back the received error.
+	return p.Error(trisaError, envelope.WithTransferState(transferState))
+}
+
+//===========================================================================
+// Response Methods
+//===========================================================================
+
+// Returns a response by using the webhook to perform a callback. If the webhook errors
+// then a service unavailable grpc error is returned.
+func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *postman.Packet) (err error) {
+	// Create the webhook request (note that setting a nil payload will cause no issues if this is an error envelope)
+	request := p.In.WebhookRequest()
+	if err = request.AddPayload(payload); err != nil {
+		p.Log.Error().Err(err).Msg("could not add payload to webhook callback")
+		return internalError
+	}
+
+	// Execute the webhook callback
+	var reply *webhook.Reply
+	if reply, err = s.webhook.Callback(ctx, request); err != nil {
+		p.Log.Error().Err(err).Msg("could not execute webhook callback")
+		return status.Error(codes.Unavailable, "envoy compliance callback is not available")
+	}
+
+	// Sanity check the transaction id
+	if reply.TransactionID != request.TransactionID {
+		p.Log.Error().Msg("reply/request transaction id mismatch")
+		return internalError
+	}
+
+	// Send the outgoing message back to the remote counterparty based on the webhook.
+	switch {
+	case reply.Error != nil:
+		p.Error(reply.Error, envelope.WithTransferState(reply.TransferState()))
+	case reply.Payload != nil:
+		if payload, err = reply.Payload.Proto(); err != nil {
+			p.Log.Error().Err(err).Msg("could not convert webhook response payload into protocol buffers")
+			return internalError
+		}
+
+		if err = p.Send(payload, reply.TransferState()); err != nil {
+			p.Log.Error().Err(err).Msg("could not update outgoing envelope with payload and transfer state")
+			return internalError
+		}
+	default:
+		p.Log.Error().Msg("no error or payload on webhook callback response")
+		return internalError
+	}
+
+	return nil
+}
+
+// Automatic response determination based on incoming state. This method will either
+// echo back the response as required or return a pending message if necessary.
+func (s *Server) DefaultResponse(payload *api.Payload, p *postman.Packet) (err error) {
 	switch p.In.TransferState() {
 	// If the incoming state is unspecified, started, review, or repair, return pending
 	case api.TransferStateUnspecified, api.TransferStarted, api.TransferReview, api.TransferRepair:
@@ -330,51 +450,7 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error
 		return internalError
 	}
 
-	// Seal the outgoing envelope so it's ready to return to the requestor
-	if reject, err = p.Out.Seal(); err != nil {
-		if reject != nil {
-			return p.Error(reject)
-		}
-		return err
-	}
-
 	return nil
-}
-
-func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error) {
-	// If the transaction doesn't exist, why are we receiving an error?
-	if p.DB.Created() {
-		return status.Error(codes.NotFound, "transaction does not exist")
-	}
-
-	// Fetch the error and log it
-	trisaError := p.In.Envelope.Error()
-	p.Log.Debug().
-		Str("code", trisaError.Code.String()).
-		Str("message", trisaError.Message).
-		Bool("retry", trisaError.Retry).
-		Msg("received trisa rejection")
-
-	// Determine the outgoing transfer state based on the incoming request.
-	var transferState api.TransferState
-	switch p.In.TransferState() {
-	case api.TransferStateUnspecified:
-		if trisaError.Retry {
-			transferState = api.TransferPending
-		} else {
-			transferState = api.TransferRejected
-		}
-	case api.TransferRejected:
-		transferState = api.TransferRejected
-	case api.TransferRepair:
-		transferState = api.TransferPending
-	default:
-		p.Log.WithLevel(zerolog.PanicLevel).Str("state", p.In.TransferState().String()).Msg("unhandled incoming error transfer state to send automated response")
-		return internalError
-	}
-
-	// Construct a reply that simply echos back the received error.
-	return p.Error(trisaError, envelope.WithTransferState(transferState))
 }
 
 //===========================================================================

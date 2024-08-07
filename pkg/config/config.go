@@ -31,6 +31,7 @@ type Config struct {
 	LogLevel      logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
 	ConsoleLog    bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
 	DatabaseURL   string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
+	WebhookURL    string              `split_words:"true" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
 	Web           WebConfig           `split_words:"true"`
 	Node          TRISAConfig         `split_words:"true"`
 	DirectorySync DirectorySyncConfig `split_words:"true"`
@@ -142,6 +143,12 @@ func (c Config) Validate() (err error) {
 		return fmt.Errorf("invalid configuration: %q is not a valid gin mode", c.Mode)
 	}
 
+	if c.WebhookURL != "" {
+		if _, err = url.Parse(c.WebhookURL); err != nil {
+			return fmt.Errorf("invalid configuration: could not parse webhook url: %w", err)
+		}
+	}
+
 	if err = c.Web.Validate(); err != nil {
 		return err
 	}
@@ -151,6 +158,19 @@ func (c Config) Validate() (err error) {
 
 func (c Config) GetLogLevel() zerolog.Level {
 	return zerolog.Level(c.LogLevel)
+}
+
+func (c Config) WebhookEnabled() bool {
+	return c.WebhookURL != ""
+}
+
+func (c Config) Webhook() *url.URL {
+	if c.WebhookURL == "" {
+		return nil
+	}
+
+	u, _ := url.Parse(c.WebhookURL)
+	return u
 }
 
 func (c WebConfig) Validate() (err error) {

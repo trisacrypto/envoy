@@ -21,6 +21,7 @@ var testEnv = map[string]string{
 	"TRISA_LOG_LEVEL":                       "debug",
 	"TRISA_CONSOLE_LOG":                     "true",
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
+	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
 	"TRISA_WEB_ENABLED":                     "false",
 	"TRISA_WEB_API_ENABLED":                 "false",
@@ -73,6 +74,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
+	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.WebhookURL)
 	require.True(t, conf.Web.Maintenance)
 	require.False(t, conf.Web.Enabled)
 	require.False(t, conf.Web.APIEnabled)
@@ -349,6 +351,25 @@ func TestDirectoryConfig(t *testing.T) {
 		conf := config.DirectoryConfig{Endpoint: tc.endpoint}
 		require.Equal(t, tc.expected, conf.Network(), "network name test case %d failed", i)
 	}
+}
+
+func TestWebhookConfig(t *testing.T) {
+	conf := config.Config{
+		Mode:       "test",
+		WebhookURL: "",
+		Web:        config.WebConfig{Enabled: false},
+		Node:       config.TRISAConfig{Enabled: false},
+		TRP:        config.TRPConfig{Enabled: false},
+	}
+	require.NoError(t, conf.Validate(), "expected no error when no webhook is specified")
+	require.False(t, conf.WebhookEnabled(), "expected webhook enabled to be false with no webhook specified")
+	require.Nil(t, conf.Webhook())
+
+	conf.WebhookURL = "https://example.com/callback"
+	require.NoError(t, conf.Validate(), "expected no error when webhook is specified")
+	require.True(t, conf.WebhookEnabled(), "expected webhook enabled to be true with webhook specified")
+	require.NotNil(t, conf.Webhook())
+	require.Equal(t, conf.WebhookURL, conf.Webhook().String())
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified

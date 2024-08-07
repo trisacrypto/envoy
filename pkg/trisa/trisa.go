@@ -7,6 +7,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa/interceptors"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	"github.com/rs/zerolog/log"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
@@ -27,15 +28,17 @@ type Server struct {
 	certPool trust.ProviderPool
 	network  network.Network
 	store    store.Store
+	webhook  webhook.Handler
 	echan    chan<- error
 }
 
 // Create a new TRISA server ready to handle gRPC requests.
-func New(conf config.TRISAConfig, network network.Network, store store.Store, echan chan<- error) (s *Server, err error) {
+func New(conf config.TRISAConfig, network network.Network, store store.Store, webhook webhook.Handler, echan chan<- error) (s *Server, err error) {
 	s = &Server{
 		conf:    conf,
 		network: network,
 		store:   store,
+		webhook: webhook,
 		echan:   echan,
 	}
 
@@ -101,4 +104,8 @@ func (s *Server) Shutdown() error {
 	s.srv.GracefulStop()
 	log.Debug().Msg("trisa server stopped")
 	return nil
+}
+
+func (s *Server) WebhookEnabled() bool {
+	return s.webhook != nil
 }
