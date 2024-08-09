@@ -4,7 +4,7 @@
       <span class="font-semibold">Transaction ID: {{ .EnvelopeID }}</span>
     </div>
   </section>
-  <form id="accept-form" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-ext="json-enc" hx-swap="none"
+  <form id="accept-form" hx-post="/v1/transactions/{{ .EnvelopeID }}/repair" hx-ext="json-enc" hx-swap="none"
     hx-indicator="#loader" method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
@@ -853,7 +853,7 @@
     <div class="py-4 flex justify-center items-center gap-x-2">
       <button id="accept-sbmt-btn" type="submit" class="btn p-1 w-36 bg-success font-semibold text-lg text-white md:p-2 hover:bg-success/80">
         <div class="flex justify-center items-center">
-          <span id="accept-btn-text">Accept</span>
+          <span id="accept-btn-text">Repair</span>
           <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
         </div>
       </button>

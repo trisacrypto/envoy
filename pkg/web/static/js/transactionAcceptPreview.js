@@ -107,7 +107,8 @@ const idEl = document.getElementById('envelope-id')
 const id = idEl?.value
 document.body.addEventListener('htmx:configRequest', (e) => {
   const transactionSendEP = `/v1/transactions/${id}/send`;
-  if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+  const repairTransactionEP = `/v1/transactions/${id}/repair`;
+  if (e.detail.path === transactionSendEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
 
     let data = {
