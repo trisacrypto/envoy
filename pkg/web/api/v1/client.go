@@ -247,7 +247,7 @@ func (s *APIv1) SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *E
 
 const payloadEP = "payload"
 
-func (s *APIv1) LatestPayload(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
+func (s *APIv1) LatestPayloadEnvelope(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), payloadEP)
 	if err = s.Detail(ctx, endpoint, &out); err != nil {
 		return nil, err

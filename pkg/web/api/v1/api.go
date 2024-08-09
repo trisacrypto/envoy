@@ -36,7 +36,7 @@ type Client interface {
 
 	// Transaction Detail Actions
 	SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
-	LatestPayload(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
+	LatestPayloadEnvelope(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
 	AcceptPreview(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
 	Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
 	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)

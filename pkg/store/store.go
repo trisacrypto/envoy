@@ -87,7 +87,7 @@ type SecureEnvelopeStore interface {
 	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) error
 	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error
 	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
-	LatestPayload(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
+	LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
 }
 
 // AccountStore provides CRUD interactions with Account models.

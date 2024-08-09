@@ -71,7 +71,7 @@ func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direct
 	return nil, nil
 }
 
-func (s *Store) LatestPayload(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
 	return nil, nil
 }
 

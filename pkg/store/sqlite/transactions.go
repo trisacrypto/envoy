@@ -396,7 +396,7 @@ const (
 	latestPayloadByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND is_error=false AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
 )
 
-func (s *Store) LatestPayload(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err

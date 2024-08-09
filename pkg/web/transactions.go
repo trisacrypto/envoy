@@ -427,7 +427,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
-func (s *Server) LatestPayload(c *gin.Context) {
+func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 	var (
 		err           error
 		transactionID uuid.UUID
@@ -444,7 +444,7 @@ func (s *Server) LatestPayload(c *gin.Context) {
 
 	// Retrieve the latest secure envelope with a payload for the transaction from the database
 	ctx := c.Request.Context()
-	if env, err = s.store.LatestPayload(ctx, transactionID, models.DirectionAny); err != nil {
+	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -634,8 +634,9 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		return
 	}
 
-	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page. and set a cookie to display a toast message
+	// If the content requested is HTML (e.g. the web-front end), then
+	// respond with a 204 no content response and the front-end will handle the
+	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
 		htmx.Trigger(c, "transactionAccepted")
 		return
@@ -802,7 +803,7 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	}
 
 	// Retrieve the latest payload envelope from the database
-	if payloadEnv, err = s.store.LatestPayload(ctx, transactionID, models.DirectionAny); err != nil {
+	if payloadEnv, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -948,8 +949,9 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		return
 	}
 
-	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page. and set a cookie to display a toast message
+	// If the content requested is HTML (e.g. the web-front end), then
+	// respond with a 204 no content response and the front-end will handle the
+	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
 		htmx.Trigger(c, "transactionRepaired")
 		return
