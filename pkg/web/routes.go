@@ -169,10 +169,15 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
 
 			// Transaction specific actions
+			// TODO: deprecate /:id/preview
 			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
-			transactions.GET("/:id/preview", authorize(permiss.TravelRuleManage), s.AcceptTransactionPreview)
+			transactions.GET("/:id/payload", authorize(permiss.TravelRuleView), s.LatestPayload)
+			transactions.GET("/:id/preview", authorize(permiss.TravelRuleView), s.AcceptTransactionPreview)
+			transactions.GET("/:id/accept", authorize(permiss.TravelRuleView), s.AcceptTransactionPreview)
 			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)
 			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
+			transactions.GET("/:id/repair", authorize(permiss.TravelRuleView), s.RepairTransactionPreview)
+			transactions.POST("/:id/repair", authorize(permiss.TravelRuleManage), s.RepairTransaction)
 
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")

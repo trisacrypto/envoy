@@ -77,7 +77,6 @@ type TransactionStore interface {
 	UpdateTransaction(context.Context, *models.Transaction) error
 	DeleteTransaction(context.Context, uuid.UUID) error
 	PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error)
-	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
 }
 
 // SecureEnvelopes are associated with individual transactions.
@@ -87,6 +86,8 @@ type SecureEnvelopeStore interface {
 	RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
 	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) error
 	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error
+	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
+	LatestPayload(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
 }
 
 // AccountStore provides CRUD interactions with Account models.

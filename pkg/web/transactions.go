@@ -292,54 +292,6 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 // Transaction Detail Actions
 //===========================================================================
 
-func (s *Server) AcceptTransactionPreview(c *gin.Context) {
-	var (
-		err           error
-		transactionID uuid.UUID
-		env           *models.SecureEnvelope
-		decrypted     *envelope.Envelope
-		out           *api.Envelope
-	)
-
-	// Parse the transactionID passed in from the URL
-	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	// Retrieve the latest secure envelope for the transaction from the database
-	ctx := c.Request.Context()
-	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Decrypt the secure envelope using the private keys in the key store
-	if decrypted, err = s.Decrypt(env); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
-		return
-	}
-
-	if out, err = api.NewEnvelope(env, decrypted); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_accept.html",
-	})
-}
-
 func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	var (
 		err        error
@@ -475,6 +427,56 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+func (s *Server) LatestPayload(c *gin.Context) {}
+
+func (s *Server) AcceptTransactionPreview(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		env           *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Envelope
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Retrieve the latest secure envelope for the transaction from the database
+	ctx := c.Request.Context()
+	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_accept.html",
+	})
+}
+
 func (s *Server) AcceptTransaction(c *gin.Context) {
 	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
 }
@@ -591,6 +593,10 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 
 	c.JSON(http.StatusOK, out)
 }
+
+func (s *Server) RepairTransactionPreview(c *gin.Context) {}
+
+func (s *Server) RepairTransaction(c *gin.Context) {}
 
 //===========================================================================
 // Secure Envelopes REST Resource

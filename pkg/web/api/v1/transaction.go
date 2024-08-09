@@ -96,6 +96,11 @@ type Rejection struct {
 	RequestRetry bool   `json:"request_retry"`
 }
 
+type Repair struct {
+	Error    *Rejection
+	Envelope *Envelope
+}
+
 type TransactionQuery struct {
 	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
 }
