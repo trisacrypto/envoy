@@ -12,7 +12,6 @@
         <th>Beneficiary & Wallet Address</th>
         <th>Virtual Asset</th>
         <th>Amount</th>
-        <th># of Envelopes</th>
         <th>Date Created</th>
         <th>Last Update</th>
         <th>Actions</th>
@@ -81,7 +80,6 @@
         </td>
         <td>{{ .VirtualAsset }}</td>
         <td>{{ .Amount }}</td>
-        <td>{{ .EnvelopeCount }}</td>
         {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
         <td class="datetime">{{ $created }}</td>
         {{ if .LastUpdate }}
@@ -99,6 +97,9 @@
               {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
               <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
               <li><a href="/transactions/{{ .ID }}/info">Reject</a></li>
+              {{ end }}
+              {{ if and (eq .Source "local") (eq .Status "repair") }}
+              <li><a href="/transactions/{{ .ID }}/repair">Repair</a></li>
               {{ end }}
               <li><a>Archive</a></li>
               {{ end }}
