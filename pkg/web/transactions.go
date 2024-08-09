@@ -634,11 +634,13 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		return
 	}
 
-	// If the content requested is HTML (e.g. the web-front end), then
-	// respond with a 204 no content response and the front-end will handle the
-	// success message in the toast.
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page and set a cookie to display a toast message
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		htmx.Trigger(c, "transactionAccepted")
+		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
+		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
+
+		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
 
@@ -949,11 +951,13 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		return
 	}
 
-	// If the content requested is HTML (e.g. the web-front end), then
-	// respond with a 204 no content response and the front-end will handle the
-	// success message in the toast.
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page and set a cookie to display a toast message
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
-		htmx.Trigger(c, "transactionRepaired")
+		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
+		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
+
+		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
 
