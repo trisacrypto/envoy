@@ -235,16 +235,6 @@ func (s *APIv1) Export(ctx context.Context, w io.Writer) (err error) {
 // Transaction Detail Actions
 //===========================================================================
 
-const previewEP = "preview"
-
-func (s *APIv1) Preview(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
-	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), previewEP)
-	if err = s.Detail(ctx, endpoint, &out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 const sendEP = "send"
 
 func (s *APIv1) SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
@@ -255,11 +245,29 @@ func (s *APIv1) SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *E
 	return out, nil
 }
 
+const payloadEP = "payload"
+
+func (s *APIv1) LatestPayloadEnvelope(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), payloadEP)
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 const acceptEP = "accept"
 
-func (s *APIv1) Accept(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
+func (s *APIv1) AcceptPreview(ctx context.Context, transactionID uuid.UUID) (out *Envelope, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), acceptEP)
-	if err = s.Create(ctx, endpoint, nil, &out); err != nil {
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), acceptEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -269,6 +277,24 @@ const rejectEP = "reject"
 
 func (s *APIv1) Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (out *Envelope, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), rejectEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const repairEP = "repair"
+
+func (s *APIv1) RepairPreview(ctx context.Context, transactionID uuid.UUID) (out *Repair, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), repairEP)
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), repairEP)
 	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}

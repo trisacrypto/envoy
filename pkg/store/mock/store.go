@@ -47,10 +47,6 @@ func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedT
 	return nil, nil
 }
 
-func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
-	return nil, nil
-}
-
 func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
 	return nil, nil
 }
@@ -69,6 +65,14 @@ func (s *Store) UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) er
 
 func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error {
 	return nil
+}
+
+func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+	return nil, nil
+}
+
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+	return nil, nil
 }
 
 func (s *Store) ListAccounts(context.Context, *models.PageInfo) (*models.AccountsPage, error) {

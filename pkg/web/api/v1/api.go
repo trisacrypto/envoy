@@ -35,10 +35,13 @@ type Client interface {
 	Export(context.Context, io.Writer) error
 
 	// Transaction Detail Actions
-	Preview(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
 	SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
-	Accept(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
+	LatestPayloadEnvelope(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
+	AcceptPreview(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)
+	Accept(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
 	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)
+	RepairPreview(ctx context.Context, transactionID uuid.UUID) (*Repair, error)
+	Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
 
 	// SecureEnvelopes Resource
 	ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (*EnvelopesList, error)

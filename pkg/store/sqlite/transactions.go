@@ -168,39 +168,6 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 	return tx.Commit()
 }
 
-const (
-	latestSecEnvSQL            = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID ORDER BY timestamp DESC LIMIT 1"
-	latestSecEnvByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
-)
-
-func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	var result *sql.Row
-	if direction == "" || direction == models.DirectionAny {
-		// Get the latest secure envelope regardless of the direction
-		result = tx.QueryRow(latestSecEnvSQL, sql.Named("envelopeID", envelopeID))
-	} else {
-		// Specify the direction to get the latest envelope for
-		result = tx.QueryRow(latestSecEnvByDirectionSQL, sql.Named("envelopeID", envelopeID), sql.Named("direction", direction))
-	}
-
-	env = &models.SecureEnvelope{}
-	if err = env.Scan(result); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
-	}
-
-	tx.Commit()
-	return env, nil
-}
-
 //===========================================================================
 // Secure Envelopes CRUD Interface
 //===========================================================================
@@ -385,6 +352,76 @@ func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID 
 	}
 
 	return tx.Commit()
+}
+
+//===========================================================================
+// Secure Envelope Fetching
+//===========================================================================
+
+const (
+	latestSecEnvSQL            = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID ORDER BY timestamp DESC LIMIT 1"
+	latestSecEnvByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
+)
+
+func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var result *sql.Row
+	if direction == "" || direction == models.DirectionAny {
+		// Get the latest secure envelope regardless of the direction
+		result = tx.QueryRow(latestSecEnvSQL, sql.Named("envelopeID", envelopeID))
+	} else {
+		// Specify the direction to get the latest envelope for
+		result = tx.QueryRow(latestSecEnvByDirectionSQL, sql.Named("envelopeID", envelopeID), sql.Named("direction", direction))
+	}
+
+	env = &models.SecureEnvelope{}
+	if err = env.Scan(result); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	tx.Commit()
+	return env, nil
+}
+
+const (
+	latestPayload               = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND is_error=false ORDER BY timestamp DESC LIMIT 1"
+	latestPayloadByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND is_error=false AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
+)
+
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var result *sql.Row
+	if direction == "" || direction == models.DirectionAny {
+		// Get the latest secure envelope regardless of the direction
+		result = tx.QueryRow(latestPayload, sql.Named("envelopeID", envelopeID))
+	} else {
+		// Specify the direction to get the latest envelope for
+		result = tx.QueryRow(latestPayloadByDirectionSQL, sql.Named("envelopeID", envelopeID), sql.Named("direction", direction))
+	}
+
+	env = &models.SecureEnvelope{}
+	if err = env.Scan(result); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	tx.Commit()
+	return env, nil
 }
 
 //===========================================================================

@@ -292,54 +292,6 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 // Transaction Detail Actions
 //===========================================================================
 
-func (s *Server) AcceptTransactionPreview(c *gin.Context) {
-	var (
-		err           error
-		transactionID uuid.UUID
-		env           *models.SecureEnvelope
-		decrypted     *envelope.Envelope
-		out           *api.Envelope
-	)
-
-	// Parse the transactionID passed in from the URL
-	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	// Retrieve the latest secure envelope for the transaction from the database
-	ctx := c.Request.Context()
-	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Decrypt the secure envelope using the private keys in the key store
-	if decrypted, err = s.Decrypt(env); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
-		return
-	}
-
-	if out, err = api.NewEnvelope(env, decrypted); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_accept.html",
-	})
-}
-
 func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	var (
 		err        error
@@ -455,7 +407,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	}
 
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
-	// to the transaction detail page. and set a cookie to display a toast message
+	// to the transaction detail page and set a cookie to display a toast message
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
 		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
 		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
@@ -475,8 +427,232 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		env           *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Envelope
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Retrieve the latest secure envelope with a payload for the transaction from the database
+	ctx := c.Request.Context()
+	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_payload.html",
+	})
+}
+
+func (s *Server) AcceptTransactionPreview(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		env           *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Envelope
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Retrieve the latest secure envelope for the transaction from the database
+	ctx := c.Request.Context()
+	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_accept.html",
+	})
+}
+
 func (s *Server) AcceptTransaction(c *gin.Context) {
-	c.AbortWithError(http.StatusNotImplemented, dberr.ErrNotImplemented)
+	var (
+		err        error
+		envelopeID uuid.UUID
+		in         *api.Envelope
+		payload    *trisa.Payload
+		out        *api.Envelope
+		packet     *postman.Packet
+	)
+
+	// Parse the envelopeID (also the transactionID) passed in from the URL
+	if envelopeID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Parse the envelope that the user wants to send from the JSON payload
+	in = &api.Envelope{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse accept data"))
+		return
+	}
+
+	// TODO: if the envelope is empty then retrieve the latest payload from the database
+	// This will allow easy accepts for the transaction without statefulness.
+
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	if ts := in.ParseTransferState(); ts != trisa.TransferStateUnspecified && ts != trisa.TransferAccepted {
+		c.JSON(http.StatusBadRequest, api.Error(fmt.Errorf("this endpoint does not accept the %q transfer state", ts.String())))
+		return
+	}
+
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
+
+	// Create a secure envelope with a Payload
+	if payload, err = in.Payload(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not create payload for transfer accept"))
+		return
+	}
+
+	// Send the payload with the accept transfer state
+	if packet, err = postman.Send(payload, envelopeID, trisa.TransferAccepted, log); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer accept"))
+		return
+	}
+
+	// Lookup the transaction from the database
+	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Get the counterparty from the database
+	if packet.Counterparty, err = s.store.RetrieveCounterparty(ctx, packet.Transaction.CounterpartyID.ULID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found: transaction needs to be updated"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Create a prepared transaction to update the transaction and secure envelopes
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
+		return
+	}
+	defer packet.DB.Rollback()
+
+	// Update the transaction based on the outgoing message from the API client
+	if err = packet.Out.UpdateTransaction(); err != nil {
+		c.Error(err)
+	}
+
+	// Send the secure envelope and get secure envelope response
+	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
+	if err = s.SendEnvelope(ctx, packet); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
+		return
+	}
+
+	// Update transaction state based on response from counterparty
+	if err = packet.In.UpdateTransaction(); err != nil {
+		c.Error(err)
+	}
+
+	if err = packet.DB.Commit(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("transfer sent but unable to store secure envelopes locally"))
+		return
+	}
+
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page and set a cookie to display a toast message
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
+		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
+
+		htmx.Redirect(c, http.StatusFound, detailURL)
+		return
+	}
+
+	// If the content request is JSON (e.g. the API) then render the incoming envelope
+	// as the response by decrypting it and sending it back to the user.
+	if out, err = api.NewEnvelope(packet.In.Model(), packet.In.Envelope); err != nil {
+		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) RejectTransaction(c *gin.Context) {
@@ -578,6 +754,210 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	// success message in the toast.
 	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
 		htmx.Trigger(c, "transactionRejected")
+		return
+	}
+
+	// If the content request is JSON (e.g. the API) then render the incoming envelope
+	// as the response by decrypting it and sending it back to the user.
+	if out, err = api.NewEnvelope(packet.In.Model(), packet.In.Envelope); err != nil {
+		c.Error(fmt.Errorf("could not parse incoming secure envelope: %w", err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
+		return
+	}
+
+	c.JSON(http.StatusOK, out)
+}
+
+func (s *Server) RepairTransactionPreview(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+		errorEnv      *models.SecureEnvelope
+		payloadEnv    *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Repair
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Retrieve the latest secure envelope for the transaction from the database
+	// this should be the error envelope that contains the required repair info.
+	ctx := c.Request.Context()
+	if errorEnv, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionIncoming); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Verify that the error envelope is actually an error
+	if !errorEnv.IsError {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a repairable state"))
+		return
+	}
+
+	// Retrieve the latest payload envelope from the database
+	if payloadEnv, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Decrypt the payload envelope using private keys in the store
+	if decrypted, err = s.Decrypt(payloadEnv); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("payload cannot be decrypted"))
+		return
+	}
+
+	out = &api.Repair{}
+	if out.Error, err = api.NewRejection(errorEnv); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not create repair preview"))
+		return
+	}
+
+	if out.Envelope, err = api.NewEnvelope(payloadEnv, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not create repair preview"))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_repair.html",
+	})
+}
+
+func (s *Server) RepairTransaction(c *gin.Context) {
+	var (
+		err        error
+		envelopeID uuid.UUID
+		in         *api.Envelope
+		payload    *trisa.Payload
+		out        *api.Envelope
+		packet     *postman.Packet
+	)
+
+	// Parse the envelopeID (also the transactionID) passed in from the URL
+	if envelopeID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Parse the envelope that the user wants to send from the JSON payload
+	in = &api.Envelope{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse repair data"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	if ts := in.ParseTransferState(); ts != trisa.TransferStateUnspecified && ts != trisa.TransferReview {
+		c.JSON(http.StatusBadRequest, api.Error(fmt.Errorf("this endpoint does not accept the %q transfer state", ts.String())))
+		return
+	}
+
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
+
+	// Create a secure envelope with a Payload
+	if payload, err = in.Payload(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not create payload for transfer repair"))
+		return
+	}
+
+	// Send the payload with the accept transfer state
+	if packet, err = postman.Send(payload, envelopeID, trisa.TransferReview, log); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer repair"))
+		return
+	}
+
+	// Lookup the transaction from the database
+	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Get the counterparty from the database
+	if packet.Counterparty, err = s.store.RetrieveCounterparty(ctx, packet.Transaction.CounterpartyID.ULID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found: transaction needs to be updated"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Create a prepared transaction to update the transaction and secure envelopes
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
+		return
+	}
+	defer packet.DB.Rollback()
+
+	// Update the transaction based on the outgoing message from the API client
+	if err = packet.Out.UpdateTransaction(); err != nil {
+		c.Error(err)
+	}
+
+	// Send the secure envelope and get secure envelope response
+	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
+	if err = s.SendEnvelope(ctx, packet); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
+		return
+	}
+
+	// Update transaction state based on response from counterparty
+	if err = packet.In.UpdateTransaction(); err != nil {
+		c.Error(err)
+	}
+
+	if err = packet.DB.Commit(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("transfer sent but unable to store secure envelopes locally"))
+		return
+	}
+
+	// If the content requested is HTML (e.g. the web-front end), then redirect the user
+	// to the transaction detail page and set a cookie to display a toast message
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
+		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
+
+		htmx.Redirect(c, http.StatusFound, detailURL)
 		return
 	}
 
