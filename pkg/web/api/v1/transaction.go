@@ -526,6 +526,20 @@ func (q *TransactionQuery) Validate() (err error) {
 // Rejection
 //===========================================================================
 
+func NewRejection(env *models.SecureEnvelope) (out *Rejection, err error) {
+	if !env.IsError {
+		return nil, ErrInvalidRejection
+	}
+
+	out = &Rejection{
+		Code:         env.Envelope.Error.Code.String(),
+		Message:      env.Envelope.Error.Message,
+		RequestRetry: env.Envelope.Error.Retry,
+	}
+
+	return out, nil
+}
+
 func (r *Rejection) Validate() (err error) {
 	// Check that the error code is valid
 	r.Code = strings.ToUpper(strings.TrimSpace(r.Code))

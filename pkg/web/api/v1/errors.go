@@ -22,6 +22,7 @@ var (
 
 var (
 	ErrInvalidTimestamp = errors.New("payload timestamp has invalid string format")
+	ErrInvalidRejection = errors.New("envelope does not contain a rejection/repair error")
 )
 
 // Construct a new response for an error or simply return unsuccessful.
