@@ -26,22 +26,20 @@
     </ul>
   </div>
   <div class="navbar-end">
-   <div class="dropdown dropdown-bottom dropdown-left">
     <div class="flex gap-x-4 items-center">
       <span class="text-sm font-bold">{{ .User.Organization }}</span>
-      <div tabindex="0" role="button" class="mr-4">
+      <div tabindex="0" role="button" class="mr-4 dropdown dropdown-bottom dropdown-left">
         <img src="{{ .User.Gravatar }}" alt="" class="h-[28px] w-[28px] rounded-full" />
         <span class="sr-only">Open User Management Page</span>
+        <ul tabindex="0" class="dropdown-content z-[1] bg-black text-white shadow menu menu-sm p-2 rounded-box w-52 font-semibold">
+          <li><a href="/profile"><i class="fa-solid fa-user-gear"></i>User Profile</a></li>
+          <li><a href="/about"><i class="fa-solid fa-gear"></i>Node Configuration</a></li>
+          <li><a href="/users"><i class="fa-solid fa-users"></i>User Management</a></li>
+          <li><a href="/utilities/travel-address"><i class="fa-solid fa-suitcase"></i>Travel Addresses</a></li>
+          <li><a href="/logout" id="logout-bttn"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
+        </ul>
       </div>
     </div>
-    <ul tabindex="0" class="dropdown-content z-[1] bg-black text-white shadow menu menu-sm p-2 rounded-box w-52 font-semibold">
-      <li><a href="/profile"><i class="fa-solid fa-user-gear"></i>User Profile</a></li>
-      <li><a href="/about"><i class="fa-solid fa-gear"></i>Node Configuration</a></li>
-      <li><a href="/users"><i class="fa-solid fa-users"></i>User Management</a></li>
-      <li><a href="/utilities/travel-address"><i class="fa-solid fa-suitcase"></i>Travel Addresses</a></li>
-      <li><a href="/logout" id="logout-bttn"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
-    </ul>
-   </div>
   </div>
 </nav>
 {{ end }}
