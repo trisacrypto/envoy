@@ -2,10 +2,13 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/ulids"
+	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 )
 
 type APIKey struct {
@@ -13,8 +16,8 @@ type APIKey struct {
 	Description string     `json:"description"`
 	ClientID    string     `json:"client_id"`
 	Secret      string     `json:"client_secret,omitempty"`
-	LastSeen    *time.Time `json:"last_seen"`
-	Permissions []string   `json:"permissions,omitempty"`
+	LastSeen    *time.Time `json:"last_seen,omitempty"`
+	Permissions []string   `json:"permissions"`
 	Created     time.Time  `json:"created,omitempty"`
 	Modified    time.Time  `json:"modified,omitempty"`
 }
@@ -29,7 +32,6 @@ func NewAPIKey(model *models.APIKey) (out *APIKey, err error) {
 		ID:          model.ID,
 		Description: model.Description.String,
 		ClientID:    model.ClientID,
-		Secret:      model.Secret, // Should be zero-valued except on create and therefore omitted from the payload in most cases
 		Permissions: model.Permissions(),
 		Created:     model.Created,
 		Modified:    model.Modified,
@@ -76,8 +78,23 @@ func (k *APIKey) Validate(create bool) (err error) {
 
 	// Permissions should be zero on update, but non-zero on create
 	if create {
+		if !ulids.IsZero(k.ID) {
+			err = ValidationError(err, ReadOnlyField("id"))
+		}
+
 		if len(k.Permissions) == 0 {
 			err = ValidationError(err, MissingField("permissions"))
+		}
+
+		// Using the permiss package, validate the permissions in the key.
+		// NOTE: this does not perform database validation, just string constant matches
+		for i, permission := range k.Permissions {
+			if p, perr := permissions.Parse(permission); perr != nil || p == permissions.Unknown {
+				err = ValidationError(err, IncorrectField("permissions", fmt.Sprintf("%q is not a valid permission", permission)))
+			} else {
+				// Ensure the permission is in the correct format
+				k.Permissions[i] = p.String()
+			}
 		}
 	} else {
 		if len(k.Permissions) > 0 {
