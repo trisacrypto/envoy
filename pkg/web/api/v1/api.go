@@ -78,6 +78,13 @@ type Client interface {
 	UpdateUser(context.Context, *User) (*User, error)
 	DeleteUser(context.Context, ulid.ULID) error
 
+	// APIKey Resource
+	ListAPIKeys(context.Context, *PageQuery) (*APIKeyList, error)
+	CreateAPIKey(context.Context, *APIKey) (*APIKey, error)
+	APIKeyDetail(context.Context, ulid.ULID) (*APIKey, error)
+	UpdateAPIKey(context.Context, *APIKey) (*APIKey, error)
+	DeleteAPIKey(context.Context, ulid.ULID) error
+
 	// Utilities
 	EncodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
 	DecodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
