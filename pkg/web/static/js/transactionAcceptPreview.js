@@ -27,13 +27,13 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
     // Get each country value selected by the requester from the hidden input field.
     const countryID = country.id
-    const selectedCountry = document.querySelector(`.${countryID}`)
-
-    if (selectedCountry) {
-      const countryValue = selectedCountry.value
-      setCountryData(country, countryValue)
+    if (countryID !== '') {
+      const selectedCountry = document.querySelector(`.${countryID}`)
+      if (selectedCountry) {
+        const countryValue = selectedCountry.value
+        setCountryData(country, countryValue)
+      }
     }
-
   })
 
   // Initialize a SlimSelect dropdown for each identifier type selection in the form.
@@ -44,9 +44,11 @@ document.body.addEventListener('htmx:afterSettle', () => {
     })
 
     const identifierID = identifier.id
-    const selectedIdentifier = document.querySelector(`.${identifierID}`)
-    if (selectedIdentifier) {
-      setIdentifierData(identifier, selectedIdentifier)
+    if (identifierID !== '') {
+      const selectedIdentifier = document.querySelector(`.${identifierID}`)
+      if (selectedIdentifier) {
+        setIdentifierData(identifier, selectedIdentifier)
+      }
     }
   })
 })
@@ -171,7 +173,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         },
       },
       transaction: {},
-      transfer_state: "accepted" // NOTE: this is only for the accept endpoint.
+      transfer_state: e.detail.path === transactionSendEP ? 'accepted' : undefined // NOTE: this is only for the accept endpoint.
     }
 
     const originatorPerson = data.identity.originator.originator_persons[0].natural_person;

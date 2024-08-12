@@ -5,7 +5,7 @@
   <input type="hidden" id="envelope-id" value="{{ .ID }}" />
   <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Repair Transaction Request</h1>
   <div class="my-4 md:m-8">
-    <p class="my-2 md:text-lg">Review and repair the secure envelope transaction details below.</p>
+    <p class="my-2 md:text-lg">Review the repair request message below and repair the secure envelope transaction below.</p>
     <div>
       <div hx-get="/v1/transactions/{{ .ID }}/repair" hx-trigger="load"></div>
       <div id="transaction-reject" hx-get="/v1/transactions/{{ .ID }}/payload" hx-trigger="load">
@@ -21,5 +21,6 @@
 {{ end }}
 
 {{ define "appcode" }}
+<script type="module" src="/static/js/transactionRepair.js"></script>
 <script type="module" src="/static/js/transactionAcceptPreview.js"></script>
 {{ end }}
