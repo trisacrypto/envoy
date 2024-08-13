@@ -104,8 +104,8 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/users", authenticate, s.UsersManagement)
-	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 	s.router.GET("/apikeys", authenticate, s.APIKeys)
+	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs/openapi.:ext", s.OpenAPI)

@@ -26,8 +26,7 @@
         <section class="p-2 my-2 border border-gray-300 rounded">
           <h3 class="font-bold">Full Access</h3>
           <div class="flex justify-between">
-            <label for="full_access" class="max-w-4xl text-balance">(Manage accounts, View accounts, Manage api keys, View api keys, Revoke api keys, Manage config, View config, Manage counterparties, View counterparties, 
-              Manage pki, View pki, Delete pki, Manage transactions, View transactions, Manage travel rule, View travel rule, Delete travel rule, Manage users, View users)
+            <label for="full_access" class="max-w-4xl text-balance">(Manages accounts, api keys, configuration, counterparties, PKI, travel rule interactions, and users.)
             </label>
             <div class="pt-1">
               <input type="checkbox" checked id="full_access" name="permissions" value="full" class="checkbox-style" />
@@ -88,14 +87,6 @@
           <div class="my-2 grid grid-cols-2 items-center">
             <label for="pki_delete">pki:delete</label>
             <input type="checkbox" id="pki_delete" name="permissions[]" value="pki:delete" class="checkbox-style" />
-          </div>
-          <div class="my-2 grid grid-cols-2 items-center">
-            <label for="transactions_manage">transactions:manage</label>
-            <input type="checkbox" id="transactions_manage" name="permissions[]" value="transactions:manage" class="checkbox-style" />
-          </div>
-          <div class="my-2 grid grid-cols-2 items-center">
-            <label for="transactions_view">transactions:view</label>
-            <input type="checkbox" id="transactions_view" name="permissions[]" value="transactions:view" class="checkbox-style" />
           </div>
           <div class="my-2 grid grid-cols-2 items-center">
             <label for="travelrule:manage">travelrule:manage</label>
