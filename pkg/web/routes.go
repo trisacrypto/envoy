@@ -210,6 +210,16 @@ func (s *Server) setupRoutes() (err error) {
 			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
 		}
 
+		// API Keys Resource
+		apikeys := v1.Group("/apikeys", authenticate)
+		{
+			apikeys.GET("", authorize(permiss.APIKeysView), s.ListAPIKeys)
+			apikeys.POST("", authorize(permiss.APIKeysManage), s.CreateAPIKey)
+			apikeys.GET("/:id", authorize(permiss.APIKeysView), s.APIKeyDetail)
+			apikeys.PUT("/:id", authorize(permiss.APIKeysManage), s.UpdateAPIKey)
+			apikeys.DELETE("/:id", authorize(permiss.APIKeysRevoke), s.DeleteAPIKey)
+		}
+
 		// Utilities
 		utils := v1.Group("/utilities", authenticate)
 		{
