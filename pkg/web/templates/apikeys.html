@@ -1,0 +1,29 @@
+{{ template "base" . }}
+{{ define "content" }}
+
+<section class="mx-8 py-14">
+  <section class="md:flex md:items-center md:gap-x-6 mb-12">
+    <h1 class="font-bold text-2xl">API Keys</h1>
+    {{ if not .IsViewOnly }}
+    <button onclick="add_apikey_modal.showModal()" class="mt-3 md:mt-0 btn btn-sm bg-primary text-white hover:bg-primary/90">Add API Key</button>
+    {{ end }}
+  </section>
+  <!-- <section id="transactions" hx-get="/v1/apikeys" hx-ext="json-enc" hx-trigger="load">
+    <div class="text-center">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  </section> -->
+
+  <!-- Add API Key Modal -->
+  {{ template "add_apikey.html" . }}
+
+</section>
+
+<!-- Target to display other api key management modals -->
+<dialog id="apikey_modal" class="modal"></dialog>
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src=""></script>
+{{ end }}
+
