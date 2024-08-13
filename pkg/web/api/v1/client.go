@@ -557,6 +557,43 @@ func (s *APIv1) DeleteUser(ctx context.Context, id ulid.ULID) error {
 }
 
 //===========================================================================
+// APIKeys Resource
+//===========================================================================
+
+const apikeysEP = "/v1/apikeys"
+
+func (s *APIv1) ListAPIKeys(ctx context.Context, in *PageQuery) (out *APIKeyList, err error) {
+	if err = s.List(ctx, apikeysEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+func (s *APIv1) CreateAPIKey(ctx context.Context, in *APIKey) (out *APIKey, err error) {
+	if err = s.Create(ctx, apikeysEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+func (s *APIv1) APIKeyDetail(ctx context.Context, keyID ulid.ULID) (out *APIKey, err error) {
+	endpoint, _ := url.JoinPath(apikeysEP, keyID.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+func (s *APIv1) UpdateAPIKey(ctx context.Context, in *APIKey) (out *APIKey, err error) {
+	endpoint, _ := url.JoinPath(apikeysEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+func (s *APIv1) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
+	endpoint, _ := url.JoinPath(apikeysEP, keyID.String())
+	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
 // Utilities Resource
 //===========================================================================
 

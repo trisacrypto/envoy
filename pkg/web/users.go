@@ -302,6 +302,7 @@ func (s *Server) DeleteUser(c *gin.Context) {
 	}
 
 	// Delete the user from the database
+	// TODO: for audit purposes we may simply want to move the user to a revoked table.
 	if err = s.store.DeleteUser(c.Request.Context(), userID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("user not found"))
