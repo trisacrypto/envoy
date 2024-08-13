@@ -209,7 +209,7 @@ func (s *Server) UpdateAPIKey(c *gin.Context) {
 		return
 	}
 
-	// Update the APIKey in the datrabase
+	// Update the APIKey in the database
 	if err = s.store.UpdateAPIKey(c.Request.Context(), apikey); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("apikey not found"))
