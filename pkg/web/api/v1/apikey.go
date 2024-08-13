@@ -14,7 +14,7 @@ import (
 type APIKey struct {
 	ID          ulid.ULID  `json:"id,omitempty"`
 	Description string     `json:"description"`
-	ClientID    string     `json:"client_id"`
+	ClientID    string     `json:"client_id,omitempty"`
 	Secret      string     `json:"client_secret,omitempty"`
 	LastSeen    *time.Time `json:"last_seen,omitempty"`
 	Permissions []string   `json:"permissions"`

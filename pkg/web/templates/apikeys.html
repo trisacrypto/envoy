@@ -15,50 +15,12 @@
   </section> -->
 
   <!-- Add API Key Modal -->
-  <dialog id="add_apikey_modal" class="modal">
-    <div class="modal-box max-w-2xl">
-      <div class="flex justify-between items-center">
-        <h1 class="font-bold text-xl">Create API Key</h1>
-        <button onclick="add_apikey_modal.close()" class="btn btn-sm btn-circle btn-ghost">
-          <i class="fa-solid fa-x"></i>
-          <span class="sr-only">Close modal</span>
-        </button>
-      </div>
-      <p class="py-4">Name your key and select access permissions.</p>
-      <div>
-        <form
-          id="new-apikey-form"
-          hx-post="/v1/apikeys" 
-          hx-ext="json-enc" 
-          hx-target="#apikey_modal" 
-          hx-swap="outerHTML"
-          hx-indicator="#loader" 
-          method="post"
-          >
-          <div class="mb-4">
-            <label for="description" class="label-style">API Key Description</label>
-            <input type="text" id="description" name="description" class="input-style" />
-          </div>
-          <h3 class="font-bold">Permissions</h3>
-          <div class="my-4">
-            <label for="full-access">Full Access</label>
-            <input type="checkbox" id="full-access" name="full" class="input-style" />
-          </div>
-          <div class="flex justify-center">
-            <button id="acct-submit-bttn" class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
-              <span class="submit-btn-text">Create</span>
-              <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </dialog>
+  {{ template "add_apikey.html" . }}
 
-  <!-- Target for edit and view api key modals -->
-  <dialog id="apikey_modal" class="modal"></dialog>
 </section>
 
+<!-- Target to display other api key management modals -->
+<dialog id="apikey_modal" class="modal"></dialog>
 {{ end }}
 
 {{ define "appcode" }}
