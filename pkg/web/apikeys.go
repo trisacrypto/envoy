@@ -53,7 +53,6 @@ func (s *Server) ListAPIKeys(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "apikey_list.html",
-		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
