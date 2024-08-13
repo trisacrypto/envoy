@@ -87,3 +87,7 @@ func (s *Server) UsersManagement(c *gin.Context) {
 func (s *Server) UserProfile(c *gin.Context) {
 	c.HTML(http.StatusOK, "user_profile.html", scene.New(c))
 }
+
+func (s *Server) APIKeys(c *gin.Context) {
+	c.HTML(http.StatusOK, "apikeys.html", scene.New(c))
+}
