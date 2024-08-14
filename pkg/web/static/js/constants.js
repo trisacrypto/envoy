@@ -348,3 +348,14 @@ export const REJECT_CODES = {
   CANCEL_TRANSACTION: "The TRISA exchange was canceled",
   BVRC999: "Request could not be processed by recipient (Alias: Sygna BVRC Rejected Code)",
 };
+
+// API Key Permissions
+export const API_KEY_PERMISSIONS = [
+  "users:manage", "users:view",
+	"apikeys:manage", "apikeys:view", "apikeys:revoke",
+	"counterparties:manage", "counterparties:view",
+	"accounts:manage", "accounts:view",
+	"travelrule:manage", "travelrule:delete", "travelrule:view",
+	"config:manage", "config:view",
+	"pki:manage", "pki:delete", "pki:view",
+]
