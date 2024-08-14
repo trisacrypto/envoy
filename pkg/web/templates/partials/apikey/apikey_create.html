@@ -1,1 +1,53 @@
-<div></div>
+<dialog id="apikey_modal" class="modal" open>
+  <div class="modal-box">
+    <div class="flex justify-between items-center">
+      <h1 class="font-bold text-xl">Your API Key Has Been Created!</h1>
+      <button
+        type="button"
+        onclick="apikey_modal.close()"
+        class="close-pwd-modal btn btn-sm btn-circle btn-ghost"
+        hx-get="/v1/apikeys"
+        hx-target="#apikeys"
+        hx-swap="innerHTML"
+      >
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <section class="my-4">
+      <p class="py-1">
+
+      </p>
+      <p class="py-1">
+        <span class="font-semibold">Copy and securely store the the API key details.</span>
+      </p>
+      <p class="py-1">
+        For security purposes, this is the only time you will see the client ID and secret.
+      </p>
+      <div class="my-4 p-3 flex justify-between items-center bg-[#FFFDD0] rounded">
+        <span id="api-id" class="font-semibold">Client ID: {{ .ClientID }}</span>
+        <button id="copy-password-btn" type="button">
+          <i id="copy-icon" class="fa-solid fa-copy"></i>
+        </button>
+      </div>
+      <div class="my-4 p-3 flex justify-between items-center bg-[#FFFDD0] rounded">
+        <span id="api-secret" class="font-semibold">Client Secret: {{ .ClientSecret }}</span>
+        <button id="copy-password-btn" type="button">
+          <i id="copy-icon" class="fa-solid fa-copy"></i>
+        </button>
+      </div>
+      <div class="pt-4 flex justify-center">
+        <button
+          type="button"
+          onclick="apikey_modal.close()"
+          class="close-pwd-modal w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90"
+          hx-get="/v1/apikeys"
+          hx-target="#apikeys"
+          hx-swap="innerHTML"
+        >
+          Close
+        </button>
+      </div>
+    </section>
+  </div>
+</dialog>
