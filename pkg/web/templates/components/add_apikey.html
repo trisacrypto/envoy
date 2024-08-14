@@ -2,7 +2,7 @@
   <div class="modal-box max-w-2xl">
     <div class="flex justify-between items-center">
       <h1 class="font-bold text-xl">Create API Key</h1>
-      <button onclick="add_apikey_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <button id="close-apikey-modal" onclick="add_apikey_modal.close()" class="btn btn-sm btn-circle btn-ghost">
         <i class="fa-solid fa-x"></i>
         <span class="sr-only">Close modal</span>
       </button>
@@ -23,17 +23,18 @@
           <input type="text" id="description" name="description" class="input-style" />
         </div>
         <h2 class="font-bold">Permissions:</h2>
-        <section class="p-2 my-2 border border-gray-300 rounded">
+        <p class="mt-1">Select full access or custom access for your API key below.</p>
+        <section class="p-2 my-4 border border-gray-300 rounded">
           <h3 class="font-bold">Full Access</h3>
           <div class="flex justify-between">
             <label for="full_access" class="max-w-4xl text-balance">(Manages accounts, api keys, configuration, counterparties, PKI, travel rule interactions, and users.)
             </label>
             <div class="pt-1">
-              <input type="checkbox" checked id="full_access" name="permissions" value="full" class="checkbox-style" />
+              <input type="checkbox" id="full_access" name="permissions" value="full" class="checkbox-style" />
             </div>
           </div>
         </section>
-        <section class="max-h-64 overflow-y-scroll p-2 my-4 border border-gray-300 rounded">
+        <section id="custom-access" class="max-h-64 overflow-y-scroll p-2 my-4 border border-gray-300 rounded">
           <h3 class="font-bold">Custom Access</h3>
           <div class="my-2 grid grid-cols-2 items-center">
             <label for="accounts_manage">accounts:manage</label>
@@ -105,7 +106,7 @@
           </div>
         </section>
         <div class="flex justify-center">
-          <button id="acct-submit-bttn" class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
+          <button id="apikey-submit-btn" class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
             <span class="submit-btn-text">Create</span>
             <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
           </button>
