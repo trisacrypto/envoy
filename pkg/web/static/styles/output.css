@@ -2920,6 +2920,14 @@ details.collapse summary::-webkit-details-marker {
   max-height: 100vh;
 }
 
+.max-h-16 {
+  max-height: 4rem;
+}
+
+.max-h-64 {
+  max-height: 16rem;
+}
+
 .w-1\/2 {
   width: 50%;
 }
@@ -3080,6 +3088,10 @@ details.collapse summary::-webkit-details-marker {
 
 .overflow-y-hidden {
   overflow-y: hidden;
+}
+
+.overflow-y-scroll {
+  overflow-y: scroll;
 }
 
 .text-balance {
