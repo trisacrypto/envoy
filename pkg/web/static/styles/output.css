@@ -3029,6 +3029,10 @@ details.collapse summary::-webkit-details-marker {
   max-width: 20rem;
 }
 
+.grow {
+  flex-grow: 1;
+}
+
 .table-fixed {
   table-layout: fixed;
 }
@@ -3059,6 +3063,10 @@ details.collapse summary::-webkit-details-marker {
 
 .justify-between {
   justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
 }
 
 .gap-4 {
