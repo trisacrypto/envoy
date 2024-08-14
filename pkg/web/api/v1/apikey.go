@@ -46,9 +46,7 @@ func NewAPIKey(model *models.APIKey) (out *APIKey, err error) {
 
 func NewAPIKeyList(page *models.APIKeyPage) (out *APIKeyList, err error) {
 	out = &APIKeyList{
-		Page: &PageQuery{
-			PageSize: int(page.Page.PageSize),
-		},
+		Page:    &PageQuery{},
 		APIKeys: make([]*APIKey, 0, len(page.APIKeys)),
 	}
 

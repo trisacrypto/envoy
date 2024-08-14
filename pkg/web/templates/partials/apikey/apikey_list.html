@@ -1,1 +1,30 @@
-<div></div>
+<div class="table-container pb-36 overflow-x-auto overflow-y-hidden">
+  <table class="table table-sm">
+    <thead class="font-bold text-base text-black">
+      <tr>
+        <th>Description</th>
+        <th>Permissions</th>
+        <th>Date Created</th>
+        <th>Last Used</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ if .APIKeys }}
+      {{ range .APIKeys }}
+        <tr>
+          <td>{{ .Description }}</td>
+          <td>{{ .Permissions }}</td>
+          {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
+          <td class="datetime">{{ $created }}</td>
+          {{ $lastUsed := .LastSeen.Format "2006-01-02T15:04:05-0700" }}
+          <td class="datetime">{{ $lastUsed }}</td>
+        </tr>
+      {{ end }}
+      {{ else }}
+        <tr class="text-center">
+          <td colspan="4" class="py-5 text-base">No API keys have been created.</td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
