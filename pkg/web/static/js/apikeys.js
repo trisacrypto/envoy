@@ -51,7 +51,6 @@ customCheckbox.forEach((checkbox) => {
   });
 })
 
-
 // Add code to amend htmx requests before they are sent.
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Set API key permissions if the user selects full access.
