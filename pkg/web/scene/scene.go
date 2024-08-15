@@ -182,3 +182,12 @@ func (s Scene) CreateAPIKey() *api.APIKey {
 	}
 	return nil
 }
+
+func (s Scene) APIKeyDetail() *api.APIKey {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.APIKey); ok {
+			return out
+		}
+	}
+	return nil
+}

@@ -6,6 +6,7 @@
         <th>Description</th>
         <th>Date Created</th>
         <th>Last Used</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
@@ -20,6 +21,18 @@
           {{ else }}
           <td>N/A</td>
           {{ end }}
+          <td>
+            <button 
+            type="button" 
+            onclick="apikey_modal.showModal()" 
+            hx-get="/v1/apikeys/{{ .ID }}" 
+            hx-target="#apikey_modal" 
+            hx-swap="innerHTML" 
+            class="btn btn-sm bg-warning text-white hover:bg-warning/80"
+            >
+            Revoke
+          </button>
+          </td>
         </tr>
       {{ end }}
       {{ else }}
