@@ -96,6 +96,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
 function copyClientID() {
   const clientID = document.getElementById('client-id').textContent;
+  // The clipboard API is only available in secure contexts.
   navigator.clipboard.writeText(`Client ID: ${clientID}`);
 
   const copyIdIcon = document.getElementById('copy-id-icon');
@@ -110,6 +111,7 @@ function copyClientID() {
 
 function copyClientSecret() {
   const clientSecret = document.getElementById('client-secret').textContent;
+  // The clipboard API is only available in secure contexts.
   navigator.clipboard.writeText(`Client Secret: ${clientSecret}`);
 
   const copySecretIcon = document.getElementById('copy-secret-icon');
