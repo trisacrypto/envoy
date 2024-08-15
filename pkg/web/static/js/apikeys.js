@@ -90,18 +90,11 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
   if (e.detail.requestConfig.path === apiKeysEP && e.detail.requestConfig.verb === 'post') {
     const copyIdBtn = document.getElementById('copy-id-btn');
     const copySecretBtn = document.getElementById('copy-secret-btn');
-
-    if (copyIdBtn) {
-      copyIdBtn.addEventListener('click', copyClientID);
-    };
-
-    if (copySecretBtn) {
-      copySecretBtn.addEventListener('click', copyClientSecret);
-    };
+    copyIdBtn.addEventListener('click', copyClientID);
+    copySecretBtn.addEventListener('click', copyClientSecret);
   };
 });
 
-// TODO: Create one function to copy client ID and client secret.
 function copyClientID() {
   const clientID = document.getElementById('client-id').textContent;
   navigator.clipboard.writeText(`Client ID: ${clientID}`);
