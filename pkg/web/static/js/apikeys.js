@@ -5,14 +5,52 @@ const apiKeysEP = '/v1/apikeys';
 const addApiKeyModal = document.getElementById('add_apikey_modal');
 const closeApiKeyModal = document.getElementById('close-apikey-modal');
 const addApiKeyForm = document.getElementById('new-apikey-form');
+const fullCheckbox = document.getElementById('full_access');
 const customAccess = document.getElementById('custom-access');
+const customCheckbox = document.querySelectorAll('.custom-access');
 
-// Reset add api key modal form if user closes the modal.
+// Reset API key form if user closes modal without submitting.
 if (closeApiKeyModal) {
   closeApiKeyModal.addEventListener('click', () => {
-    addApiKeyForm?.reset();
+    addApiKeyModal.close();
+    addApiKeyForm.reset();
+    fullCheckbox.disabled = false;
+    customCheckbox.forEach((checkbox) => {
+      checkbox.disabled = false;
+    });
+  });
+  // Scroll to the top of the custom access section in the modal.
+  customAccess?.scrollTo(0, 0);
+};
+
+// Toggle disabled state of full and custom access checkboxes depending on the user's selection.
+function toggleCheckboxState(isChecked) {
+  customCheckbox.forEach((checkbox) => {
+    checkbox.disabled = isChecked;
+    if (isChecked) {
+      checkbox.checked = false;
+    };
   });
 };
+
+// Check if any custom access checkboxes are checked.
+function isCustomChecked() {
+  return Array.from(customCheckbox).some((checkbox) => checkbox.checked);
+}
+
+fullCheckbox?.addEventListener('change', () => {
+  toggleCheckboxState(fullCheckbox.checked);
+});
+
+customCheckbox.forEach((checkbox) => {
+  checkbox.addEventListener('change', () => {
+    fullCheckbox.disabled = isCustomChecked();
+    if (checkbox.checked) {
+      fullCheckbox.checked = false;
+    };
+  });
+})
+
 
 // Add code to amend htmx requests before they are sent.
 document.body.addEventListener('htmx:configRequest', (e) => {
@@ -36,6 +74,10 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
   if (e.detail.requestConfig.path === apiKeysEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     addApiKeyModal.close();
     addApiKeyForm.reset();
+    fullCheckbox.disabled = false;
+    customCheckbox.forEach((checkbox) => {
+      checkbox.disabled = false;
+    });
     // Scroll to the top of the custom access section in the modal.
     customAccess.scrollTo(0, 0);
     setSuccessToast('Success! The API key has been created.');
@@ -44,7 +86,7 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
 
 // Add code to run after htmx settles the DOM once a swap occurs.
 document.body.addEventListener('htmx:afterSettle', (e) => {
-  // Add code to copy client secret and client ID to clipboard.
+  // Copy client secret and client ID to clipboard.
   if (e.detail.requestConfig.path === apiKeysEP && e.detail.requestConfig.verb === 'post') {
     const copyIdBtn = document.getElementById('copy-id-btn');
     const copySecretBtn = document.getElementById('copy-secret-btn');
