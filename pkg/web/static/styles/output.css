@@ -3819,17 +3819,8 @@ body main {
   background-color: var(--fallback-su,oklch(var(--su)/0.8));
 }
 
-.hover\:bg-warning:hover {
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-wa,oklch(var(--wa)/var(--tw-bg-opacity)));
-}
-
 .hover\:bg-warning\/80:hover {
   background-color: var(--fallback-wa,oklch(var(--wa)/0.8));
-}
-
-.hover\:bg-warning\/90:hover {
-  background-color: var(--fallback-wa,oklch(var(--wa)/0.9));
 }
 
 .hover\:text-primary:hover {

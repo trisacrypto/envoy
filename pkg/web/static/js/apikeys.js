@@ -96,7 +96,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
   if (e.detail.requestConfig.verb === 'delete' && e.detail.successful) {
     apiKeyModal.close();
-    setSuccessToast('Success! The API key has been deleted.');
+    setSuccessToast('Success! The API key has been revoked.');
   }
 });
 
