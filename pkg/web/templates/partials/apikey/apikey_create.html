@@ -1,1 +1,67 @@
-<div></div>
+{{- with .CreateAPIKey -}}
+<dialog id="apikey_modal" class="modal" open>
+  <div class="modal-box">
+    <div class="flex justify-between items-center">
+      <h1 class="font-bold text-xl">Your API Key Has Been Created!</h1>
+      <button
+        type="button"
+        onclick="apikey_modal.close()"
+        class="close-key-modal btn btn-sm btn-circle btn-ghost"
+        hx-get="/v1/apikeys"
+        hx-target="#apikeys"
+        hx-swap="innerHTML"
+        hx-indicator="#loader"
+      >
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <section class="my-4">
+      <p class="py-1">
+
+      </p>
+      <p class="py-1">
+        <span class="font-semibold">Copy and securely store your API key.</span>
+      </p>
+      <p class="py-1">
+        For security purposes, this is the only time you will see the client ID and secret.
+      </p>
+      <section class="my-4">
+        <p class="pl-1 font-semibold">Client ID</p>
+        <div class="p-3 flex justify-between items-center bg-[#FFFDD0] rounded">
+          <div>
+            <p id="client-id" class="max-w-xs break-words font-semibold">{{ .ClientID }}</p>
+          </div>
+          <button id="copy-id-btn" type="button">
+            <i id="copy-id-icon" class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      </section>
+      <section class="my-4">
+        <p class="pl-1 font-semibold">Client Secret</p>
+        <div class="p-3 flex justify-between items-center bg-[#FFFDD0] rounded">
+          <div>
+            <p id="client-secret" class="max-w-sm break-words font-semibold">{{ .Secret }}</p>
+          </div>
+          <button id="copy-secret-btn" type="button">
+            <i id="copy-secret-icon" class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      </section>
+      <div class="pt-4 flex justify-center">
+        <button
+          type="button"
+          onclick="apikey_modal.close()"
+          class="close-key-modal w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90"
+          hx-get="/v1/apikeys"
+          hx-target="#apikeys"
+          hx-swap="innerHTML"
+          hx-indicator="#loader"
+        >
+          Close
+        </button>
+      </div>
+    </section>
+  </div>
+</dialog>
+{{- end }}

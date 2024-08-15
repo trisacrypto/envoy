@@ -1,9 +1,9 @@
-<div class="table-container pb-36 overflow-x-auto overflow-y-hidden">
-  <table class="table table-sm">
+{{- with .APIKeysList -}}
+<div class="table-container pb-36 overflow-x-auto">
+  <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
         <th>Description</th>
-        <th>Permissions</th>
         <th>Date Created</th>
         <th>Last Used</th>
       </tr>
@@ -13,11 +13,13 @@
       {{ range .APIKeys }}
         <tr>
           <td>{{ .Description }}</td>
-          <td>{{ .Permissions }}</td>
           {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
           <td class="datetime">{{ $created }}</td>
-          {{ $lastUsed := .LastSeen.Format "2006-01-02T15:04:05-0700" }}
-          <td class="datetime">{{ $lastUsed }}</td>
+          {{ if ne .LastSeen nil }}
+          <td class="datetime">{{ .LastSeen }}</td>
+          {{ else }}
+          <td>N/A</td>
+          {{ end }}
         </tr>
       {{ end }}
       {{ else }}
@@ -28,3 +30,4 @@
     </tbody>
   </table>
 </div>
+{{- end }}
