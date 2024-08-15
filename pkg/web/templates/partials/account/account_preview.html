@@ -43,6 +43,7 @@
       <label for="tag" class="label-style">Notes</label>
       <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
     </div>
+    <!-- TODO: Disable button after user clicks save-->
     <div class="flex justify-center">
       <button hx-put="/v1/accounts/{{ .ID }}" class="w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">Save</button>
     </div>

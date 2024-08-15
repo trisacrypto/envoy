@@ -8,7 +8,7 @@
         <th>Name</th>
         <th>Travel Address</th>
         <th>Date Created</th>
-        <th>Actions</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -25,14 +25,14 @@
           {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
           <td class="datetime">{{ $created }}</td>
           <td>
-            <div class="dropdown">
-              <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
-              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-                {{ if $canEditAccounts }}
-                <li><a id="edit-acct-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML">Edit</a></li>
+            <div class="flex gap-x-2 items-center">
+              {{ if $canEditAccounts }}
+              <button type="button" id="edit-acct-bttn" class="btn btn-sm bg-primary text-white hover:bg-primary/90" onclick="acct_modal.showModal()" 
+                hx-get="/v1/accounts/{{ .ID }}/edit" hx-target="#acct_modal" hx-swap="innerHTML" hx-indicator="#loader">
+                Edit
+              </button>
                 {{ end }}
-                <li><a id="acct-detail-bttn" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_modal" hx-swap="innerHTML">View</a></li>
-              </ul>
+              <button type="button" id="acct-detail-bttn" class="btn btn-sm bg-black text-white hover:bg-black/80" onclick="acct_modal.showModal()" hx-get="/v1/accounts/{{ .ID }}" hx-target="#acct_modal" hx-swap="innerHTML">View</button>
             </div>
           </td>
         </tr>

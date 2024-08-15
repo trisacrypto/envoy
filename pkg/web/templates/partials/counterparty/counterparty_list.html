@@ -1,7 +1,7 @@
 {{- $canEditAccounts := not .IsViewOnly -}}
 {{- with .CounterpartyList -}}
 <div class="table-container pb-36 overflow-x-auto overflow-y-hidden">
-  <table class="table table-sm">
+  <table class="table">
     <thead class="font-bold text-base text-black">
       <tr>
         <th>Name</th>
@@ -9,7 +9,7 @@
         <th>Protocol</th>
         <td>Travel Address</td>
         <th>Date Added</th>
-        <th>Action</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -23,14 +23,14 @@
         {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
         <td class="datetime">{{ $created }}</td>
         <td>
-          <div class="dropdown">
-            <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-black font-semibold text-white rounded-box">
-              {{ if and (eq .Source "user") ($canEditAccounts) }}
-              <li><a onclick="cparty_modal.showModal()" hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">Edit</a></li>
-              {{ end }}
-              <li><a>View</a></li>
-            </ul>
+          <div class="flex gap-x-2 items-center">
+            {{ if and (eq .Source "user") ($canEditAccounts) }}
+            <button type="button" class="btn btn-sm bg-primary text-white hover:bg-primary/90" onclick="cparty_modal.showModal()" 
+              hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML" hx-indicator="#loader">
+              Edit
+            </button>
+            {{ end }}
+            <button type="button" class="btn btn-sm bg-black text-white hover:bg-black/80">View</button>
           </div>
         </td>
       </tr>
