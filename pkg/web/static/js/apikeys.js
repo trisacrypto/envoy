@@ -4,6 +4,7 @@ import { setSuccessToast } from "./utils.js";
 const apiKeysEP = '/v1/apikeys';
 const addApiKeyModal = document.getElementById('add_apikey_modal');
 const closeApiKeyModal = document.getElementById('close-apikey-modal');
+const apiKeyModal = document.getElementById('apikey_modal');
 const addApiKeyForm = document.getElementById('new-apikey-form');
 const fullCheckbox = document.getElementById('full_access');
 const customAccess = document.getElementById('custom-access');
@@ -92,6 +93,11 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     copyIdBtn.addEventListener('click', copyClientID);
     copySecretBtn.addEventListener('click', copyClientSecret);
   };
+
+  if (e.detail.requestConfig.verb === 'delete' && e.detail.successful) {
+    apiKeyModal.close();
+    setSuccessToast('Success! The API key has been deleted.');
+  }
 });
 
 function copyClientID() {

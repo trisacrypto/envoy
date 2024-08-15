@@ -266,7 +266,7 @@ func (s *Server) DeleteAPIKey(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     api.Reply{Success: true},
-		HTMLName: "apikey_detail.html",
+		HTMLName: "apikey_delete.html",
 		HTMLData: scene.Scene{"KeyID": keyID},
 	})
 }
