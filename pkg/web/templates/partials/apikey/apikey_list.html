@@ -1,0 +1,46 @@
+{{- with .APIKeysList -}}
+<div class="table-container pb-36 overflow-x-auto">
+  <table class="table">
+    <thead class="font-bold text-base text-black">
+      <tr>
+        <th>Description</th>
+        <th>Date Created</th>
+        <th>Last Used</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ if .APIKeys }}
+      {{ range .APIKeys }}
+        <tr>
+          <td>{{ .Description }}</td>
+          {{ $created := .Created.Format "2006-01-02T15:04:05-0700" }}
+          <td class="datetime">{{ $created }}</td>
+          {{ if ne .LastSeen nil }}
+          <td class="datetime">{{ .LastSeen }}</td>
+          {{ else }}
+          <td>N/A</td>
+          {{ end }}
+          <td>
+            <button 
+            type="button" 
+            onclick="apikey_modal.showModal()" 
+            hx-get="/v1/apikeys/{{ .ID }}" 
+            hx-target="#apikey_modal" 
+            hx-swap="innerHTML" 
+            class="btn btn-sm bg-warning text-white hover:bg-warning/80"
+            >
+            Revoke
+          </button>
+          </td>
+        </tr>
+      {{ end }}
+      {{ else }}
+        <tr class="text-center">
+          <td colspan="4" class="py-5 text-base">No API keys have been created.</td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{- end }}

@@ -105,6 +105,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/users", authenticate, s.UsersManagement)
+	s.router.GET("/apikeys", authenticate, s.APIKeys)
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
@@ -207,6 +208,16 @@ func (s *Server) setupRoutes() (err error) {
 			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
 			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
 			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
+		}
+
+		// API Keys Resource
+		apikeys := v1.Group("/apikeys", authenticate)
+		{
+			apikeys.GET("", authorize(permiss.APIKeysView), s.ListAPIKeys)
+			apikeys.POST("", authorize(permiss.APIKeysManage), s.CreateAPIKey)
+			apikeys.GET("/:id", authorize(permiss.APIKeysView), s.APIKeyDetail)
+			apikeys.PUT("/:id", authorize(permiss.APIKeysManage), s.UpdateAPIKey)
+			apikeys.DELETE("/:id", authorize(permiss.APIKeysRevoke), s.DeleteAPIKey)
 		}
 
 		// Utilities

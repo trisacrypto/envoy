@@ -327,19 +327,35 @@ export const naturalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
 
 // Reject error codes
 export const REJECT_CODES = {
-  REJECTED: "Rejected",
-  UNKNOWN_WALLET_ADDRESS: "Unknown Wallet Address",
-  UNKNOWN_IDENTITY: "Unknown Identity",
-  UNKNOWN_ORIGINATOR: "Unknown Originator",
-  UNKNOWN_BENEFICIARY: "Unknown Beneficiary",
-  UNSUPPORTED_CURRENCY: "Unsupported Currency",
-  EXCEEDED_TRADING_VOLUME: "Exceeded Trading Volume",
-  COMPLIANCE_CHECK_FAIL: "Compliance Check Fail",
-  NO_COMPLIANCE: "No Compliance",
-  HIGH_RISK: "High Risk",
-  OUT_OF_NETWORK: "Out of Network",
+  REJECTED: "Default rejection - no specified reason for rejecting the transaction",
+  UNKNOWN_WALLET_ADDRESS: "VASP does not control the specified wallet address",
+  UNKNOWN_IDENTITY: "VASP does not have KYC information for the specified wallet address",
+  UNKNOWN_ORIGINATOR: "Specifically, the Originator Account cannot be identified",
+  UNKNOWN_BENEFICIARY: "Specifically, the Beneficiary account cannot be identified",
+  UNSUPPORTED_CURRENCY: "VASP cannot support the fiat currency or coin described in the transaction",
+  EXCEEDED_TRADING_VOLUME: "No longer able to receive more transaction inflows",
+  COMPLIANCE_CHECK_FAIL: "An internal compliance check has failed or black listing has occurred",
+  NO_COMPLIANCE: "VASP not able to implement travel rule compliance",
+  HIGH_RISK: "VASP unwilling to conduct the transaction because of a risk assessment",
+  OUT_OF_NETWORK: "Wallet address or transaction is not available on this network",
   UNPARSEABLE_IDENTITY: "Unable to parse identity record",
   UNPARSEABLE_TRANSACTION: "Unable to parse transaction data record",
-  MISSING_FIELDS: "Missing required fields in transaction data",
-  INCOMPLETE_IDENTITY: "Identity record is not complete"
+  MISSING_FIELDS: "There are missing required fields in the transaction data",
+  INCOMPLETE_IDENTITY: "The identity record is not complete enough for compliance purposes of the receiving VASPs",
+  VALIDATION_ERROR: "There was an error validating a field in the transaction data",
+  COMPLIANCE_PERIOD_EXCEEDED: "The review period has exceeded the required compliance timeline",
+  CANCELED: "The TRISA exchange was canceled",
+  CANCEL_TRANSACTION: "The TRISA exchange was canceled",
+  BVRC999: "Request could not be processed by recipient (Alias: Sygna BVRC Rejected Code)",
 };
+
+// API Key Permissions
+export const API_KEY_PERMISSIONS = [
+  "users:manage", "users:view",
+	"apikeys:manage", "apikeys:view", "apikeys:revoke",
+	"counterparties:manage", "counterparties:view",
+	"accounts:manage", "accounts:view",
+	"travelrule:manage", "travelrule:delete", "travelrule:view",
+	"config:manage", "config:view",
+	"pki:manage", "pki:delete", "pki:view",
+]
