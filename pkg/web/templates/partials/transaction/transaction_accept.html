@@ -4,7 +4,7 @@
       <span class="font-semibold">Transaction ID: {{ .EnvelopeID }}</span>
     </div>
   </section>
-  <form id="accept-form" hx-post="/v1/transactions/{{ .EnvelopeID }}/send" hx-ext="json-enc" hx-swap="none"
+  <form id="accept-form" hx-post="/v1/transactions/{{ .EnvelopeID }}/accept" hx-ext="json-enc" hx-swap="none"
     hx-indicator="#loader" method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
