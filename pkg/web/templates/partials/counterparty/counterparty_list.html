@@ -26,7 +26,7 @@
           <div class="flex gap-x-2 items-center">
             {{ if and (eq .Source "user") ($canEditAccounts) }}
             <button type="button" class="btn btn-sm bg-primary text-white hover:bg-primary/90" onclick="cparty_modal.showModal()" 
-              hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML" hx-indicator="#loader">
+              hx-get="/v1/counterparties/{{ .ID }}/edit" hx-target="#cparty_modal" hx-swap="innerHTML">
               Edit
             </button>
             {{ end }}
