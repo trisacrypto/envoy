@@ -108,9 +108,11 @@ function setIdentifierData(el, identifier) {
 const idEl = document.getElementById('envelope-id')
 const id = idEl?.value
 document.body.addEventListener('htmx:configRequest', (e) => {
-  const transactionSendEP = `/v1/transactions/${id}/send`;
+  const transactionAcceptEP = `/v1/transactions/${id}/accept`;
   const repairTransactionEP = `/v1/transactions/${id}/repair`;
-  if (e.detail.path === transactionSendEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
+  console.log(e);
+  console.log(id);
+  if (e.detail.path === transactionAcceptEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
 
     let data = {
@@ -173,7 +175,11 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         },
       },
       transaction: {},
-      transfer_state: e.detail.path === transactionSendEP ? 'accepted' : undefined // NOTE: this is only for the accept endpoint.
+    }
+
+    // If request is for the transaction accept endpoint set the transfer state to accepted.
+    if (e.detail.path === transactionAcceptEP) {
+      data.transfer_state = 'accepted';
     }
 
     const originatorPerson = data.identity.originator.originator_persons[0].natural_person;
@@ -292,6 +298,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     // Convert transaction amount to a float. If conversion fails, set amount to the original value.
     const amount = parseFloat(data.transaction.amount);
     data.transaction.amount = isNaN(amount) ? data.transaction.amount : amount;
+    console.log(data);
     e.detail.parameters = data;
   };
 });
