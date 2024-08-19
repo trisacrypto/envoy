@@ -59,18 +59,18 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_primary_identifier" class="label-style">Primary Identifier</label>
-            <input type="text" id="orig_primary_identifier" name="id_og_primary_identifier" value="{{ .PrimaryIdentifier}}"
+            <input type="text" id="orig_primary_identifier" name="id_og_primaryIdentifier" value="{{ .PrimaryIdentifier}}"
               class="input-style" />
           </div>
           <div>
             <label for="orig_secondary_identifier" class="label-style">Secondary Identifier</label>
-            <input type="text" id="orig_secondary_identifier" name="id_og_secondary_identifier"
+            <input type="text" id="orig_secondary_identifier" name="id_og_secondaryIdentifier"
               value="{{ .SecondaryIdentifier }}" class="input-style" />
           </div>
         </div>
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <select id="orig_name_identifier_type" name="id_og_name_identifier_type" class="identifier-types"></select>
+          <select id="orig_name_identifier_type" name="id_og_name_nameIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="orig_name_identifier_type" value="{{ .NameIdentifierType }}"
             data-id="natural-person-name-type" />
         </div>
@@ -81,11 +81,11 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_birth_date_of_birth" class="label-style">Date of Birth</label>
-            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_date_of_birth" value="{{ $originatorBirth.DateOfBirth }}" class="input-style" />
+            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_dateOfBirth" value="{{ $originatorBirth.DateOfBirth }}" class="input-style" />
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_place_of_birth" class="countries"></select>
+            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
             <input type="hidden" class="originator_birth_place_of_birth" value="{{ $originatorBirth.PlaceOfBirth }}" />
           </div>
         </div>
@@ -93,11 +93,11 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_birth_date_of_birth" class="label-style">Date of Birth</label>
-            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_date_of_birth" value="" class="input-style" />
+            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_dateOfBirth" value="" class="input-style" />
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_place_of_birth" class="countries"></select>
+            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
             <input type="hidden" class="originator_birth_place_of_birth" value="" />
           </div>
         </div>
@@ -129,7 +129,7 @@
         {{ end }}
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
-          <select id="orig_address_type" name="addr_og_address_type" class="identifier-types"></select>
+          <select id="orig_address_type" name="addr_og_addressType" class="identifier-types"></select>
           <input type="hidden" class="orig_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
@@ -137,12 +137,12 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_country_of_residence" class="label-style">Country of Residence</label>
-            <select id="orig_country_of_residence" name="np_og_country_of_residence" class="countries"></select>
+            <select id="orig_country_of_residence" name="np_og_countryOfResidence" class="countries"></select>
             <input type="hidden" class="orig_country_of_residence" value="{{ $originator.CountryOfResidence }}" />
           </div>
           <div>
             <label for="orig_customer_identification" class="label-style">Customer Identification</label>
-            <input type="text" id="orig_customer_identification" name="np_og_customer_identification"
+            <input type="text" id="orig_customer_identification" name="np_og_customerIdentification"
               value="{{ $originator.CustomerIdentification }}" class="input-style" />
           </div>
         </div>
@@ -152,36 +152,36 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_id_national_identifier" class="label-style">National Identifier Number</label>
-            <input type="text" id="originator_id_national_identifier" name="originator_id_national_identifier" value="{{ $originatorNationalIdentification.NationalIdentifier }}" class="input-style" />
+            <input type="text" id="originator_id_national_identifier" name="originator_id_nationalIdentifier" value="{{ $originatorNationalIdentification.NationalIdentifier }}" class="input-style" />
           </div>
           <div>
             <label for="originator_id_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="originator_id_national_identifier_type" name="originator_id_national_identifier_type" class="identifier-types"></select>
+            <select id="originator_id_national_identifier_type" name="originator_id_nationalIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="originator_id_national_identifier_type" value="{{ $originatorNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
           </div>
         </div>
 
         <div class="my-4">
           <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
+          <select id="originator_id_country_of_issue" name="originator_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="originator_id_country_of_issue" value="{{ $originatorNationalIdentification.CountryOfIssue }}" />
         </div>
         {{ else }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_id_national_identifier" class="label-style">National Identifier Number</label>
-            <input type="text" id="originator_id_national_identifier" name="originator_id_national_identifier" value="" class="input-style" />
+            <input type="text" id="originator_id_national_identifier" name="originator_id_nationalIdentifier" value="" class="input-style" />
           </div>
           <div>
             <label for="originator_id_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="originator_id_national_identifier_type" name="originator_id_national_identifier_type" class="identifier-types"></select>
+            <select id="originator_id_national_identifier_type" name="originator_id_nationalIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="originator_id_national_identifier_type" value="" data-id="natural-person-ntl-id-type" />
           </div>
         </div>
 
         <div class="my-4">
           <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
+          <select id="originator_id_country_of_issue" name="originator_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="originator_id_country_of_issue" value="" />
         </div>
         {{ end }}
@@ -189,7 +189,7 @@
         {{ range .Identity.Originator.AccountNumbers }}
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="acct_og_account_numbers" value="{{ . }}" class="input-style" />
+          <input type="text" id="orig_account_numbers" name="acct_og_account_number" value="{{ . }}" class="input-style" />
         </div>
         {{ end }}
       </div>
@@ -198,27 +198,27 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_primary_identifier" class="label-style">Primary Identifier</label>
-            <input type="text" id="orig_primary_identifier" name="id_og_primary_identifier" value="" class="input-style" />
+            <input type="text" id="orig_primary_identifier" name="id_og_primaryIdentifier" value="" class="input-style" />
           </div>
           <div>
             <label for="orig_secondary_identifier" class="label-style">Secondary Identifier</label>
-            <input type="text" id="orig_secondary_identifier" name="id_og_secondary_identifier" value="" class="input-style" />
+            <input type="text" id="orig_secondary_identifier" name="id_og_secondaryIdentifier" value="" class="input-style" />
           </div>
         </div>
         <div>
           <label for="orig_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <select id="orig_name_identifier_type" name="id_og_name_identifier_type" class="identifier-types"></select>
+          <select id="orig_name_identifier_type" name="id_og_nameIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="orig_name_identifier_type" value="" data-id="natural-person-name-type" />
         </div>
       
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_birth_date_of_birth" class="label-style">Date of Birth</label>
-            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_date_of_birth" value="" class="input-style" />
+            <input type="date" id="originator_birth_date_of_birth" name="originator_birth_dateOfBirth" value="" class="input-style" />
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_place_of_birth" class="countries"></select>
+            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
             <input type="hidden" class="originator_birth_place_of_birth" value="" />
           </div>
         </div>
@@ -244,43 +244,43 @@
         </div>
         <div>
           <label for="orig_address_type" class="label-style">Address Type</label>
-          <select id="orig_address_type" name="addr_og_address_type" class="identifier-types"></select>
+          <select id="orig_address_type" name="addr_og_addressType" class="identifier-types"></select>
           <input type="hidden" class="orig_address_type" value="" data-id="address-identifier-type" />
         </div>
       
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_country_of_residence" class="label-style">Country of Residence</label>
-            <select id="orig_country_of_residence" name="np_og_country_of_residence" class="countries"></select>
+            <select id="orig_country_of_residence" name="np_og_countryOfResidence" class="countries"></select>
             <input type="hidden" class="orig_country_of_residence" value="" />
           </div>
           <div>
             <label for="orig_customer_identification" class="label-style">Customer Identification</label>
-            <input type="text" id="orig_customer_identification" name="np_og_customer_identification" value="" class="input-style" />
+            <input type="text" id="orig_customer_identification" name="np_og_customerIdentification" value="" class="input-style" />
           </div>
         </div>
       
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="originator_id_national_identifier" class="label-style">National Identifier Number</label>
-            <input type="text" id="originator_id_national_identifier" name="originator_id_national_identifier" value="" class="input-style" />
+            <input type="text" id="originator_id_national_identifier" name="originator_id_nationalIdentifier" value="" class="input-style" />
           </div>
           <div>
             <label for="originator_id_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="originator_id_national_identifier_type" name="originator_id_national_identifier_type" class="identifier-types"></select>
+            <select id="originator_id_national_identifier_type" name="originator_id_nationalIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="originator_id_national_identifier_type" value="" data-id="natural-person-ntl-id-type" />
           </div>
         </div>
        
         <div class="my-4">
           <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="originator_id_country_of_issue" name="originator_id_country_of_issue" class="countries"></select>
+          <select id="originator_id_country_of_issue" name="originator_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="originator_id_country_of_issue" value="" />
         </div>
       
         <div>
           <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="acct_og_account_numbers" value="" class="input-style" />
+          <input type="text" id="orig_account_numbers" name="acct_og_accountNumber" value="" class="input-style" />
         </div>
       </div>
       {{ end }}
@@ -297,18 +297,18 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_primary_identifier" class="label-style">Primary Identifier</label>
-            <input type="text" id="benf_primary_identifier" name="id_bf_primary_identifier" value="{{ .PrimaryIdentifier}}"
+            <input type="text" id="benf_primary_identifier" name="id_bf_primaryIdentifier" value="{{ .PrimaryIdentifier}}"
               class="input-style" />
           </div>
           <div>
             <label for="benf_secondary_identifier" class="label-style">Secondary Identifier</label>
-            <input type="text" id="benf_secondary_identifier" name="id_bf_secondary_identifier"
+            <input type="text" id="benf_secondary_identifier" name="id_bf_secondaryIdentifier"
               value="{{ .SecondaryIdentifier }}" class="input-style" />
           </div>
         </div>
         <div>
           <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
-          <select id="benf_name_identifier_type" name="id_bf_name_identifier_type" class="identifier-types"></select>
+          <select id="benf_name_identifier_type" name="id_bf_nameIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="benf_name_identifier_type" value="{{ .NameIdentifierType }}"
             data-id="natural-person-name-type" />
         </div>
@@ -319,11 +319,11 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="beneficiary_birth_date_of_birth" class="label-style">Date of Birth</label>
-            <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_date_of_birth" value="{{ $beneficiaryBirth.DateOfBirth }}" class="input-style" />
+            <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_dateOfBirth" value="{{ $beneficiaryBirth.DateOfBirth }}" class="input-style" />
           </div>
           <div>
             <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_place_of_birth" class="countries"></select>
+            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
             <input type="hidden" class="beneficiary_birth_place_of_birth" value="{{ $beneficiaryBirth.PlaceOfBirth }}" />
           </div>
         </div>
@@ -331,11 +331,11 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="beneficiary_birth_date_of_birth" class="label-style">Date of Birth</label>
-            <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_date_of_birth" value="" class="input-style" />
+            <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_dateOfBirth" value="" class="input-style" />
           </div>
           <div>
             <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_place_of_birth" class="countries"></select>
+            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
             <input type="hidden" class="beneficiary_birth_place_of_birth" value="" />
           </div>
         </div>
@@ -367,7 +367,7 @@
         {{ end }}
         <div>
           <label for="benf_address_type" class="label-style">Address Type</label>
-          <select id="benf_address_type" name="addr_bf_address_type" class="identifier-types"></select>
+          <select id="benf_address_type" name="addr_bf_addressType" class="identifier-types"></select>
           <input type="hidden" class="benf_address_type" value="{{ .AddressType }}" data-id="address-identifier-type" />
         </div>
         {{ end }}
@@ -375,12 +375,12 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_country_of_residence" class="label-style">Country of Residence</label>
-            <select id="benf_country_of_residence" name="np_bf_country_of_residence" class="countries"></select>
+            <select id="benf_country_of_residence" name="np_bf_countryOfResidence" class="countries"></select>
             <input type="hidden" class="benf_country_of_residence" value="{{ $beneficiary.CountryOfResidence }}" />
           </div>
           <div>
             <label for="benf_customer_identification" class="label-style">Customer Identification</label>
-            <input type="text" id="benf_customer_identification" name="np_bf_customer_identification"
+            <input type="text" id="benf_customer_identification" name="np_bf_customerIdentification"
               value="{{ $beneficiary.CustomerIdentification }}" class="input-style" />
           </div>
         </div>
@@ -390,36 +390,36 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="beneficiary_id_national_identifier" class="label-style">National Identifier Number</label>
-            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_national_identifier" value="{{ $beneficiaryNationalIdentification.NationalIdentifier }}" class="input-style" />
+            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_nationalIdentifier" value="{{ $beneficiaryNationalIdentification.NationalIdentifier }}" class="input-style" />
           </div>
           <div>
             <label for="beneficiary_id_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_national_identifier_type" class="identifier-types"></select>
+            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_nationalIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="beneficiary_id_national_identifier_type" value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}" data-id="natural-person-ntl-id-type" />
           </div>
         </div>
 
         <div class="my-4">
           <label for="beneficiary_id_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_country_of_issue" class="countries"></select>
+          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="beneficiary_id_country_of_issue" value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
         {{ else }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="beneficiary_id_national_identifier" class="label-style">National Identifier Number</label>
-            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_national_identifier" value="" class="input-style" />
+            <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_nationalIdentifier" value="" class="input-style" />
           </div>
           <div>
             <label for="beneficiary_id_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_national_identifier_type" class="identifier-types"></select>
+            <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_nationalIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="beneficiary_id_national_identifier_type" value="" data-id="natural-person-ntl-id-type" />
           </div>
         </div>
 
         <div class="my-4">
           <label for="beneficiary_id_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_country_of_issue" class="countries"></select>
+          <select id="beneficiary_id_country_of_issue" name="beneficiary_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="beneficiary_id_country_of_issue" value="" />
         </div>
         {{ end }}
@@ -427,7 +427,7 @@
         {{ range .Identity.Beneficiary.AccountNumbers }}
         <div>
           <label for="benf_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="benf_account_numbers" name="acct_bf_account_numbers" value="{{ . }}" class="input-style" />
+          <input type="text" id="benf_account_numbers" name="acct_bf_accountNumber" value="{{ . }}" class="input-style" />
         </div>
         {{ end }}
 
@@ -436,27 +436,27 @@
           <div class="grid gap-6 my-4 md:grid-cols-2">
             <div>
               <label for="benf_primary_identifier" class="label-style">Primary Identifier</label>
-              <input type="text" id="benf_primary_identifier" name="id_bf_primary_identifier" value="" class="input-style" />
+              <input type="text" id="benf_primary_identifier" name="id_bf_primaryIdentifier" value="" class="input-style" />
             </div>
             <div>
               <label for="benf_secondary_identifier" class="label-style">Secondary Identifier</label>
-              <input type="text" id="benf_secondary_identifier" name="id_bf_secondary_identifier" value="" class="input-style" />
+              <input type="text" id="benf_secondary_identifier" name="id_bf_secondaryIdentifier" value="" class="input-style" />
             </div>
           </div>
           <div>
             <label for="benf_name_identifier_type" class="label-style">Name Identifier Type</label>
-            <select id="benf_name_identifier_type" name="id_bf_name_identifier_type" class="identifier-types"></select>
+            <select id="benf_name_identifier_type" name="id_bf_nameIdentifierType" class="identifier-types"></select>
             <input type="hidden" class="benf_name_identifier_type" value="" data-id="natural-person-name-type" />
           </div>
         
           <div class="grid gap-6 my-4 md:grid-cols-2">
             <div>
               <label for="beneficiary_birth_date_of_birth" class="label-style">Date of Birth</label>
-              <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_date_of_birth" value="" class="input-style" />
+              <input type="date" id="beneficiary_birth_date_of_birth" name="beneficiary_birth_dateOfBirth" value="" class="input-style" />
             </div>
             <div>
               <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-              <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_place_of_birth" class="countries"></select>
+              <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
               <input type="hidden" class="beneficiary_birth_place_of_birth" value="" />
             </div>
           </div>
@@ -464,15 +464,15 @@
           <div class="grid gap-6 my-4 md:grid-cols-2">
             <div>
               <label for="benf_street_name" class="label-style">Address Line</label>
-              <input type="text" id="benf_street_name" name="address_bf_street_name_0" value="" class="input-style" />
+              <input type="text" id="benf_street_name" name="address_bf_streetName_0" value="" class="input-style" />
             </div>
             <div>
               <label for="benf_street_name" class="label-style">Address Line</label>
-              <input type="text" id="benf_street_name" name="address_bf_street_name_1" value="" class="input-style" />
+              <input type="text" id="benf_street_name" name="address_bf_streetName_1" value="" class="input-style" />
             </div>
             <div>
               <label for="benf_street_name" class="label-style">Address Line</label>
-              <input type="text" id="benf_street_name" name="address_bf_street_name_2" value="" class="input-style" />
+              <input type="text" id="benf_street_name" name="address_bf_streetName_2" value="" class="input-style" />
             </div>
         
             <div>
@@ -484,43 +484,43 @@
         
           <div>
             <label for="benf_address_type" class="label-style">Address Type</label>
-            <select id="benf_address_type" name="addr_bf_address_type" class="identifier-types"></select>
+            <select id="benf_address_type" name="addr_bf_addressType" class="identifier-types"></select>
             <input type="hidden" class="benf_address_type" value="" data-id="address-identifier-type" />
           </div>
         
           <div class="grid gap-6 my-4 md:grid-cols-2">
             <div>
               <label for="benf_country_of_residence" class="label-style">Country of Residence</label>
-              <select id="benf_country_of_residence" name="np_bf_country_of_residence" class="countries"></select>
+              <select id="benf_country_of_residence" name="np_bf_countryOfResidence" class="countries"></select>
               <input type="hidden" class="benf_country_of_residence" value="" />
             </div>
             <div>
               <label for="benf_customer_identification" class="label-style">Customer Identification</label>
-              <input type="text" id="benf_customer_identification" name="np_bf_customer_identification" value="" class="input-style" />
+              <input type="text" id="benf_customer_identification" name="np_bf_customerIdentification" value="" class="input-style" />
             </div>
           </div>
         
           <div class="grid gap-6 my-4 md:grid-cols-2">
             <div>
               <label for="beneficiary_id_national_identifier" class="label-style">National Identifier Number</label>
-              <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_national_identifier" value="" class="input-style" />
+              <input type="text" id="beneficiary_id_national_identifier" name="beneficiary_id_nationalIdentifier" value="" class="input-style" />
             </div>
             <div>
               <label for="beneficiary_id_national_identifier_type" class="label-style">National Identifier Type</label>
-              <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_national_identifier_type" class="identifier-types"></select>
+              <select id="beneficiary_id_national_identifier_type" name="beneficiary_id_nationalIdentifierType" class="identifier-types"></select>
               <input type="hidden" class="beneficiary_id_national_identifier_type" value="" data-id="natural-person-ntl-id-type" />
             </div>
           </div>
         
           <div class="my-4">
             <label for="beneficiary_id_country_of_issue" class="label-style">Country of Issue</label>
-            <select id="beneficiary_id_country_of_issue" name="beneficiary_id_country_of_issue" class="countries"></select>
+            <select id="beneficiary_id_country_of_issue" name="beneficiary_id_countryOfIssue" class="countries"></select>
             <input type="hidden" class="beneficiary_id_country_of_issue" value="" />
           </div>
         
           <div>
             <label for="benf_account_numbers" class="label-style">Account Number</label>
-            <input type="text" id="benf_account_numbers" name="acct_bf_account_numbers" value="" class="input-style" />
+            <input type="text" id="benf_account_numbers" name="acct_bf_accountNumber" value="" class="input-style" />
           </div>
         </div>
         {{ end }}
@@ -537,12 +537,12 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_vasp_legal_person_name" class="label-style">Legal Person Name</label>
-            <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legal_person_name"
+            <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legalPersonName"
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
             <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-            <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legal_person_name_identifier_type"
+            <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legalPersonNameIdentifierType"
               class="identifier-types"></select>
             <input type="hidden" class="orig_vasp_legal_person_name_identifier_type"
               value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
@@ -578,7 +578,7 @@
         </div>
         <div>
           <label for="orig_vasp_address_type" class="label-style">Address Type</label>
-          <select id="orig_vasp_address_type" name="addr_orig_address_type" class="identifier-types"></select>
+          <select id="orig_vasp_address_type" name="addr_orig_addressType" class="identifier-types"></select>
           <input type="hidden" class="orig_vasp_address_type" value="{{ .AddressType }}"
             data-id="address-identifier-type" />
         </div>
@@ -588,12 +588,12 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_vasp_national_identifier" class="label-style">National Identifier</label>
-            <input type="text" id="orig_vasp_national_identifier" name="nat_orig_national_identifier"
+            <input type="text" id="orig_vasp_national_identifier" name="nat_orig_nationalIdentifier"
               value="{{ $nationalIdentification.NationalIdentifier }}" class="input-style" />
           </div>
           <div>
             <label for="orig_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="orig_vasp_national_identifier_type" name="nat_orig_national_identifier_type"
+            <select id="orig_vasp_national_identifier_type" name="nat_orig_nationalIdentifierType"
               class="identifier-types"></select>
             <input type="hidden" class="orig_vasp_national_identifier_type"
               value="{{ $nationalIdentification.NationalIdentifierType }}" data-id="national-identifier-type" />
@@ -601,19 +601,19 @@
         </div>
         <div>
           <label for="orig_vasp_country_of_issue" class="label-style">Country of Issue</label>
-          <select id="orig_vasp_country_of_issue" name="nat_orig_country_of_issue" class="countries"></select>
+          <select id="orig_vasp_country_of_issue" name="nat_orig_countryOfIssue" class="countries"></select>
           <input type="hidden" class="orig_vasp_country_of_issue"
             value="{{ $nationalIdentification.CountryOfIssue }}" />
         </div>
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="orig_vasp_registration_authority" class="label-style">Registration Authority</label>
-            <input type="text" id="orig_vasp_registration_authority" name="nat_orig_registration_authority"
+            <input type="text" id="orig_vasp_registration_authority" name="nat_orig_registrationAuthority"
               value="{{ $nationalIdentification.RegistrationAuthority }}" class="input-style" />
           </div>
           <div>
             <label for="orig_vasp_country_of_registration" class="label-style">Country of Registration</label>
-            <select id="orig_vasp_country_of_registration" name="ctry_orig_country_of_registration"
+            <select id="orig_vasp_country_of_registration" name="ctry_orig_countryOfRegistration"
               class="countries"></select>
             <input type="hidden" class="orig_vasp_country_of_registration"
               value="{{ $originatingVasp.CountryOfRegistration }}" />
@@ -624,11 +624,11 @@
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="orig_vasp_legal_person_name" class="label-style">Legal Person Name</label>
-          <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legal_person_name" value="" class="input-style" />
+          <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legalPersonName" value="" class="input-style" />
         </div>
         <div>
           <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-          <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legal_person_name_identifier_type"class="identifier-types"></select>
+          <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legalPersonNameIdentifierType"class="identifier-types"></select>
           <input type="hidden" class="orig_vasp_legal_person_name_identifier_type" value="" data-id="legal-person-name-type" />
         </div>
       </div>
@@ -654,36 +654,36 @@
       </div>
       <div>
         <label for="orig_vasp_address_type" class="label-style">Address Type</label>
-        <select id="orig_vasp_address_type" name="addr_orig_address_type" class="identifier-types"></select>
+        <select id="orig_vasp_address_type" name="addr_orig_addressType" class="identifier-types"></select>
         <input type="hidden" class="orig_vasp_address_type" value="" data-id="address-identifier-type" />
       </div>
       
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="orig_vasp_national_identifier" class="label-style">National Identifier</label>
-          <input type="text" id="orig_vasp_national_identifier" name="nat_orig_national_identifier" value="" class="input-style" />
+          <input type="text" id="orig_vasp_national_identifier" name="nat_orig_nationalIdentifier" value="" class="input-style" />
         </div>
         <div>
           <label for="orig_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-          <select id="orig_vasp_national_identifier_type" name="nat_orig_national_identifier_type" class="identifier-types"></select>
+          <select id="orig_vasp_national_identifier_type" name="nat_orig_nationalIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="orig_vasp_national_identifier_type" value="" data-id="national-identifier-type" />
         </div>
       </div>
       
       <div>
         <label for="orig_vasp_country_of_issue" class="label-style">Country of Issue</label>
-        <select id="orig_vasp_country_of_issue" name="nat_orig_country_of_issue" class="countries"></select>
+        <select id="orig_vasp_country_of_issue" name="nat_orig_countryOfIssue" class="countries"></select>
         <input type="hidden" class="orig_vasp_country_of_issue" value="" />
       </div>
       
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="orig_vasp_registration_authority" class="label-style">Registration Authority</label>
-          <input type="text" id="orig_vasp_registration_authority" name="nat_orig_registration_authority" value="" class="input-style" />
+          <input type="text" id="orig_vasp_registration_authority" name="nat_orig_registrationAuthority" value="" class="input-style" />
         </div>
         <div>
           <label for="orig_vasp_country_of_registration" class="label-style">Country of Registration</label>
-          <select id="orig_vasp_country_of_registration" name="ctry_orig_country_of_registration"
+          <select id="orig_vasp_country_of_registration" name="ctry_orig_countryOfRegistration"
             class="countries"></select>
           <input type="hidden" class="orig_vasp_country_of_registration" value="" />
         </div>
@@ -700,13 +700,13 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
-            <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legal_person_name"
+            <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName"
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
             <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
               Type</label>
-            <select id="benf_vasp_legal_person_name_identifier_type" name="id_benf_legal_person_name_identifier_type"
+            <select id="benf_vasp_legal_person_name_identifier_type" name="id_benf_legalPersonNameIdentifierType"
               class="identifier-types"></select>
             <input type="hidden" class="benf_vasp_legal_person_name_identifier_type"
               value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
@@ -740,7 +740,7 @@
         {{ end }}
         <div>
           <label for="benf_vasp_address_type" class="label-style">Address Type</label>
-          <select id="benf_vasp_address_type" name="addr_benf_address_type" class="identifier-types"></select>
+          <select id="benf_vasp_address_type" name="addr_benf_addressType" class="identifier-types"></select>
           <input type="hidden" class="benf_vasp_address_type" value="{{ .AddressType }}"
             data-id="address-identifier-type" />
         </div>
@@ -750,12 +750,12 @@
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_vasp_national_identifier" class="label-style">National Identifier</label>
-            <input type="text" id="benf_vasp_national_identifier" name="nat_benf_national_identifier"
+            <input type="text" id="benf_vasp_national_identifier" name="nat_benf_nationalIdentifier"
               value="{{ $beneficiaryNationalIdentification.NationalIdentifier }}" class="input-style" />
           </div>
           <div>
             <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-            <select id="benf_vasp_national_identifier_type" name="nat_benf_national_identifier_type"
+            <select id="benf_vasp_national_identifier_type" name="nat_benf_nationalIdentifierType"
               class="identifier-types"></select>
             <input type="hidden" class="benf_vasp_national_identifier_type"
               value="{{ $beneficiaryNationalIdentification.NationalIdentifierType }}"
@@ -765,18 +765,18 @@
         <div>
           <label for="benf_vasp_country_of_issue" class="label-style">Country of Issue</label>
           <select id="benf_vasp_country_of_issue" name="nat_benf_country_of_issue" class="countries"></select>
-          <input type="hidden" class="benf_vasp_country_of_issue"
+          <input type="hidden" class="benf_vasp_countryOfIssue"
             value="{{ $beneficiaryNationalIdentification.CountryOfIssue }}" />
         </div>
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_vasp_registration_authority" class="label-style">Registration Authority</label>
-            <input type="text" id="benf_vasp_registration_authority" name="nat_benf_registration_authority"
+            <input type="text" id="benf_vasp_registration_authority" name="nat_benf_registrationAuthority"
               value="{{ $beneficiaryNationalIdentification.RegistrationAuthority }}" class="input-style" />
           </div>
           <div>
             <label for="benf_vasp_country_of_registration" class="label-style">Country of Registration</label>
-            <select id="benf_vasp_country_of_registration" name="ctry_benf_country_of_registration"
+            <select id="benf_vasp_country_of_registration" name="ctry_benf_countryOfRegistration"
               class="countries"></select>
             <input type="hidden" class="benf_vasp_country_of_registration"
               value="{{ $beneficiaryVasp.CountryOfRegistration }}" />
@@ -787,11 +787,11 @@
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
-          <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legal_person_name" value="" class="input-style" />
+          <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName" value="" class="input-style" />
         </div>
         <div>
           <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-          <select id="benf_vasp_legal_person_name_identifier_type" name="id_benf_legal_person_name_identifier_type" class="identifier-types"></select>
+          <select id="benf_vasp_legal_person_name_identifier_type" name="id_benf_legalPersonNameIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="benf_vasp_legal_person_name_identifier_type" value="" data-id="legal-person-name-type" />
         </div>
       </div>
@@ -817,34 +817,34 @@
       </div>
       <div>
         <label for="benf_vasp_address_type" class="label-style">Address Type</label>
-        <select id="benf_vasp_address_type" name="addr_benf_address_type" class="identifier-types"></select>
+        <select id="benf_vasp_address_type" name="addr_benf_addressType" class="identifier-types"></select>
         <input type="hidden" class="benf_vasp_address_type" value="" data-id="address-identifier-type" />
       </div>
     
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="benf_vasp_national_identifier" class="label-style">National Identifier</label>
-          <input type="text" id="benf_vasp_national_identifier" name="nat_benf_national_identifier" value="" class="input-style" />
+          <input type="text" id="benf_vasp_national_identifier" name="nat_benf_nationalIdentifier" value="" class="input-style" />
         </div>
         <div>
           <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-          <select id="benf_vasp_national_identifier_type" name="nat_benf_national_identifier_type" class="identifier-types"></select>
+          <select id="benf_vasp_national_identifier_type" name="nat_benf_nationalIdentifierType" class="identifier-types"></select>
           <input type="hidden" class="benf_vasp_national_identifier_type" value="" data-id="national-identifier-type" />
         </div>
       </div>
       <div>
         <label for="benf_vasp_country_of_issue" class="label-style">Country of Issue</label>
-        <select id="benf_vasp_country_of_issue" name="nat_benf_country_of_issue" class="countries"></select>
+        <select id="benf_vasp_country_of_issue" name="nat_benf_countryOfIssue" class="countries"></select>
         <input type="hidden" class="benf_vasp_country_of_issue" value="" />
       </div>
       <div class="grid gap-6 my-4 md:grid-cols-2">
         <div>
           <label for="benf_vasp_registration_authority" class="label-style">Registration Authority</label>
-          <input type="text" id="benf_vasp_registration_authority" name="nat_benf_registration_authority" value="" class="input-style" />
+          <input type="text" id="benf_vasp_registration_authority" name="nat_benf_registrationAuthority" value="" class="input-style" />
         </div>
         <div>
           <label for="benf_vasp_country_of_registration" class="label-style">Country of Registration</label>
-          <select id="benf_vasp_country_of_registration" name="ctry_benf_country_of_registration" class="countries"></select>
+          <select id="benf_vasp_country_of_registration" name="ctry_benf_countryOfRegistration" class="countries"></select>
           <input type="hidden" class="benf_vasp_country_of_registration" value="" />
         </div>
       </div>
