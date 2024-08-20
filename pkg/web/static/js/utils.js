@@ -4,7 +4,7 @@ export function setSuccessToast(msg) {
   successToast.classList.remove('hidden');
   successToastMsg.textContent = msg;
 
-  // Remove the toast after 5 seconds.
+  // Remove the toast after 2.5 seconds.
   setTimeout(() => {
     successToast.classList.add('hidden');
   }, 2250);
