@@ -20,8 +20,10 @@ func TestMaintenanceInterceptor(t *testing.T) {
 	// Create a mock maintenance mode TRISA server
 	conf := config.TRISAConfig{
 		Maintenance: true,
-		Certs:       "testdata/certs/alice.vaspbot.net.pem",
-		Pool:        "testdata/certs/trisatest.dev.pem",
+		MTLSConfig: config.MTLSConfig{
+			Certs: "testdata/certs/alice.vaspbot.net.pem",
+			Pool:  "testdata/certs/trisatest.dev.pem",
+		},
 	}
 
 	opts := []grpc.ServerOption{
