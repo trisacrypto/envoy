@@ -1,0 +1,25 @@
+{{ template "base" . }}
+{{ define "content" }}
+
+<section class="mx-8 py-9">
+  <input type="hidden" id="envelope-id" value="{{ .ID }}" />
+  <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Repair Transaction Request</h1>
+  <div class="my-4 md:m-8">
+    <p class="my-2 md:text-lg">Review the repair request message below and repair the secure envelope transaction below.</p>
+    <div>
+      <div hx-get="/v1/transactions/{{ .ID }}/repair" hx-trigger="load">
+        <div class="text-center">
+          <span class="loading loading-spinner loading-lg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="network-content"></div>
+</section>
+
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/transactionRepair.js"></script>
+<script type="module" src="/static/js/transactionPreviewForm.js"></script>
+{{ end }}

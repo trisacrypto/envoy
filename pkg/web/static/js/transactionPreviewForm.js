@@ -27,13 +27,13 @@ document.body.addEventListener('htmx:afterSettle', () => {
 
     // Get each country value selected by the requester from the hidden input field.
     const countryID = country.id
-    const selectedCountry = document.querySelector(`.${countryID}`)
-
-    if (selectedCountry) {
-      const countryValue = selectedCountry.value
-      setCountryData(country, countryValue)
+    if (countryID !== '') {
+      const selectedCountry = document.querySelector(`.${countryID}`)
+      if (selectedCountry) {
+        const countryValue = selectedCountry.value
+        setCountryData(country, countryValue)
+      }
     }
-
   })
 
   // Initialize a SlimSelect dropdown for each identifier type selection in the form.
@@ -44,9 +44,11 @@ document.body.addEventListener('htmx:afterSettle', () => {
     })
 
     const identifierID = identifier.id
-    const selectedIdentifier = document.querySelector(`.${identifierID}`)
-    if (selectedIdentifier) {
-      setIdentifierData(identifier, selectedIdentifier)
+    if (identifierID !== '') {
+      const selectedIdentifier = document.querySelector(`.${identifierID}`)
+      if (selectedIdentifier) {
+        setIdentifierData(identifier, selectedIdentifier)
+      }
     }
   })
 })
@@ -63,41 +65,43 @@ function setCountryData(el, value) {
 // Set the identifier type options and selected value in the SlimSelect dropdown for each identifier selection.
 function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
+  // Get the identifier type and update to match ivms101 code.
+  const identifierValue = identifier.value.split('_').slice(-1)[0]
   switch (identifierDataID) {
     case 'legal-person-name-type':
       // Add placeholder in case the legal name type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'address-identifier-type':
       // Add placeholder in case the address type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       addressTypeArray.unshift({ 'placeholder': true, 'text': 'Select an address type', 'value': '' });
       el.slim.setData(addressTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'natural-person-ntl-id-type':
       // Add placeholder in case the natural person identifier type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(naturalPersonNtlIdTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'national-identifier-type':
       // Add placeholder in case the national identifier type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'natural-person-name-type':
       // Add placeholder in case the natural person name type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       naturalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(naturalPersonNameTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
   }
 }
@@ -106,77 +110,82 @@ function setIdentifierData(el, identifier) {
 const idEl = document.getElementById('envelope-id')
 const id = idEl?.value
 document.body.addEventListener('htmx:configRequest', (e) => {
-  const transactionSendEP = `/v1/transactions/${id}/send`;
-  if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+  const transactionAcceptEP = `/v1/transactions/${id}/accept`;
+  const repairTransactionEP = `/v1/transactions/${id}/repair`;
+  if (e.detail.path === transactionAcceptEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
 
     let data = {
       identity: {
         originator: {
-          originator_persons: [{
-            natural_person: {
+          originatorPersons: [{
+            naturalPerson: {
               name: {
-                name_identifiers: [{}]
+                nameIdentifier: [{}]
               },
-              geographic_addresses: [{
-                address_line: []
+              geographicAddress: [{
+                addressLine: []
               }],
-              national_identification: {},
-              date_and_place_of_birth:{},
-              account_numbers: []
+              nationalIdentification: {},
+              dateAndPlaceOfBirth:{},
+              accountNumber: []
             },
           }],
         },
         beneficiary: {
-          beneficiary_persons: [{
-            natural_person: {
+          beneficiaryPersons: [{
+            naturalPerson: {
               name: {
-                name_identifiers: [{}]
+                nameIdentifier: [{}]
               },
-              geographic_addresses: [{
-                address_line: []
+              geographicAddress: [{
+                addressLine: []
               }],
-              national_identification: {},
-              date_and_place_of_birth:{},
-              account_numbers: []
+              nationalIdentification: {},
+              dateAndPlaceOfBirth:{},
+              accountNumber: []
             },
           }]
         },
-        originating_vasp: {
-          originating_vasp: {
-            legal_person: {
+        originatingVASP: {
+          originatingVASP: {
+            legalPerson: {
               name: {
-                name_identifiers: [{}]
+                nameIdentifier: [{}]
               },
-              geographic_addresses: [{
-                address_line: []
+              geographicAddress: [{
+                addressLine: []
               }],
-              national_identification: {}
+              nationalIdentification: {}
             },
           }
         },
-        beneficiary_vasp: {
-          beneficiary_vasp: {
-            legal_person: {
+        beneficiaryVASP: {
+          beneficiaryVASP: {
+            legalPerson: {
               name: {
-                name_identifiers: [{}]
+                nameIdentifier: [{}]
               },
-              geographic_addresses: [{
-                address_line: []
+              geographicAddress: [{
+                addressLine: []
               }],
-              national_identification: {}
+              nationalIdentification: {}
             },
           }
         },
       },
       transaction: {},
-      transfer_state: "accepted" // NOTE: this is only for the accept endpoint.
     }
 
-    const originatorPerson = data.identity.originator.originator_persons[0].natural_person;
-    const beneficiaryPerson = data.identity.beneficiary.beneficiary_persons[0].natural_person;
-    const originatingVASP = data.identity.originating_vasp.originating_vasp.legal_person;
-    const beneficiaryVASP = data.identity.beneficiary_vasp.beneficiary_vasp.legal_person;
+    // If request is for the transaction accept endpoint set the transfer state to accepted.
+    if (e.detail.path === transactionAcceptEP) {
+      data.transfer_state = 'accepted';
+    }
+
+    const originatorPerson = data.identity.originator.originatorPersons[0].naturalPerson;
+    const beneficiaryPerson = data.identity.beneficiary.beneficiaryPersons[0].naturalPerson;
+    const originatingVASP = data.identity.originatingVASP.originatingVASP.legalPerson;
+    const beneficiaryVASP = data.identity.beneficiaryVASP.beneficiaryVASP.legalPerson;
 
     for (const key in params) {
       // Remove prefix from the key.
@@ -189,19 +198,19 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set the originator name identifiers and name identifier type.
         case key.startsWith('id_og_'):
-          originatorPerson.name.name_identifiers[0][newKey] = params[key];
+          originatorPerson.name.nameIdentifier[0][newKey] = params[key];
           break;
         // Set the originator date and place of birth.
         case key.startsWith('originator_birth_'):
-          originatorPerson.date_and_place_of_birth[newKey] = params[key];
+          originatorPerson.dateAndPlaceOfBirth[newKey] = params[key];
           break;
         // Set the originator address line.
         case key.startsWith('address_og_'):
-          originatorPerson.geographic_addresses[0].address_line.push(params[key]);
+          originatorPerson.geographicAddress[0].addressLine.push(params[key]);
           break;
         // Set the originator country and address type.
         case key.startsWith('addr_og_'):
-          originatorPerson.geographic_addresses[0][newKey] = params[key];
+          originatorPerson.geographicAddress[0][newKey] = params[key];
           break;
         // Set details for the originator natural person that's not a name identifier or geographic address.
         case key.startsWith('np_og_'):
@@ -209,27 +218,27 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set national identification for the originator.
         case key.startsWith('originator_id_'):
-          originatorPerson.national_identification[newKey] = params[key];
+          originatorPerson.nationalIdentification[newKey] = params[key];
           break;
         // Set the originator account number.
         case key.startsWith('acct_og_'):
-          originatorPerson.account_numbers.push(params[key]);
+          originatorPerson.accountNumber.push(params[key]);
           break;
         // Set the beneficiary name identifiers and name identifier type.
         case key.startsWith('id_bf_'):
-          beneficiaryPerson.name.name_identifiers[0][newKey] = params[key];
+          beneficiaryPerson.name.nameIdentifier[0][newKey] = params[key];
           break;
         // Set the beneficiary date and place of birth.
         case key.startsWith('beneficiary_birth_'):
-          beneficiaryPerson.date_and_place_of_birth[newKey] = params[key];
+          beneficiaryPerson.dateAndPlaceOfBirth[newKey] = params[key];
           break;
         // Set the beneficiary address line.
         case key.startsWith('address_bf_'):
-          beneficiaryPerson.geographic_addresses[0].address_line.push(params[key]);
+          beneficiaryPerson.geographicAddress[0].addressLine.push(params[key]);
           break;
         // Set the beneficiary country and address type.
         case key.startsWith('addr_bf_'):
-          beneficiaryPerson.geographic_addresses[0][newKey] = params[key];
+          beneficiaryPerson.geographicAddress[0][newKey] = params[key];
           break;
         // Set details for the beneficiary natural person that's not a name identifier or geographic address.
         case key.startsWith('np_bf_'):
@@ -237,27 +246,27 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set national identification for the beneficiary.
         case key.startsWith('beneficiary_id_'):
-          beneficiaryPerson.national_identification[newKey] = params[key];
+          beneficiaryPerson.nationalIdentification[newKey] = params[key];
           break;
         // Set the beneficiary account number.
         case key.startsWith('acct_bf_'):
-          beneficiaryPerson.account_numbers.push(params[key]);
+          beneficiaryPerson.accountNumber.push(params[key]);
           break;
         // Set the originating VASP name identifiers and name identifier type.
         case key.startsWith('id_orig'):
-          originatingVASP.name.name_identifiers[0][newKey] = params[key];
+          originatingVASP.name.nameIdentifier[0][newKey] = params[key];
           break;
         // Set the originating VASP address line.
         case key.startsWith('address_orig'):
-          originatingVASP.geographic_addresses[0].address_line.push(params[key]);
+          originatingVASP.geographicAddress[0].addressLine.push(params[key]);
           break;
         // Set the originating VASP country and address type.
         case key.startsWith('addr_orig'):
-          originatingVASP.geographic_addresses[0][newKey] = params[key];
+          originatingVASP.geographicAddress[0][newKey] = params[key];
           break;
         // Set the originating VASP national identification.
         case key.startsWith('nat_orig'):
-          originatingVASP.national_identification[newKey] = params[key];
+          originatingVASP.nationalIdentification[newKey] = params[key];
           break;
         // Set the originating VASP country of registration.
         case key.startsWith('ctry_orig'):
@@ -265,19 +274,19 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set the beneficiary VASP name identifiers and name identifier type.
         case key.startsWith('id_benf'):
-          beneficiaryVASP.name.name_identifiers[0][newKey] = params[key];
+          beneficiaryVASP.name.nameIdentifier[0][newKey] = params[key];
           break;
         // Set the beneficiary VASP address line.
         case key.startsWith('address_benf'):
-          beneficiaryVASP.geographic_addresses[0].address_line.push(params[key]);
+          beneficiaryVASP.geographicAddress[0].addressLine.push(params[key]);
           break;
         // Set the beneficiary VASP country and address type.
         case key.startsWith('addr_benf'):
-          beneficiaryVASP.geographic_addresses[0][newKey] = params[key];
+          beneficiaryVASP.geographicAddress[0][newKey] = params[key];
           break;
         // Set the beneficiary VASP national identification.
         case key.startsWith('nat_benf'):
-          beneficiaryVASP.national_identification[newKey] = params[key];
+          beneficiaryVASP.nationalIdentification[newKey] = params[key];
           break;
         // Set the beneficiary VASP country of registration.
         case key.startsWith('ctry_benf'):
@@ -292,17 +301,3 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     e.detail.parameters = data;
   };
 });
-
-
-// Disable submit button to prevent multiple form submissions.
-function disableSubmitButton() {
-  const acceptForm = document.getElementById('accept-form');
-  const acceptSbmtBtn = document.getElementById('accept-sbmt-btn');
-  const acceptBtnText = document.getElementById('accept-btn-text');
-  acceptForm?.addEventListener('submit', () => {
-    acceptBtnText?.classList.add('hidden');
-    acceptSbmtBtn.disabled = true;
-  });
-};
-
-document.body.addEventListener('htmx:afterSettle', disableSubmitButton);

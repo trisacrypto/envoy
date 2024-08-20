@@ -99,6 +99,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/profile", authenticate, s.UserProfile)
 	s.router.GET("/transactions", authenticate, s.Transactions)
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
+	s.router.GET("/transactions/:id/repair", authenticate, s.TransactionsRepairPreview)
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/accounts", authenticate, s.Accounts)
@@ -170,10 +171,8 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/export", authorize(permiss.TravelRuleManage), s.ExportTransactions)
 
 			// Transaction specific actions
-			// TODO: deprecate /:id/preview
 			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
 			transactions.GET("/:id/payload", authorize(permiss.TravelRuleView), s.LatestPayloadEnvelope)
-			transactions.GET("/:id/preview", authorize(permiss.TravelRuleView), s.AcceptTransactionPreview)
 			transactions.GET("/:id/accept", authorize(permiss.TravelRuleView), s.AcceptTransactionPreview)
 			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)
 			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
