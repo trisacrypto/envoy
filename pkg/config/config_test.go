@@ -279,7 +279,7 @@ func TestCertsConfigCache(t *testing.T) {
 	}
 
 	t.Run("TRISAConfig", createTest(&conf))
-	t.Run("TRPConfig", createTest(&config.TRPConfig{Certs: path, Pool: path}))
+	t.Run("TRPConfig", createTest(&config.TRPConfig{MTLSConfig: config.MTLSConfig{Certs: path, Pool: path}}))
 
 	t.Run("ByReference", func(t *testing.T) {
 		var (
