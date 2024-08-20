@@ -75,4 +75,5 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
 const transactionSend = Cookies.get('transaction_send_success')
 if (transactionSend === 'true') {
   setSuccessToast('Success! The secure envelope has been accepted.')
+  Cookies.remove('transaction_send_success')
 }
