@@ -24,8 +24,10 @@ func TestStartStop(t *testing.T) {
 
 	conf := config.Config{
 		Node: config.TRISAConfig{
-			Pool:                "testdata/trisatest.dev.pem",
-			Certs:               "testdata/client.trisatest.dev.pem",
+			MTLSConfig: config.MTLSConfig{
+				Pool:  "testdata/trisatest.dev.pem",
+				Certs: "testdata/client.trisatest.dev.pem",
+			},
 			KeyExchangeCacheTTL: 24 * time.Hour,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,
@@ -85,8 +87,10 @@ func TestSync(t *testing.T) {
 
 	conf := config.Config{
 		Node: config.TRISAConfig{
-			Pool:                "testdata/trisatest.dev.pem",
-			Certs:               "testdata/client.trisatest.dev.pem",
+			MTLSConfig: config.MTLSConfig{
+				Pool:  "testdata/trisatest.dev.pem",
+				Certs: "testdata/client.trisatest.dev.pem",
+			},
 			KeyExchangeCacheTTL: 24 * time.Hour,
 			Directory: config.DirectoryConfig{
 				Insecure:        true,

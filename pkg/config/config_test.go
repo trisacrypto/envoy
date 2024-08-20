@@ -213,9 +213,9 @@ func TestTRISAConfig(t *testing.T) {
 	}
 
 	// A valid TRISA config requires paths to certs and a pool
-	require.EqualError(t, conf.Validate(), "invalid configuration: specify pool and cert paths")
+	require.EqualError(t, conf.Validate(), "invalid configuration: specify certificates path")
 	conf.Pool = "testdata/trisa.example.dev.pem"
-	require.EqualError(t, conf.Validate(), "invalid configuration: specify pool and cert paths")
+	require.EqualError(t, conf.Validate(), "invalid configuration: specify certificates path")
 	conf.Certs = conf.Pool
 	require.NoError(t, conf.Validate(), "expected configuration was valid")
 
@@ -279,7 +279,7 @@ func TestCertsConfigCache(t *testing.T) {
 	}
 
 	t.Run("TRISAConfig", createTest(&conf))
-	t.Run("TRPConfig", createTest(&config.TRPConfig{Certs: path, Pool: path}))
+	t.Run("TRPConfig", createTest(&config.TRPConfig{MTLSConfig: config.MTLSConfig{Certs: path, Pool: path}}))
 
 	t.Run("ByReference", func(t *testing.T) {
 		var (

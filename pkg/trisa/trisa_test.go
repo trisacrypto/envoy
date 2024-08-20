@@ -49,11 +49,13 @@ func (s *trisaTestSuite) SetupSuite() {
 	s.conn = bufconn.New()
 	s.echan = make(chan error, 1)
 	s.conf = config.TRISAConfig{
-		Maintenance:         false,
-		Enabled:             true,
-		BindAddr:            "bufnet",
-		Certs:               "testdata/certs/alice.vaspbot.net.pem",
-		Pool:                "testdata/certs/trisatest.dev.pem",
+		Maintenance: false,
+		Enabled:     true,
+		BindAddr:    "bufnet",
+		MTLSConfig: config.MTLSConfig{
+			Certs: "testdata/certs/alice.vaspbot.net.pem",
+			Pool:  "testdata/certs/trisatest.dev.pem",
+		},
 		KeyExchangeCacheTTL: 60 * time.Second,
 		Directory: config.DirectoryConfig{
 			Insecure:        true,
