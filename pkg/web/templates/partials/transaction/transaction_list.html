@@ -1,7 +1,7 @@
 {{ $canMngTrans := not .IsViewOnly }}
 {{- with .TransactionsList -}}
-<div class="table-container pb-36 overflow-x-auto overflow-y-hidden">
-  <table class="table table-sm">
+<div class="table-container pb-36 overflow-x-auto">
+  <table class="table">
     <thead class="font-bold text-base text-black">
       <tr class="text-center text-balance">
         <th>Preview</th>
@@ -14,7 +14,7 @@
         <th>Amount</th>
         <th>Date Created</th>
         <th>Last Update</th>
-        <th>Actions</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -61,7 +61,7 @@
               {{ if .OriginatorAddress }}
               <li class="text-xs text-gray-600 break-words">{{ .OriginatorAddress }}</li>
               {{ else }}
-              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              <li class="text-xs text-gray-600 break-words">N/A</li>
               {{ end }}
             </ul>
           </div>
@@ -73,7 +73,7 @@
               {{ if .BeneficiaryAddress }}
               <li class="text-xs text-gray-600 break-words">{{ .BeneficiaryAddress }}</li>
               {{ else }}
-              <li class="text-xs text-gray-600 break-words">&mdash;</li>
+              <li class="text-xs text-gray-600 break-words">N/A</li>
               {{ end }}
             </ul>
           </div>
@@ -86,31 +86,16 @@
         {{ $lastUpdate := .LastUpdate.Format "January 2, 2006 15:04:05 -0700" }}
         <td class="trans-last-update">{{ $lastUpdate }}</td>
         {{ else }}
-        <td>&mdash;</td>
+        <td>N/A</td>
         {{ end }}
         <td>
-          <div class="dropdown">
-            <div tabindex="0" role="button" class="btn btn-ghost font-bold text-xl">&hellip;</div>
-            <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 text-sm shadow bg-black font-semibold text-white rounded-box">
-              <li><a href="/transactions/{{ .ID }}/info">View</a></li>
-              {{ if $canMngTrans }}
-              {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
-              <li><a href="/transactions/{{ .ID }}/accept">Accept</a></li>
-              <li><a href="/transactions/{{ .ID }}/info">Reject</a></li>
-              {{ end }}
-              {{ if and (eq .Source "local") (eq .Status "repair") }}
-              <li><a href="/transactions/{{ .ID }}/repair">Repair</a></li>
-              {{ end }}
-              <li><a>Archive</a></li>
-              {{ end }}
-            </ul>
-          </div>
+          <a class="btn btn-sm bg-primary text-white hover:bg-primary/90" href="/transactions/{{ .ID }}/info">Actions</a>
         </td>
       </tr>
       {{ end }}
       {{ else }}
       <tr class="text-center">
-        <td colspan="9" class="py-5">There are no transactions to display.</td>
+        <td colspan="12" class="py-5">There are no transactions to display.</td>
       </tr>
       {{ end }}
     </tbody>

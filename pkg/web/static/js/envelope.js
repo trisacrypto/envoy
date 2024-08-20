@@ -1,11 +1,15 @@
-import { IDENTIFIER_TYPE, countriesArray, naturalPersonNtlIdTypeArray } from './constants.js';
+import { IDENTIFIER_TYPE, countriesArray, naturalPersonNtlIdTypeArray, networksArray } from './constants.js';
 import { setSuccessToast } from './utils.js';
 
+const network = 'network';
 const birthplace = 'birthplace';
 const country = 'country';
 const nationalIdType = 'idType';
 
 const envelopeDropdowns = [
+  { sel: '#networks', options: network },
+  { sel: '#orig_countries', options: country },
+  { sel: '#benf_countries', options: country },
   { sel: '#og_id_birth_place', options: birthplace },
   { sel: '#bf_id_birth_place', options: birthplace },
   { sel: '#og_id_country', options: country },
@@ -20,6 +24,11 @@ function setSlimSelect(sel, options) {
   const newDropdown = new SlimSelect({
     select: sel
   });
+
+  if (options === network) {
+    networksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
+    newDropdown.setData(networksArray);
+  };
 
   if (options === birthplace || options === country) {
     countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
@@ -103,6 +112,15 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     const previewEnvModal = document.getElementById('preview_envelope');
     const secureEnvForm = document.getElementById('secure-envelope-form');
     secureEnvForm.reset();
+    
+    // Reset the SlimSelect dropdowns after form submission.
+    envelopeDropdowns.forEach((dropdown) => {
+      const slimSelect = new SlimSelect({
+        select: dropdown.sel
+      });
+      slimSelect.setData([]);
+    });
+
     previewEnvModal.close();
     // Manually reset the screen position to ensure user is at the top of the page.
     window.scrollTo(0, 0);
