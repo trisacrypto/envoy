@@ -65,7 +65,7 @@ function setCountryData(el, value) {
 // Set the identifier type options and selected value in the SlimSelect dropdown for each identifier selection.
 function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
-  // Amend identifier value to match ivms101 expectation.
+  // Get the identifier type and update to match ivms101 code.
   const identifierValue = identifier.value.split('_').slice(-1)[0]
   switch (identifierDataID) {
     case 'legal-person-name-type':
