@@ -65,41 +65,43 @@ function setCountryData(el, value) {
 // Set the identifier type options and selected value in the SlimSelect dropdown for each identifier selection.
 function setIdentifierData(el, identifier) {
   const identifierDataID = identifier.dataset.id
+  // Amend identifier value to match ivms101 expectation.
+  const identifierValue = identifier.value.split('_').slice(-1)[0]
   switch (identifierDataID) {
     case 'legal-person-name-type':
       // Add placeholder in case the legal name type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       legalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(legalPersonNameTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'address-identifier-type':
       // Add placeholder in case the address type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       addressTypeArray.unshift({ 'placeholder': true, 'text': 'Select an address type', 'value': '' });
       el.slim.setData(addressTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'natural-person-ntl-id-type':
       // Add placeholder in case the natural person identifier type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(naturalPersonNtlIdTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'national-identifier-type':
       // Add placeholder in case the national identifier type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       nationalIdentifierTypeArray.unshift({ 'placeholder': true, 'text': 'Select an identifier type', 'value': '' });
       el.slim.setData(nationalIdentifierTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
     case 'natural-person-name-type':
       // Add placeholder in case the natural person name type value is empty. Importing the options with the placeholder
       // from the constants file resulted in the options not being displayed.
       naturalPersonNameTypeArray.unshift({ 'placeholder': true, 'text': 'Select a name type', 'value': '' });
       el.slim.setData(naturalPersonNameTypeArray)
-      el.slim.setSelected(identifier.value)
+      el.slim.setSelected(identifierValue)
       break;
   }
 }
@@ -110,8 +112,6 @@ const id = idEl?.value
 document.body.addEventListener('htmx:configRequest', (e) => {
   const transactionAcceptEP = `/v1/transactions/${id}/accept`;
   const repairTransactionEP = `/v1/transactions/${id}/repair`;
-  console.log(e);
-  console.log(id);
   if (e.detail.path === transactionAcceptEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
 
@@ -301,17 +301,3 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     e.detail.parameters = data;
   };
 });
-
-
-// Disable submit button to prevent multiple form submissions.
-function disableSubmitButton() {
-  const acceptForm = document.getElementById('accept-form');
-  const acceptSbmtBtn = document.getElementById('accept-sbmt-btn');
-  const acceptBtnText = document.getElementById('accept-btn-text');
-  acceptForm?.addEventListener('submit', () => {
-    acceptBtnText?.classList.add('hidden');
-    acceptSbmtBtn.disabled = true;
-  });
-};
-
-document.body.addEventListener('htmx:afterSettle', disableSubmitButton);

@@ -8,7 +8,7 @@
       <span class="font-semibold">Transaction ID: {{ .Envelope.EnvelopeID }}</span>
     </div>
   </section>
-  <form id="reject-form" hx-post="/v1/transactions/{{ .Envelope.EnvelopeID }}/repair" hx-ext="json-enc" hx-swap="none"
+  <form id="repair-form" hx-post="/v1/transactions/{{ .Envelope.EnvelopeID }}/repair" hx-ext="json-enc" hx-swap="none"
     hx-indicator="#loader" method="post">
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">1. TRANSACTION DETAILS</h2>
@@ -855,11 +855,9 @@
       {{ end }}
     </section>
     <div class="py-4 flex justify-center items-center gap-x-2">
-      <button id="reject-sbmt-btn" type="submit" class="btn p-1 w-36 bg-success font-semibold text-lg text-white md:p-2 hover:bg-success/80">
-        <div class="flex justify-center items-center">
-          <span id="reject-btn-text">Repair</span>
-          <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
-        </div>
+      <button id="repair-sbmt-btn" class="w-36 btn p-1 bg-success font-semibold text-lg text-white md:p-2 hover:bg-success/80">
+        <span id="repair-btn-text">Repair</span>
+        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
       </button>
       <a href="/transactions/{{ .Envelope.EnvelopeID }}/info"
         class="p-1 btn w-36 bg-warning font-semibold text-lg text-white text-center md:p-2 hover:bg-warning/80">Cancel</a>

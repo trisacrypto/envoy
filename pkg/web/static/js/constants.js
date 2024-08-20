@@ -278,10 +278,10 @@ export const networks = {
 export const networksArray = Object.entries(networks).map(([value, text]) => ({ text, value }));
 
 export const IDENTIFIER_TYPE = {
-  ADDRESS_TYPE_CODE_MISC: 'Unspecified',
   ADDRESS_TYPE_CODE_HOME: 'Residential',
   ADDRESS_TYPE_CODE_BIZZ: 'Business',
   ADDRESS_TYPE_CODE_GEOG: 'Geographic',
+  ADDRESS_TYPE_CODE_MISC: 'Unspecified',
   LEGAL_PERSON_NAME_TYPE_CODE_LEGL: 'Legal',
   LEGAL_PERSON_NAME_TYPE_CODE_SHRT: 'Short',
   LEGAL_PERSON_NAME_TYPE_CODE_TRAD: 'Trading',
@@ -303,25 +303,56 @@ export const IDENTIFIER_TYPE = {
   NATURAL_PERSON_NAME_TYPE_CODE_MISC: 'Unspecified',
 };
 
-// Create arrays for each identifier type category from the IDENTIFIER_TYPE object.
-export const addressTypeArray = Object.entries(IDENTIFIER_TYPE)
-  .filter(([key]) => key.includes('ADDRESS_TYPE_CODE'))
+const ADDRESS_TYPE = {
+  HOME: 'Residential',
+  BIZZ: 'Business',
+  GEOG: 'Geographic',
+  MISC: 'Unspecified',
+};
+
+const LEGAL_PERSON_NAME_TYPE = {
+  LEGL: 'Legal',
+  SHRT: 'Short',
+  TRAD: 'Trading',
+  MISC: 'Unspecified',
+};
+
+export const NATIONAL_IDENTIFIER_TYPE = {
+  ARNU: 'ARNU',
+  CCPT: 'Passport',
+  RAID: 'RAID',
+  DRLC: "Driver's License",
+  FIIN: 'FIIN',
+  TXID: 'Tax ID',
+  SOCS: 'Social Security',
+  IDCD: 'Identity Card',
+  LEIX: 'LEI',
+  MISC: 'Unspecified',
+};
+
+export const NATURAL_PERSON_NAME_TYPE = {
+  ALIA: 'Alias',
+  BIRT: 'Birth',
+  MAID: 'Maiden',
+  LEGL: 'Legal',
+  MISC: 'Unspecified',
+};
+
+// Create arrays for each identifier type to set Slim Select data.
+export const addressTypeArray = Object.entries(ADDRESS_TYPE)
   .map(([value, text]) => ({ text, value }));
 
-export const legalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
-  .filter(([key]) => key.includes('LEGAL_PERSON_NAME_TYPE_CODE'))
+export const legalPersonNameTypeArray = Object.entries(LEGAL_PERSON_NAME_TYPE)
   .map(([value, text]) => ({ text, value }));
 
-export const nationalIdentifierTypeArray = Object.entries(IDENTIFIER_TYPE)
-  .filter(([key]) => key.includes('NATIONAL_IDENTIFIER_TYPE_CODE'))
+export const nationalIdentifierTypeArray = Object.entries(NATIONAL_IDENTIFIER_TYPE)
   .map(([value, text]) => ({ text, value }));
 
-export const naturalPersonNtlIdTypeArray = Object.entries(IDENTIFIER_TYPE)
-  .filter(([key]) => key.includes('NATIONAL_IDENTIFIER_TYPE_CODE') && !['LEIX', 'TXID', 'RAID'].includes(key.split('_').pop()))
+export const naturalPersonNtlIdTypeArray = Object.entries(NATIONAL_IDENTIFIER_TYPE)
+  .filter(([key]) => !['LEIX', 'TXID', 'RAID'].includes(key))
   .map(([value, text]) => ({ text, value }));
 
-export const naturalPersonNameTypeArray = Object.entries(IDENTIFIER_TYPE)
-  .filter(([key]) => key.includes('NATURAL_PERSON_NAME_TYPE_CODE'))
+export const naturalPersonNameTypeArray = Object.entries(NATURAL_PERSON_NAME_TYPE)
   .map(([value, text]) => ({ text, value }));
 
 
