@@ -1138,5 +1138,5 @@ func CheckUUIDMatch(id, target uuid.UUID) error {
 
 func setToastCookie(c *gin.Context, name, value, path, domain string) {
 	secure := !auth.IsLocalhost(domain)
-	c.SetCookie(name, value, -1, path, domain, secure, false)
+	c.SetCookie(name, value, 1, path, domain, secure, false)
 }
