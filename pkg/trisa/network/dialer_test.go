@@ -12,8 +12,10 @@ import (
 
 func TestDialers(t *testing.T) {
 	conf := config.TRISAConfig{
-		Certs: "testdata/notreal.pem",
-		Pool:  "testdata/notreal.pem",
+		MTLSConfig: config.MTLSConfig{
+			Certs: "testdata/notreal.pem",
+			Pool:  "testdata/notreal.pem",
+		},
 	}
 
 	_, err := network.TRISADialer(conf)

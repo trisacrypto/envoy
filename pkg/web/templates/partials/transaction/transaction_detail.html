@@ -10,11 +10,15 @@
     </div>
     <div class="flex gap-x-4">
       {{ if $canMngTrans }}
-      {{ if and (eq .Source "remote") (and (ne .Status "completed") (ne .Status "accepted") (ne .Status "rejected")) }}
+      {{ if and (eq .Source "remote") (and (eq .Status "review")) }}
       <a href="/transactions/{{ .ID }}/accept"
         class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Accept</a>
       <button onclick="transaction_rejection_modal.showModal()"
         class="p-1 rounded w-32 bg-warning font-semibold text-white md:p-2 hover:bg-warning/80">Reject</button>
+      {{ end }}
+      {{ if and (eq .Source "local") (eq .Status "repair") }}
+      <a href="/transactions/{{ .ID }}/repair"
+        class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Repair</a>
       {{ end }}
       {{ if ne .Status "archived" }}
         <button class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>

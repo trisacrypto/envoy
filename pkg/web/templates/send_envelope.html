@@ -5,7 +5,7 @@
   <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Send New Secure Envelope</h1>
   <section class="my-4 md:m-8">
     <p class="my-2 md:text-lg">Create a secure envelope to share transfer details with the counterparty.</p>
-    <form id="secure-envelope-form" hx-post="/v1/transactions/prepare" hx-target="#preview_envelope" hx-ext="json-enc" method="post">
+    <form id="secure-envelope-form" hx-post="/v1/transactions/prepare" hx-target="#preview_envelope" hx-indicator="#loader" hx-ext="json-enc" method="post">
       
       {{ template "originator_information" . }}
 
@@ -21,7 +21,9 @@
   </section>
 
   <!-- Secure Envelope Preview Modal -->
-  <dialog id="preview_envelope" class="modal"></dialog>
+  <dialog id="preview_envelope" class="modal">
+    <span id="loader" class="loading loading-spinner loading-lg"></span>
+  </dialog>
 </section>
 
 {{ end }}

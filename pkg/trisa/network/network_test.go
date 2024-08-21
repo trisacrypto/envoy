@@ -61,7 +61,7 @@ func TestFromContext(t *testing.T) {
 	require.Len(t, opts, 1, "dial options contains unexpected number of things")
 
 	// Create an mTLS RemotePeer gRPC server for testing
-	conf := config.TRISAConfig{Certs: "testdata/alice.pem", Pool: "testdata/pool.pem"}
+	conf := config.TRISAConfig{MTLSConfig: config.MTLSConfig{Certs: "testdata/alice.pem", Pool: "testdata/pool.pem"}}
 	bufnet := bufconn.New()
 	remote, err := pmock.NewAuth(bufnet, conf)
 	require.NoError(t, err, "could not create authenticated remote peer mock")

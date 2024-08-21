@@ -38,7 +38,7 @@
               </div>
               <div class="transaction-preview-container">
                 <dt class="font-semibold">Beneficiary Wallet Address</dt>
-                <dd>{{ if .Transaction.Beneficiary }} {{ .Transaction.Beneficiary }} {{ else }} N/A {{ end }}</dd>
+                <dd class="break-words">{{ if .Transaction.Beneficiary }} {{ .Transaction.Beneficiary }} {{ else }} N/A {{ end }}</dd>
               </div>
             </div>
             <div class="grid md:grid-cols-2">
@@ -236,7 +236,7 @@
                 <dt class="font-semibold">Account Number</dt>
                 {{ end }}
                 {{ range .Identity.Beneficiary.AccountNumbers }}
-                <dd>{{ if . }} {{ . }} {{ else }} N/A {{ end }}</dd>
+                <dd class="break-words">{{ if . }} {{ . }} {{ else }} N/A {{ end }}</dd>
                 {{ end }}
               </div>
 
