@@ -52,10 +52,17 @@ func (s *Server) VerifyTRPHeaders(c *gin.Context) {
 		return
 	}
 
-	if requestIdentifier := c.Request.Header.Get(openvasp.RequestIdentifierHeader); requestIdentifier == "" {
+	// Set the APIVersion header in the outgoing response
+	c.Header(openvasp.APIVersionHeader, openvasp.APIVersion)
+
+	var requestIdentifier string
+	if requestIdentifier = c.Request.Header.Get(openvasp.RequestIdentifierHeader); requestIdentifier == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing request identifier in header"})
 		return
 	}
+
+	// Set the request identifier in the outgoing response
+	c.Header(openvasp.RequestIdentifierHeader, requestIdentifier)
 
 	// If we're getting discovery requests, initialize the discovery static structs
 	static.Do(func() {
