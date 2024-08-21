@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/openvasp"
 )
@@ -69,6 +70,14 @@ func (s *Server) Uptime(c *gin.Context) {
 }
 
 func (s *Server) Identity(c *gin.Context) {
-	log.Info().Msg("identity request received")
-	c.Status(http.StatusNoContent)
+	headers := zerolog.Dict()
+	for key, values := range c.Request.Header {
+		headers.Strs(key, values)
+	}
+
+	log.Info().
+		Dict("headers", headers).
+		Str("query", c.Request.URL.RawQuery).
+		Msg("identity request received")
+	c.Status(http.StatusOK)
 }
