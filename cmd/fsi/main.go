@@ -3,16 +3,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/directory/pkg/gds/config"
 	"github.com/trisacrypto/directory/pkg/store"
 	dbconf "github.com/trisacrypto/directory/pkg/store/config"
 	"github.com/trisacrypto/directory/pkg/utils/logger"
 
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"github.com/trisacrypto/trisa/pkg/openvasp"
+	"github.com/trisacrypto/trisa/pkg/slip0044"
 	pb "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
 
 	"github.com/trisacrypto/envoy/pkg"
@@ -50,6 +54,34 @@ func main() {
 			Before:   connectDB,
 			After:    closeDB,
 			Category: "localhost",
+		},
+		{
+			Name:     "send-trp",
+			Usage:    "send a trp test message",
+			Action:   sendTRP,
+			Category: "trp",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "address",
+					Aliases:  []string{"a", "travel-address"},
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:     "asset",
+					Aliases:  []string{"n", "coin-type"},
+					Required: true,
+				},
+				&cli.Float64Flag{
+					Name:     "amount",
+					Aliases:  []string{"amt"},
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:     "identity",
+					Aliases:  []string{"i"},
+					Required: true,
+				},
+			},
 		},
 	}
 
@@ -199,6 +231,63 @@ func inspectGDS(c *cli.Context) (err error) {
 		}
 		fmt.Printf("%s %s\n", vasp.CommonName, vasp.VerificationStatus)
 	}
+
+	return nil
+}
+
+func sendTRP(c *cli.Context) (err error) {
+	client := openvasp.NewClient()
+	envelopeID := uuid.New()
+
+	var coinType slip0044.CoinType
+	if coinType, err = slip0044.ParseCoinType(c.String("asset")); err != nil {
+		return cli.Exit(fmt.Errorf("could not parse coin type %q: %w", c.String("asset"), err), 1)
+	}
+
+	inquiry := &openvasp.Inquiry{
+		TRP: &openvasp.TRPInfo{
+			Address:           c.String("address"),
+			RequestIdentifier: envelopeID.String(),
+		},
+		Asset: &openvasp.Asset{
+			DTI:     "2L8HS2MNP",
+			SLIP044: coinType,
+		},
+		Amount:   c.Float64("amount"),
+		Callback: fmt.Sprintf("https://envoy.local:8200/transfers/%s/confirm", envelopeID),
+		IVMS101:  &ivms101.IdentityPayload{},
+	}
+
+	var identity []byte
+	if identity, err = os.ReadFile(c.String("identity")); err != nil {
+		return cli.Exit(fmt.Errorf("could not open json data: %w", err), 1)
+	}
+
+	if err = json.Unmarshal(identity, &inquiry.IVMS101); err != nil {
+		return cli.Exit(fmt.Errorf("could not unmarshal identity payload: %w", err), 1)
+	}
+
+	v, _ := json.MarshalIndent(inquiry, "", "  ")
+	fmt.Println(string(v))
+
+	var rep *openvasp.TravelRuleResponse
+	if rep, err = client.Inquiry(inquiry); err != nil {
+		return cli.Exit(fmt.Errorf("could not make trp request: %w", err), 1)
+	}
+
+	fmt.Printf("received response with status code %d\n", rep.StatusCode)
+
+	info := rep.Info()
+	data, _ := json.MarshalIndent(info, "", "  ")
+	fmt.Println(string(data))
+
+	var resolution *openvasp.InquiryResolution
+	if resolution, err = rep.InquiryResolution(); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	data, _ = json.MarshalIndent(resolution, "", "  ")
+	fmt.Println(string(data))
 
 	return nil
 }
