@@ -1,3 +1,5 @@
+import { IDENTIFIER_TYPE } from "./constants.js";
+
 document.body.addEventListener('htmx:configRequest', (e) => {
   e.detail.headers['Accept'] = 'text/html'
 });
@@ -51,7 +53,7 @@ document.body.addEventListener('htmx:responseError', (e) => {
 const updateDatetimes = () => {
   const dtfmt = Intl.DateTimeFormat(navigator.languages, {
     year: 'numeric', month: 'long', day: 'numeric',
-    hour: 'numeric', minute:'numeric', second: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
     hour12: false, timeZoneName: "short",
   });
 
@@ -88,3 +90,13 @@ function enableSubmitBtn() {
 
 document.body.addEventListener('htmx:afterSettle', disableSubmitBtn);
 document.body.addEventListener('htmx:afterRequest', enableSubmitBtn)
+
+// Make identifier types human readable.
+document.body.addEventListener('htmx:afterSettle', () => {
+  const identifierTypes = document.querySelectorAll('.identifier-type');
+  identifierTypes?.forEach((identifierType) => {
+    const identifierCode = identifierType.textContent;
+    const readableIdentifierType = IDENTIFIER_TYPE[identifierCode];
+    identifierType.textContent = readableIdentifierType || identifierCode;
+  });
+});

@@ -16,12 +16,11 @@
     <span>ID: {{ .ID }}</span>
   </div>
   <div class="collapse-content">
-    <div>Meta Data: {{ .Identity }}</div>
     {{ $originatingVasp := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson }}
     {{ $beneficiaryVasp := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson }}
     <section class="mt-4">
       <h3 class="font-semibold">Virtual Asset Service Providers (Legal Persons)</h3>
-      <table class="text-left w-full">
+      <table class="table">
         <tr>
           <th scope="col" class="">Name Identifiers</th>
           <th scope="col" class="">Originating VASP</th>
@@ -31,18 +30,18 @@
           <th scope="row" class="">The names and types of name by which the legal person is known:</th>
           {{ $originatingLegalPerson := $originatingVasp.Name }}
           <td>
-            <ul class="flex gap-x-2">
+            <ul class="md:flex md:gap-x-2 md:items-center">
               {{ range $originatingLegalPerson.NameIdentifiers }}
               <li>{{ .LegalPersonName }}</li>
-              <li>{{ .LegalPersonNameIdentifierType }}</li>
+              <li class="identifier-type info-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
               {{ end }}
             </ul>
           </td>
           <td>
-            <ul class="flex gap-x-2">
+            <ul class="md:flex md:gap-x-2 md:items-center">
               {{ range $beneficiaryVasp.Name.NameIdentifiers }}
               <li>{{ .LegalPersonName }}</li>
-              <li>{{ .LegalPersonNameIdentifierType }}</li>
+              <li class="identifier-type info-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
               {{ end }}
             </ul>
           </td>
@@ -51,25 +50,25 @@
           <th scope="row">Addresses:</th>
           {{ range $originatingVasp.GeographicAddresses }}
           <td>
-            <ul class="flex gap-x-2">
+            <ul class="md:flex md:gap-x-2">
               <div>
                 {{ range .AddressLine }}
               <li>{{ . }}</li>
               {{ end }}
               </div>
-              <li>{{ .AddressType }}</li>
+              <li class="identifier-type info-badge-style">{{ .AddressType }}</li>
             </ul>
           </td>
           {{ end }}
           {{ range $beneficiaryVasp.GeographicAddresses }}
           <td>
-            <ul class="flex gap-x-2">
+            <ul class="md:flex md:gap-x-2">
               <div>
                 {{ range .AddressLine }}
                 <li>{{ . }}</li>
                 {{ end }}
               </div>
-              <li>{{ .AddressType }}</li>
+              <li class="identifier-type info-badge-style">{{ .AddressType }}</li>
             </ul>
           </td>
           {{ end }}
@@ -77,15 +76,15 @@
         <tr>
           <th scope="row">National Identification No.</th>
           <td>
-            <ul class="flex gap-x-2 items-center">
+            <ul class="md:flex md:gap-x-2 md:items-center">
               <li>{{ $originatingVasp.NationalIdentification.NationalIdentifier }}</li>
-              <li>{{ $beneficiaryVasp.NationalIdentification.NationalIdentifierType }}</li>
+              <li class="identifier-type info-badge-style">{{ $originatingVasp.NationalIdentification.NationalIdentifierType }}</li>
             </ul>
           </td>
           <td>
-            <ul class="flex gap-x-2 items-center">
+            <ul class="md:flex md:gap-x-2 md:items-center">
               <li>{{ $beneficiaryVasp.NationalIdentification.NationalIdentifier }}</li>
-              <li>{{ $beneficiaryVasp.NationalIdentification.NationalIdentifierType }}</li>
+              <li class="identifier-type info-badge-style">{{ $beneficiaryVasp.NationalIdentification.NationalIdentifierType }}</li>
             </ul>
           </td>
         </tr>
@@ -94,16 +93,15 @@
           <td>{{ if $originatingVasp.NationalIdentification.CountryOfIssue }} {{ $originatingVasp.NationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</td>
           <td>{{ if $beneficiaryVasp.NationalIdentification.CountryOfIssue }} {{ $beneficiaryVasp.NationalIdentification.CountryOfIssue }} {{ else }} N/A {{ end }}</td>
         </tr>
-          <tr>
-            <th scope="row">Registration Authority</th>
-            <td>{{ if $originatingVasp.NationalIdentification.RegistrationAuthority }} {{ $originatingVasp.NationalIdentification.RegistrationAuthority }} {{ else }} N/A {{ end }}</td>
-            <td>{{ if $beneficiaryVasp.NationalIdentification.RegistrationAuthority }} {{ $beneficiaryVasp.NationalIdentification.RegistrationAuthority }} {{ else }} N/A {{ end }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Country of Registration</th>
-            <td>{{ if $originatingVasp.CountryOfRegistration }} {{ $originatingVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</td>
-            <td>{{ if $beneficiaryVasp.CountryOfRegistration }} {{ $beneficiaryVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</td>
-          </tr>
+        <tr>
+          <th scope="row">Registration Authority</th>
+          <td>{{ if $originatingVasp.NationalIdentification.RegistrationAuthority }} {{ $originatingVasp.NationalIdentification.RegistrationAuthority }} {{ else }} N/A {{ end }}</td>
+          <td>{{ if $beneficiaryVasp.NationalIdentification.RegistrationAuthority }} {{ $beneficiaryVasp.NationalIdentification.RegistrationAuthority }} {{ else }} N/A {{ end }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Country of Registration</th>
+          <td>{{ if $originatingVasp.CountryOfRegistration }} {{ $originatingVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</td>
+          <td>{{ if $beneficiaryVasp.CountryOfRegistration }} {{ $beneficiaryVasp.CountryOfRegistration }} {{ else }} N/A {{ end }}</td>
         </tr>
       </table>
     </section>
