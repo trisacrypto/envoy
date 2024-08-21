@@ -43,10 +43,10 @@ func (s *Server) setupRoutes() error {
 	s.router.NoMethod(s.NotAllowed)
 
 	// TRP Discoverability
-	s.router.GET("/version", s.TRPVersion)
-	s.router.GET("/uptime", s.Uptime)
-	s.router.GET("/extensions", s.TRPExtensions)
-	s.router.GET("/identity", s.Identity)
+	s.router.GET("/version", s.VerifyTRPHeaders, s.TRPVersion)
+	s.router.GET("/uptime", s.VerifyTRPHeaders, s.Uptime)
+	s.router.GET("/extensions", s.VerifyTRPHeaders, s.TRPExtensions)
+	s.router.GET("/identity", s.VerifyTRPHeaders, s.Identity)
 
 	// TRP Inquiry Routes
 	inquiry := gin.WrapH(openvasp.TransferInquiry(s))
