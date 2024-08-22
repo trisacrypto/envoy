@@ -345,6 +345,15 @@ func NewSecureEnvelopeList(page *models.SecureEnvelopePage) (out *EnvelopesList,
 		if env, err = NewSecureEnvelope(model); err != nil {
 			return nil, err
 		}
+
+		// Reduce the amount of information being sent in a list request
+		// These fields can be obtained using a detail request
+		env.Payload = nil
+		env.EncryptionKey = nil
+		env.HMACSecret = nil
+		env.HMAC = nil
+		env.Original = nil
+
 		out.SecureEnvelopes = append(out.SecureEnvelopes, env)
 	}
 
@@ -443,6 +452,14 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 		if env, err = NewEnvelope(model, envelopes[i]); err != nil {
 			return nil, err
 		}
+
+		// Reduce the amount of information being sent in a list request
+		// These fields can be obtained using a detail request
+		env.Identity = nil
+		env.Transaction = nil
+		env.Pending = nil
+		env.SecureEnvelope = nil
+
 		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)
 	}
 
