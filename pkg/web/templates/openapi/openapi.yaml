@@ -1266,7 +1266,7 @@ paths:
       tags:
         - apikey
       summary: Create a new API Key
-      description: Request a new api key be generated with the specified description and permissions 
+      description: Request a new api key to be generated with the specified description and permissions 
       operationId: createAPIKey
       security:
         - bearer-auth: [ ]
@@ -2105,7 +2105,7 @@ components:
           description: The decoded travel address.
     APIKey:
       type: object
-      description: An complete APIKey representation
+      description: A complete APIKey representation
       properties:
         id:
           type: string
