@@ -24,9 +24,9 @@
           <td>
             <button 
             type="button" 
-            onclick="delete_key_modal.showModal()" 
+            onclick="revoke_key_modal.showModal()" 
             hx-get="/v1/apikeys/{{ .ID }}" 
-            hx-target="#delete_key_modal" 
+            hx-target="#revoke_key_modal" 
             hx-swap="innerHTML" 
             class="btn btn-sm bg-warning text-white hover:bg-warning/80"
             >

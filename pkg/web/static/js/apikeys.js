@@ -3,7 +3,7 @@ import { setSuccessToast } from "./utils.js";
 
 const apiKeysEP = '/v1/apikeys';
 const addApiKeyModal = document.getElementById('add_apikey_modal');
-const deleteApiKeyModal = document.getElementById('delete_key_modal');
+const revokeApiKeyModal = document.getElementById('revoke_key_modal');
 const closeApiKeyModal = document.getElementById('close-apikey-modal');
 const addApiKeyForm = document.getElementById('new-apikey-form');
 const fullCheckbox = document.getElementById('full_access');
@@ -95,7 +95,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
   };
 
   if (e.detail.requestConfig.verb === 'delete' && e.detail.successful) {
-    deleteApiKeyModal.close();
+    revokeApiKeyModal.close();
     setSuccessToast('Success! The API key has been revoked.');
   }
 });
