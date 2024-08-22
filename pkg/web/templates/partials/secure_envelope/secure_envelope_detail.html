@@ -33,7 +33,7 @@
             <ul class="md:flex md:gap-x-2 md:items-center">
               {{ range $originatingLegalPerson.NameIdentifiers }}
               <li>{{ .LegalPersonName }}</li>
-              <li class="identifier-type info-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
               {{ end }}
             </ul>
           </td>
@@ -41,7 +41,7 @@
             <ul class="md:flex md:gap-x-2 md:items-center">
               {{ range $beneficiaryVasp.Name.NameIdentifiers }}
               <li>{{ .LegalPersonName }}</li>
-              <li class="identifier-type info-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ .LegalPersonNameIdentifierType }}</li>
               {{ end }}
             </ul>
           </td>
@@ -56,7 +56,7 @@
               <li>{{ . }}</li>
               {{ end }}
               </div>
-              <li class="identifier-type info-badge-style">{{ .AddressType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ .AddressType }}</li>
             </ul>
           </td>
           {{ end }}
@@ -68,7 +68,7 @@
                 <li>{{ . }}</li>
                 {{ end }}
               </div>
-              <li class="identifier-type info-badge-style">{{ .AddressType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ .AddressType }}</li>
             </ul>
           </td>
           {{ end }}
@@ -78,13 +78,13 @@
           <td>
             <ul class="md:flex md:gap-x-2 md:items-center">
               <li>{{ $originatingVasp.NationalIdentification.NationalIdentifier }}</li>
-              <li class="identifier-type info-badge-style">{{ $originatingVasp.NationalIdentification.NationalIdentifierType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ $originatingVasp.NationalIdentification.NationalIdentifierType }}</li>
             </ul>
           </td>
           <td>
             <ul class="md:flex md:gap-x-2 md:items-center">
               <li>{{ $beneficiaryVasp.NationalIdentification.NationalIdentifier }}</li>
-              <li class="identifier-type info-badge-style">{{ $beneficiaryVasp.NationalIdentification.NationalIdentifierType }}</li>
+              <li class="identifier-type envelope-badge-style">{{ $beneficiaryVasp.NationalIdentification.NationalIdentifierType }}</li>
             </ul>
           </td>
         </tr>
@@ -105,7 +105,7 @@
         </tr>
       </table>
     </section>
-    <div class="mt-4">
+    <!-- <div class="mt-4">
       <h3 class="font-semibold">Secure Envelope Meta Data</h3>
       <dl class="mt-2">
         <div class="py-1 grid grid-cols-2">
@@ -168,6 +168,6 @@
         </div>
         {{ end }}
       </dl>
-    </div>
+    </div> -->
   </div>
 </div>

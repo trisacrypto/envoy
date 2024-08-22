@@ -68,8 +68,8 @@ body main {
   @apply mt-1 badge badge-primary badge-lg text-white;
 }
 
-.info-badge-style {
-  @apply badge badge-primary badge-lg text-white;
+.envelope-badge-style {
+  @apply badge badge-primary text-white;
 }
 
 
