@@ -54,7 +54,7 @@ type SecureEnvelope struct {
 	EnvelopeID          uuid.UUID    `json:"envelope_id"`
 	Direction           string       `json:"direction"`
 	Remote              string       `json:"remote,omitempty"`
-	ReplyTo             ulid.ULID    `json:"reply_to,omitempty"`
+	ReplyTo             *ulid.ULID   `json:"reply_to"`
 	Payload             []byte       `json:"payload,omitempty"`
 	EncryptionKey       []byte       `json:"encryption_key,omitempty"`
 	EncryptionAlgorithm string       `json:"encryption_algorithm,omitempty"`
@@ -76,7 +76,7 @@ type Envelope struct {
 	EnvelopeID         string                   `json:"envelope_id,omitempty"`
 	Direction          string                   `json:"direction"`
 	Remote             string                   `json:"remote,omitempty"`
-	ReplyTo            ulid.ULID                `json:"reply_to,omitempty"`
+	ReplyTo            *ulid.ULID               `json:"reply_to"`
 	IsError            bool                     `json:"is_error"`
 	Error              *trisa.Error             `json:"error,omitempty"`
 	Identity           *ivms101.IdentityPayload `json:"identity,omitempty"`
@@ -84,10 +84,10 @@ type Envelope struct {
 	Pending            *generic.Pending         `json:"pending,omitempty"`
 	SentAt             *time.Time               `json:"sent_at"`
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
-	Timestamp          time.Time                `json:"timestamp"`
+	Timestamp          time.Time                `json:"timestamp,omitempty"`
 	PublicKeySignature string                   `json:"public_key_signature,omitempty"`
 	TransferState      string                   `json:"transfer_state,omitempty"`
-	Original           []byte                   `json:"original,omitempty"`
+	SecureEnvelope     *SecureEnvelope          `json:"secure_envelope,omitempty"`
 }
 
 type Rejection struct {
@@ -309,7 +309,6 @@ func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err e
 		EnvelopeID:          model.EnvelopeID,
 		Direction:           model.Direction,
 		Remote:              model.Remote.String,
-		ReplyTo:             model.ReplyTo.ULID,
 		Payload:             model.Envelope.Payload,
 		EncryptionKey:       model.EncryptionKey,
 		EncryptionAlgorithm: model.Envelope.EncryptionAlgorithm,
@@ -323,6 +322,10 @@ func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err e
 		Sealed:              model.Envelope.Sealed,
 		PublicKeySignature:  model.PublicKey.String,
 		TransferState:       model.Envelope.TransferState.String(),
+	}
+
+	if model.ReplyTo.Valid {
+		out.ReplyTo = &model.ReplyTo.ULID
 	}
 
 	if out.Original, err = proto.Marshal(model.Envelope); err != nil {
@@ -358,13 +361,17 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		EnvelopeID:         model.EnvelopeID.String(),
 		Direction:          model.Direction,
 		Remote:             model.Remote.String,
-		ReplyTo:            model.ReplyTo.ULID,
 		Timestamp:          model.Timestamp,
 		PublicKeySignature: model.PublicKey.String,
 		TransferState:      env.TransferState().String(),
 	}
 
-	if out.Original, err = proto.Marshal(model.Envelope); err != nil {
+	if model.ReplyTo.Valid {
+		out.ReplyTo = &model.ReplyTo.ULID
+	}
+
+	// Add the secure envelope to the envelope detail to include metadata
+	if out.SecureEnvelope, err = NewSecureEnvelope(model); err != nil {
 		return nil, err
 	}
 
