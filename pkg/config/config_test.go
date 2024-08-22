@@ -51,6 +51,8 @@ var testEnv = map[string]string{
 	"TRISA_TRP_USE_MTLS":                    "false",
 	"TRISA_TRP_POOL":                        "fixtures/certs/trp/pool.pem",
 	"TRISA_TRP_CERTS":                       "fixtures/certs/trp/certs.pem",
+	"TRISA_TRP_IDENTITY_VASP_NAME":          "Testing VASP",
+	"TRISA_TRP_IDENTITY_LEI":                "GTFZ00N6IHYMHHNT8S51",
 	"REGION_INFO_ID":                        "2840302",
 	"REGION_INFO_NAME":                      "us-east4c",
 	"REGION_INFO_COUNTRY":                   "US",
@@ -108,6 +110,8 @@ func TestConfig(t *testing.T) {
 	require.False(t, conf.TRP.UseMTLS)
 	require.Equal(t, testEnv["TRISA_TRP_POOL"], conf.TRP.Pool)
 	require.Equal(t, testEnv["TRISA_TRP_CERTS"], conf.TRP.Certs)
+	require.Equal(t, testEnv["TRISA_TRP_IDENTITY_VASP_NAME"], conf.TRP.Identity.VASPName)
+	require.Equal(t, testEnv["TRISA_TRP_IDENTITY_LEI"], conf.TRP.Identity.LEI)
 	require.Equal(t, testEnv["REGION_INFO_NAME"], conf.RegionInfo.Name)
 	require.Equal(t, testEnv["REGION_INFO_COUNTRY"], conf.RegionInfo.Country)
 	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)

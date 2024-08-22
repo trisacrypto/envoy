@@ -99,6 +99,12 @@ type TRPConfig struct {
 	Enabled     bool   `default:"true" desc:"if false, the trp server will not be run"`
 	BindAddr    string `default:":8200" split_words:"true" desc:"the ip address and port to bind the trp server on"`
 	UseMTLS     bool   `default:"true" split_words:"true" desc:"if true the trp server will require mTLS authentication, otherwise it will use simple TLS"`
+	Identity    TRPIdentityConfig
+}
+
+type TRPIdentityConfig struct {
+	VASPName string `split_words:"true" desc:"specify the name response in a trp identity request"`
+	LEI      string `required:"false" desc:"the lei of your vasp to respond to a trp identity request"`
 }
 
 // Optional region and deployment information associated with the node.
