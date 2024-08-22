@@ -3,14 +3,14 @@ import { setSuccessToast } from "./utils.js";
 
 const apiKeysEP = '/v1/apikeys';
 const addApiKeyModal = document.getElementById('add_apikey_modal');
+const deleteApiKeyModal = document.getElementById('delete_key_modal');
 const closeApiKeyModal = document.getElementById('close-apikey-modal');
-const apiKeyModal = document.getElementById('apikey_modal');
 const addApiKeyForm = document.getElementById('new-apikey-form');
 const fullCheckbox = document.getElementById('full_access');
 const customAccess = document.getElementById('custom-access');
 const customCheckbox = document.querySelectorAll('.custom-access');
 
-// Reset API key form if user closes modal without submitting.
+// Reset create API key form if user closes modal without submitting.
 if (closeApiKeyModal) {
   closeApiKeyModal.addEventListener('click', () => {
     addApiKeyModal.close();
@@ -95,7 +95,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
   };
 
   if (e.detail.requestConfig.verb === 'delete' && e.detail.successful) {
-    apiKeyModal.close();
+    deleteApiKeyModal.close();
     setSuccessToast('Success! The API key has been revoked.');
   }
 });
