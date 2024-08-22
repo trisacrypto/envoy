@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"> <!-- Important: rapi-doc uses utf8 characters -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,follow">
+
+  <title>Envoy API Documentation</title>
+
+  <link rel="icon" type="image/png" href="/static/favicon.ico">
+
+  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+</head>
+<body>
+  <rapi-doc
+    spec-url="/v1/docs/openapi.json"
+    theme = "light"
+    show-header = "false"
+    allow-spec-url-load = "false"
+    allow-spec-file-load = "false"
+    allow-spec-file-download = "true"
+    schema-style = "table"
+    render-style = "focused"
+    text-color = "#333333"
+    primary-color = "#55ACD8"
+    font-size = "largest"
+    nav-bg-color = "#EFEFEF"
+    nav-item-spacing = "compact"
+  >
+    <img
+      slot="nav-logo"
+      src="/static/logo512.png"
+    />
+  </rapi-doc>
+</body>
+</html>

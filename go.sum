@@ -26,8 +26,6 @@ github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bombsimon/tld-validator v1.2.33 h1:FajZi0jt1gYpelma29CT3ed/zAf/PwnU2TzJPdK+g/o=
 github.com/bombsimon/tld-validator v1.2.33/go.mod h1:Tw75x7N4Znt8h4p+8VgOsEjwe7/FYjXw9/65bh0lQVU=
-github.com/bool64/dev v0.2.32 h1:DRZtloaoH1Igky3zphaUHV9+SLIV2H3lsf78JsJHFg0=
-github.com/bool64/dev v0.2.32/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bytedance/sonic v1.11.9 h1:LFHENlIY/SLzDWverzdOvgMztTxcfcF+cqNsz9pK5zg=
 github.com/bytedance/sonic v1.11.9/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=
@@ -251,8 +249,6 @@ github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/swaggest/swgui v1.8.1 h1:OLcigpoelY0spbpvp6WvBt0I1z+E9egMQlUeEKya+zU=
-github.com/swaggest/swgui v1.8.1/go.mod h1:YBaAVAwS3ndfvdtW8A4yWDJpge+W57y+8kW+f/DqZtU=
 github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFdE=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/trisacrypto/directory v1.8.0 h1:CLFfUtKvU8AIY9ENuV1/u2ihmmLIFMG1yRXUovwnF6g=
