@@ -68,6 +68,11 @@ body main {
   @apply mt-1 badge badge-primary badge-lg text-white;
 }
 
+.envelope-badge-style {
+  @apply badge badge-primary text-white;
+}
+
+
 /* Toggle spinner visibility when a request is pending. */
 .htmx-indicator {
   display: none;

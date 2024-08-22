@@ -1,4 +1,4 @@
-import { IDENTIFIER_TYPE, countriesArray, naturalPersonNtlIdTypeArray, networksArray } from './constants.js';
+import { countriesArray, naturalPersonNtlIdTypeArray, networksArray } from './constants.js';
 import { setSuccessToast } from './utils.js';
 
 const network = 'network';
@@ -97,17 +97,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
   }
 });
 
-// Use human readable identifier types in the transaction preview.
 document.body.addEventListener('htmx:afterSettle', (e) => {
-  if (e.detail.requestConfig.path === '/v1/transactions/prepare' && e.detail.requestConfig.verb === 'post') {
-    const identifierTypes = document.querySelectorAll('.identifier-type');
-    identifierTypes.forEach((identifierType) => {
-      const identifierCode = identifierType.textContent;
-      const readableIdentifierType = IDENTIFIER_TYPE[identifierCode];
-      identifierType.textContent = readableIdentifierType || identifierCode;
-    });
-  }
-
+  // Reset secure envelope form after successful submission.
   if (e.detail.requestConfig.path === '/v1/transactions/send-prepared' && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
     const previewEnvModal = document.getElementById('preview_envelope');
     const secureEnvForm = document.getElementById('secure-envelope-form');
