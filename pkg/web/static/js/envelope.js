@@ -2,7 +2,6 @@ import { countriesArray, naturalPersonNtlIdTypeArray, networksArray } from './co
 import { setSuccessToast } from './utils.js';
 
 const network = 'network';
-const birthplace = 'birthplace';
 const country = 'country';
 const nationalIdType = 'idType';
 
@@ -10,8 +9,6 @@ const envelopeDropdowns = [
   { sel: '#networks', options: network },
   { sel: '#orig_countries', options: country },
   { sel: '#benf_countries', options: country },
-  { sel: '#og_id_birth_place', options: birthplace },
-  { sel: '#bf_id_birth_place', options: birthplace },
   { sel: '#og_id_country', options: country },
   { sel: '#bf_id_country', options: country },
   { sel: '#og_id_type_code', options: nationalIdType },
@@ -30,7 +27,7 @@ function setSlimSelect(sel, options) {
     newDropdown.setData(networksArray);
   };
 
-  if (options === birthplace || options === country) {
+  if (options === country) {
     countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
     newDropdown.setData(countriesArray);
   };
