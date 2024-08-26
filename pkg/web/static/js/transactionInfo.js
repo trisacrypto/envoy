@@ -65,6 +65,20 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       request_retry: retryTransaction,
     };
   };
+
+const transactionSendEP = `/v1/transactions/${transactionID}/send`
+if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+  const params = e.detail.parameters;
+  let envelope = JSON.parse(params.envelope)
+  let data = {
+    identity: envelope.identity,
+    transaction: envelope.transaction,
+  };
+
+  data.transaction.txid = params.txid;
+  data.transfer_state = 'completed';
+  e.detail.parameters = data;
+  };
 });
 
 // Reset the reject transaction form if the request is successful.

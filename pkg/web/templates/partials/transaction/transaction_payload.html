@@ -14,15 +14,15 @@
       hx-ext="json-enc"
       hx-swap="none"
       hx-indicator="#loader"
-      method="post"
+      method="dialog"
       >
-      <input id="transaction_data" name="transaction_data" type="hidden" value="{{ . }}" />
+      <input id="envelope" name="envelope" type="hidden" value="{{ .EnvelopeDump }}" />
       <div class="mb-4">
         <label for="txid" class="label-style pb-0.5">Transaction ID (Txid)</label>
         <input type="text" id="txid" name="txid" class="input-style" required />
       </div>
-      <div class="py-2.5 flex justify-center">
-        <button type="submit" class="submit-btn btn bg-primary text-white hover:bg-primary/90">
+      <div class="flex justify-center">
+        <button type="submit" class="submit-btn btn w-44 font-semibold bg-primary text-lg text-white hover:bg-primary/90">
           <span class="submit-btn-text">Complete</span>
           <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
         </button>
