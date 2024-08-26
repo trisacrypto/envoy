@@ -24,6 +24,13 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
       });
     });
 
+    // Reset transaction complete form if user closes the modal without submitting.
+    const transactionCompleteCloseBtn = document.getElementById('transaction-complete-close-btn');
+    transactionCompleteCloseBtn?.addEventListener('click', () => {
+      const transactionCompleteForm = document.getElementById('transaction-complete-form');
+      transactionCompleteForm.reset();
+    }); 
+
     // TODO: Add code to toggle show/hide for PKS.
   }
 

@@ -1,1 +1,32 @@
-<div></div>
+<div class="modal-box">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-xl">Complete Transaction</h1>
+    <button id="transaction-complete-close-btn" onclick="transaction_complete_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <p class="py-4">Complete the transaction by sending the on-chain transaction ID to the counterparty so they may identify the transaction record.</p>
+  <div>
+    <form
+      id="transaction-complete-form"
+      hx-post="/v1/transactions/{{ .EnvelopeID }}/send"
+      hx-ext="json-enc"
+      hx-swap="none"
+      hx-indicator="#loader"
+      method="post"
+      >
+      <input id="transaction_data" name="transaction_data" type="hidden" value="{{ . }}" />
+      <div class="mb-4">
+        <label for="txid" class="label-style pb-0.5">Transaction ID (Txid)</label>
+        <input type="text" id="txid" name="txid" class="input-style" required />
+      </div>
+      <div class="py-2.5 flex justify-center">
+        <button type="submit" class="submit-btn btn bg-primary text-white hover:bg-primary/90">
+          <span class="submit-btn-text">Complete</span>
+          <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
