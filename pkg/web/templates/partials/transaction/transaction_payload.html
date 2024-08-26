@@ -6,7 +6,7 @@
       <span class="sr-only">Close modal</span>
     </button>
   </div>
-  <p class="py-4">Complete the transaction by sending the on-chain transaction ID to the counterparty so they may identify the transaction record.</p>
+  <p class="py-4">Send the on-chain transaction ID to the counterparty so that they may identify the transaction record.</p>
   <div>
     <form
       id="transaction-complete-form"
@@ -22,8 +22,8 @@
         <input type="text" id="txid" name="txid" class="input-style" required />
       </div>
       <div class="flex justify-center">
-        <button type="submit" class="submit-btn btn w-44 font-semibold bg-primary text-lg text-white hover:bg-primary/90">
-          <span class="submit-btn-text">Complete</span>
+        <button id="transaction-complete-btn" type="submit" class="btn w-44 font-semibold bg-primary text-lg text-white hover:bg-primary/90">
+          <span id="complete-btn-text">Complete</span>
           <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
         </button>
       </div>

@@ -29,7 +29,7 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     transactionCompleteCloseBtn?.addEventListener('click', () => {
       const transactionCompleteForm = document.getElementById('transaction-complete-form');
       transactionCompleteForm.reset();
-    }); 
+    });
 
     // TODO: Add code to toggle show/hide for PKS.
   }
@@ -51,10 +51,14 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
       code.textContent = readableErrorCode;
     });
   };
+
+  // Disable the submit button after form submission.
+  disableSubmitBtn();
 });
 
 // Add code to amend the request parameters before the request is sent.
 const rejectEP = `/v1/transactions/${transactionID}/reject`
+const transactionSendEP = `/v1/transactions/${transactionID}/send`
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Determine if the request repair checkbox is checked and add to the request parameters.
   const isRetryChecked = document.getElementById('request_retry')
@@ -66,18 +70,18 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     };
   };
 
-const transactionSendEP = `/v1/transactions/${transactionID}/send`
-if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
-  const params = e.detail.parameters;
-  let envelope = JSON.parse(params.envelope)
-  let data = {
-    identity: envelope.identity,
-    transaction: envelope.transaction,
-  };
+  // Amend data to include the txid and transfer state to complete the transaction.
+  if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
+    const params = e.detail.parameters;
+    let envelope = JSON.parse(params.envelope)
+    let data = {
+      identity: envelope.identity,
+      transaction: envelope.transaction,
+    };
 
-  data.transaction.txid = params.txid;
-  data.transfer_state = 'completed';
-  e.detail.parameters = data;
+    data.transaction.txid = params.txid;
+    data.transfer_state = 'completed';
+    e.detail.parameters = data;
   };
 });
 
@@ -90,6 +94,15 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     transactionRejectForm.reset()
     setSuccessToast('Success! The secure envelope has been rejected.')
   }
+
+  if (e.detail.requestConfig.path === transactionSendEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    const transactionCompleteForm = document.getElementById('transaction-complete-form');
+    const transactionCompleteModal = document.getElementById('transaction_complete_modal');
+    transactionCompleteModal.close();
+    transactionCompleteForm.reset();
+    enableSubmitBtn();
+    setSuccessToast('Success! The on-chain transaction has been sent to the counterparty.');
+  };
 });
 
 // Display success toast message if user is redirected to info page after accepting a transaction.
@@ -97,3 +110,19 @@ const transactionSend = Cookies.get('transaction_send_success')
 if (transactionSend === 'true') {
   setSuccessToast('Success! The secure envelope has been accepted.')
 }
+
+function disableSubmitBtn() {
+  const submitBtn = document.getElementById('transaction-complete-btn');
+  const submitBtnText = document.getElementById('complete-btn-text');
+  document.body.addEventListener('submit', () => {
+    submitBtn?.setAttribute('disabled', 'disabled');
+    submitBtnText?.classList.add('hidden');
+  });
+};
+
+function enableSubmitBtn() {
+  const submitBtn = document.getElementById('transaction-complete-btn');
+  const submitBtnText = document.getElementById('complete-btn-text');
+  submitBtn?.removeAttribute('disabled');
+  submitBtnText?.classList.remove('hidden');
+};
