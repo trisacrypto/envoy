@@ -36,7 +36,7 @@
               class="input-style" />
           </div>
           <div>
-            <label for="txid" class="label-style">Transaction Hash</label>
+            <label for="txid" class="label-style">Transaction ID / Hash</label>
             <input type="text" id="txid" name="env_transaction_txid" value="{{ .Pending.Transaction.Txid }}"
               class="input-style" />
           </div>
@@ -85,8 +85,7 @@
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
-            <input type="hidden" class="originator_birth_place_of_birth" value="{{ $originatorBirth.PlaceOfBirth }}" />
+            <input type="text" id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" value="{{ $originatorBirth.PlaceOfBirth }}" class="input-style" />
           </div>
         </div>
         {{ else }}
@@ -97,8 +96,7 @@
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
-            <input type="hidden" class="originator_birth_place_of_birth" value="" />
+            <input type="text" id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" value="" class="input-style" />
           </div>
         </div>
         {{ end }}
@@ -218,8 +216,7 @@
           </div>
           <div>
             <label for="originator_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" class="countries"></select>
-            <input type="hidden" class="originator_birth_place_of_birth" value="" />
+            <input type="text" id="originator_birth_place_of_birth" name="originator_birth_placeOfBirth" value="" class="input-style" />
           </div>
         </div>
         
@@ -323,8 +320,7 @@
           </div>
           <div>
             <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
-            <input type="hidden" class="beneficiary_birth_place_of_birth" value="{{ $beneficiaryBirth.PlaceOfBirth }}" />
+            <input type="text" id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" value="{{ $beneficiaryBirth.PlaceOfBirth }}" class="input-style" />
           </div>
         </div>
         {{ else }}
@@ -335,8 +331,7 @@
           </div>
           <div>
             <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-            <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
-            <input type="hidden" class="beneficiary_birth_place_of_birth" value="" />
+            <input type="text" id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" value="" class="input-style"  />
           </div>
         </div>
         {{ end }}
@@ -456,8 +451,7 @@
             </div>
             <div>
               <label for="beneficiary_birth_place_of_birth" class="label-style">Place of Birth</label>
-              <select id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" class="countries"></select>
-              <input type="hidden" class="beneficiary_birth_place_of_birth" value="" />
+              <input type="text" id="beneficiary_birth_place_of_birth" name="beneficiary_birth_placeOfBirth" value="" class="input-style" />
             </div>
           </div>
         

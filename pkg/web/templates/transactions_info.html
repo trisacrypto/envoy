@@ -2,7 +2,7 @@
 {{ define "content" }}
 
 <section class="mx-8 my-14">
-  <section hx-get="/v1/transactions/{{ .ID }}?detail=full" hx-trigger="load, transactionRejected from:body">
+  <section hx-get="/v1/transactions/{{ .ID }}?detail=full" hx-trigger="load, transactionRejected from:body, transactionCompleted from:body">
     <div class="text-center">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
@@ -11,6 +11,8 @@
 <input type="hidden" id="transaction-id" value="{{ .ID }}" />
 <!-- Reject transaction modal -->
 {{ template "transaction_rejection.html" . }}
+
+<dialog id="transaction_complete_modal" class="modal"></dialog>
 
 {{ end }}
 
