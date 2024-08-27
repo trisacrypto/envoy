@@ -16,9 +16,9 @@
       hx-indicator="#loader"
       method="dialog"
       >
-      <input id="envelope" name="envelope" type="hidden" value="{{ .EnvelopeDump }}" />
+      <input id="envelope" name="envelope" type="hidden" value="{{ .Dump }}" />
       <div class="mb-4">
-        <label for="txid" class="label-style pb-0.5">Transaction ID (Txid)</label>
+        <label for="txid" class="label-style pb-0.5">Transaction ID / Hash</label>
         <input type="text" id="txid" name="txid" class="input-style" required />
       </div>
       <div class="flex justify-center">

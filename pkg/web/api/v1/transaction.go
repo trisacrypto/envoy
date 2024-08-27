@@ -228,7 +228,7 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	return model, nil
 }
 
-func (e *Envelope) EnvelopeDump() string {
+func (e *Envelope) Dump() string {
 	data, err := json.Marshal(e)
 	if err != nil {
 		log.Warn().Err(err).Msg("could not marshal envelope data")
