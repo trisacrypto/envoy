@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -128,6 +129,7 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 	var (
 		err    error
 		keyID  ulid.ULID
+		query  *api.APIKeyQuery
 		apikey *models.APIKey
 		out    *api.APIKey
 	)
@@ -135,6 +137,14 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 	// Parse the keyID from the URL
 	if keyID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("apikey not found"))
+		return
+	}
+
+	// Parse the api key query
+	query = &api.APIKeyQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse apikey query in request"))
 		return
 	}
 
@@ -156,11 +166,23 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 		return
 	}
 
+	// Determine the HTML template to use based on the query
+	var template string
+	switch query.Detail {
+	case api.DetailEdit:
+		template = "apikey_detail.html"
+	case api.DetailRevoke:
+		template = "apikey_revoke.html"
+	default:
+		c.Error(fmt.Errorf("unhandled detail query '%q'", query.Detail))
+		template = "apikey_detail.html"
+	}
+
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "apikey_detail.html",
+		HTMLName: template,
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

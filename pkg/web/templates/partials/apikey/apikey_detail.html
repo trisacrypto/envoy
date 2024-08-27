@@ -1,29 +1,41 @@
 {{- with .APIKeyDetail -}}
 <div class="modal-box">
   <div class="flex justify-between items-center">
-    <h1 class="font-bold text-xl">Revoke API Key</h1>
-    <button onclick="revoke_key_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+    <h1 class="font-bold text-xl">Edit API Key</h1>
+    <button onclick="edit_key_modal.close()" class="btn btn-sm btn-circle btn-ghost">
       <i class="fa-solid fa-x"></i>
       <span class="sr-only">Close modal</span>
     </button>
   </div>
-  <p class="my-4">
-    Are you sure you want to revoke the API key? This action cannot be undone.
-  </p>
   <input type="hidden" name="apikey-id" value="{{ .ID }}">
-  <div class="my-4 flex justify-center">
-    <button
-    id="del-key-btn"
-    type="button"
-    class="submit-btn w-44 btn bg-warning font-semibold text-lg text-white hover:bg-warning/80"
-    hx-delete="/v1/apikeys/{{ .ID }}"
-    hx-target="#apikeys"
-    hx-swap="outerHTML"
-    hx-indicator="#loader"
-    >
-      <span class="submit-btn-text">Revoke</span>
-      <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
-    </button>
-  </div>
+  <form 
+    id="edit-key-form" 
+    hx-put="/v1/apikeys/{{ .ID }}" 
+    hx-target="#apikeys" 
+    hx-swap="outerHTML" 
+    hx-indicator="#loader" 
+    hx-ext="json-enc" 
+    method="dialog"
+  >
+    <input type="hidden" name="id" value="{{ .ID }}" />
+    <div class="my-4">
+      <label for="old_description" class="label-style pb-0.5">Current API Key Description</label>
+      <input type="text" id="old_description" class="input-style" value="{{ .Description }}" readonly />
+    </div>
+    <div class="my-4">
+      <label for="description" class="label-style pb-0.5">New API Key Description</label>
+      <input type="text" id="description" name="description" class="input-style" required />
+    </div>
+    <div class="my-4 flex justify-center">
+      <button
+      id="edit-key-btn"
+      type="submit"
+      class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/80"
+      >
+        <span class="submit-btn-text">Save</span>
+        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+      </button>
+    </div>
+  </form>
 </div>
 {{- end }}

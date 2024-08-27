@@ -82,7 +82,15 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     customAccess.scrollTo(0, 0);
     setSuccessToast('Success! The API key has been created.');
   };
-})
+
+  if (e.detail.requestConfig.verb === 'put' && e.detail.successful) {
+    const editApiKeyModal = document.getElementById('edit_key_modal');
+    const editApiKeyForm = document.getElementById('edit-key-form');
+    editApiKeyModal.close();
+    editApiKeyForm.reset();
+    setSuccessToast('Success! The API key description has been updated.');
+  };    
+});
 
 // Add code to run after htmx settles the DOM once a swap occurs.
 document.body.addEventListener('htmx:afterSettle', (e) => {

@@ -1,0 +1,29 @@
+{{- with .APIKeyDetail -}}
+<div class="modal-box">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-xl">Revoke API Key</h1>
+    <button onclick="revoke_key_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+      <i class="fa-solid fa-x"></i>
+      <span class="sr-only">Close modal</span>
+    </button>
+  </div>
+  <p class="my-4">
+    Are you sure you want to revoke API key <span class="font-semibold">{{ .Description }}</span>? This action cannot be undone.
+  </p>
+  <input type="hidden" name="apikey-id" value="{{ .ID }}">
+  <div class="my-4 flex justify-center">
+    <button
+    id="del-key-btn"
+    type="button"
+    class="submit-btn w-44 btn bg-warning font-semibold text-lg text-white hover:bg-warning/80"
+    hx-delete="/v1/apikeys/{{ .ID }}"
+    hx-target="#apikeys"
+    hx-swap="outerHTML"
+    hx-indicator="#loader"
+    >
+      <span class="submit-btn-text">Revoke</span>
+      <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+    </button>
+  </div>
+</div>
+{{- end }}

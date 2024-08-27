@@ -11,6 +11,11 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 )
 
+const (
+	DetailEdit   = "edit"
+	DetailRevoke = "revoke"
+)
+
 type APIKey struct {
 	ID          ulid.ULID  `json:"id,omitempty"`
 	Description string     `json:"description"`
@@ -25,6 +30,10 @@ type APIKey struct {
 type APIKeyList struct {
 	Page    *PageQuery `json:"page"`
 	APIKeys []*APIKey  `json:"api_keys"`
+}
+
+type APIKeyQuery struct {
+	Detail string `json:"detail" url:"detail, omitempty" form:"detail"`
 }
 
 func NewAPIKey(model *models.APIKey) (out *APIKey, err error) {
@@ -126,4 +135,20 @@ func (k *APIKey) Model() (model *models.APIKey, err error) {
 	}
 
 	return model, nil
+}
+
+// ============================================================================
+// APIKeyQuery
+// ============================================================================
+
+func (q *APIKeyQuery) Validate() (err error) {
+	if q.Detail == "" {
+		q.Detail = DetailEdit
+	}
+
+	if q.Detail != DetailEdit && q.Detail != DetailRevoke {
+		err = ValidationError(err, IncorrectField("detail", "should either be edit or revoke"))
+	}
+
+	return err
 }
