@@ -13,6 +13,10 @@
       <dd>{{ if .Name }} {{ .Name }} {{ else }} N/A {{ end }}</dd>
     </div>
     <div class="mb-4 grid grid-cols-2">
+      <dt class="font-bold">Travel Address</dt>
+      <dd class="break-words">{{ if .TravelAddress }} {{ .TravelAddress }} {{ else }} N/A {{ end }}</dd>
+    </div>
+    <div class="mb-4 grid grid-cols-2">
       <dt class="font-bold">Common Name</dt>
       <dd>{{ if .CommonName }} {{ .CommonName }} {{ else }} N/A {{ end }}</dd>
     </div>
