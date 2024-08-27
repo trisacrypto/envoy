@@ -2,10 +2,12 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
 	"golang.org/x/text/cases"
@@ -224,6 +226,15 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	}
 
 	return model, nil
+}
+
+func (e *Envelope) Dump() string {
+	data, err := json.Marshal(e)
+	if err != nil {
+		log.Warn().Err(err).Msg("could not marshal envelope data")
+		return ""
+	}
+	return string(data)
 }
 
 //===========================================================================
