@@ -95,7 +95,7 @@ document.body.addEventListener('htmx:afterRequest', enableSubmitBtn)
 document.body.addEventListener('htmx:afterSettle', () => {
   const identifierTypes = document.querySelectorAll('.identifier-type');
   identifierTypes?.forEach((identifierType) => {
-    const identifierCode = identifierType.textContent;
+    const identifierCode = identifierType?.textContent;
     const readableIdentifierType = IDENTIFIER_TYPE[identifierCode];
     identifierType.textContent = readableIdentifierType || identifierCode;
   });
