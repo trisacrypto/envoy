@@ -18,12 +18,8 @@
   >
     <input type="hidden" name="id" value="{{ .ID }}" />
     <div class="my-4">
-      <label for="old_description" class="label-style pb-0.5">Current API Key Description</label>
-      <input type="text" id="old_description" class="input-style" value="{{ .Description }}" readonly />
-    </div>
-    <div class="my-4">
       <label for="description" class="label-style pb-0.5">New API Key Description</label>
-      <input type="text" id="description" name="description" class="input-style" required />
+      <input type="text" id="description" name="description" class="input-style" value="{{ .Description }}" required />
     </div>
     <div class="my-4 flex justify-center">
       <button
