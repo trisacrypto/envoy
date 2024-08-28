@@ -160,6 +160,7 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
+		HTMLName: "apikey_detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

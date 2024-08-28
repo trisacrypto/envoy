@@ -11,11 +11,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 )
 
-const (
-	DetailEdit   = "edit"
-	DetailRevoke = "revoke"
-)
-
 type APIKey struct {
 	ID          ulid.ULID  `json:"id,omitempty"`
 	Description string     `json:"description"`
