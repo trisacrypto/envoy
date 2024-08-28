@@ -26,7 +26,7 @@
               <button 
               type="button" 
               onclick="edit_key_modal.showModal()" 
-              hx-get="/v1/apikeys/{{ .ID }}?detail=edit" 
+              hx-get="/v1/apikeys/{{ .ID }}" 
               hx-target="#edit_key_modal" 
               hx-swap="innerHTML" 
               class="btn btn-sm w-20 bg-primary text-white hover:bg-primary/80"
