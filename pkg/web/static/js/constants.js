@@ -301,6 +301,11 @@ export const IDENTIFIER_TYPE = {
   NATURAL_PERSON_NAME_TYPE_CODE_MAID: 'Maiden',
   NATURAL_PERSON_NAME_TYPE_CODE_LEGL: 'Legal',
   NATURAL_PERSON_NAME_TYPE_CODE_MISC: 'Unspecified',
+  BUSINESS_ENTITY: 'Business Entity',
+  PRIVATE_ORGANIZATION: 'Private Organization',
+  GOVERNMENT_ENTITY: 'Government Entity',
+  NON_COMMERCIAL_ENTITY: 'Non Commercial Entity',
+  UNKNOWN_ENTITY: 'Unknown Entity'
 };
 
 const ADDRESS_TYPE = {
