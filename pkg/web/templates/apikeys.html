@@ -22,7 +22,9 @@
 <!-- Target to display other api key management modals -->
 <dialog id="apikey_modal" class="modal"></dialog>
 <dialog id="edit_key_modal" class="modal"></dialog>
-<dialog id="revoke_key_modal" class="modal"></dialog>
+
+{{ template "revoke_key.html" . }}
+
 {{ end }}
 
 {{ define "appcode" }}

@@ -32,10 +32,6 @@ type APIKeyList struct {
 	APIKeys []*APIKey  `json:"api_keys"`
 }
 
-type APIKeyQuery struct {
-	Detail string `json:"detail" url:"detail, omitempty" form:"detail"`
-}
-
 func NewAPIKey(model *models.APIKey) (out *APIKey, err error) {
 	out = &APIKey{
 		ID:          model.ID,
@@ -135,20 +131,4 @@ func (k *APIKey) Model() (model *models.APIKey, err error) {
 	}
 
 	return model, nil
-}
-
-// ============================================================================
-// APIKeyQuery
-// ============================================================================
-
-func (q *APIKeyQuery) Validate() (err error) {
-	if q.Detail == "" {
-		q.Detail = DetailEdit
-	}
-
-	if q.Detail != DetailEdit && q.Detail != DetailRevoke {
-		err = ValidationError(err, IncorrectField("detail", "should either be edit or revoke"))
-	}
-
-	return err
 }

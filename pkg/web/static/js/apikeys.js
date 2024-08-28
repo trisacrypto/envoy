@@ -64,7 +64,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     };
 
     // If only 1 param is selected and its value isn't full, send it as an array.
-    if (params.permission !== 'full' && typeof(params.permissions) === 'string') {
+    if (params.permission !== 'full' && typeof (params.permissions) === 'string') {
       params.permissions = [params.permissions]
     };
   };
@@ -89,7 +89,7 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     editApiKeyModal.close();
     editApiKeyForm.reset();
     setSuccessToast('Success! The API key description has been updated.');
-  };    
+  };
 });
 
 // Add code to run after htmx settles the DOM once a swap occurs.
@@ -105,7 +105,17 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
   if (e.detail.requestConfig.verb === 'delete' && e.detail.successful) {
     revokeApiKeyModal.close();
     setSuccessToast('Success! The API key has been revoked.');
-  }
+  };
+
+  // Get API key ID and set the delete API key endpoint.
+  const openRevokeBtn = document.getElementById('open-revoke-btn');
+  openRevokeBtn?.addEventListener('click', () => {
+    const deleteKeyEP = openRevokeBtn.dataset.deleteEp;
+    const revokeKeyBtn = document.getElementById('revoke-key-btn');
+    revokeKeyBtn.setAttribute('hx-delete', deleteKeyEP);
+    // Initialize htmx attribute added to the revoke key button.
+    htmx.process(revokeKeyBtn);
+  });
 });
 
 function copyClientID() {
