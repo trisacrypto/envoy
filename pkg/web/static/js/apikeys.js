@@ -115,6 +115,11 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     revokeKeyBtn.setAttribute('hx-delete', deleteKeyEP);
     // Initialize htmx attribute added to the revoke key button.
     htmx.process(revokeKeyBtn);
+
+    // Get and set the API key description in the revoke key modal.
+    const keyDescription = openRevokeBtn.dataset.description
+    const keyDescriptionEl = document.getElementById('key-description');
+    keyDescriptionEl.textContent = keyDescription;
   });
 });
 
