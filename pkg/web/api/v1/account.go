@@ -109,6 +109,7 @@ func NewAccountList(page *models.AccountsPage) (out *AccountsList, err error) {
 		}
 
 		// Remove list fields not needed for the summary info
+		// TODO: instead of removing, do not select this data from the database.
 		account.IVMSRecord = ""
 		account.CryptoAddresses = nil
 

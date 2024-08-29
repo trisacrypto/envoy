@@ -2,12 +2,14 @@ package api
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
@@ -25,15 +27,15 @@ type Counterparty struct {
 	DirectoryID         string    `json:"directory_id,omitempty"`
 	RegisteredDirectory string    `json:"registered_directory,omitempty"`
 	Protocol            string    `json:"protocol"`
-	CommonName          string    `json:"common_name"`
+	CommonName          string    `json:"common_name,omitempty"`
 	Endpoint            string    `json:"endpoint"`
-	TravelAddress       string    `json:"travel_address"`
+	TravelAddress       string    `json:"travel_address,omitempty"`
 	Name                string    `json:"name"`
-	Website             string    `json:"website"`
+	Website             string    `json:"website,omitempty"`
 	Country             string    `json:"country"`
-	BusinessCategory    string    `json:"business_category"`
-	VASPCategories      []string  `json:"vasp_categories"`
-	VerifiedOn          time.Time `json:"verified_on"`
+	BusinessCategory    string    `json:"business_category,omitempty"`
+	VASPCategories      []string  `json:"vasp_categories,omitempty"`
+	VerifiedOn          time.Time `json:"verified_on,omitempty"`
 	IVMSRecord          string    `json:"ivms101,omitempty"`
 	Created             time.Time `json:"created,omitempty"`
 	Modified            time.Time `json:"modified,omitempty"`
@@ -63,12 +65,14 @@ func NewCounterparty(model *models.Counterparty) (out *Counterparty, err error) 
 		Modified:            model.Modified,
 	}
 
+	// Render the IVMS101 data as as base64 encoded JSON string
+	// TODO: select rendering using protocol buffers or JSON as a config option.
 	if model.IVMSRecord != nil {
 		if data, err := json.Marshal(model.IVMSRecord); err != nil {
 			// Log the error but do not stop processing
 			log.Error().Err(err).Str("counterparty_id", model.ID.String()).Msg("could not marshal IVMS101 record to JSON")
 		} else {
-			out.IVMSRecord = string(data)
+			out.IVMSRecord = base64.URLEncoding.EncodeToString(data)
 		}
 	}
 
@@ -95,6 +99,31 @@ func NewCounterpartyList(page *models.CounterpartyPage) (out *CounterpartyList, 
 	}
 
 	return out, nil
+}
+
+func (c *Counterparty) IVMS101() (p *ivms101.LegalPerson, err error) {
+	// Don't handle empty strings.
+	if c.IVMSRecord == "" {
+		return nil, ErrParsingIVMS101Person
+	}
+
+	// Try decoding URL base64 first, then STD before resorting to a string
+	var data []byte
+	if data, err = base64.URLEncoding.DecodeString(c.IVMSRecord); err != nil {
+		if data, err = base64.StdEncoding.DecodeString(c.IVMSRecord); err != nil {
+			data = []byte(c.IVMSRecord)
+		}
+	}
+
+	// Try unmarshaling JSON first, then protocol buffers
+	p = &ivms101.LegalPerson{}
+	if err = json.Unmarshal(data, p); err != nil {
+		if err = proto.Unmarshal(data, p); err != nil {
+			return nil, ErrParsingIVMS101Person
+		}
+	}
+
+	return p, nil
 }
 
 func (c *Counterparty) Validate() (err error) {
@@ -151,6 +180,10 @@ func (c *Counterparty) Validate() (err error) {
 		}
 	}
 
+	if _, perr := c.IVMS101(); perr != nil {
+		err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
+	}
+
 	return err
 }
 
@@ -177,8 +210,7 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 	}
 
 	if c.IVMSRecord != "" {
-		model.IVMSRecord = &ivms101.LegalPerson{}
-		if err = json.Unmarshal([]byte(c.IVMSRecord), model.IVMSRecord); err != nil {
+		if model.IVMSRecord, err = c.IVMS101(); err != nil {
 			return nil, err
 		}
 	}

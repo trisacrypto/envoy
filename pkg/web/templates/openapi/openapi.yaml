@@ -1,4 +1,3 @@
-openapi: 3.1.0
 info:
   title: TRISA Envoy API
   description: The TRISA Envoy API allows users to interact with their TRISA open source
@@ -14,6 +13,7 @@ info:
     name: MIT Licensed
     url: https://github.com/trisacrypto/envoy/blob/main/LICENSE
   version: v{{ .Version }}
+openapi: 3.1.0
 servers:
   - url: "{{ .Origin }}"
     variables: {}
@@ -27,30 +27,15 @@ tags:
       compliance purposes.
   - name: Crypto Addresses
     description: A resource nested under accounts for tracking which wallet addresses for
-      which blockchain networks belong to accounts.
+      which blockchain networks belong to which accounts.
+  - name: Counterparties
+    description: Counterparties define remote VASP peers with whom you can exchange Travel
+      Rule information for compliance purposes.
 externalDocs:
   description: TRISA Documentation
   url: https://trisa.dev
 security:
   - {}
-  - permissions:
-      - users:manage
-      - users:view
-      - apikeys:manage
-      - apikeys:view
-      - apikeys:revoke
-      - counterparties:manage
-      - counterparties:view
-      - accounts:manage
-      - accounts:view
-      - travelrule:manage
-      - travelrule:delete
-      - travelrule:view
-      - config:manage
-      - config:view
-      - pki:manage
-      - pki:delete
-      - pki:view
 components:
   schemas:
     Reply:
@@ -527,12 +512,384 @@ components:
         id: 01J6DJ9F691CF8E9H0V3ET0M0E
         crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
         network: BTC
+    Counterparty:
+      type: object
+      description: Defines remote VASPs with whom you can exchange Travel Rule information
+        and how to connect to them using a peer-to-peer network.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the counterparty on your Envoy node.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        source:
+          type: string
+          enum:
+            - gds
+            - user
+            - peer
+          description: the source of the counterparty, e.g. gds means the record was
+            created from the TRISA global directory service.
+          example: gds
+        directory_id:
+          type: string
+          format: uuid
+          description: the unique identifier of the counterparty on the registered
+            directory service.
+          example: 5154a0aa-502c-4179-a6f2-8b143d59edce
+        registered_directory:
+          type: string
+          description: the name of the directory service the counterparty is registered
+            with if the source is gds.
+          example: trisatest.net
+        protocol:
+          type: string
+          enum:
+            - trisa
+            - trp
+            - email
+          description: the travel rule protocol used to connect to the counterparty with.
+          example: trisa
+        common_name:
+          type: string
+          format: domain
+          description: the common name of the travel rule domain of the counterparty; used
+            for uniquely identifying the counterparty.
+          example: api.alice.vaspbot.net
+        endpoint:
+          type: string
+          format: url
+          description: the URL endpoint to connect to using the travel rule protocol. For
+            TRISA this will be host:port and for TRP will be a URL.
+          example: api.alice.vaspbot.net:443
+        travel_address:
+          type: string
+          format: TravelAddress
+          description: The counterparty travel address that allows the user to identify
+            which counterparty to use in a transfer.
+          example: taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz
+        name:
+          type: string
+          description: The name of the counterparty, usually the counterparty's legal or
+            trading name.
+          example: AliceCoin
+        website:
+          type: string
+          format: url
+          description: The website of the counterparty, used to lookup the counterparty's
+            online information.
+          example: https://example.com
+        country:
+          type: string
+          format: ISO 3166-1 alpha-2
+          description: The 2 character country code of the country that the counterparty is
+            registered in or primarily operates in.
+          example: JP
+        business_category:
+          type: string
+          enum:
+            - UNKNOWN_ENTITY
+            - PRIVATE_ORGANIZATION
+            - GOVERNMENT_ENTITY
+            - BUSINESS_ENTITY
+            - NON_COMMERCIAL_ENTITY
+            - NON_VASP_ENTITY
+          description: The business category defined by the VASP in their TRIXO form for
+            TRISA registration.
+          example: PRIVATE_ORGANIZATION
+        vasp_categories:
+          type: array
+          items:
+            type: string
+            enum:
+              - Exchange
+              - DEX
+              - P2P
+              - Kiosk
+              - Custodian
+              - OTC
+              - Fund
+              - Project
+              - Gambling
+              - Miner
+              - Mixer
+              - Individual
+              - Other
+              - Unknown
+            description: Self reported virtual asset services provided by the counterparty.
+            example: Kiosk
+          example:
+            - Exchange
+            - Custodian
+            - Miner
+        verified_on:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty record was verified as being
+            a TRISA member on the network your node is connected to.
+          example: 2024-08-28T10:14:43-05:00
+        ivms101:
+          type: string
+          format: base64
+          description: The base64 encoded representation of a JSON or protocol buffer
+            IVMS101 record for the legal person of the counterparty.
+          example: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty record was created.
+          example: 2024-08-28T10:14:43-05:00
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty record was last modified.
+          example: 2024-08-28T12:23:24-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        source: gds
+        directory_id: 5154a0aa-502c-4179-a6f2-8b143d59edce
+        registered_directory: trisatest.net
+        protocol: trisa
+        common_name: api.alice.vaspbot.net
+        endpoint: api.alice.vaspbot.net:443
+        travel_address: taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz
+        name: AliceCoin
+        website: https://alice.vaspbot.net
+        country: GB
+        business_category: NON_VASP_ENTITY
+        vasp_categories:
+          - Other
+        ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+        verified_on: 2024-08-28T10:14:43-05:00
+        created: 2024-08-28T10:14:43-05:00
+        modified: 2024-08-28T12:23:24-05:00
+    CounterpartyForm:
+      type: object
+      description: Defines the editable fields to create or update counterparty record.
+        Note that only counterparties created with the user or peer source may
+        be edited.
+      properties:
+        protocol:
+          type: string
+          enum:
+            - trisa
+            - trp
+            - email
+          description: Specify the travel rule protocol used to connect to the counterparty
+            with; this will likely be TRP or email since TRISA counterparties
+            are fetched from the GDS.
+          example: trp
+        common_name:
+          type: string
+          format: domain
+          description: Specify the common name of the travel rule domain of the
+            counterparty; used for uniquely identifying the counterparty.
+          example: api.alice.vaspbot.net
+        endpoint:
+          type: string
+          format: url
+          description: Specify the URL endpoint to connect to using the travel rule
+            protocol.
+          example: api.alice.vaspbot.net:443
+        name:
+          type: string
+          description: The name of the counterparty, usually the counterparty's legal or
+            trading name -- for identying counterparty VASPs with search.
+          example: AliceCoin
+        website:
+          type: string
+          format: url
+          description: The website of the counterparty, used to lookup the counterparty's
+            online information or reference their online presence.
+          example: https://example.com
+        country:
+          type: string
+          format: ISO 3166-1 alpha-2
+          description: Specify the 2 character country code of the country that the
+            counterparty is registered in or primarily operates in.
+          example: JP
+        business_category:
+          type: string
+          enum:
+            - UNKNOWN_ENTITY
+            - PRIVATE_ORGANIZATION
+            - GOVERNMENT_ENTITY
+            - BUSINESS_ENTITY
+            - NON_COMMERCIAL_ENTITY
+            - NON_VASP_ENTITY
+          description: Specify a business category for the VASP for local compliance
+            reference.
+          example: PRIVATE_ORGANIZATION
+        vasp_categories:
+          type: array
+          items:
+            type: string
+            enum:
+              - Exchange
+              - DEX
+              - P2P
+              - Kiosk
+              - Custodian
+              - OTC
+              - Fund
+              - Project
+              - Gambling
+              - Miner
+              - Mixer
+              - Individual
+              - Other
+              - Unknown
+            description: Specify the known virtual asset services provided by the
+              counterparty for compliance purposes.
+            example: Kiosk
+          example:
+            - Exchange
+            - Custodian
+            - Miner
+        ivms101:
+          type: string
+          format: base64
+          description: The base64 encoded representation of a JSON or protocol buffer
+            IVMS101 record for the legal person of the counterparty can be
+            modified but must be parseable.
+          example: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+      required:
+        - protocol
+        - common_name
+        - endpoint
+        - name
+        - country
+      example:
+        protocol: trp
+        common_name: trp.alice.vaspbot.net
+        endpoint: https://trp.alice.vaspbot.net
+        name: AliceCoin
+        website: https://alice.vaspbot.net
+        country: GB
+        business_category: NON_VASP_ENTITY
+        vasp_categories:
+          - Other
+        ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+    CounterpartySummary:
+      type: object
+      description: A summary of counterparty fields to return in counterparty lists to
+        conserve memory.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the counterparty on your Envoy node - used
+            to construct the detail url.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        source:
+          type: string
+          enum:
+            - gds
+            - user
+            - peer
+          description: The source of the counterparty, used to filter the returned list.
+          example: gds
+        protocol:
+          type: string
+          enum:
+            - trisa
+            - trp
+            - email
+          description: the travel rule protocol used to connect to the counterparty with,
+            used to filter the returned list.
+          example: trisa
+        endpoint:
+          type: string
+          format: url
+          description: the URL endpoint to connect to using the travel rule protocol.
+          example: api.alice.vaspbot.net:443
+        name:
+          type: string
+          description: The name of the counterparty, usually the counterparty's legal or
+            trading name, for quick identification of a counterparty.
+          example: AliceCoin
+        website:
+          type: string
+          format: url
+          description: The website of the counterparty, used to identify the counterparty
+            based on domain records.
+          example: https://example.com
+        country:
+          type: string
+          format: ISO 3166-1 alpha-2
+          description: The 2 character country code of the country that the counterparty is
+            registered in or primarily operates in to assist in counterparty
+            identification.
+          example: JP
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty record was created for
+            ordering purposes.
+          example: 2024-08-28T10:14:43-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        source: gds
+        protocol: trisa
+        endpoint: api.alice.vaspbot.net:443
+        name: AliceCoin
+        website: https://alice.vaspbot.net
+        country: GB
+        created: 2024-08-28T10:14:43-05:00
+    CounterpartyList:
+      type: object
+      description: A list of Counterparty objects, returned in a paginated fashion.
+      properties:
+        page:
+          $ref: "#/components/schemas/PageInfo"
+        counterparties:
+          type: array
+          items:
+            $ref: "#/components/schemas/CounterpartySummary"
+          example:
+            - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              source: gds
+              protocol: trisa
+              endpoint: api.alice.vaspbot.net:443
+              name: AliceCoin
+              website: https://alice.vaspbot.net
+              country: GB
+              created: 2024-08-28T10:14:43-05:00
+            - id: 01J6G3BE4QRY6355ZJ998SATXA
+              source: gds
+              protocol: trisa
+              endpoint: api.bob.vaspbot.net:443
+              name: BobVASP
+              website: https://bob.vaspbot.net
+              country: US
+              created: 2024-08-29T17:15:54-05:00
+      example:
+        page:
+          page_size: 50
+        counterparties:
+          - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+            source: gds
+            protocol: trisa
+            endpoint: api.alice.vaspbot.net:443
+            name: AliceCoin
+            website: https://alice.vaspbot.net
+            country: GB
+            created: 2024-08-28T10:14:43-05:00
+          - id: 01J6G3BE4QRY6355ZJ998SATXA
+            source: gds
+            protocol: trisa
+            endpoint: api.bob.vaspbot.net:443
+            name: BobVASP
+            website: https://bob.vaspbot.net
+            country: US
+            created: 2024-08-29T17:15:54-05:00
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Some Description
+      description: Authentication with JWT bearer token obtained using an API key and the
+        authenticate endpoint.
   parameters:
     page_size:
       name: page_size
@@ -541,6 +898,7 @@ components:
         records to return in a single request.
       schema:
         type: integer
+        example: 50
       example: 50
     next_page_token:
       name: next_page_token
@@ -551,6 +909,7 @@ components:
       schema:
         type: string
         format: base64
+        example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
       example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
     prev_page_token:
       name: prev_page_token
@@ -562,6 +921,7 @@ components:
       schema:
         type: string
         format: base64
+        example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
       example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
 paths:
   /v1/authenticate:
@@ -674,8 +1034,6 @@ paths:
         - Accounts
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:view
       parameters:
         - $ref: "#/components/parameters/page_size"
         - $ref: "#/components/parameters/next_page_token"
@@ -731,8 +1089,6 @@ paths:
         - Accounts
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       requestBody:
         description: Account information that includes all required writeable fields and no
           crypto addresses.
@@ -802,8 +1158,6 @@ paths:
         - Accounts
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:view
       parameters:
         - name: accountID
           in: path
@@ -812,6 +1166,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
       responses:
         "200":
@@ -868,8 +1223,6 @@ paths:
         - Accounts
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       parameters:
         - name: accountID
           in: path
@@ -878,6 +1231,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
       requestBody:
         description: A complete account record that should reflect the state of the account
@@ -960,8 +1314,6 @@ paths:
         - Accounts
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       parameters:
         - name: accountID
           in: path
@@ -970,6 +1322,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
       responses:
         "200":
@@ -1008,8 +1361,6 @@ paths:
         - Crypto Addresses
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:view
       parameters:
         - name: accountID
           in: path
@@ -1018,6 +1369,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
         - $ref: "#/components/parameters/page_size"
         - $ref: "#/components/parameters/next_page_token"
@@ -1071,8 +1423,6 @@ paths:
         - Crypto Addresses
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       parameters:
         - name: accountID
           in: path
@@ -1081,6 +1431,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
       requestBody:
         description: Crypto wallet address information that includes all required writeable
@@ -1149,8 +1500,6 @@ paths:
         - Crypto Addresses
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:view
       parameters:
         - name: accountID
           in: path
@@ -1159,6 +1508,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
         - name: cryptoAddressID
           in: path
@@ -1167,6 +1517,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6FRB1EGJCEZXRMQGW1FM0BR
           example: 01J6FRB1EGJCEZXRMQGW1FM0BR
       responses:
         "200":
@@ -1208,8 +1559,6 @@ paths:
         - Crypto Addresses
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       parameters:
         - name: accountID
           in: path
@@ -1218,6 +1567,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
         - name: cryptoAddressID
           in: path
@@ -1226,6 +1576,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6FRB1EGJCEZXRMQGW1FM0BR
           example: 01J6FRB1EGJCEZXRMQGW1FM0BR
       requestBody:
         description: A complete crypto address record that should reflect the state of the
@@ -1295,8 +1646,6 @@ paths:
         - Crypto Addresses
       security:
         - bearerAuth: []
-        - permissions:
-            - accounts:manage
       parameters:
         - name: accountID
           in: path
@@ -1305,6 +1654,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
         - name: cryptoAddressID
           in: path
@@ -1313,6 +1663,7 @@ paths:
           schema:
             type: string
             format: UUID
+            example: 01J6FRB1EGJCEZXRMQGW1FM0BR
           example: 01J6FRB1EGJCEZXRMQGW1FM0BR
       responses:
         "200":
@@ -1341,3 +1692,414 @@ paths:
               example:
                 success: false
                 error: crypto address not found
+  /v1/counterparties:
+    get:
+      summary: List Counterparties
+      description: Return a paginated list of counterparties stored on the Envoy node.
+      operationId: listCounterparties
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page_size"
+        - $ref: "#/components/parameters/next_page_token"
+        - $ref: "#/components/parameters/prev_page_token"
+      responses:
+        "200":
+          description: Successful Counterparty Page Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CounterpartyList"
+              example:
+                page:
+                  page_size: 50
+                counterparties:
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    source: gds
+                    protocol: trisa
+                    endpoint: api.alice.vaspbot.net:443
+                    name: AliceCoin
+                    website: https://alice.vaspbot.net
+                    country: GB
+                    created: 2024-08-28T10:14:43-05:00
+                  - id: 01J6G3BE4QRY6355ZJ998SATXA
+                    source: gds
+                    protocol: trisa
+                    endpoint: api.bob.vaspbot.net:443
+                    name: BobVASP
+                    website: https://bob.vaspbot.net
+                    country: US
+                    created: 2024-08-29T17:15:54-05:00
+        "400":
+          description: Bad Counterparties Page Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse page query request
+        "401":
+          description: Not Authorized to View Counterparties
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+    post:
+      summary: Create Counterparty
+      description: Create a new counterparty record.
+      operationId: createCounterparty
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Counterparty information that includes all required writeable fields.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CounterpartyForm"
+            example:
+              protocol: trp
+              common_name: trp.alice.vaspbot.net
+              endpoint: https://trp.alice.vaspbot.net
+              name: AliceCoin
+              website: https://alice.vaspbot.net
+              country: GB
+              business_category: NON_VASP_ENTITY
+              vasp_categories:
+                - Other
+              ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+      responses:
+        "201":
+          description: Counterparty Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Counterparty"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                source: user
+                protocol: trp
+                common_name: trp.alice.vaspbot.net
+                endpoint: https://trp.alice.vaspbot.net
+                name: AliceCoin
+                website: https://alice.vaspbot.net
+                country: GB
+                business_category: NON_VASP_ENTITY
+                vasp_categories:
+                  - Other
+                ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad Create Counterparty Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse counterparty data
+        "401":
+          description: Not Authorized to Manage Counterparties
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "422":
+          description: Counterparty Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: country
+                    error: field country needs to be an ISO-3361 alpha-2 code
+                  - field: registered_directory
+                    error: field registered_directory is a read only field
+  /v1/counterparties/search:
+    get:
+      summary: Search Counterparties
+      description: Perform a fuzzy search on the counterparties' name field with results
+        returned in order of closest match to least close match.
+      operationId: searchCounterparties
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          description: The name of the vasp to search for. The best bet is to use the
+            shortest search query possible to return the most results.
+          schema:
+            type: string
+            example: Coin
+          example: Coin
+        - name: limit
+          in: query
+          description: Limit the number of records to return in a single search query.
+          schema:
+            type: integer
+            example: 10
+            default: 10
+          example: 10
+      responses:
+        "200":
+          description: Successful Search Response (even if no results are returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CounterpartyList"
+              example:
+                page:
+                  page_size: 50
+                counterparties:
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    source: gds
+                    protocol: trisa
+                    endpoint: api.alice.vaspbot.net:443
+                    name: AliceCoin
+                    website: https://alice.vaspbot.net
+                    country: GB
+                    created: 2024-08-28T10:14:43-05:00
+                  - id: 01J6G3BE4QRY6355ZJ998SATXA
+                    source: gds
+                    protocol: trisa
+                    endpoint: api.bob.vaspbot.net:443
+                    name: BobVASP
+                    website: https://bob.vaspbot.net
+                    country: US
+                    created: 2024-08-29T17:15:54-05:00
+        "400":
+          description: Bad Search Query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse counterparties search request
+  "/v1/counterparties/{counterpartyID}":
+    get:
+      summary: Counterparty Detail
+      description: Return a detailed record of a single counterparty object.
+      operationId: counterpartyDetail
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: counterpartyID
+          in: path
+          description: The ID of the counterparty to fetch a detailed record of.
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: Counterparty Retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Counterparty"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                source: gds
+                directory_id: 5154a0aa-502c-4179-a6f2-8b143d59edce
+                registered_directory: trisatest.net
+                protocol: trisa
+                common_name: api.alice.vaspbot.net
+                endpoint: api.alice.vaspbot.net:443
+                travel_address: taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz
+                name: AliceCoin
+                website: https://alice.vaspbot.net
+                country: GB
+                business_category: NON_VASP_ENTITY
+                vasp_categories:
+                  - Other
+                ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+                verified_on: 2024-08-28T10:14:43-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to View Counterparty Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Counterparty Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: counterparty not found
+    put:
+      summary: Update Counterparty
+      description: Update a counterparty record with new information. Note that only
+        counterparties with the 'user' source may be updated.
+      operationId: updateCounterparty
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: counterpartyID
+          in: path
+          description: The ID of the counterparty to update.
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      requestBody:
+        description: A complete counterparty record that should reflect the state of the
+          counterparty after the operation.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CounterpartyForm"
+            example:
+              protocol: trp
+              common_name: trp.alice.vaspbot.net
+              endpoint: https://trp.alice.vaspbot.net
+              name: AliceCoin
+              website: https://alice.vaspbot.net
+              country: GB
+              business_category: NON_VASP_ENTITY
+              vasp_categories:
+                - Other
+              ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+        required: true
+      responses:
+        "200":
+          description: Counterparty Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Counterparty"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                source: gds
+                directory_id: 5154a0aa-502c-4179-a6f2-8b143d59edce
+                registered_directory: trisatest.net
+                protocol: trisa
+                common_name: api.alice.vaspbot.net
+                endpoint: api.alice.vaspbot.net:443
+                travel_address: taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz
+                name: AliceCoin
+                website: https://alice.vaspbot.net
+                country: GB
+                business_category: NON_VASP_ENTITY
+                vasp_categories:
+                  - Other
+                ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+                verified_on: 2024-08-28T10:14:43-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to Update Counterparty
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Counterparty Not Found (Cannot Update)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: counterparty not found
+        "409":
+          description: "Counterparty Conflict: Source Not Editable"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this record cannot be edited
+        "422":
+          description: Counterparty Update Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: common_name
+                    error: "missing common_name: this field is required"
+                  - field: protocol
+                    error: "missing protocol: this field is required"
+    delete:
+      summary: Delete Counterparty
+      description: Delete an counterparty with the specified ID.
+      operationId: deleteCounterparty
+      tags:
+        - Counterparties
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: counterpartyID
+          in: path
+          description: The ID of the counterparty to delete.
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: Counterparty Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reply"
+              example:
+                success: true
+        "401":
+          description: Not Authorized to Delete Counterparty
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Counterparty Not Found (Cannot Delete)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: counterparty not found
