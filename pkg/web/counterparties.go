@@ -196,6 +196,7 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "counterparty_detail.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 

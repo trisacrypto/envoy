@@ -16,13 +16,10 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
 });
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
-  const editCpartyForm = 'edit-cparty-form';
-  // Check if the request to update a user added counterparty was successful.
-  if (e.detail.elt.id === editCpartyForm && e.detail.requestConfig.verb === 'put' && e.detail.successful) {
-    // Close the edit counterparty modal and reset the form.
+  // Close the edit counterparty modal after a successful request.
+  if ( e.detail.requestConfig.verb === 'put' && e.detail.successful) {
     document.getElementById('cparty_modal').close();
-    document.getElementById(editCpartyForm).reset();
-  }
+  };
 });
 
 // Use SlimSelect to create a searchable select dropdown for countries in the add counterparty modal form.

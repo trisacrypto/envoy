@@ -30,7 +30,11 @@
               Edit
             </button>
             {{ end }}
-            <button type="button" class="btn btn-sm bg-black text-white hover:bg-black/80">View</button>
+            <button 
+              type="button" class="btn btn-sm bg-black text-white hover:bg-black/80"
+              hx-get="/v1/counterparties/{{ .ID }}" hx-target="#cparty_modal" hx-swap="innerHTML" onclick="cparty_modal.showModal()">
+              View
+            </button>
           </div>
         </td>
       </tr>

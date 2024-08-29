@@ -22,16 +22,30 @@
           <td>N/A</td>
           {{ end }}
           <td>
-            <button 
-            type="button" 
-            onclick="revoke_key_modal.showModal()" 
-            hx-get="/v1/apikeys/{{ .ID }}" 
-            hx-target="#revoke_key_modal" 
-            hx-swap="innerHTML" 
-            class="btn btn-sm bg-warning text-white hover:bg-warning/80"
-            >
-            Revoke
-          </button>
+            <div class="flex gap-x-1 items-center w-full">
+              <button 
+              type="button" 
+              onclick="edit_key_modal.showModal()" 
+              hx-get="/v1/apikeys/{{ .ID }}" 
+              hx-target="#edit_key_modal" 
+              hx-swap="innerHTML" 
+              class="btn btn-sm w-20 bg-primary text-white hover:bg-primary/80"
+              >
+              Edit
+            </button>
+              <button 
+              type="button" 
+              id="open-revoke-btn"
+              onclick="revoke_key_modal.showModal()"
+              data-delete-ep="/v1/apikeys/{{ .ID }}"
+              data-description="{{ .Description }}" 
+              hx-target="#revoke_key_modal" 
+              hx-swap="innerHTML" 
+              class="btn btn-sm w-20 bg-warning text-white hover:bg-warning/80"
+              >
+              Revoke
+            </button>
+            </div>
           </td>
         </tr>
       {{ end }}
