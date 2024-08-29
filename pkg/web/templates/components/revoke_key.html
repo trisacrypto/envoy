@@ -1,0 +1,27 @@
+<dialog id="revoke_key_modal" class="modal">
+  <div class="modal-box">
+    <div class="flex justify-between items-center">
+      <h1 class="font-bold text-xl">Revoke API Key</h1>
+      <button onclick="revoke_key_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <p class="my-4">
+      Are you sure you want to revoke API key <span id="key-description" class="font-semibold"></span>? This action cannot be undone.
+    </p>
+    <div class="my-4 flex justify-center">
+      <button
+      id="revoke-key-btn"
+      type="button"
+      class="submit-btn w-44 btn bg-warning font-semibold text-lg text-white hover:bg-warning/80"
+      hx-target="#apikeys"
+      hx-swap="outerHTML"
+      hx-indicator="#loader"
+      >
+        <span class="submit-btn-text">Revoke</span>
+        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+      </button>
+    </div>
+  </div>
+</dialog>
