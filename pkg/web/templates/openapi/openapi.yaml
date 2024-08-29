@@ -1,2153 +1,1343 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: TRISA Envoy API
-  description: >-
-    The TRISA Envoy API allows users to interact with their TRISA open source
+  description: The TRISA Envoy API allows users to interact with their TRISA open source
     Envoy node in a programmatic fashion. The API allows users to manage server
     objects such as accounts and counterparties and to send and manage Travel
     Rule transactions without having to know the details of the TRISA or TRP
     protocols.
-  # termsOfService: https://trisa.io/terms/
   contact:
+    name: Rotational Labs
     email: support@rotational.io
+    url: https://rotational.io
   license:
     name: MIT Licensed
     url: https://github.com/trisacrypto/envoy/blob/main/LICENSE
-  version: "v{{ .Version }}"
+  version: v{{ .Version }}
+servers:
+  - url: "{{ .Origin }}"
+    variables: {}
+    description: "{{ .Description }}"
+tags:
+  - name: Authentication
+    description: API authentication is handled using JWT access and refresh tokens that can
+      be obtained with an API key composed of a client ID and secret.
+  - name: Accounts
+    description: Accounts store information about your users and their crypto wallets for
+      compliance purposes.
+  - name: Crypto Addresses
+    description: A resource nested under accounts for tracking which wallet addresses for
+      which blockchain networks belong to accounts.
 externalDocs:
   description: TRISA Documentation
   url: https://trisa.dev
-servers:
-  - url: "{{ .Origin }}"
-    variables: { }
-    description: "{{ .Description }}"
-tags:
-  - name: authentication
-    description: Authenticate with client ID and secret to receive a JWT Bearer token.
-  - name: account
-    description: Stored information about your user/customer accounts.
-  - name: crypto_address
-    description: Associate crypto addresses with customer accounts.
-  - name: counterparty
-    description: Counterparties to exchange travel rule information with using TRISA or TRP protocols.
-  - name: transaction
-    description: Travel Rule information exchanges for specific crypto asset transactions.
-  - name: secure_envelope
-    description: Secure Envelopes provide an audit record of travel rule exchanges with a counterparty.
-  - name: user
-    description: Envoy user access management.
-  - name: apikey
-    description: Envoy api key credentials and access management.
-  - name: utility
-    description: Other useful methods and helpers.
-paths:
-  /v1/status:
-    get:
-      summary: Heartbeat endpoint
-      description: Allows users to check the status of the node
-      operationId: status
-      tags:
-        - utility
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StatusReply'
-        '503':
-          description: Unavailable
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StatusReply'
-  /v1/authenticate:
-    post:
-      tags:
-        - authentication
-      summary: Authenticate
-      operationId: authenticate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/APIAuthentication'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginReply'
-        '403':
-          description: Invalid API credentials
-  /v1/reauthenticate:
-    post:
-      tags:
-        - authentication
-      summary: Reauthenticate with refresh token
-      operationId: reauthenticate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReauthenticateRequest'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginReply'
-        '403':
-          description: Invalid reauthentication credentials
-  /v1/transactions:
-    get:
-      tags:
-        - transaction
-      summary: List transactions
-      description: Paginated list of all transactions
-      operationId: listTransactions
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransactionsList'
-    post:
-      tags:
-        - transaction
-      summary: Create transaction
-      description: Create a new transaction
-      operationId: createTransaction
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Create a new transaction
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Transaction'
-        required: true
-      responses:
-        '201':
-          description: Transaction created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Transaction'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/transactions/{transactionID}:
-    get:
-      tags:
-        - transaction
-      summary: Find transaction by ID
-      description: Returns a single transaction if found
-      operationId: transactionDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to return
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Transaction'
-        '404':
-          description: Transaction not found
-    put:
-      tags:
-        - transaction
-      summary: Updates a transaction record
-      description: Update a transaction record (does not patch, all fields are required)
-      operationId: updateTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to update
-          required: true
-          schema:
-            type: string
-            format: UUID
-      requestBody:
-        description: Updated transaction record
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Transaction'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Transaction'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-    delete:
-      tags:
-        - transaction
-      summary: Deletes a transaction
-      description: Deletes a transaction
-      operationId: deleteTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to delete
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: Transaction not found
-  /v1/transactions/prepare:
-    post:
-      tags:
-        - transaction
-      summary: Prepare transaction data for sending
-      description: Prepare transaction data for sending to a counterparty
-      operationId: prepareTransaction
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Transaction data to prepare
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Prepare'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Prepared'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/transactions/send-prepared:
-    post:
-      tags:
-        - transaction
-      summary: Send prepared transaction data to counterparty
-      description: Send prepared transaction data to a counterparty
-      operationId: sendPreparedTransaction
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Prepared transaction data to send
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Prepared'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Transaction'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/transactions/{transactionID}/send:
-    post:
-      tags:
-        - transaction
-      summary: Send transaction envelope
-      description: Send the transaction envelope for a specific transaction
-      operationId: sendTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to send
-          required: true
-          schema:
-            type: string
-            format: UUID
-      requestBody:
-        description: Transaction envelope to send
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Envelope'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-  /v1/transactions/{transactionID}/accept:
-    get:
-      tags:
-        - transaction
-      summary: Preview envelope to accept a transaction
-      description: Preview envelope that can be sent to accept a travel rule exchange
-      operationId: previewAccept
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to preview
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-    post:
-      tags:
-        - transaction
-      summary: Accept incoming transaction envelope
-      description: Accept the incoming transaction envelope for a specific transaction
-      operationId: acceptTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to accept
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-  /v1/transactions/{transactionID}/reject:
-    post:
-      tags:
-        - transaction
-      summary: Reject incoming transaction envelope
-      description: Reject the incoming transaction envelope for a specific transaction
-      operationId: rejectTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to reject
-          required: true
-          schema:
-            type: string
-            format: UUID
-      requestBody:
-        description: Reason for rejection
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Rejection'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-  /v1/transactions/{transactionID}/repair:
-    get:
-      tags:
-        - transaction
-      summary: Preview envelope to repair a transaction
-      description: Preview envelope that can be sent to repair a travel rule exchange after rejection.
-      operationId: previewRepair
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to preview
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-    post:
-      tags:
-        - transaction
-      summary: Send repair transaction envelope
-      description: Repair the incoming transaction envelope for a specific transaction
-      operationId: repairTransaction
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to repair
-          required: true
-          schema:
-            type: string
-            format: UUID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-        '404':
-          description: Transaction not found
-  /v1/transactions/{transactionID}/secure-envelopes:
-    get:
-      tags:
-        - secure_envelope
-      summary: List secure envelopes for transaction
-      description: Paginated list of all secure envelopes for the specified transaction
-      operationId: listSecureEnvelopes
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to return secure envelopes for
-          required: true
-          schema:
-            type: string
-            format: UUID
-        - name: decrypt
-          in: query
-          description: If specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption.
-          schema:
-            type: boolean
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EnvelopesList'
-        '206':
-          description: Not all envelopes were able to be decrypted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EnvelopesList'
-  /v1/transactions/{transactionID}/secure-envelopes/{envelopeID}:
-    get:
-      tags:
-        - secure_envelope
-      summary: Lookup a specific secure envelope
-      description: Returns detailed information about the specified secure envelope
-      operationId: envelopeDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction to return secure envelope for
-          required: true
-          schema:
-            type: string
-            format: UUID
-        - name: envelopeID
-          in: path
-          description: ID of secure envelope to return
-          required: true
-          schema:
-            type: string
-            format: ULID
-        - name: decrypt
-          in: query
-          description: If specified, Envoy will decrypt the secure envelope before returning the response in the clear. This operation will only succeed if the keys are available for decryption.
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecureEnvelope'
-        '206':
-          description: Partial content returned (could not decrypt secure envelope)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecureEnvelope'
-        '404':
-          description: Secure envelope not found
-    delete:
-      tags:
-        - secure_envelope
-      summary: Delete a specific secure envelope
-      description: Deletes the specified secure envelope
-      operationId: deleteSecureEnvelope
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: transactionID
-          in: path
-          description: ID of transaction of the secure envelope to be deleted
-          required: true
-          schema:
-            type: string
-            format: UUID
-        - name: envelopeID
-          in: path
-          description: ID of secure envelope to delete
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: Secure envelope not found
-        '501':
-          description: Not implemented
-  /v1/accounts:
-    get:
-      tags:
-        - account
-      summary: List customer accounts
-      description: Paginated list of all stored customer accounts
-      operationId: listAccounts
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountList'
-    post:
-      tags:
-        - account
-      summary: Create customer account
-      description: Create a new customer account
-      operationId: createAccount
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Create a new customer account
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Account'
-        required: true
-      responses:
-        '201':
-          description: Account created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/account/{accountID}:
-    get:
-      tags:
-        - account
-      summary: Find account by ID
-      description: Returns a single account if found
-      operationId: accountDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account to return
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '404':
-          description: Account not found
-    put:
-      tags:
-        - account
-      summary: Updates an account record
-      description: Update an account record (does not patch, all fields are required)
-      operationId: updateAccount
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account to update
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: Updated account record
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Account'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-    delete:
-      tags:
-        - account
-      summary: Deletes an account
-      description: Deletes an account and associated crypto addresses
-      operationId: deleteAccount
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account to delete
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: Account not found
-  /v1/accounts/{accountID}/crypto-addresses:
-    get:
-      tags:
-        - crypto_address
-      summary: List crypto addresses for account
-      description: Returns a paginated list of all crypto addresses associated with the account
-      operationId: listCryptoAddresses
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account to return crypto addresses for
-          required: true
-          schema:
-            type: string
-            format: ULID
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CryptoAddressList'
-        '404':
-          description: Account not found
-    post:
-      tags:
-        - crypto_address
-      summary: Create crypto address
-      description: Create a crypto address associated with the specified account
-      operationId: createCryptoAddress
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account to create crypto address for
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: Crypto address to create
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CryptoAddress'
-        required: true
-      responses:
-        '201':
-          description: Crypto address created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CryptoAddress'
-        '400':
-          description: Invalid input
-        '404':
-          description: Account not found
-        '422':
-          description: Validation exception or missing field
-  /v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID}:
-    get:
-      tags:
-        - crypto_address
-      summary: Lookup a specific crypto address
-      description: Returns detailed information about the specified crypto address
-      operationId: cryptoAddressDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account of crypto address to be returned
-          required: true
-          schema:
-            type: string
-            format: ULID
-        - name: cryptoAddressID
-          in: path
-          description: ID of crypto address to return
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CryptoAddress'
-        '404':
-          description: Account or crypto address not found
-    put:
-      tags:
-        - crypto_address
-      summary: Update a crypto address
-      description: Update a crypto address record (does not patch, all fields are required)
-      operationId: updateCryptoAddress
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account of crypto address to be updated
-          required: true
-          schema:
-            type: string
-            format: ULID
-        - name: cryptoAddressID
-          in: path
-          description: ID of crypto address to update
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: Updated crypto address record
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CryptoAddress'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CryptoAddress'
-        '404':
-          description: Account or crypto address not found
-        '422':
-          description: Validation exception or missing field
-    delete:
-      tags:
-        - crypto_address
-      summary: Delete a crypto address
-      description: Delete a crypto address record associated with account
-      operationId: deleteCryptoAddress
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: accountID
-          in: path
-          description: ID of account of crypto address to be deleted
-          required: true
-          schema:
-            type: string
-            format: ULID
-        - name: cryptoAddressID
-          in: path
-          description: ID of crypto address to delete
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: Account or crypto address not found
-  /v1/counterparties:
-    get:
-      tags:
-        - counterparty
-      summary: List counterparties
-      description: Paginated list of all stored counterparties
-      operationId: listCounterparties
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CounterpartyList'
-    post:
-      tags:
-        - counterparty
-      summary: Create counterparty
-      description: Create a new counterparty
-      operationId: createCounterparty
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Create a new counterparty
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Counterparty'
-        required: true
-      responses:
-        '200':
-          description: Counterparty created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Counterparty'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/counterparties/search:
-    get:
-      tags:
-        - counterparty
-      summary: Search for a counterparty by name
-      description: Performs a fuzzy string matching search of the query against all of the counterparty names in the database, returning a ranked list of search results that can be limited by the number of items returned.
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: query
-          in: query
-          description: Search query to execute against counterparty names
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          description: Limit the number of search results to return in the query
-          schema:
-            type: integer
-            default: 10
-            minimum: 0
-            maximum: 50
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CounterpartyList'
-        '400':
-          description: Invalid input
-  /v1/counterparties/{counterpartyID}:
-    get:
-      tags:
-        - counterparty
-      summary: Find counterparty by ID
-      description: Returns a single counterparty if found
-      operationId: counterpartyDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: counterpartyID
-          in: path
-          description: ID of counterparty to return
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Counterparty'
-        '404':
-          description: Counterparty not found
-    put:
-      tags:
-        - counterparty
-      summary: Updates a counterparty record
-      description: Update a counterparty record (does not patch, all fields are required)
-      operationId: updateCounterparty
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: counterpartyID
-          in: path
-          description: ID of counterparty to update
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: Updated counterparty record
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Counterparty'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Counterparty'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-    delete:
-      tags:
-        - counterparty
-      summary: Deletes a counterparty
-      description: Deletes a counterparty
-      operationId: deleteCounterparty
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: counterpartyID
-          in: path
-          description: ID of counterparty to delete
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: Counterparty not found
-  /v1/users:
-    get:
-      tags:
-        - user
-      summary: List users
-      description: Paginated list of all  users
-      operationId: listUsers
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserList'
-    post:
-      tags:
-        - user
-      summary: Create user
-      description: Create a new user
-      operationId: createUser
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Create a new user
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        '200':
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-  /v1/users/{userID}:
-    get:
-      tags:
-        - user
-      summary: Find user by ID
-      description: Returns a single user if found
-      operationId: userDetail
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: userID
-          in: path
-          description: ID of user to return
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: User not found
-    put:
-      tags:
-        - user
-      summary: Updates a user record
-      description: Update a user record (does not patch, all fields are required)
-      operationId: updateUser
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: userID
-          in: path
-          description: ID of user to update
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: Updated user record
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception or missing field
-    delete:
-      tags:
-        - user
-      summary: Deletes a user
-      description: Deletes a user
-      operationId: deleteUser
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: userID
-          in: path
-          description: ID of user to delete
-          required: true
-          schema:
-            type: string
-            format: ULID
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: User not found
-  /v1/users/{userID}/password:
-    post:
-      tags:
-        - user
-      summary: Change user password
-      description: Change the password for a user
-      operationId: changeUserPassword
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: userID
-          in: path
-          description: ID of user to change password for
-          required: true
-          schema:
-            type: string
-            format: ULID
-      requestBody:
-        description: New password
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPassword'
-        required: true
-      responses:
-        '200':
-          description: User password changed
-          content:
-            application/json:
-              schema:
-                type: string
-                description: The new password for the user
-
-        '400':
-          description: Invalid input
-        '404':
-          description: User not found
-  /v1/apikeys:
-    get:
-      tags:
-        - apikey
-      summary: List API Keys
-      description: Returns a paginated list of all api keys that have been issued
-      operationId: listAPIKeys
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-        - name: next_page_token
-          in: query
-          schema:
-            type: string
-        - name: prev_page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIKeyList'
-    post:
-      tags:
-        - apikey
-      summary: Create a new API Key
-      description: Request a new api key to be generated with the specified description and permissions 
-      operationId: createAPIKey
-      security:
-        - bearer-auth: [ ]
-      requestBody:
-        description: Only description and permissions are allowed to be posted
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/APIKey'
-      responses:
-        '200':
-          description: API Key created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIKey'
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation error or missing fields
-  /v1/apikeys/{keyID}:
-    get:
-      tags:
-        - apikey
-      summary: Request API Key detail 
-      description: Returns detailed response about an API Key
-      operationId: apikeyDetail
-      security:
-        bearer-auth: [ ]
-      parameters:
-        - name: keyID
-          in: path
-          description: id or client id of api key to return
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIKey'
-        '404':
-          description: Not Found
-    put:
-      tags:
-        - apikey
-      summary: Update an api key record
-      description: Update an api key description (note this is the only field that can be updated)
-      operationId: updateAPIKey
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: keyID
-          in: path
-          description: id or client id of api key to return
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: update API Key data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/APIKey'
-      responses:
-        '200': 
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIKey'
-        '400':
-          description: Invalid input
-        '404':
-          description: Not Found
-        '422':
-          description: Validation exception or missing fields
-    delete:
-      tags:
-        - apikey
-      summary: Revoke an api key
-      description: Revoke an api key 
-      operationId: revokeAPIKey
-      security:
-        - bearer-auth: [ ]
-      parameters:
-        - name: keyID
-          in: path
-          description: id or client id of api key to return
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-        '404':
-          description: API Key not found
-  /v1/utilities/travel-address/encode:
-    post:
-      tags:
-        - utility
-      summary: Encode travel address
-      description: Encodes a travel address into a TRP-formatted string
-      operationId: encodeTravelAddress
-      requestBody:
-        description: Travel address to encode
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TravelAddress'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TravelAddress'
-        '400':
-          description: Invalid input
-  /v1/utilities/travel-address/decode:
-    post:
-      tags:
-        - utility
-      summary: Decode travel address
-      description: Decodes a TRP-formatted travel address into its component parts
-      operationId: decodeTravelAddress
-      requestBody:
-        description: TRP-formatted travel address to decode
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TravelAddress'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TravelAddress'
-        '400':
-          description: Invalid input
+security:
+  - {}
+  - permissions:
+      - users:manage
+      - users:view
+      - apikeys:manage
+      - apikeys:view
+      - apikeys:revoke
+      - counterparties:manage
+      - counterparties:view
+      - accounts:manage
+      - accounts:view
+      - travelrule:manage
+      - travelrule:delete
+      - travelrule:view
+      - config:manage
+      - config:view
+      - pki:manage
+      - pki:delete
+      - pki:view
 components:
   schemas:
-    StatusReply:
+    Reply:
       type: object
-      description: The response object for the status endpoint.
+      description: A standard reply object that is used to indicate success with a JSON
+        body if required.
       properties:
-        status:
-          type: string
-          example: ok
-          enum:
-            - ok
-            - not ready
-            - unhealthy
-            - maintenance
-          description: The status of the node.
-        uptime:
-          type: string
-          format: duration
-          example: 25h33m29.4860s
-          description: The duration since the node was last started.
-        version:
-          type: string
-          format: semver
-          example: 1.0.0
-          description: The version of the node.
-    APIAuthentication:
+        success:
+          type: boolean
+          description: Set to true if the request was successful, false if there was an
+            error.
+          example: true
+      example:
+        success: true
+    ErrorReply:
       type: object
-      description: The request object for the authentication endpoint.
+      description: A general error reply that includes the details of why the request was
+        bad.
       properties:
-        client_id:
+        success:
+          type: boolean
+          description: Set to true if the request was successful, false if there was an
+            error (see reply).
+          example: false
+        error:
           type: string
-          description: The client ID for authentication.
-        client_secret:
-          type: string
-          description: The client secret for authentication.
-    LoginReply:
+          description: A short description of the error intended to help the user fix the
+            request and retry.
+          example: resource not found
+      example:
+        success: false
+        error: resource not found
+    FieldErrors:
       type: object
-      description: The response object for the authentication endpoint.
+      description: A set of errors used to indicate problems with specific fields in the
+        request body.
       properties:
-        access_token:
-          type: string
-          description: The access token for the authenticated session.
-        refresh_token:
-          type: string
-          description: The refresh token for obtaining a new access token.
-    ReauthenticateRequest:
+        success:
+          type: boolean
+          description: Set to true if the request was successful, false if there was an
+            error (see error reply).
+          example: false
+        errors:
+          type: array
+          description: A list of the fields and their associated errors.
+          items:
+            type: object
+            description: An individual field error that specifies the name of the field and
+              the validation error.
+            properties:
+              field:
+                type: string
+                description: The name of the field in the request body (may be "."
+                  delimited to indicate nested fields).
+                example: country
+              error:
+                type: string
+                description: A brief description of the validation error that occurred.
+                example: not a valid ISO-3166-1 Alpha 2 country code
+            example:
+              field: country
+              error: not a valid ISO-3166-1 Alpha 2 country code
+          example:
+            - field: common_name
+              error: common name must be a valid domain name with a correct tld
+            - field: country
+              error: not a valid ISO-3166-1 Alpha 2 country code
+      example:
+        success: false
+        errors:
+          - field: common_name
+            error: common name must be a valid domain name with a correct tld
+          - field: country
+            error: not a valid ISO-3166-1 Alpha 2 country code
+    PageInfo:
       type: object
-      description: The request object for the reauthentication endpoint.
-      properties:
-        refresh_token:
-          type: string
-          description: The refresh token for reauthentication.
-    PageQuery:
-      type: object
-      description: The request object for paginated endpoints.
+      description: The page info for the current page of a paginated list resource.
       properties:
         page_size:
           type: integer
           example: 50
-          description: The number of items to return per page.
+          description: The number of items on the current page, defaults to the page size
+            requested in the page query.
         next_page_token:
           type: string
           format: base64
-          description: The token for retrieving the next page of results.
+          description: An encrypted handle that can be used in a page query to return the
+            next page of results after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
         prev_page_token:
           type: string
           format: base64
-          description: The token for retrieving the previous page of results.
+          description: An encrypted handle that can be used in a page query to return the
+            previous page of results after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+      example:
+        page_size: 50
+        next_page_token: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+    APIAuthentication:
+      type: object
+      description: Authenticate an API Key using its client ID and secret to receive a JWT
+        bearer token.
+      properties:
+        client_id:
+          type: string
+          description: The client ID of the API Key for authentication.
+          example: kbxiRmtYvLbkYKrlefJoSP
+        client_secret:
+          type: string
+          description: The client secret of the API Key for authentication.
+          example: R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng
+      required:
+        - client_id
+        - client_secret
+      example:
+        client_id: kbxiRmtYvLbkYKrlefJoSP
+        client_secret: R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng
+    LoginReply:
+      type: object
+      description: Returns two JWT tokens. The access token should be used as a Bearer
+        token in the Authorization header. The refresh token can be used to
+        obtain a new access token when it expires to reauthenticate without
+        having to post the client ID and secret again.
+      properties:
+        access_token:
+          type: string
+          format: JWT
+          description: The access token with API key claims that should be used as the
+            Bearer token in the Authorization header.
+          example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIl0sImV4cCI6MTcyNDg4NjU1OCwibmJmIjoxNzI0ODgyOTU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3IiwiY2xpZW50SUQiOiJrYnhpUm10WXZMYmtZS3JsZWZKb1NQIiwicGVybWlzc2lvbnMiOlsidXNlcnM6bWFuYWdlIiwidXNlcnM6dmlldyIsImFwaWtleXM6bWFuYWdlIiwiYXBpa2V5czp2aWV3IiwiYXBpa2V5czpyZXZva2UiLCJjb3VudGVycGFydGllczptYW5hZ2UiLCJjb3VudGVycGFydGllczp2aWV3IiwiYWNjb3VudHM6bWFuYWdlIiwiYWNjb3VudHM6dmlldyIsInRyYXZlbHJ1bGU6bWFuYWdlIiwidHJhdmVscnVsZTpkZWxldGUiLCJ0cmF2ZWxydWxlOnZpZXciLCJjb25maWc6bWFuYWdlIiwiY29uZmlnOnZpZXciLCJwa2k6bWFuYWdlIiwicGtpOmRlbGV0ZSIsInBraTp2aWV3Il19.vZeoZ6UR9e2qOU2Zd64nlnPne4Hbm3t8QtX_uM72pyf8BRIEehruioQCQ8RfqNJpSyacRCfhAKovTKChnWIPd8Xdkzcl9_bHnhYKlTzhdPYlD5K1uCNkNSJHZVwEJeG3aHB7xE-MVrvXivia3xHfth_ZSQab3jVuL6q_fjG4yPNpf3yjXbO3OPaGpavcElMf2r-DdIMIIewCmNktjrkFNtiNPmJU3MzLzwxLQPm2WUkcKZ27e7KD_LL2ZgluyVSM0BRehcdkPXmOXGF5KCTvHu7Xo5evUg6DvftEIz5IjCd-6s1YkZEJSQqBlfymhXXsmW1tlK4RYhay10Lg_k16HtO-kByLB2vtW6V1090XBK6tvjAJNjSGrD2tTFWbRlEe2YdYQ3pQilnSeJW1hBSpSYb_Ty94FwcsMrq_NiULYmxh6dOYtzrANou0EKd0HoYjw4d0dQOlCqSBfFclOoMmftjms5QG6E93s_Bjp2nhpKs6fr7TQhwmVChiVWBV2eq5s1mTLngNQhgLdNddcDJ_DJiisSv_V3nD-2uLcQaq9ZQ60oW1jQzUoTaJY9uw3SEToUa7bGRNKmHnUYYxRxqyVVYceaOlklPqfyT58zEBKqblhZfAE39rtyVZKOCc3x_d9yyQ9YaV6ijpaxC0PKTW0tSEWzNesNv4wayH-pNaSJM
+        refresh_token:
+          type: string
+          format: JWT
+          description: The refresh token can be used to re-authenticate an expired access
+            token, so long as the refresh token is still valid.
+          example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+      example:
+        access_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIl0sImV4cCI6MTcyNDg4NjU1OCwibmJmIjoxNzI0ODgyOTU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3IiwiY2xpZW50SUQiOiJrYnhpUm10WXZMYmtZS3JsZWZKb1NQIiwicGVybWlzc2lvbnMiOlsidXNlcnM6bWFuYWdlIiwidXNlcnM6dmlldyIsImFwaWtleXM6bWFuYWdlIiwiYXBpa2V5czp2aWV3IiwiYXBpa2V5czpyZXZva2UiLCJjb3VudGVycGFydGllczptYW5hZ2UiLCJjb3VudGVycGFydGllczp2aWV3IiwiYWNjb3VudHM6bWFuYWdlIiwiYWNjb3VudHM6dmlldyIsInRyYXZlbHJ1bGU6bWFuYWdlIiwidHJhdmVscnVsZTpkZWxldGUiLCJ0cmF2ZWxydWxlOnZpZXciLCJjb25maWc6bWFuYWdlIiwiY29uZmlnOnZpZXciLCJwa2k6bWFuYWdlIiwicGtpOmRlbGV0ZSIsInBraTp2aWV3Il19.vZeoZ6UR9e2qOU2Zd64nlnPne4Hbm3t8QtX_uM72pyf8BRIEehruioQCQ8RfqNJpSyacRCfhAKovTKChnWIPd8Xdkzcl9_bHnhYKlTzhdPYlD5K1uCNkNSJHZVwEJeG3aHB7xE-MVrvXivia3xHfth_ZSQab3jVuL6q_fjG4yPNpf3yjXbO3OPaGpavcElMf2r-DdIMIIewCmNktjrkFNtiNPmJU3MzLzwxLQPm2WUkcKZ27e7KD_LL2ZgluyVSM0BRehcdkPXmOXGF5KCTvHu7Xo5evUg6DvftEIz5IjCd-6s1YkZEJSQqBlfymhXXsmW1tlK4RYhay10Lg_k16HtO-kByLB2vtW6V1090XBK6tvjAJNjSGrD2tTFWbRlEe2YdYQ3pQilnSeJW1hBSpSYb_Ty94FwcsMrq_NiULYmxh6dOYtzrANou0EKd0HoYjw4d0dQOlCqSBfFclOoMmftjms5QG6E93s_Bjp2nhpKs6fr7TQhwmVChiVWBV2eq5s1mTLngNQhgLdNddcDJ_DJiisSv_V3nD-2uLcQaq9ZQ60oW1jQzUoTaJY9uw3SEToUa7bGRNKmHnUYYxRxqyVVYceaOlklPqfyT58zEBKqblhZfAE39rtyVZKOCc3x_d9yyQ9YaV6ijpaxC0PKTW0tSEWzNesNv4wayH-pNaSJM
+        refresh_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+    ReauthenticateRequest:
+      type: object
+      description: Reauthenticate an expired `access_token` to receive a new access token
+        without having to authenticate with your API key credentials.
+      properties:
+        refresh_token:
+          type: string
+          description: The JWT refresh token for re-authentication
+          format: JWT
+          example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+      required:
+        - refresh_token
+      example:
+        refresh_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
     Account:
       type: object
-      description: The account object.
+      description: An account of a customer whose identity information is required for
+        compliance. Accounts are also associated with crypto wallet addresses.
       properties:
         id:
           type: string
           format: ULID
-          description: The unique identifier of the account.
+          description: The unique identifier of the account on your Envoy node.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
         customer_id:
           type: string
-          description: The customer ID associated with the account.
+          description: An internal customer ID associated with the account that links it to
+            your customer management system.
+          example: "674907513"
         first_name:
           type: string
-          description: The first name of the account.
+          description: The first or "secondary" name of the customer account.
+          example: James
         last_name:
           type: string
-          description: The last name of the account.
-        travel_address:
-          type: string
-          description: The travel address for this account.
+          description: The last or "primary" name of the customer account, often a family
+            name. This name is used to sort accounts.
+          example: Bond
         ivms101:
           type: string
-          description: The IVMS101 certificate of the counterparty.
+          format: base64
+          description: The base64 encoded representation of a JSON or protocol buffer
+            IVMS101 record for the natural person on the account.
+          example: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+        travel_address:
+          type: string
+          format: TravelAddress
+          description: The customer account travel address that allows counterparties to
+            send this account travel rule inquiries.
+          example: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
         crypto_addresses:
           type: array
+          description: A list of crypto addresses associated with the account.
           items:
-            $ref: '#/components/schemas/CryptoAddress'
+            $ref: "#/components/schemas/CryptoAddress"
+          example: []
         created:
           type: string
           format: date-time
-          description: The date and time when the transaction was created.
+          description: The date and time when the account record was created.
+          example: 2024-08-28T10:14:43-05:00
         modified:
           type: string
           format: date-time
-          description: The date and time when the transaction was last modified.
+          description: The date and time when the account record was last modified.
+          example: 2024-08-28T12:23:24-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        customer_id: "674907513"
+        first_name: James
+        last_name: Bond
+        travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+        crypto_addresses:
+          - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+            crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+            network: ETH
+            travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+            created: 2024-08-29T14:05:31-05:00
+            modified: 2024-08-30T18:39:02-05:00
+          - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+            crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            network: BTC
+            travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+            created: 2024-08-28T10:14:43-05:00
+            modified: 2024-08-28T12:23:24-05:00
+        created: 2024-08-28T10:14:43-05:00
+        modified: 2024-08-28T12:23:24-05:00
+    AccountForm:
+      type: object
+      description: The editable fields in a customer account object.
+      properties:
+        customer_id:
+          type: string
+          description: The internal customer ID can be changed at any time, thought it is
+            not recommended.
+          example: "674907513"
+        first_name:
+          type: string
+          description: The first or "secondary" name of the customer account can be
+            modified.
+          example: James
+        last_name:
+          type: string
+          description: The last or "primary" name of the customer account, often a family
+            name, can be modified.
+          example: Bond
+        ivms101:
+          type: string
+          format: base64
+          description: The base64 encoded representation of a JSON or protocol buffer
+            IVMS101 record for the natural person on the account can be modified
+            but must be parseable.
+          example: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+      required:
+        - last_name
+      example:
+        customer_id: "674907513"
+        first_name: James
+        last_name: Bond
+        ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+    AccountSummary:
+      type: object
+      description: A summary of customer account details that is used in account lists to
+        minimize data transfer.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the account on your Envoy node - used to
+            construct the detail URL.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        customer_id:
+          type: string
+          description: An internal customer ID associated with the account to reference in
+            your customer management system.
+          example: "674907513"
+        first_name:
+          type: string
+          description: The first or "secondary" name of the natural person associated with
+            the customer account.
+          example: James
+        last_name:
+          type: string
+          description: The last or "primary" name of the natural person assoociated
+            customer account. This name is used to sort accounts.
+          example: Bond
+        travel_address:
+          type: string
+          format: TravelAddress
+          description: A travel address that the customer can send to request payment using
+            virtual assets.
+          example: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the account record was created in the
+            database.
+          example: 2024-08-28T10:14:43-05:00
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the account record was last modified in the
+            database.
+          example: 2024-08-28T12:23:24-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        customer_id: "674907513"
+        first_name: James
+        last_name: Bond
+        travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        created: 2024-08-28T10:14:43-05:00
+        modified: 2024-08-28T12:23:24-05:00
     AccountList:
       type: object
-      description: The response object for the accounts endpoint.
+      description: A list of Account objects, returned in a paginated fashion.
       properties:
         page:
-          $ref: '#/components/schemas/PageQuery'
+          $ref: "#/components/schemas/PageInfo"
         accounts:
           type: array
           items:
-            $ref: '#/components/schemas/Account'
+            $ref: "#/components/schemas/AccountSummary"
+          example:
+            - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              customer_id: "674907513"
+              first_name: James
+              last_name: Bond
+              travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+              created: 2024-08-28T10:14:43-05:00
+              modified: 2024-08-28T12:23:24-05:00
+            - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
+              customer_id: "39910432"
+              first_name: Twilda
+              last_name: Swansong
+              travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+              created: 2024-08-29T14:09:21-05:00
+              modified: 2024-08-29T14:10:50-05:00
+      example:
+        page:
+          page_size: 50
+        accounts:
+          - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+            customer_id: "674907513"
+            first_name: James
+            last_name: Bond
+            travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+            created: 2024-08-28T10:14:43-05:00
+            modified: 2024-08-28T12:23:24-05:00
+          - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
+            customer_id: "39910432"
+            first_name: Twilda
+            last_name: Swansong
+            travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+            created: 2024-08-29T14:09:21-05:00
+            modified: 2024-08-29T14:10:50-05:00
     CryptoAddress:
       type: object
-      description: The crypto address object.
+      description: A record of a crypto wallet address and the blockchain network that
+        wallet belongs to.
       properties:
         id:
           type: string
           format: ULID
-          description: The unique identifier of the crypto address.
+          description: The unique identifier of the crypto address on your Envoy node.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
         crypto_address:
           type: string
-          description: The crypto address itself.
+          description: The crypto or wallet address for the blockchain network.
+          example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
         network:
           type: string
-          description: The network associated with the crypto address in SIP0044 encoding.
+          description: The network the crypto wallet address belongs to in SLIP-0044
+            three-character encoding.
+          example: BTC
         asset_type:
           type: string
-          description: The asset type with the crypto address.
+          description: If the network supports multiple asset types, the description of the
+            asset type managed by the wallet.
+          example: BCH
         tag:
           type: string
-          description: The memo or destination tag associated with the address.
+          description: The memo or destination tag associated with the crypto wallet
+            address if required by the network.
+          example: dt=1234567890
         travel_address:
           type: string
-          description: The travel address of the crypto address.
+          format: TravelAddress
+          description: The wallet specific travel address that allows counterparties to
+            send travel rule inquiries associated with the wallet.
+          example: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
         created:
           type: string
           format: date-time
-          description: The date and time when the crypto address was created.
+          description: The date and time when the crypto address record was created.
+          example: 2024-08-28T10:14:43-05:00
         modified:
           type: string
           format: date-time
-          description: The date and time when the crypto address was last modified.
+          description: The date and time when the crypto address record was last modified.
+          example: 2024-08-28T12:23:24-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        network: BTC
+        travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+        created: 2024-08-28T10:14:43-05:00
+        modified: 2024-08-28T12:23:24-05:00
     CryptoAddressList:
       type: object
-      description: The response object for the crypto addresses endpoint.
+      description: A list of CryptoAddress objects, returned in a paginated fashion.
       properties:
         page:
-          $ref: '#/components/schemas/PageQuery'
+          $ref: "#/components/schemas/PageInfo"
         crypto_addresses:
           type: array
           items:
-            $ref: '#/components/schemas/CryptoAddress'
-    Transaction:
-      type: object
-      description: The transaction object.
-      properties:
-        id:
-          type: string
-          format: UUID
-          description: The unique identifier of the transaction.
-        source:
-          type: string
-          description: The source of the transaction. It may be 'local' meaning the transaction was created by the user, or 'remote' meaning it is an incoming message.
-        status:
-          type: string
-          description: The status of the transaction.
-        counterparty:
-          type: string
-          description: The counterparty of the transaction.
-        counterparty_id:
-          type: string
-          format: ULID
-          description: The unique identifier of the counterparty.
-        originator:
-          type: string
-          description: The full name of the originator of the transaction.
-        originator_address:
-          type: string
-          description: The originator's crypto address.
-        beneficiary:
-          type: string
-          description: The full name of the beneficiary of the transaction.
-        beneficiary_address:
-          type: string
-          description: The beneficiary's crypto address.
-        virtual_asset:
-          type: string
-          description: The virtual asset involved in the transaction. This may be a representation of the network or asset type.
-        amount:
-          type: number
-          format: double
-          description: The amount of the transaction.
-        last_update:
-          type: string
-          format: date-time
-          description: The date and time when the transaction was last updated.
-        envelope_count:
-          type: integer
-          description: The number of secure envelopes associated with the transaction.
-        created:
-          type: string
-          format: date-time
-          description: The date and time when the transaction was created.
-        modified:
-          type: string
-          format: date-time
-          description: The date and time when the transaction was last modified.
-    Envelope:
-      type: object
-      description: The envelope object.
-      properties:
-        envelope_id:
-          type: string
-          description: The unique identifier of the envelope.
-        error:
-          $ref: '#/components/schemas/Rejection'
-        identity:
-          $ref: '#/components/schemas/IdentityPayload'
-        transaction:
-          $ref: '#/components/schemas/Transaction'
-        pending:
-          $ref: '#/components/schemas/Pending'
-        sent_at:
-          type: string
-          format: date-time
-          description: The date and time when the envelope was sent.
-        received_at:
-          type: string
-          format: date-time
-          description: The date and time when the envelope was received.
-    Pending:
-      type: object
-      description: The pending envelope object.
-      properties:
-        envelope_id:
-          type: string
-          description: The unique identifier of the pending envelope.
-        received_by:
-          type: string
-          description: The recipient of the pending envelope.
-        received_at:
-          type: string
-          format: date-time
-          description: The date and time when the pending envelope was received.
-        message:
-          type: string
-          description: The message associated with the pending envelope.
-        reply_not_after:
-          type: string
-          format: date-time
-          description: The date and time when a reply will be returned by.
-        reply_not_before:
-          type: string
-          format: date-time
-          description: The date and time that the response will not be sent before.
-        extra_json:
-          type: string
-          description: Additional JSON data associated with the pending envelope.
-        transaction:
-          $ref: '#/components/schemas/Transaction'
-    SecureEnvelope:
-      type: object
-      description: The secure envelope object.
-      properties:
-        id:
-          type: string
-          format: ULID
-          description: The unique identifier of the secure envelope.
-        direction:
-          type: string
-          description: The direction of the secure envelope (incoming or outgoing).
-        envelope_id:
-          type: string
-          format: UUID
-          description: The unique identifier of the envelope associated with the secure envelope.
-        payload:
-          type: string
-          format: byte
-          description: The encrypted payload of the secure envelope.
-        encryption_key:
-          type: string
-          format: byte
-          description: The encryption key used to encrypt the secure envelope.
-        encryption_algorithm:
-          type: string
-          description: The encryption algorithm used to encrypt the secure envelope.
-        valid_hmac:
-          type: boolean
-          description: Indicates whether the HMAC of the secure envelope is valid.
-        hmac:
-          type: string
-          format: byte
-          description: The HMAC of the secure envelope.
-        hmac_secret:
-          type: string
-          format: byte
-          description: The HMAC secret used to generate the HMAC of the secure envelope.
-        hmac_algorithm:
-          type: string
-          description: The HMAC algorithm used to generate the HMAC of the secure envelope.
-        is_error:
-          type: boolean
-          description: Indicates whether the secure envelope contains an error.
-        error:
-          type: object
-          description: The error object associated with the secure envelope, if any.
-        timestamp:
-          type: string
-          format: date-time
-          description: The timestamp of the secure envelope.
-        sealed:
-          type: boolean
-          description: Indicates whether the secure envelope is sealed.
-        public_key_signature:
-          type: string
-          description: The public key signature of the secure envelope.
-        original:
-          type: string
-          format: byte
-          description: The original payload of the secure envelope.
-    EnvelopesList:
-      type: object
-      description: The response object for the secure envelopes endpoint.
-      properties:
+            $ref: "#/components/schemas/CryptoAddress"
+          example:
+            - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+              crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+              network: ETH
+              travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+              created: 2024-08-29T14:05:31-05:00
+              modified: 2024-08-30T18:39:02-05:00
+            - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+              network: BTC
+              travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+              created: 2024-08-28T10:14:43-05:00
+              modified: 2024-08-28T12:23:24-05:00
+      example:
         page:
-          $ref: '#/components/schemas/PageQuery'
-        is_decrypted:
-          type: boolean
-          description: Indicates whether the secure envelopes in the list are decrypted.
-        secure_envelopes:
-          type: array
-          items:
-            $ref: '#/components/schemas/SecureEnvelope'
-          description: The list of secure envelopes.
-        decrypted_envelopes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Envelope'
-          description: The list of decrypted envelopes.
-    Rejection:
+          page_size: 50
+        crypto_addresses:
+          - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+            crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+            network: ETH
+            travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+            created: 2024-08-29T14:05:31-05:00
+            modified: 2024-08-30T18:39:02-05:00
+          - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+            crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            network: BTC
+            travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+            created: 2024-08-28T10:14:43-05:00
+            modified: 2024-08-28T12:23:24-05:00
+    CryptoAddressForm:
       type: object
-      description: The rejection object.
+      description: The editable fields of a crypto wallet address for create and update.
       properties:
-        code:
-          type: string
-          enum:
-            - REJECTED
-            - UNKNOWN_WALLET_ADDRESS
-            - UNKNOWN_IDENTITY
-            - UNKNOWN_ORIGINATOR
-            - UNKNOWN_BENEFICIARY
-            - UNSUPPORTED_CURRENCY
-            - EXCEEDED_TRADING_VOLUME
-            - COMPLIANCE_CHECK_FAIL
-            - NO_COMPLIANCE
-            - HIGH_RISK
-            - OUT_OF_NETWORK
-            - UNPARSEABLE_IDENTITY
-            - UNPARSEABLE_TRANSACTION
-            - MISSING_FIELDS
-            - INCOMPLETE_IDENTITY
-          description: TRISA error codes. For a complete list of error codes, visit https://trisa.dev/api/errors/index.html
-        message:
-          type: string
-          description: The error message of the rejection.
-        request_retry:
-          type: boolean
-          description: Indicates whether the request should be retried.
-    TransactionsList:
-      type: object
-      description: The response object for the transactions endpoint.
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-    Prepare:
-      type: object
-      description: The request object for the prepare transaction endpoint.
-      properties:
-        travel_address:
-          type: string
-          description: The travel address of the transaction.
-        originator:
-          $ref: '#/components/schemas/Person'
-        beneficiary:
-          $ref: '#/components/schemas/Person'
-        transfer:
-          $ref: '#/components/schemas/Transfer'
-    Prepared:
-      type: object
-      description: The response object for the prepare transaction endpoint.
-      properties:
-        travel_address:
-          type: string
-          description: The travel address of the prepared transaction.
-        identity:
-          $ref: '#/components/schemas/IdentityPayload'
-        transaction:
-          $ref: '#/components/schemas/Transaction'
-    Person:
-      type: object
-      description: The person object.
-      properties:
-        first_name:
-          type: string
-          description: The first name of the person.
-        last_name:
-          type: string
-          description: The last name of the person.
-        customer_id:
-          type: string
-          description: The customer ID of the person.
-        addr_line_1:
-          type: string
-          description: The first line of the person's address.
-        addr_line_2:
-          type: string
-          description: The second line of the person's address.
-        city:
-          type: string
-          description: The city of the person's address.
-        state:
-          type: string
-          description: The state of the person's address.
-        post_code:
-          type: string
-          description: The postal code of the person's address.
-        country:
-          type: string
-          description: The country of the person's address.
         crypto_address:
           type: string
-          description: The crypto address of the person.
-    Transfer:
-      type: object
-      description: The transfer object.
-      properties:
-        amount:
-          type: number
-          format: double
-          description: The amount of the transfer.
+          description: The crypto or wallet address for the blockchain network (required).
+          example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
         network:
           type: string
-          description: The network of the transfer.
+          description: The network the crypto wallet address belongs to in SLIP-0044
+            three-character encoding (required).
+          example: BTC
         asset_type:
           type: string
-          description: The type of the virtual asset involved in the transfer.
-        transaction_id:
-          type: string
-          description: The unique identifier of the transfer transaction.
+          description: If the network supports multiple asset types, the description of the
+            asset type managed by the wallet. This field is not validated.
+          example: BCH
         tag:
           type: string
-          description: The tag associated with the transfer.
-    IdentityPayload:
-      type: object
-      description: The identity payload object.
-      properties:
-        originator:
-          $ref: '#/components/schemas/Originator'
-        beneficiary:
-          $ref: '#/components/schemas/Beneficiary'
-        originating_vasp:
-          $ref: '#/components/schemas/OriginatingVasp'
-        beneficiary_vasp:
-          $ref: '#/components/schemas/BeneficiaryVasp'
-        transfer_path:
-          $ref: '#/components/schemas/TransferPath'
-        payload_metadata:
-          $ref: '#/components/schemas/PayloadMetadata'
-    Originator:
-      type: object
-      description: The originator object.
-      properties:
-        originator_persons:
-          type: array
-          items:
-            $ref: '#/components/schemas/Person'
-          description: The list of originator persons.
-        account_numbers:
-          type: array
-          items:
-            type: string
-          description: The list of account numbers associated with the originator.
-    Beneficiary:
-      type: object
-      description: The beneficiary object.
-      properties:
-        beneficiary_persons:
-          type: array
-          items:
-            $ref: '#/components/schemas/Person'
-          description: The list of beneficiary persons.
-        account_numbers:
-          type: array
-          items:
-            type: string
-          description: The list of account numbers associated with the beneficiary.
-    OriginatingVasp:
-      type: object
-      description: The originating VASP object.
-      properties:
-        originating_vasp:
-          $ref: '#/components/schemas/Person'
-    BeneficiaryVasp:
-      type: object
-      description: The beneficiary VASP object.
-      properties:
-        beneficiary_vasp:
-          $ref: '#/components/schemas/Person'
-    IntermediaryVasp:
-      type: object
-      description: The intermediary VASP object.
-      properties:
-        intermediary_vasp:
-          $ref: '#/components/schemas/Person'
-        sequence:
-          type: integer
-          description: The sequence number of the intermediary VASP in the transfer path.
-    TransferPath:
-      type: object
-      description: The transfer path object.
-      properties:
-        transfer_path:
-          type: array
-          items:
-            $ref: '#/components/schemas/IntermediaryVasp'
-          description: The list of intermediary VASPs in the transfer path.
-    PayloadMetadata:
-      type: object
-      description: The metadata object for the identity payload.
-      properties:
-        transliteration_method:
-          type: array
-          items:
-            $ref: '#/components/schemas/TransliterationMethodCode'
-          description: The list of transliteration methods used in the identity payload.
-    TransliterationMethodCode:
-      type: string
-      enum:
-        - TRANSLITERATION_METHOD_CODE_OTHR
-        - TRANSLITERATION_METHOD_CODE_ARAB
-        - TRANSLITERATION_METHOD_CODE_ARAN
-        - TRANSLITERATION_METHOD_CODE_ARMN
-        - TRANSLITERATION_METHOD_CODE_CYRL
-        - TRANSLITERATION_METHOD_CODE_DEVA
-        - TRANSLITERATION_METHOD_CODE_GEOR
-        - TRANSLITERATION_METHOD_CODE_GREK
-        - TRANSLITERATION_METHOD_CODE_HANI
-        - TRANSLITERATION_METHOD_CODE_HEBR
-        - TRANSLITERATION_METHOD_CODE_KANA
-        - TRANSLITERATION_METHOD_CODE_KORE
-        - TRANSLITERATION_METHOD_CODE_THAI
-      description: Identifies the national script from which transliteration to Latin script is applied.
-    Counterparty:
-      type: object
-      description: The counterparty object.
-      properties:
-        id:
-          type: string
-          format: ULID
-          description: The unique identifier of the counterparty.
-        source:
-          type: string
-          description: The source of the counterparty.
-        directory_id:
-          type: string
-          description: The unique identifier of the directory that contains the counterparty.
-        registered_directory:
-          type: string
-          description: The name of the registered directory that contains the counterparty.
-        protocol:
-          type: string
-          description: The protocol used to communicate with the counterparty.
-        common_name:
-          type: string
-          description: The common name of the counterparty.
-        endpoint:
-          type: string
-          description: The endpoint URL of the counterparty.
-        travel_address:
-          type: string
-          description: The travel address of the counterparty.
-        name:
-          type: string
-          description: The name of the counterparty.
-        website:
-          type: string
-          description: The website URL of the counterparty.
-        country:
-          type: string
-          description: The country of the counterparty.
-        business_category:
-          type: string
-          description: The business category of the counterparty.
-        vasp_categories:
-          type: array
-          items:
-            type: string
-          description: The list of VASP categories that the counterparty belongs to.
-        verified_on:
-          type: string
-          format: date-time
-          description: The date and time when the counterparty was verified.
-        ivms101:
-          type: string
-          description: The IVMS101 certificate of the counterparty.
-        created:
-          type: string
-          format: date-time
-          description: The date and time when the counterparty was created.
-        modified:
-          type: string
-          format: date-time
-          description: The date and time when the counterparty was last modified.
-    CounterpartyList:
-      type: object
-      description: The response object for the counterparties endpoint.
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        counterparties:
-          type: array
-          items:
-            $ref: '#/components/schemas/Counterparty'
-    User:
-      type: object
-      description: The user object.
-      properties:
-        id:
-          type: string
-          format: ULID
-          description: The unique identifier of the user.
-        name:
-          type: string
-          description: The name of the user.
-        email:
-          type: string
-          description: The email address of the user.
-        password:
-          type: string
-          description: The password of the user.
-        role:
-          type: string
-          description: The role of the user.
-        last_login:
-          type: string
-          format: date-time
-          description: The date and time when the user last logged in.
-        created:
-          type: string
-          format: date-time
-          description: The date and time when the user was created.
-        modified:
-          type: string
-          format: date-time
-          description: The date and time when the user was last modified.
-    UserList:
-      type: object
-      description: The response object for the users endpoint.
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-    UserPassword:
-      type: object
-      description: The request object for changing a user's password.
-      properties:
-        password:
-          type: string
-          description: The new password for the user.
-        send_email:
-          type: boolean
-          description: Indicates whether to send an email to the user.
-    TravelAddress:
-      type: object
-      description: The travel address object.
-      properties:
-        encoded:
-          type: string
-          description: The encoded travel address.
-        decoded:
-          type: string
-          description: The decoded travel address.
-    APIKey:
-      type: object
-      description: A complete APIKey representation
-      properties:
-        id:
-          type: string
-          format: ULID
-          description: The unique identifier of the API key
-        description:
-          type: string
-          description: A textual description to help users identity the API key
-        client_id:
-          type: string
-          description: The client id of the API key used for authentication
-        secret:
-          type: string
-          description: The client secret of the API key used for authentication; only shown on create.
-        last_seen:
-          type: string
-          format: date-time
-          description: The last timestamp that the API key was used for authentication
-        permissions:
-          type: array
-          items:
-            type: string
-        created:
-          type: string
-          format: date-time
-          description: The date and time when the API key was created.
-        modified:
-          type: string
-          format: date-time
-          description: The date and time when the API key was last modified.
-    APIKeyList:
-      type: object
-      description: A list of API key summaries
-      properties:
-        page:
-          $ref: '#/components/schemas/PageQuery'
-        api_keys:
-          type: array
-          items:
-            $ref: '#/components/schemas/APIKey'
+          description: The memo or destination tag associated with the crypto wallet
+            address if required by the network. This field is not validated.
+          example: dt=1234567890
+      required:
+        - crypto_address
+        - network
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        network: BTC
   securitySchemes:
-    bearer-auth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Some Description
+  parameters:
+    page_size:
+      name: page_size
+      in: query
+      description: Specify the page size for a paginated list request, e.g. the number of
+        records to return in a single request.
+      schema:
+        type: integer
+      example: 50
+    next_page_token:
+      name: next_page_token
+      in: query
+      description: Used to specify the next page in a series of paginated list requests.
+        Page tokens expire, so make sure to use them in a sequence of requests
+        to retrieve a large list.
+      schema:
+        type: string
+        format: base64
+      example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+    prev_page_token:
+      name: prev_page_token
+      in: query
+      description: Used to specify the previous page in a series of paginated list
+        requests. Although reverse iteration is not necessarily supported, this
+        token can allow refresh of a previous page fetched during paginated
+        iteration.
+      schema:
+        type: string
+        format: base64
+      example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+paths:
+  /v1/authenticate:
+    post:
+      summary: Authenticate
+      description: Authenticate your client with your API Key and receive a JWT claims
+        package that can be used as a Bearer token to authenticate future
+        requests.
+      operationId: authenticate
+      tags:
+        - Authentication
+      requestBody:
+        description: An API authentication JSON payload with the API key client id and
+          secret.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/APIAuthentication"
+            example:
+              client_id: kbxiRmtYvLbkYKrlefJoSP
+              client_secret: R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng
+      responses:
+        "200":
+          description: Authentication Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginReply"
+              example:
+                access_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIl0sImV4cCI6MTcyNDg4NjU1OCwibmJmIjoxNzI0ODgyOTU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3IiwiY2xpZW50SUQiOiJrYnhpUm10WXZMYmtZS3JsZWZKb1NQIiwicGVybWlzc2lvbnMiOlsidXNlcnM6bWFuYWdlIiwidXNlcnM6dmlldyIsImFwaWtleXM6bWFuYWdlIiwiYXBpa2V5czp2aWV3IiwiYXBpa2V5czpyZXZva2UiLCJjb3VudGVycGFydGllczptYW5hZ2UiLCJjb3VudGVycGFydGllczp2aWV3IiwiYWNjb3VudHM6bWFuYWdlIiwiYWNjb3VudHM6dmlldyIsInRyYXZlbHJ1bGU6bWFuYWdlIiwidHJhdmVscnVsZTpkZWxldGUiLCJ0cmF2ZWxydWxlOnZpZXciLCJjb25maWc6bWFuYWdlIiwiY29uZmlnOnZpZXciLCJwa2k6bWFuYWdlIiwicGtpOmRlbGV0ZSIsInBraTp2aWV3Il19.vZeoZ6UR9e2qOU2Zd64nlnPne4Hbm3t8QtX_uM72pyf8BRIEehruioQCQ8RfqNJpSyacRCfhAKovTKChnWIPd8Xdkzcl9_bHnhYKlTzhdPYlD5K1uCNkNSJHZVwEJeG3aHB7xE-MVrvXivia3xHfth_ZSQab3jVuL6q_fjG4yPNpf3yjXbO3OPaGpavcElMf2r-DdIMIIewCmNktjrkFNtiNPmJU3MzLzwxLQPm2WUkcKZ27e7KD_LL2ZgluyVSM0BRehcdkPXmOXGF5KCTvHu7Xo5evUg6DvftEIz5IjCd-6s1YkZEJSQqBlfymhXXsmW1tlK4RYhay10Lg_k16HtO-kByLB2vtW6V1090XBK6tvjAJNjSGrD2tTFWbRlEe2YdYQ3pQilnSeJW1hBSpSYb_Ty94FwcsMrq_NiULYmxh6dOYtzrANou0EKd0HoYjw4d0dQOlCqSBfFclOoMmftjms5QG6E93s_Bjp2nhpKs6fr7TQhwmVChiVWBV2eq5s1mTLngNQhgLdNddcDJ_DJiisSv_V3nD-2uLcQaq9ZQ60oW1jQzUoTaJY9uw3SEToUa7bGRNKmHnUYYxRxqyVVYceaOlklPqfyT58zEBKqblhZfAE39rtyVZKOCc3x_d9yyQ9YaV6ijpaxC0PKTW0tSEWzNesNv4wayH-pNaSJM
+                refresh_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: client_id
+                    error: "missing client_id: this field is required"
+                  - field: client_secret
+                    error: "missing client_secret: this field is required"
+        "403":
+          description: Invalid API Credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: invalid api credentials
+  /v1/reauthenticate:
+    post:
+      summary: Reauthenticate
+      description: The JWT `access_token` will eventually expire and can no longer be used
+        to authenticate requests. The `refresh_token` can be used to
+        reauthenticate your client without having to post the client ID and
+        secret again. Note that reauthenticate will only work after the refresh
+        token's `nbf` (not before) claim and before the tokens' `exp` (expires)
+        claim.
+      operationId: reauthenticate
+      tags:
+        - Authentication
+      requestBody:
+        description: A JSON payload with the refresh token as the primary element.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticateRequest"
+            example:
+              refresh_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+      responses:
+        "200":
+          description: Reauthentication Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginReply"
+              example:
+                access_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIl0sImV4cCI6MTcyNDg4NjU1OCwibmJmIjoxNzI0ODgyOTU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3IiwiY2xpZW50SUQiOiJrYnhpUm10WXZMYmtZS3JsZWZKb1NQIiwicGVybWlzc2lvbnMiOlsidXNlcnM6bWFuYWdlIiwidXNlcnM6dmlldyIsImFwaWtleXM6bWFuYWdlIiwiYXBpa2V5czp2aWV3IiwiYXBpa2V5czpyZXZva2UiLCJjb3VudGVycGFydGllczptYW5hZ2UiLCJjb3VudGVycGFydGllczp2aWV3IiwiYWNjb3VudHM6bWFuYWdlIiwiYWNjb3VudHM6dmlldyIsInRyYXZlbHJ1bGU6bWFuYWdlIiwidHJhdmVscnVsZTpkZWxldGUiLCJ0cmF2ZWxydWxlOnZpZXciLCJjb25maWc6bWFuYWdlIiwiY29uZmlnOnZpZXciLCJwa2k6bWFuYWdlIiwicGtpOmRlbGV0ZSIsInBraTp2aWV3Il19.vZeoZ6UR9e2qOU2Zd64nlnPne4Hbm3t8QtX_uM72pyf8BRIEehruioQCQ8RfqNJpSyacRCfhAKovTKChnWIPd8Xdkzcl9_bHnhYKlTzhdPYlD5K1uCNkNSJHZVwEJeG3aHB7xE-MVrvXivia3xHfth_ZSQab3jVuL6q_fjG4yPNpf3yjXbO3OPaGpavcElMf2r-DdIMIIewCmNktjrkFNtiNPmJU3MzLzwxLQPm2WUkcKZ27e7KD_LL2ZgluyVSM0BRehcdkPXmOXGF5KCTvHu7Xo5evUg6DvftEIz5IjCd-6s1YkZEJSQqBlfymhXXsmW1tlK4RYhay10Lg_k16HtO-kByLB2vtW6V1090XBK6tvjAJNjSGrD2tTFWbRlEe2YdYQ3pQilnSeJW1hBSpSYb_Ty94FwcsMrq_NiULYmxh6dOYtzrANou0EKd0HoYjw4d0dQOlCqSBfFclOoMmftjms5QG6E93s_Bjp2nhpKs6fr7TQhwmVChiVWBV2eq5s1mTLngNQhgLdNddcDJ_DJiisSv_V3nD-2uLcQaq9ZQ60oW1jQzUoTaJY9uw3SEToUa7bGRNKmHnUYYxRxqyVVYceaOlklPqfyT58zEBKqblhZfAE39rtyVZKOCc3x_d9yyQ9YaV6ijpaxC0PKTW0tSEWzNesNv4wayH-pNaSJM
+                refresh_token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjAxSFZINTBWWEs5MFJKWlI5WENNMENCRkJRIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJzdWIiOiJrMDFKNVkyUjBZQUZFU0ZUVzYzU1JTNTg4WjIiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDAwIiwiaHR0cDovL2xvY2FsaG9zdDo4MDAwL3YxL3JlYXV0aGVudGljYXRlIl0sImV4cCI6MTcyNDg5MDE1OCwibmJmIjoxNzI0ODg1NjU4LCJpYXQiOjE3MjQ4ODI5NTgsImp0aSI6IjAxSjZER0pFMFExMEcwQzY1U1NEUlQ3VDY3In0.Mzey5MWS-GRVhVAfISXH6keebNpoQTYWUVDhOnD-mENfWNurtkBpWMgV_FivpAHyXlH72Mv-cC0oaaUMYNMVRg5yCN6XQyYdUqcZsynULLkUUPcD7PGJLDIMe8CngAHITDmDRzdZaUpbWB4F-Ad_qEqzGhz3-PRAQxM7-Gt3IFNFVfWHJXTZzAiKHP_xtE4rnVczUx2sMXKPQHhxDVTiahMSAGiMVUWvnfKzwtv36U69cmfOw3UbG2IVZ6-2zm8ICSNesUqtwpjn1c5B_pYoqJNJYbp8jCzjRS2xT4xT7eDmMAjeFIiJEe6wuTvzU3ZwwqsXhLPtj27VNwHNHHL2qqnn0wTLx30amHkrBoEU44Rbf9Lxof6y_WDhZJIt7SeG1bDZ378falQd0v5yTColbaTk20jlADsoSdm8IgYoH91k1_-bzfHQkRTNUQI7YxCQWeP9zj-QzKdA7c86gyvYuPbsk29St0tGvQdS-aWa5ZLpDL3R5OLzO9zhqgNeGQVomF5YJaFAaBe4Y_6dyvNmHJB9cdfgEgj6B9cTzKdZWfn-r48E3xt0n41FdvYKgyDjR1gRBe7T-f55GbH5N0fR2Twdclc4DqD5c2gp5U0BTK-Uc2OBdT710Ws6mqdVljKoaG6VZjI-eA17pv7Khzdr8NWpmSUMYUGbAKtHFA7atsc
+        "400":
+          description: Bad Reauthentication Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: refresh_token
+                    error: "missing refresh_token: this field is required"
+        "403":
+          description: Invalid Refresh Token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: invalid reauthentication credentials
+  /v1/accounts:
+    get:
+      summary: List Accounts
+      description: Return a paginated list of customer accounts stored on the Envoy node.
+      operationId: listAccounts
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:view
+      parameters:
+        - $ref: "#/components/parameters/page_size"
+        - $ref: "#/components/parameters/next_page_token"
+        - $ref: "#/components/parameters/prev_page_token"
+      responses:
+        "200":
+          description: Successful Account Page Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountList"
+              example:
+                page:
+                  page_size: 50
+                accounts:
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    customer_id: "674907513"
+                    first_name: James
+                    last_name: Bond
+                    travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+                  - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
+                    customer_id: "39910432"
+                    first_name: Twilda
+                    last_name: Swansong
+                    travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+                    created: 2024-08-29T14:09:21-05:00
+                    modified: 2024-08-29T14:10:50-05:00
+        "400":
+          description: Bad Accounts Page Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse page query request
+        "401":
+          description: Not Authorized to View Accounts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+    post:
+      summary: Create Account
+      description: Create a new customer account record.
+      operationId: createAccount
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      requestBody:
+        description: Account information that includes all required writeable fields and no
+          crypto addresses.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountForm"
+            example:
+              customer_id: "674907513"
+              first_name: James
+              last_name: Bond
+              ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+      responses:
+        "201":
+          description: Account Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                customer_id: "674907513"
+                first_name: James
+                last_name: Bond
+                travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                crypto_addresses: []
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad Create Account Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse account data
+        "401":
+          description: Not Authorized to Manage Accounts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "422":
+          description: Account Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: id
+                    error: field id is a read only field
+                  - field: travel_address
+                    error: field travel address is a read only field
+  "/v1/accounts/{accountID}":
+    get:
+      summary: Account Detail
+      description: Return a detailed record of a single customer account object.
+      operationId: accountDetail
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:view
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to fetch a detailed record of.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: Account Retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                customer_id: "674907513"
+                first_name: James
+                last_name: Bond
+                travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                crypto_addresses:
+                  - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+                    crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+                    network: ETH
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+                    created: 2024-08-29T14:05:31-05:00
+                    modified: 2024-08-30T18:39:02-05:00
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    network: BTC
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to View Account Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Account Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: account not found
+    put:
+      summary: Update Account
+      description: Update an account record with new information.
+      operationId: updateAccount
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to update.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      requestBody:
+        description: A complete account record that should reflect the state of the account
+          after the operation.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountForm"
+            example:
+              customer_id: "674907513"
+              first_name: James
+              last_name: Bond
+              ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+        required: true
+      responses:
+        "200":
+          description: Account Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                customer_id: "674907513"
+                first_name: James
+                last_name: Bond
+                travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                crypto_addresses:
+                  - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+                    crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+                    network: ETH
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+                    created: 2024-08-29T14:05:31-05:00
+                    modified: 2024-08-30T18:39:02-05:00
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    network: BTC
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to Update Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Account Not Found (Cannot Update)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: account not found
+        "422":
+          description: Account Update Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: id
+                    error: field id is a read only field
+                  - field: travel_address
+                    error: field travel address is a read only field
+    delete:
+      summary: Delete Account
+      description: Delete an account with the specified ID.
+      operationId: deleteAccount
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to delete.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: Account Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reply"
+              example:
+                success: true
+        "401":
+          description: Not Authorized to Delete Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Account Not Found (Cannot Delete)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: account not found
+  "/v1/accounts/{accountID}/crypto-addresses":
+    get:
+      summary: List Crypto Addresses
+      description: Return a paginated list of crypto wallet addresses associated with the
+        specified account
+      operationId: listCryptoAddresses
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:view
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to fetch the crypto addresses for.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - $ref: "#/components/parameters/page_size"
+        - $ref: "#/components/parameters/next_page_token"
+        - $ref: "#/components/parameters/prev_page_token"
+      responses:
+        "200":
+          description: Successful Crypto Addresses Page Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CryptoAddressList"
+              example:
+                page:
+                  page_size: 50
+                crytpo_addresses:
+                  - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+                    crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+                    network: ETH
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+                    created: 2024-08-29T14:05:31-05:00
+                    modified: 2024-08-30T18:39:02-05:00
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    network: BTC
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad Crypto Addresses Page Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse page query request
+        "401":
+          description: Not Authorized to View Crypto Addresses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+    post:
+      summary: Create Crypto Address
+      description: Create a new crypto wallet address record for the specified account.
+      operationId: createCryptoAddress
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to create the crypto addresses for.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      requestBody:
+        description: Crypto wallet address information that includes all required writeable
+          fields.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CryptoAddressForm"
+            example:
+              id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+              network: BTC
+      responses:
+        "201":
+          description: Crypto Address Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CryptoAddress"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                network: BTC
+                travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad Create Crypto Address Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse account data
+        "401":
+          description: Not Authorized to Manage Crypto Addresses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "422":
+          description: Crypto Address Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: crypto_address
+                    error: "missing crypto_address: this field is required"
+                  - field: network
+                    error: could not parse network as a SLIP-0044 string
+                  - field: travel_address
+                    error: field travel address is a read only field
+  "/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID}":
+    get:
+      summary: Crypto Address Detail
+      description: Return a detailed record of a crypto address record for an account.
+      operationId: cryptoAddressesDetail
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:view
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account to fetch the crypto address for.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - name: cryptoAddressID
+          in: path
+          description: The ID of the crypto address to fetch a detailed record of.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6FRB1EGJCEZXRMQGW1FM0BR
+      responses:
+        "200":
+          description: Crypto Address Retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CryptoAddress"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                network: BTC
+                travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to View Crypto Address Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Crypto Address Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: crypto address not found
+    put:
+      summary: Update Crypto Address
+      description: Update an crypto address record with new information.
+      operationId: updateCryptoAddress
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account owning the crypto address to update.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - name: cryptoAddressID
+          in: path
+          description: The ID of the crypto address to update.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6FRB1EGJCEZXRMQGW1FM0BR
+      requestBody:
+        description: A complete crypto address record that should reflect the state of the
+          crypto address after the operation.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CryptoAddressForm"
+            example:
+              id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+              network: BTC
+        required: true
+      responses:
+        "200":
+          description: Crypto Adress Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CryptoAddress"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                network: BTC
+                travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to Update Crypto Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Crypto Address Not Found (Cannot Update)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: crypto address not found
+        "422":
+          description: Crypto Address Update Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                errors:
+                  - field: crypto_address
+                    error: "missing crypto_address: this field is required"
+                  - field: network
+                    error: could not parse network as a SLIP-0044 string
+                  - field: travel_address
+                    error: field travel address is a read only field
+    delete:
+      summary: Delete Crypto Address
+      description: Delete an crypto address with the specified ID belonging to the
+        specified acccount.
+      operationId: deleteCryptoAddress
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+        - permissions:
+            - accounts:manage
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account that manages the crypto address to delete.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - name: cryptoAddressID
+          in: path
+          description: The ID of the crypto address to delete.
+          required: true
+          schema:
+            type: string
+            format: UUID
+          example: 01J6FRB1EGJCEZXRMQGW1FM0BR
+      responses:
+        "200":
+          description: Crypto Address Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reply"
+              example:
+                success: true
+        "401":
+          description: Not Authorized to Delete Crypto Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Crypto Address Not Found (Cannot Delete)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: crypto address not found

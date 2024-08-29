@@ -19,8 +19,9 @@ var (
 )
 
 var (
-	ErrInvalidTimestamp = errors.New("payload timestamp has invalid string format")
-	ErrInvalidRejection = errors.New("envelope does not contain a rejection/repair error")
+	ErrInvalidTimestamp     = errors.New("payload timestamp has invalid string format")
+	ErrInvalidRejection     = errors.New("envelope does not contain a rejection/repair error")
+	ErrParsingIVMS101Person = errors.New("unable to parse IVMS101 person record as json or protocol buffers")
 )
 
 // Construct a new response for an error or simply return unsuccessful.

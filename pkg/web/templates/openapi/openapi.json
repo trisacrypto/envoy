@@ -337,7 +337,7 @@
       },
       "AccountForm": {
         "type": "object",
-        "description": "A representation of the customer Account object that defines the editable fields.",
+        "description": "The editable fields in a customer account object.",
         "properties": {
           "customer_id": {
             "type": "string",
@@ -361,6 +361,9 @@
             "example": "CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I"
           }
         },
+        "required": [
+          "last_name"
+        ],
         "example": {
           "customer_id": "674907513",
           "first_name": "James",
@@ -594,6 +597,41 @@
               "modified": "2024-08-28T12:23:24-05:00"
             }
           ]
+        }
+      },
+      "CryptoAddressForm": {
+        "type": "object",
+        "description": "The editable fields of a crypto wallet address for create and update.",
+        "properties": {
+          "crypto_address": {
+            "type": "string",
+            "description": "The crypto or wallet address for the blockchain network (required).",
+            "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+          },
+          "network": {
+            "type": "string",
+            "description": "The network the crypto wallet address belongs to in SLIP-0044 three-character encoding (required).",
+            "example": "BTC"
+          },
+          "asset_type": {
+            "type": "string",
+            "description": "If the network supports multiple asset types, the description of the asset type managed by the wallet. This field is not validated.",
+            "example": "BCH"
+          },
+          "tag": {
+            "type": "string",
+            "description": "The memo or destination tag associated with the crypto wallet address if required by the network. This field is not validated.",
+            "example": "dt=1234567890"
+          }
+        },
+        "required": [
+          "crypto_address",
+          "network"
+        ],
+        "example": {
+          "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+          "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+          "network": "BTC"
         }
       }
     },
@@ -1298,6 +1336,542 @@
                 "example": {
                   "success": false,
                   "error": "account not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{accountID}/crypto-addresses": {
+      "get": {
+        "summary": "List Crypto Addresses",
+        "description": "Return a paginated list of crypto wallet addresses associated with the specified account",
+        "operationId": "listCryptoAddresses",
+        "tags": [
+          "Crypto Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "permissions": [
+              "accounts:view"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account to fetch the crypto addresses for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "$ref": "#/components/parameters/page_size"
+          },
+          {
+            "$ref": "#/components/parameters/next_page_token"
+          },
+          {
+            "$ref": "#/components/parameters/prev_page_token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Crypto Addresses Page Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoAddressList"
+                },
+                "example": {
+                  "page": {
+                    "page_size": 50
+                  },
+                  "crytpo_addresses": [
+                    {
+                      "id": "01J6FRB1EGJCEZXRMQGW1FM0BR",
+                      "crypto_address": "0x9268102451DE47C536C3AD92203D4E9692941E06",
+                      "network": "ETH",
+                      "travel_address": "ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P",
+                      "created": "2024-08-29T14:05:31-05:00",
+                      "modified": "2024-08-30T18:39:02-05:00"
+                    },
+                    {
+                      "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                      "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                      "network": "BTC",
+                      "travel_address": "ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU",
+                      "created": "2024-08-28T10:14:43-05:00",
+                      "modified": "2024-08-28T12:23:24-05:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Crypto Addresses Page Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse page query request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View Crypto Addresses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Crypto Address",
+        "description": "Create a new crypto wallet address record for the specified account.",
+        "operationId": "createCryptoAddress",
+        "tags": [
+          "Crypto Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "permissions": [
+              "accounts:manage"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account to create the crypto addresses for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "requestBody": {
+          "description": "Crypto wallet address information that includes all required writeable fields.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CryptoAddressForm"
+              },
+              "example": {
+                "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                "network": "BTC"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Crypto Address Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoAddress"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "network": "BTC",
+                  "travel_address": "ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU",
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T12:23:24-05:00"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Create Crypto Address Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse account data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Manage Crypto Addresses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Crypto Address Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "errors": [
+                    {
+                      "field": "crypto_address",
+                      "error": "missing crypto_address: this field is required"
+                    },
+                    {
+                      "field": "network",
+                      "error": "could not parse network as a SLIP-0044 string"
+                    },
+                    {
+                      "field": "travel_address",
+                      "error": "field travel address is a read only field"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID}": {
+      "get": {
+        "summary": "Crypto Address Detail",
+        "description": "Return a detailed record of a crypto address record for an account.",
+        "operationId": "cryptoAddressesDetail",
+        "tags": [
+          "Crypto Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "permissions": [
+              "accounts:view"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account to fetch the crypto address for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "name": "cryptoAddressID",
+            "in": "path",
+            "description": "The ID of the crypto address to fetch a detailed record of.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Crypto Address Retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoAddress"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "network": "BTC",
+                  "travel_address": "ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU",
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T12:23:24-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View Crypto Address Detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Crypto Address Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "crypto address not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Crypto Address",
+        "description": "Update an crypto address record with new information.",
+        "operationId": "updateCryptoAddress",
+        "tags": [
+          "Crypto Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "permissions": [
+              "accounts:manage"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account owning the crypto address to update.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "name": "cryptoAddressID",
+            "in": "path",
+            "description": "The ID of the crypto address to update.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
+          }
+        ],
+        "requestBody": {
+          "description": "A complete crypto address record that should reflect the state of the crypto address after the operation.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CryptoAddressForm"
+              },
+              "example": {
+                "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                "network": "BTC"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Crypto Adress Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoAddress"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "network": "BTC",
+                  "travel_address": "ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU",
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T12:23:24-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Update Crypto Address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Crypto Address Not Found (Cannot Update)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "crypto address not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Crypto Address Update Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "errors": [
+                    {
+                      "field": "crypto_address",
+                      "error": "missing crypto_address: this field is required"
+                    },
+                    {
+                      "field": "network",
+                      "error": "could not parse network as a SLIP-0044 string"
+                    },
+                    {
+                      "field": "travel_address",
+                      "error": "field travel address is a read only field"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Crypto Address",
+        "description": "Delete an crypto address with the specified ID belonging to the specified acccount.",
+        "operationId": "deleteCryptoAddress",
+        "tags": [
+          "Crypto Addresses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "permissions": [
+              "accounts:manage"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account that manages the crypto address to delete.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "name": "cryptoAddressID",
+            "in": "path",
+            "description": "The ID of the crypto address to delete.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            },
+            "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Crypto Address Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reply"
+                },
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Delete Crypto Address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Crypto Address Not Found (Cannot Delete)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "crypto address not found"
                 }
               }
             }
