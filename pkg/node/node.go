@@ -85,6 +85,11 @@ func New(conf config.Config) (node *Node, err error) {
 	if node.network, err = network.New(conf.Node); err != nil {
 		return nil, err
 	}
+	log.Debug().
+		Str("endpoint", conf.Node.Endpoint).
+		Str("gds", conf.Node.Directory.Endpoint).
+		Str("members", conf.Node.Directory.MembersEndpoint).
+		Msg("trisa initialized")
 
 	// Create the admin web ui server if it is enabled
 	if node.admin, err = web.New(conf, node.store, node.network); err != nil {

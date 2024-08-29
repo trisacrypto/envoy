@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/trisacrypto/envoy/pkg"
 )
 
 //===========================================================================
@@ -15,9 +13,9 @@ import (
 //===========================================================================
 
 var (
-	Unsuccessful = Reply{Success: false, Version: pkg.Version()}
-	NotFound     = Reply{Success: false, Error: "resource not found", Version: pkg.Version()}
-	NotAllowed   = Reply{Success: false, Error: "method not allowed", Version: pkg.Version()}
+	Unsuccessful = Reply{Success: false}
+	NotFound     = Reply{Success: false, Error: "resource not found"}
+	NotAllowed   = Reply{Success: false, Error: "method not allowed"}
 )
 
 var (
