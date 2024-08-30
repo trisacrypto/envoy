@@ -927,6 +927,9 @@ components:
         node stores the transaction information in a decrypted form for indexing
         and search, but the PII of a transaction is stored in secure envelopes,
         which are encrypted and exchanged with the counterparty.
+      externalDocs:
+        description: Transaction States and Workflows
+        url: https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions
       properties:
         id:
           type: string
@@ -957,8 +960,6 @@ components:
           description: The current status of the travel rule transaction, which defines the
             actions the compliance officer should take.
           example: accepted
-          externalDocs:
-            - https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions
         counterparty:
           type: string
           description: The name or common name of the counterparty as determined by the
@@ -2626,6 +2627,47 @@ paths:
                       completed, or archived
                   - field: counterparty
                     error: "missing counterparty: this field is required"
+  /v1/transactions/export:
+    get:
+      summary: Export Transactions
+      description: Export a complete CSV file of all transaction information on the Envoy
+        node. The download is performed in a streaming fashion so that the
+        entire transactions dataset can be exported. API Clients are recommended
+        to read the transaction and write to disk in chunks for memory safety.
+      operationId: exportTransactions
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Streaming CSV Write Started
+          content:
+            text/csv:
+              schema:
+                type: string
+                description: A comma delimited columns and newline delimited rows CSV file
+                  with double quote escaping.
+              example: >-
+                ID,Status,Counterparty,Originator,Originator
+                Address,Beneficiary,Beneficiary Address,Virtual
+                Asset,Amount,Last Update,Created,Number of Envelopes,HMAC
+                Signature
+
+                b0d35509-fe80-4719-967a-4582a18dda02,accepted,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0021,2024-08-19T19:52:26Z,2024-08-19T14:33:36-05:00,12,
+
+                cb510e64-807a-4871-b983-7192949df192,accepted,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0066,2024-08-19T19:55:16Z,2024-08-19T14:25:14-05:00,8,
+
+                ec40ffe5-fc7f-4d83-8185-0cae8f5e26ab,pending,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0454,2024-08-19T19:57:02Z,2024-08-19T13:55:50-05:00,10,
+        "400":
+          description: Bad Export Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint does not support query parameters
   "/v1/transactions/{transactionID}":
     get:
       summary: Transaction Detail
