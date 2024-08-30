@@ -33,7 +33,7 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 

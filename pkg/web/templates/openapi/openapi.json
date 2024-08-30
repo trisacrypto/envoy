@@ -43,6 +43,14 @@
       "description": "Transactions refer to an instance of a travel rule information exchange related to a specific on-chain virtual asset transfer."
     },
     {
+      "name": "Preparing Transactions",
+      "description": "The prepared transactions workflow allows you to easily create IVMS101 with a simplified form and create a transaction and send it in fewer steps than it would be to manually create a transaction and send a secure envelope to the counterparty."
+    },
+    {
+      "name": "Transaction Actions",
+      "description": "These actions allow you to move a transaction through the travel rule compliance resolution workflow."
+    },
+    {
       "name": "Secure Envelopes",
       "description": "Secure envelopes store PII data in an encrypted fashion and record an audit log of information exchanges with a counterparty about a specific transaction."
     },
@@ -83,6 +91,9 @@
             "example": true
           }
         },
+        "required": [
+          "success"
+        ],
         "example": {
           "success": true
         }
@@ -103,6 +114,10 @@
             "example": "resource not found"
           }
         },
+        "required": [
+          "success",
+          "error"
+        ],
         "example": {
           "success": false,
           "error": "resource not found"
@@ -117,6 +132,11 @@
             "type": "boolean",
             "description": "Set to true if the request was successful, false if there was an error (see error reply).",
             "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "A quick description of how many errors occurred.",
+            "example": "4 validation errors occurred"
           },
           "errors": {
             "type": "array",
@@ -153,8 +173,14 @@
             ]
           }
         },
+        "required": [
+          "success",
+          "error",
+          "errors"
+        ],
         "example": {
           "success": false,
+          "error": "2 validation errors occurred",
           "errors": [
             {
               "field": "common_name",
@@ -1077,7 +1103,7 @@
         "type": "object",
         "description": "A transaction is a travel rule information exchange related to an on-chain transfer of virtual assets for compliance purposes. The Envoy node stores the transaction information in a decrypted form for indexing and search, but the PII of a transaction is stored in secure envelopes, which are encrypted and exchanged with the counterparty.",
         "externalDocs": {
-          "description": "Transaction States and Workflows",
+          "description": "Transaction States",
           "url": "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
         },
         "properties": {
@@ -1223,10 +1249,7 @@
               "rejected"
             ],
             "description": "The current status of the travel rule transaction, which should be set based on actions taken by compliance officers or the remote counterparty.",
-            "example": "accepted",
-            "externalDocs": [
-              "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
-            ]
+            "example": "accepted"
           },
           "counterparty": {
             "type": "string",
@@ -1424,6 +1447,602 @@
         "type": "object",
         "description": "A repair object sends the transaction data along with the repair message from the counterparty so that the API client can make fixes to appropriately conclude the travel rule transaction.",
         "example": {}
+      },
+      "Prepare": {
+        "title": "Prepare",
+        "type": "object",
+        "description": "The prepare object is a simplified representation of an IVMS101 identity and transaction payload that is packaged in a secure envelope and sent to the counterparty. This object is used to more easily create a travel rule transaction using the prepare endpoint.",
+        "properties": {
+          "travel_address": {
+            "type": "string",
+            "format": "TravelAddress",
+            "description": "The travel address of the receipient or counterparty VASP -- used to identify the counterparty to add their IVMS101 legal person information.",
+            "example": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
+          },
+          "originator": {
+            "type": "object",
+            "description": "The personal identity information of the originator account holder of the virtual asset transaction.",
+            "properties": {
+              "first_name": {
+                "type": "string",
+                "description": "The first (or secondary) legal name of the originator person.",
+                "example": "James"
+              },
+              "last_name": {
+                "type": "string",
+                "description": "The last (or primary/family) legal name of the originator person.",
+                "example": "Bond"
+              },
+              "customer_id": {
+                "type": "string",
+                "description": "An internal customer id that identifies the originator person in your system.",
+                "example": "674907513"
+              },
+              "identification": {
+                "type": "object",
+                "description": "The state issued identification details of the originator person.",
+                "properties": {
+                  "type_code": {
+                    "type": "string",
+                    "description": "The type of identification issued to the originator person.",
+                    "enum": [
+                      "MISC",
+                      "ARNU",
+                      "CCPT",
+                      "RAID",
+                      "DRLC",
+                      "FIIN",
+                      "TXID",
+                      "SOCS",
+                      "IDCD",
+                      "LEIX"
+                    ],
+                    "example": "DRLC"
+                  },
+                  "number": {
+                    "type": "string",
+                    "description": "The identification number of the state issued ID assigned to the originator person.",
+                    "example": "BOND9211110JA9OB"
+                  },
+                  "country": {
+                    "type": "string",
+                    "format": "ISO-3166-1 Alpha-2",
+                    "description": "The country that issued the originator person's identification.",
+                    "example": "GB"
+                  },
+                  "dob": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "The date of birth of the originator person.",
+                    "example": "1920-11-11"
+                  },
+                  "birth_place": {
+                    "type": "string",
+                    "description": "The city, state or province, and country where the originator person was born.",
+                    "example": "Wattenscheid, Germany"
+                  }
+                },
+                "example": {
+                  "type_code": "DRLC",
+                  "number": "BOND9211110JA9OB",
+                  "country": "GB",
+                  "dob": "1920-11-11",
+                  "birth_place": "Wattenscheid, Germany"
+                }
+              },
+              "addr_line_1": {
+                "type": "string",
+                "description": "The first line of a geographic address (e.g. home address) of the originator person.",
+                "example": "1 High Street"
+              },
+              "addr_line_2": {
+                "type": "string",
+                "description": "The second line of a geographic address (e.g. home address) of the originator person.",
+                "example": "Apt. 007"
+              },
+              "city": {
+                "type": "string",
+                "description": "The city of the geographic address (e.g. home address) of the originator person.",
+                "example": "London"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or province of the geographic address (e.g. home address) of the originator person.",
+                "example": "Greater London"
+              },
+              "post_code": {
+                "type": "string",
+                "description": "The postal code of the geographic address (e.g. home address) of the originator person.",
+                "example": "SE1 2QH"
+              },
+              "country": {
+                "type": "string",
+                "format": "ISO-3166-1 Alpha-2",
+                "description": "The country of the geographic address (e.g. home address) of the originator person.",
+                "example": "GB"
+              },
+              "crypto_address": {
+                "type": "string",
+                "description": "The crypto wallet address of the originator person where the virtual assets will be transfered from.",
+                "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+              }
+            },
+            "required": [
+              "last_name",
+              "crypto_address"
+            ],
+            "example": {
+              "first_name": "James",
+              "last_name": "Bond",
+              "customer_id": "674907513",
+              "identification": {
+                "type_code": "DRLC",
+                "number": "BOND9211110JA9OB",
+                "country": "GB",
+                "dob": "1920-11-11",
+                "birth_place": "Wattenscheid, Germany"
+              },
+              "addr_line_1": "1 High Street",
+              "city": "London",
+              "post_code": "SE1 2QH",
+              "country": "GB",
+              "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+            }
+          },
+          "beneficiary": {
+            "type": "object",
+            "description": "The personal identity information of the beneficiary account holder of the virtual asset transaction.",
+            "properties": {
+              "first_name": {
+                "type": "string",
+                "description": "The first (or secondary) legal name of the beneficiary person.",
+                "example": "Twilda"
+              },
+              "last_name": {
+                "type": "string",
+                "description": "The last (or primary/family) legal name of the beneficiary person.",
+                "example": "Swansong"
+              },
+              "customer_id": {
+                "type": "string",
+                "description": "An internal customer id that identifies the beneficiary person in your system.",
+                "example": "39910432"
+              },
+              "identification": {
+                "type": "object",
+                "description": "The state issued identification details of the beneficiary person.",
+                "properties": {
+                  "type_code": {
+                    "type": "string",
+                    "description": "The type of identification issued to the beneficiary person.",
+                    "enum": [
+                      "MISC",
+                      "ARNU",
+                      "CCPT",
+                      "RAID",
+                      "DRLC",
+                      "FIIN",
+                      "TXID",
+                      "SOCS",
+                      "IDCD",
+                      "LEIX"
+                    ],
+                    "example": "SOCS"
+                  },
+                  "number": {
+                    "type": "string",
+                    "description": "The identification number of the state issued ID assigned to the beneficiary person.",
+                    "example": "880-02-22213"
+                  },
+                  "country": {
+                    "type": "string",
+                    "format": "ISO-3166-1 Alpha-2",
+                    "description": "The country that issued the beneficiary person's identification.",
+                    "example": "US"
+                  },
+                  "dob": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "The date of birth of the beneficiary person.",
+                    "example": "1978-02-14"
+                  },
+                  "birth_place": {
+                    "type": "string",
+                    "description": "The city, state or province, and country where the beneficiary person was born.",
+                    "example": "Toronto, Ontario, Canada"
+                  }
+                },
+                "example": {
+                  "type_code": "SOCS",
+                  "number": "880-02-22213",
+                  "country": "US",
+                  "dob": "1978-02-14",
+                  "birth_place": "Toronto, Ontario, Canada"
+                }
+              },
+              "addr_line_1": {
+                "type": "string",
+                "description": "The first line of a geographic address (e.g. home address) of the beneficiary person.",
+                "example": "123 Main Street"
+              },
+              "addr_line_2": {
+                "type": "string",
+                "description": "The second line of a geographic address (e.g. home address) of the beneficiary person.",
+                "example": "Suite 300"
+              },
+              "city": {
+                "type": "string",
+                "description": "The city of the geographic address (e.g. home address) of the beneficiary person.",
+                "example": "Casper"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or province of the geographic address (e.g. home address) of the beneficiary person.",
+                "example": "WY"
+              },
+              "post_code": {
+                "type": "string",
+                "description": "The postal code of the geographic address (e.g. home address) of the beneficiary person.",
+                "example": "82604"
+              },
+              "country": {
+                "type": "string",
+                "format": "ISO-3166-1 Alpha-2",
+                "description": "The country of the geographic address (e.g. home address) of the beneficiary person.",
+                "example": "US"
+              },
+              "crypto_address": {
+                "type": "string",
+                "description": "The crypto wallet address of the beneficiary person where the virtual assets will be transfered from.",
+                "example": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
+              }
+            },
+            "required": [
+              "last_name",
+              "crypto_address"
+            ],
+            "example": {
+              "first_name": "Twilda",
+              "last_name": "Swansong",
+              "customer_id": "39910432",
+              "identification": {
+                "type_code": "SOCS",
+                "number": "880-02-22213",
+                "country": "US",
+                "dob": "1978-02-14",
+                "birth_place": "Toronto, Ontario, Canada"
+              },
+              "addr_line_1": "123 Main Street",
+              "city": "Casper",
+              "state": "WY",
+              "post_code": "82604",
+              "country": "US",
+              "crypto_address": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
+            }
+          },
+          "transfer": {
+            "type": "object",
+            "description": "The details of the virtual asset transfer related to the travel rule compliance exchange.",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "The amount of the smallest denomination of the virtual asset that is being transfered from the originator to the beneficiary.",
+                "example": 0.0007
+              },
+              "network": {
+                "type": "string",
+                "format": "SLIP-0044 Network Code",
+                "description": "The three character network code describing the chain the virtual asset belongs to.",
+                "example": "BTC"
+              },
+              "asset_type": {
+                "type": "string",
+                "description": "If the network hosts multiple asset types, the identifier of the asset type being transferred.",
+                "example": "GAS"
+              },
+              "transaction_id": {
+                "type": "string",
+                "format": "hex",
+                "description": "If the transaction has already been completed on the chain, the transaction ID or hash that identifies the block.",
+                "example": "44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf"
+              },
+              "tag": {
+                "type": "string",
+                "description": "the memo or destination tag related to the beneficiary wallet for transfer purposes.",
+                "example": "dt=1234567890"
+              }
+            },
+            "required": [
+              "amount",
+              "network"
+            ],
+            "example": {
+              "amount": 0.0007,
+              "network": "BTC"
+            }
+          }
+        },
+        "required": [
+          "travel_address",
+          "originator",
+          "beneficiary",
+          "transfer"
+        ],
+        "example": {
+          "travel_address": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi",
+          "originator": {
+            "first_name": "James",
+            "last_name": "Bond",
+            "customer_id": "674907513",
+            "identification": {
+              "type_code": "DRLC",
+              "number": "BOND9211110JA9OB",
+              "country": "GB",
+              "dob": "1920-11-11",
+              "birth_place": "Wattenscheid, Germany"
+            },
+            "addr_line_1": "1 High Street",
+            "city": "London",
+            "post_code": "SE1 2QH",
+            "country": "GB",
+            "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+          },
+          "beneficiary": {
+            "first_name": "Twilda",
+            "last_name": "Swansong",
+            "customer_id": "39910432",
+            "identification": {
+              "type_code": "SOCS",
+              "number": "880-02-22213",
+              "country": "US",
+              "dob": "1978-02-14",
+              "birth_place": "Toronto, Ontario, Canada"
+            },
+            "addr_line_1": "123 Main Street",
+            "city": "Casper",
+            "state": "WY",
+            "post_code": "82604",
+            "country": "US",
+            "crypto_address": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
+          },
+          "transfer": {
+            "amount": 0.0007,
+            "network": "BTC"
+          }
+        }
+      },
+      "Prepared": {
+        "title": "Prepared",
+        "type": "object",
+        "description": "The prepared object is the data representation that you need to start a new travel rule transaction. It can be created using a Prepare, and then this payload can be sent to the send-prepared endpoint to initiate a travel rule transfer by creating a transaction and sending a secure envelope with the payload to the counterparty.",
+        "properties": {
+          "travel_address": {
+            "type": "string",
+            "format": "TravelAddress",
+            "description": "The travel address of the receipient or counterparty VASP -- used to identify the counterparty and route the travel rule transfer/inquiry.",
+            "example": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/IdentityPayload"
+          }
+        },
+        "required": [
+          "travel_address"
+        ],
+        "example": {
+          "travel_address": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
+        }
+      },
+      "IdentityPayload": {
+        "title": "IdentityPayload",
+        "type": "object",
+        "externalDocs": {
+          "description": "IVMS101",
+          "url": "https://www.intervasp.org/"
+        },
+        "description": "The identity payload implements the IVMS101 spec for inter-VASP messaging of travel rule compliance information. For TRP compatibility purposes, this object uses camelCase JSON fields instead of the snake_case fields that the rest of the API uses. Note that the identity payload is stored as protocol buffers in the Envoy database for compatibility with TRISA transfers. Be aware also that the identity payload is extremely verbose and is intended for use across national boundaries and languages. For more information on the spec and validating the spec, please go to intervasp.org.",
+        "properties": {
+          "originator": {
+            "$ref": "#/components/schemas/Originator"
+          },
+          "beneficiary": {
+            "$ref": "#/components/schemas/Beneficiary"
+          },
+          "originatingVASP": {
+            "$ref": "#/components/schemas/OriginatingVASP"
+          },
+          "beneficiaryVASP": {
+            "$ref": "#/components/schemas/BeneficiaryVASP"
+          },
+          "transferPath": {
+            "$ref": "#/components/schemas/TransferPath"
+          },
+          "payloadMetadata": {
+            "$ref": "#/components/schemas/PayloadMetadata"
+          }
+        },
+        "example": {}
+      },
+      "Originator": {
+        "title": "Originator",
+        "type": "object",
+        "description": "Originator describes the account holder who allows the virtual asset transfer from that account, or, where there is no account, the natural or legal person that places the order with the originating VASP to perform the virtual asset transfer.",
+        "properties": {
+          "originatorPersons": {
+            "type": "array",
+            "description": "The natural or legal person(s) that describe the Originator.",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            },
+            "example": []
+          },
+          "accountNumber": {
+            "type": "array",
+            "description": "The identifier of an account (a crypto wallet address) for each originator person in the same sequential order.",
+            "items": {
+              "type": "string",
+              "description": "Identifier of an account that is used to process the transaction (usually a crypto wallet address).",
+              "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+            },
+            "example": [
+              "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+            ]
+          }
+        },
+        "required": [
+          "originatorPersons"
+        ],
+        "example": {
+          "originatorPersons": []
+        }
+      },
+      "Beneficiary": {
+        "title": "Beneficiary",
+        "type": "object",
+        "description": "Beneficiary describes the natural or legal person arrangement who is identified by the originator as the receiver of the requested virtual asset transfer.",
+        "properties": {
+          "beneficiaryPersons": {
+            "type": "array",
+            "description": "The natural or legal person(s) that describe the Beneficiary.",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            },
+            "example": []
+          },
+          "accountNumber": {
+            "type": "array",
+            "description": "The identifier of an account (a crypto wallet address) for each beneficiary person in the same sequential order.",
+            "items": {
+              "type": "string",
+              "description": "Identifier of an account that is used to process the incoming transaction (usually a crypto wallet address).",
+              "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+            },
+            "example": [
+              "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+            ]
+          }
+        },
+        "required": [
+          "beneficiaryPersons"
+        ],
+        "example": {
+          "beneficiaryPersons": []
+        }
+      },
+      "OriginatingVASP": {
+        "title": "OriginatingVASP",
+        "type": "object",
+        "description": "The OriginatingVASP describes the VASP that initiates the virtual asset transfer, and transfers the virtual asset upon receiving the request for a virtual asset on behalf of the originator.",
+        "properties": {
+          "originatingVASP": {
+            "$ref": "#/components/schemas/Person"
+          }
+        },
+        "required": [
+          "originatingVASP"
+        ],
+        "example": {
+          "originatingVASP": {}
+        }
+      },
+      "BeneficiaryVASP": {
+        "title": "BeneficiaryVASP",
+        "type": "object",
+        "description": "The BeneficiaryVASP describes the VASP which receives the transfer of a virtual asset from the originating VASP directly or through an intermediary VASP and makes the funds available to the beneficiary.",
+        "properties": {
+          "beneficiaryVASP": {
+            "$ref": "#/components/schemas/Person"
+          }
+        },
+        "required": [
+          "beneficiaryVASP"
+        ],
+        "example": {
+          "beneficiaryVASP": {}
+        }
+      },
+      "TransferPath": {
+        "title": "TransferPath",
+        "type": "object",
+        "description": "The transfer path refers to the intermediary VASP(s) participating in a serial chain that receive(s) and retransmit(s) a virtual asset transfer on behalf of the originating VASP and the beneficiary VASP, or another intermediary VASP, together with their corresponding sequence number.",
+        "properties": {
+          "transferPath": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntermediaryVASP"
+            },
+            "example": []
+          }
+        },
+        "example": {}
+      },
+      "IntermediaryVASP": {
+        "title": "IntermediaryVASP",
+        "type": "object",
+        "description": "The VASP in a serial chain that receives and retransmits a VA transfer on behalf of the originating VASP and the beneficiary VASP, or another intermediary VASP.",
+        "properties": {
+          "intermediaryVASP": {
+            "type": "array",
+            "description": "The Legal Person definition of the intermediary VASP(s) in the transfer chain.",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            },
+            "example": []
+          },
+          "sequence": {
+            "type": "integer",
+            "description": "the sequence in a serial chain at which the corresponding intermediary VASP participates in the transfer.",
+            "example": 1
+          }
+        },
+        "example": {}
+      },
+      "PayloadMetadata": {
+        "title": "PayloadMetadata",
+        "type": "object",
+        "description": "Data describing the contents of the identity payload.",
+        "properties": {
+          "transliterationMethod": {
+            "type": "array",
+            "description": "The method used to map from a national system of writing to Latin script.",
+            "items": {
+              "type": "string",
+              "description": "Identifies the national script from which transliteration to Latin script is applied.",
+              "enum": [
+                "OTHR",
+                "ARAB",
+                "ARAN",
+                "ARMN",
+                "CYRL",
+                "DEVA",
+                "GEOR",
+                "GREK",
+                "HANI",
+                "HEBR",
+                "KANA",
+                "KORE",
+                "THAI"
+              ],
+              "example": "HEBR"
+            },
+            "example": [
+              "GREK",
+              "HEBR"
+            ]
+          }
+        },
+        "example": {
+          "transliterationMethod": [
+            "GREK",
+            "HEBR"
+          ]
+        }
+      },
+      "Person": {
+        "title": "Person",
+        "type": "object",
+        "description": "A Person is either a Natural Person (a uniquely distinguishable individual) or a Legal Person (any other entity besides a natural person that can establish a permenant customer relationship with an affected entity or otherwise own property).",
+        "example": {}
       }
     },
     "securitySchemes": {
@@ -1471,6 +2090,7 @@
         "name": "query",
         "in": "query",
         "description": "The name of the vasp to search for. The best bet is to use the shortest search query possible to return the most results.",
+        "required": true,
         "schema": {
           "type": "string",
           "example": "Coin"
@@ -1500,6 +2120,7 @@
           "Authentication"
         ],
         "requestBody": {
+          "required": true,
           "description": "An API authentication JSON payload with the API key client id and secret.",
           "content": {
             "application/json": {
@@ -1537,6 +2158,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "client_id",
@@ -1577,6 +2199,7 @@
           "Authentication"
         ],
         "requestBody": {
+          "required": true,
           "description": "A JSON payload with the refresh token as the primary element.",
           "content": {
             "application/json": {
@@ -1613,6 +2236,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "1 validation errors occurred",
                   "errors": [
                     {
                       "field": "refresh_token",
@@ -1743,6 +2367,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "description": "Account information that includes all required writeable fields and no crypto addresses.",
           "content": {
             "application/json": {
@@ -1817,6 +2442,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "id",
@@ -2049,6 +2675,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "id",
@@ -2263,6 +2890,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "description": "Crypto wallet address information that includes all required writeable fields.",
           "content": {
             "application/json": {
@@ -2333,6 +2961,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "3 validation errors occurred",
                   "errors": [
                     {
                       "field": "crypto_address",
@@ -2552,6 +3181,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "3 validation errors occurred",
                   "errors": [
                     {
                       "field": "crypto_address",
@@ -2760,6 +3390,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "description": "Counterparty information that includes all required writeable fields.",
           "content": {
             "application/json": {
@@ -2847,6 +3478,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "country",
@@ -3162,6 +3794,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "common_name",
@@ -3372,6 +4005,7 @@
           "url": "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
         },
         "requestBody": {
+          "required": true,
           "description": "Transaction information that includes all required writeable fields.",
           "content": {
             "application/json": {
@@ -3458,6 +4092,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "status",
@@ -3495,7 +4130,8 @@
               "text/csv": {
                 "schema": {
                   "type": "string",
-                  "description": "A comma delimited columns and newline delimited rows CSV file with double quote escaping."
+                  "description": "A comma delimited columns and newline delimited rows CSV file with double quote escaping.",
+                  "example": "ID,Status,Counterparty,Originator,Originator Address,Beneficiary,Beneficiary Address,Virtual Asset,Amount,Last Update,Created,Number of Envelopes,HMAC Signature"
                 },
                 "example": "ID,Status,Counterparty,Originator,Originator Address,Beneficiary,Beneficiary Address,Virtual Asset,Amount,Last Update,Created,Number of Envelopes,HMAC Signature\nb0d35509-fe80-4719-967a-4582a18dda02,accepted,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0021,2024-08-19T19:52:26Z,2024-08-19T14:33:36-05:00,12,\ncb510e64-807a-4871-b983-7192949df192,accepted,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0066,2024-08-19T19:55:16Z,2024-08-19T14:25:14-05:00,8,\nec40ffe5-fc7f-4d83-8185-0cae8f5e26ab,pending,Counterparty,Gertrude Stein,mpEDL443jUVqJorisdiF8VkkzUk8B9Bnwz,Brenda Tidewater,noKGh1jkG5APipzXWBfGRgb1jnbGjaxu4H,BTC,0.0454,2024-08-19T19:57:02Z,2024-08-19T13:55:50-05:00,10,"
               }
@@ -3616,7 +4252,7 @@
           }
         ],
         "externalDocs": {
-          "description": "Transaction States and Workflows",
+          "description": "Transaction States and Compliance Officer Actions",
           "url": "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
         },
         "parameters": [
@@ -3721,6 +4357,7 @@
                 },
                 "example": {
                   "success": false,
+                  "error": "2 validation errors occurred",
                   "errors": [
                     {
                       "field": "status",
@@ -3801,6 +4438,218 @@
                 "example": {
                   "success": false,
                   "error": "transaction not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions/prepare": {
+      "post": {
+        "summary": "Prepare IVMS101 Payload",
+        "description": "This endpoint allows you to use a simplified data entry form that only requires transfer, originator and beneficiary details along with the travel address of the beneficiary in order to construct a complete IVMS101 Identity and Transaction payload. The IVMS101 payload is far more complex than the simple form, so it's often a first place to start when creating a transaction. This endpoint also populates the payload with the originator and beneficiary VASP legal person details using the counterparty information on the node.",
+        "operationId": "prepareTransaction",
+        "tags": [
+          "Preparing Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Simplified Prepare Form",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Prepare"
+              },
+              "example": {
+                "travel_address": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi",
+                "originator": {
+                  "first_name": "James",
+                  "last_name": "Bond",
+                  "customer_id": "674907513",
+                  "identification": {
+                    "type_code": "DRLC",
+                    "number": "BOND9211110JA9OB",
+                    "country": "GB",
+                    "dob": "1920-11-11",
+                    "birth_place": "Wattenscheid, Germany"
+                  },
+                  "addr_line_1": "1 High Street",
+                  "city": "London",
+                  "post_code": "SE1 2QH",
+                  "country": "GB",
+                  "crypto_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+                },
+                "beneficiary": {
+                  "first_name": "Twilda",
+                  "last_name": "Swansong",
+                  "customer_id": "39910432",
+                  "identification": {
+                    "type_code": "SOCS",
+                    "number": "880-02-22213",
+                    "country": "US",
+                    "dob": "1978-02-14",
+                    "birth_place": "Toronto, Ontario, Canada"
+                  },
+                  "addr_line_1": "123 Main Street",
+                  "city": "Casper",
+                  "state": "WY",
+                  "post_code": "82604",
+                  "country": "US",
+                  "crypto_address": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
+                },
+                "transfer": {
+                  "amount": 0.0007,
+                  "network": "BTC"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succesfully Prepared IVMS101 Payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prepared"
+                },
+                "example": {
+                  "travel_address": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Prepare IVMS101 Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse prepare transaction data"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid Prepare IVMS101 Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "2 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "travel_address",
+                      "error": "missing travel_address: this field is required"
+                    },
+                    {
+                      "field": "originator.crypto_address",
+                      "error": "missing originator.crypto_address: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions/send-prepared": {
+      "post": {
+        "summary": "Send Prepared IVMS101 Payload",
+        "description": "This endpoint allows you to easily create a transaction and send the travel rule transfer/inquiry to the counterparty using one of the available travel rule protocols in a single step. If the transaction doesn't exist, it is automatically created by the server; if it does exist, it is updated and the payload is sent to the counterparty for compliance processing. This method is generally the best way to create transactions as it simplifies the initialize transaction workflow. When used in conjunction with the Prepare endpoint, this endpoint can reduce the amount of work your API client has to perform.",
+        "operationId": "sendPreparedTransaction",
+        "tags": [
+          "Preparing Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Prepared Payload as Returned from Prepare Endpoint",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Prepared"
+              },
+              "example": {
+                "travel_address": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succesfully Sent IVMS101 Payload for Existing Transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                },
+                "example": {}
+              }
+            }
+          },
+          "201": {
+            "description": "Succesfully Created Transaction and Sent IVMS101 Payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                },
+                "example": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Prepared IVMS101 Payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse prepared transaction data"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid Prepared IVMS101 Payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "2 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "travel_address",
+                      "error": "missing travel_address: this field is required"
+                    },
+                    {
+                      "field": "originator.crypto_address",
+                      "error": "missing originator.crypto_address: this field is required"
+                    }
+                  ]
                 }
               }
             }
