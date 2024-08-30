@@ -37,6 +37,30 @@
     {
       "name": "Counterparties",
       "description": "Counterparties define remote VASP peers with whom you can exchange Travel Rule information for compliance purposes."
+    },
+    {
+      "name": "Transactions",
+      "description": "Transactions refer to an instance of a travel rule information exchange related to a specific on-chain virtual asset transfer."
+    },
+    {
+      "name": "Secure Envelopes",
+      "description": "Secure envelopes store PII data in an encrypted fashion and record an audit log of information exchanges with a counterparty about a specific transaction."
+    },
+    {
+      "name": "Users",
+      "description": "Envoy user access management and identity control for compliance auditing purposes."
+    },
+    {
+      "name": "API  Keys",
+      "description": "Envoy API client access management and identity control for compliance auditing purposes."
+    },
+    {
+      "name": "Utilities",
+      "description": "Other useful API methods and helper functionality not associated with a REST resource."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhooks for making callbacks to an API client system."
     }
   ],
   "externalDocs": {
@@ -49,6 +73,7 @@
   "components": {
     "schemas": {
       "Reply": {
+        "title": "Reply",
         "type": "object",
         "description": "A standard reply object that is used to indicate success with a JSON body if required.",
         "properties": {
@@ -63,6 +88,7 @@
         }
       },
       "ErrorReply": {
+        "title": "ErrorReply",
         "type": "object",
         "description": "A general error reply that includes the details of why the request was bad.",
         "properties": {
@@ -83,6 +109,7 @@
         }
       },
       "FieldErrors": {
+        "title": "FieldErrors",
         "type": "object",
         "description": "A set of errors used to indicate problems with specific fields in the request body.",
         "properties": {
@@ -141,6 +168,7 @@
         }
       },
       "PageInfo": {
+        "title": "PageInfo",
         "type": "object",
         "description": "The page info for the current page of a paginated list resource.",
         "properties": {
@@ -168,6 +196,7 @@
         }
       },
       "APIAuthentication": {
+        "title": "APIAuthentication",
         "type": "object",
         "description": "Authenticate an API Key using its client ID and secret to receive a JWT bearer token.",
         "properties": {
@@ -192,6 +221,7 @@
         }
       },
       "LoginReply": {
+        "title": "LoginReply",
         "type": "object",
         "description": "Returns two JWT tokens. The access token should be used as a Bearer token in the Authorization header. The refresh token can be used to obtain a new access token when it expires to reauthenticate without having to post the client ID and secret again.",
         "properties": {
@@ -214,6 +244,7 @@
         }
       },
       "ReauthenticateRequest": {
+        "title": "ReauthenticateRequest",
         "type": "object",
         "description": "Reauthenticate an expired `access_token` to receive a new access token without having to authenticate with your API key credentials.",
         "properties": {
@@ -232,6 +263,7 @@
         }
       },
       "Account": {
+        "title": "Account",
         "type": "object",
         "description": "An account of a customer whose identity information is required for compliance. Accounts are also associated with crypto wallet addresses.",
         "properties": {
@@ -319,6 +351,7 @@
         }
       },
       "AccountForm": {
+        "title": "AccountForm",
         "type": "object",
         "description": "The editable fields in a customer account object.",
         "properties": {
@@ -355,6 +388,7 @@
         }
       },
       "AccountSummary": {
+        "title": "AccountSummary",
         "type": "object",
         "description": "A summary of customer account details that is used in account lists to minimize data transfer.",
         "properties": {
@@ -409,6 +443,7 @@
         }
       },
       "AccountList": {
+        "title": "AccountList",
         "type": "object",
         "description": "A list of Account objects, returned in a paginated fashion.",
         "properties": {
@@ -469,6 +504,7 @@
         }
       },
       "CryptoAddress": {
+        "title": "CryptoAddress",
         "type": "object",
         "description": "A record of a crypto wallet address and the blockchain network that wallet belongs to.",
         "properties": {
@@ -527,6 +563,7 @@
         }
       },
       "CryptoAddressList": {
+        "title": "CryptoAddressList",
         "type": "object",
         "description": "A list of CryptoAddress objects, returned in a paginated fashion.",
         "properties": {
@@ -583,6 +620,7 @@
         }
       },
       "CryptoAddressForm": {
+        "title": "CryptoAddressForm",
         "type": "object",
         "description": "The editable fields of a crypto wallet address for create and update.",
         "properties": {
@@ -618,6 +656,7 @@
         }
       },
       "Counterparty": {
+        "title": "Counterparty",
         "type": "object",
         "description": "Defines remote VASPs with whom you can exchange Travel Rule information and how to connect to them using a peer-to-peer network.",
         "properties": {
@@ -783,6 +822,7 @@
         }
       },
       "CounterpartyForm": {
+        "title": "CounterpartyForm",
         "type": "object",
         "description": "Defines the editable fields to create or update counterparty record. Note that only counterparties created with the user or peer source may be edited.",
         "properties": {
@@ -896,6 +936,7 @@
         }
       },
       "CounterpartySummary": {
+        "title": "CounterpartySummary",
         "type": "object",
         "description": "A summary of counterparty fields to return in counterparty lists to conserve memory.",
         "properties": {
@@ -967,6 +1008,7 @@
         }
       },
       "CounterpartyList": {
+        "title": "CounterpartyList",
         "type": "object",
         "description": "A list of Counterparty objects, returned in a paginated fashion.",
         "properties": {
@@ -1029,6 +1071,358 @@
             }
           ]
         }
+      },
+      "Transaction": {
+        "title": "Transaction",
+        "type": "object",
+        "description": "A transaction is a travel rule information exchange related to an on-chain transfer of virtual assets for compliance purposes. The Envoy node stores the transaction information in a decrypted form for indexing and search, but the PII of a transaction is stored in secure envelopes, which are encrypted and exchanged with the counterparty.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The transaction ID, also the TRISA envelope ID (must be a UUID).",
+            "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "local",
+              "remote"
+            ],
+            "description": "The originating source of the transaction; \"local\" if this was an outgoing transaction from this Envoy node, \"remote\" if this is an incoming transaction from a counterparty.",
+            "example": "remote"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unspecified",
+              "draft",
+              "pending",
+              "review",
+              "repair",
+              "accepted",
+              "completed",
+              "rejected"
+            ],
+            "description": "The current status of the travel rule transaction, which defines the actions the compliance officer should take.",
+            "example": "accepted",
+            "externalDocs": [
+              "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
+            ]
+          },
+          "counterparty": {
+            "type": "string",
+            "description": "The name or common name of the counterparty as determined by the Envoy node.",
+            "example": "AliceCoin"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The ID of the counterparty in the counterparties table of the Envoy node.",
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          "originator": {
+            "type": "string",
+            "description": "The name of the originator as determined by the Envoy node.",
+            "example": "James Bond"
+          },
+          "originator_address": {
+            "type": "string",
+            "description": "The crypto wallet address of the originator as determined by the Envoy node.",
+            "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+          },
+          "beneficiary": {
+            "type": "string",
+            "description": "The name of the beneficiary as determined by the Envoy node.",
+            "example": "Twilda Swansong"
+          },
+          "beneficiary_address": {
+            "type": "string",
+            "description": "The crypto wallet address of the beneficiary as determined by the Envoy node.",
+            "example": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6"
+          },
+          "virtual_asset": {
+            "type": "string",
+            "description": "A representation of the network and virtual asset that defines the on-chain transaction.",
+            "example": "BTC"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of the on-chain transaction as defined by the smallest unit of that virtual asset.",
+            "example": 1.23e-6
+          },
+          "last_update": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp of the last activity on the transaction; usually a secure envelope sent or received.",
+            "example": "2024-08-30T12:41:14-05:00"
+          },
+          "envelope_count": {
+            "type": "integer",
+            "description": "The number of envelopes sent back and forth between your node and the counterparty.",
+            "example": 8
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp that the transaction record was created.",
+            "example": "2024-08-30T11:14:55-05:00"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp that the transaction record was last modified.",
+            "example": "2024-08-30T12:41:14-05:00"
+          }
+        },
+        "example": {
+          "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+          "source": "remote",
+          "status": "accepted",
+          "counterparty": "AliceCoin",
+          "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+          "originator": "James Bond",
+          "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+          "beneficiary": "Twilda Swansong",
+          "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+          "virtual_asset": "BTC",
+          "amount": 1.23e-6,
+          "last_update": "2024-08-30T12:41:14-05:00",
+          "envelope_count": 8,
+          "created": "2024-08-30T11:14:55-05:00",
+          "modified": "2024-08-30T12:41:14-05:00"
+        }
+      },
+      "TransactionForm": {
+        "title": "TransactionForm",
+        "type": "object",
+        "description": "The editable fields that can be used to create or modify a transaction record.",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "local",
+              "remote"
+            ],
+            "description": "The originating source of the transaction; generally if using the create method, you should specify \"local\".",
+            "example": "remote"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unspecified",
+              "draft",
+              "pending",
+              "review",
+              "repair",
+              "accepted",
+              "completed",
+              "rejected"
+            ],
+            "description": "The current status of the travel rule transaction, which should be set based on actions taken by compliance officers or the remote counterparty.",
+            "example": "accepted",
+            "externalDocs": [
+              "https://trisa.dev/envoy/workflows/index.html#transaction-states-and-actions"
+            ]
+          },
+          "counterparty": {
+            "type": "string",
+            "description": "The name or common name of the counterparty for filtering and searching.",
+            "example": "AliceCoin"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The ID of the counterparty for better counterparty lookup.",
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          "originator": {
+            "type": "string",
+            "description": "The name of the originator of the transaction.",
+            "example": "James Bond"
+          },
+          "originator_address": {
+            "type": "string",
+            "description": "The crypto wallet address of the originator of the transaction.",
+            "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+          },
+          "beneficiary": {
+            "type": "string",
+            "description": "The name of the beneficiary the transfer is going to.",
+            "example": "Twilda Swansong"
+          },
+          "beneficiary_address": {
+            "type": "string",
+            "description": "The crypto wallet address of the beneficiary the transfer is going to.",
+            "example": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6"
+          },
+          "virtual_asset": {
+            "type": "string",
+            "description": "The network and virtual asset of the on-chain transaction.",
+            "example": "BTC"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of the the smallest unit of the virtual asset for the blockchain.",
+            "example": 1.23e-6
+          }
+        },
+        "required": [
+          "source",
+          "status",
+          "counterparty",
+          "virtual_asset",
+          "amount"
+        ],
+        "example": {
+          "source": "remote",
+          "status": "accepted",
+          "counterparty": "AliceCoin",
+          "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+          "originator": "James Bond",
+          "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+          "beneficiary": "Twilda Swansong",
+          "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+          "virtual_asset": "BTC",
+          "amount": 1.23e-6
+        }
+      },
+      "TransactionList": {
+        "title": "TransactionList",
+        "type": "object",
+        "description": "A list of transaction objects, returned in a paginated fashion.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageInfo"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "example": [
+              {
+                "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+                "source": "remote",
+                "status": "accepted",
+                "counterparty": "AliceCoin",
+                "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "originator": "James Bond",
+                "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                "beneficiary": "Twilda Swansong",
+                "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                "virtual_asset": "BTC",
+                "amount": 1.23e-6,
+                "last_update": "2024-08-30T12:41:14-05:00",
+                "envelope_count": 8,
+                "created": "2024-08-30T11:14:55-05:00",
+                "modified": "2024-08-30T12:41:14-05:00"
+              },
+              {
+                "id": "a1edfdf3-a0b2-423a-b293-dd597a3664c0",
+                "source": "local",
+                "status": "pending",
+                "counterparty": "BobVASP",
+                "counterparty_id": "01J6JC3YZ207WZ9Y9RJQAWB9E6",
+                "originator": "Marcell Aven",
+                "originator_address": "0x435A6EA4EAFF2ACC2717F51AF55D7EC1528CA5C0",
+                "beneficiary": "Francine Le'vint",
+                "beneficiary_address": "0x79099D52D6FC37F1BEE10BA20EE5F8D86FFAB95D",
+                "virtual_asset": "ETH",
+                "amount": 628,
+                "last_update": "2024-08-30T14:28:46-05:00",
+                "envelope_count": 2,
+                "created": "2024-08-30T14:28:38-05:00",
+                "modified": "2024-08-30T14:28:46-05:00"
+              }
+            ]
+          }
+        },
+        "example": {
+          "page": {
+            "page_size": 50
+          },
+          "transactions": [
+            {
+              "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+              "source": "remote",
+              "status": "accepted",
+              "counterparty": "AliceCoin",
+              "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+              "originator": "James Bond",
+              "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+              "beneficiary": "Twilda Swansong",
+              "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+              "virtual_asset": "BTC",
+              "amount": 1.23e-6,
+              "last_update": "2024-08-30T12:41:14-05:00",
+              "envelope_count": 8,
+              "created": "2024-08-30T11:14:55-05:00",
+              "modified": "2024-08-30T12:41:14-05:00"
+            },
+            {
+              "id": "a1edfdf3-a0b2-423a-b293-dd597a3664c0",
+              "source": "local",
+              "status": "pending",
+              "counterparty": "BobVASP",
+              "counterparty_id": "01J6JC3YZ207WZ9Y9RJQAWB9E6",
+              "originator": "Marcell Aven",
+              "originator_address": "0x435A6EA4EAFF2ACC2717F51AF55D7EC1528CA5C0",
+              "beneficiary": "Francine Le'vint",
+              "beneficiary_address": "0x79099D52D6FC37F1BEE10BA20EE5F8D86FFAB95D",
+              "virtual_asset": "ETH",
+              "amount": 628,
+              "last_update": "2024-08-30T14:28:46-05:00",
+              "envelope_count": 2,
+              "created": "2024-08-30T14:28:38-05:00",
+              "modified": "2024-08-30T14:28:46-05:00"
+            }
+          ]
+        }
+      },
+      "SecureEnvelope": {
+        "title": "SecureEnvelope",
+        "type": "object",
+        "description": "A secure envelope holds an encrypted payload that contains the PII compliance information related to a transaction. The goal of a TRISA transaction is for both counterparties to have identical secure envelope payloads, encrypted so that only each counterparty may view the payload. TRP messages are also stored in secure envelopes, though there is no guarantee of how the data is being stored on the counterparty.",
+        "example": {}
+      },
+      "SecureEnvelopeSummary": {
+        "title": "SecureEnvelopeSummary",
+        "type": "object",
+        "description": "The subset of secure envelope fields that are returned as a summary for lists of secure envelopes to minimize data transfer.",
+        "example": {}
+      },
+      "Envelope": {
+        "title": "Envelope",
+        "type": "object",
+        "description": "An envelope is a decrypted version of a secure envelope and is used either to allow the Envoy node to perform decryption on behalf of the API client or for the API client to send data to the Envoy node for conversion into a secure envelope.",
+        "example": {}
+      },
+      "EnvelopeSummary": {
+        "title": "EnvelopeSummary",
+        "type": "object",
+        "description": "The subset of envelope fields that provide a summary for envelope list requests to minimize data transfer.",
+        "example": {}
+      },
+      "EnvelopeList": {
+        "title": "EnvelopeList",
+        "type": "object",
+        "description": "A list of either secure envelopes or [decrypted] envelopes, returned in a paginated fashion.",
+        "example": {}
+      },
+      "Rejection": {
+        "title": "Rejection",
+        "type": "object",
+        "description": "A rejection is used to send a TRISA error back to the counterparty. There are two types of errors. A \"Rejection\" (reply=false) informs the counterparty that the on-chain transaction should not proceed because compliance requirements could not be met. A \"Repair\" (reply=true) informs the counterparty that there is some issue with the compliance information that needs to be fixed before the on-chain transaction can proceed.",
+        "example": {}
+      },
+      "Repair": {
+        "title": "Repair",
+        "type": "object",
+        "description": "A repair object sends the transaction data along with the repair message from the counterparty so that the API client can make fixes to appropriately conclude the travel rule transaction.",
+        "example": {}
       }
     },
     "securitySchemes": {
@@ -1071,6 +1465,27 @@
           "example": "eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ=="
         },
         "example": "eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ=="
+      },
+      "query": {
+        "name": "query",
+        "in": "query",
+        "description": "The name of the vasp to search for. The best bet is to use the shortest search query possible to return the most results.",
+        "schema": {
+          "type": "string",
+          "example": "Coin"
+        },
+        "example": "Coin"
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Limit the number of records to return in a single search query.",
+        "schema": {
+          "type": "integer",
+          "example": 10,
+          "default": 10
+        },
+        "example": 10
       }
     }
   },
@@ -1439,7 +1854,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1534,7 +1949,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1669,7 +2084,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1741,7 +2156,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1840,7 +2255,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1959,7 +2374,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -1971,7 +2386,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
             },
             "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
@@ -2046,7 +2461,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -2058,7 +2473,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
             },
             "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
@@ -2176,7 +2591,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -2188,7 +2603,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
             },
             "example": "01J6FRB1EGJCEZXRMQGW1FM0BR"
@@ -2463,25 +2878,10 @@
         ],
         "parameters": [
           {
-            "name": "query",
-            "in": "query",
-            "description": "The name of the vasp to search for. The best bet is to use the shortest search query possible to return the most results.",
-            "schema": {
-              "type": "string",
-              "example": "Coin"
-            },
-            "example": "Coin"
+            "$ref": "#/components/parameters/query"
           },
           {
-            "name": "limit",
-            "in": "query",
-            "description": "Limit the number of records to return in a single search query.",
-            "schema": {
-              "type": "integer",
-              "example": 10,
-              "default": 10
-            },
-            "example": 10
+            "$ref": "#/components/parameters/limit"
           }
         ],
         "responses": {
@@ -2560,7 +2960,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -2648,7 +3048,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -2797,7 +3197,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "UUID",
+              "format": "ULID",
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
@@ -2843,6 +3243,578 @@
                   "error": "counterparty not found"
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions": {
+      "get": {
+        "summary": "List Transactions",
+        "description": "Return a paginated list of transactions stored on the Envoy node.",
+        "operationId": "listTransactions",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page_size"
+          },
+          {
+            "$ref": "#/components/parameters/next_page_token"
+          },
+          {
+            "$ref": "#/components/parameters/prev_page_token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Transaction Page Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionList"
+                },
+                "example": {
+                  "page": {
+                    "page_size": 50
+                  },
+                  "transactions": [
+                    {
+                      "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+                      "source": "remote",
+                      "status": "accepted",
+                      "counterparty": "AliceCoin",
+                      "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                      "originator": "James Bond",
+                      "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                      "beneficiary": "Twilda Swansong",
+                      "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                      "virtual_asset": "BTC",
+                      "amount": 1.23e-6,
+                      "last_update": "2024-08-30T12:41:14-05:00",
+                      "envelope_count": 8,
+                      "created": "2024-08-30T11:14:55-05:00",
+                      "modified": "2024-08-30T12:41:14-05:00"
+                    },
+                    {
+                      "id": "a1edfdf3-a0b2-423a-b293-dd597a3664c0",
+                      "source": "local",
+                      "status": "pending",
+                      "counterparty": "BobVASP",
+                      "counterparty_id": "01J6JC3YZ207WZ9Y9RJQAWB9E6",
+                      "originator": "Marcell Aven",
+                      "originator_address": "0x435A6EA4EAFF2ACC2717F51AF55D7EC1528CA5C0",
+                      "beneficiary": "Francine Le'vint",
+                      "beneficiary_address": "0x79099D52D6FC37F1BEE10BA20EE5F8D86FFAB95D",
+                      "virtual_asset": "ETH",
+                      "amount": 628,
+                      "last_update": "2024-08-30T14:28:46-05:00",
+                      "envelope_count": 2,
+                      "created": "2024-08-30T14:28:38-05:00",
+                      "modified": "2024-08-30T14:28:46-05:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Transactions Page Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse page query request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View Transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Transaction",
+        "description": "Create a new transaction record.",
+        "operationId": "createTransaction",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Transaction information that includes all required writeable fields.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionForm"
+              },
+              "example": {
+                "source": "remote",
+                "status": "accepted",
+                "counterparty": "AliceCoin",
+                "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "originator": "James Bond",
+                "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                "beneficiary": "Twilda Swansong",
+                "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                "virtual_asset": "BTC",
+                "amount": 1.23e-6
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                },
+                "example": {
+                  "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+                  "source": "remote",
+                  "status": "accepted",
+                  "counterparty": "AliceCoin",
+                  "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "originator": "James Bond",
+                  "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "beneficiary": "Twilda Swansong",
+                  "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                  "virtual_asset": "BTC",
+                  "amount": 1.23e-6,
+                  "last_update": "2024-08-30T12:41:14-05:00",
+                  "envelope_count": 8,
+                  "created": "2024-08-30T11:14:55-05:00",
+                  "modified": "2024-08-30T12:41:14-05:00"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Create Transaction Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse transaction data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Manage Transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Transaction Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "errors": [
+                    {
+                      "field": "status",
+                      "error": "status must be one of draft, pending, action required, completed, or archived"
+                    },
+                    {
+                      "field": "counterparty",
+                      "error": "missing counterparty: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions/{transactionID}": {
+      "get": {
+        "summary": "Transaction Detail",
+        "description": "Return a detailed record of a single transaction object.",
+        "operationId": "transactionDetail",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transactionID",
+            "in": "path",
+            "description": "The ID of the transaction to fetch a detailed record of.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID",
+              "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+            },
+            "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction Retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                },
+                "example": {
+                  "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+                  "source": "remote",
+                  "status": "accepted",
+                  "counterparty": "AliceCoin",
+                  "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "originator": "James Bond",
+                  "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "beneficiary": "Twilda Swansong",
+                  "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                  "virtual_asset": "BTC",
+                  "amount": 1.23e-6,
+                  "last_update": "2024-08-30T12:41:14-05:00",
+                  "envelope_count": 8,
+                  "created": "2024-08-30T11:14:55-05:00",
+                  "modified": "2024-08-30T12:41:14-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View Transaction Detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "transaction not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Transaction",
+        "description": "Update a transaction record with new information.",
+        "operationId": "updateTransaction",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transactionID",
+            "in": "path",
+            "description": "The ID of the transaction to update.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID",
+              "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+            },
+            "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+          }
+        ],
+        "requestBody": {
+          "description": "A complete transaction record that should reflect the state of the transaction after the operation.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionForm"
+              },
+              "example": {
+                "source": "remote",
+                "status": "accepted",
+                "counterparty": "AliceCoin",
+                "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "originator": "James Bond",
+                "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                "beneficiary": "Twilda Swansong",
+                "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                "virtual_asset": "BTC",
+                "amount": 1.23e-6
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                },
+                "example": {
+                  "id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5",
+                  "source": "remote",
+                  "status": "accepted",
+                  "counterparty": "AliceCoin",
+                  "counterparty_id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "originator": "James Bond",
+                  "originator_address": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                  "beneficiary": "Twilda Swansong",
+                  "beneficiary_address": "mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6",
+                  "virtual_asset": "BTC",
+                  "amount": 1.23e-6,
+                  "last_update": "2024-08-30T12:41:14-05:00",
+                  "envelope_count": 8,
+                  "created": "2024-08-30T11:14:55-05:00",
+                  "modified": "2024-08-30T12:41:14-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Update Transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction Not Found (Cannot Update)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "transaction not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Transaction Update Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "errors": [
+                    {
+                      "field": "status",
+                      "error": "status must be one of draft, pending, action required, completed, or archived"
+                    },
+                    {
+                      "field": "counterparty",
+                      "error": "missing counterparty: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Transaction",
+        "description": "Delete a transaction with the specified ID.",
+        "operationId": "deleteTransaction",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transactionID",
+            "in": "path",
+            "description": "The ID of the transaction to delete.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID",
+              "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+            },
+            "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reply"
+                },
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Delete Transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction Not Found (Cannot Delete)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "transaction not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "transferCallback": {
+      "post": {
+        "summary": "Transfer Callback",
+        "description": "When an incoming travel rule transfer/inquiry is received, if a webhook is configured on the Envoy node, the node will make a POST request with the incoming information and expects a reply that can be sent to the initiating counterparty.",
+        "operationId": "transferCallback",
+        "tags": [
+          "Webhooks"
+        ],
+        "requestBody": {
+          "description": "Callback request contains decrypted secure envelope data and other metadata related to the transfer.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transaction_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The related transaction ID, also the TRISA envelope ID",
+                    "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+                  }
+                },
+                "example": {
+                  "transaction_id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+                }
+              },
+              "example": {
+                "transaction_id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully Handled Incoming Callback",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transaction_id": null,
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Must return the same transaction ID to the server.",
+                    "example": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+                  }
+                },
+                "example": {
+                  "transaction_id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+                }
+              },
+              "example": {
+                "transaction_id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
+              }
+            },
+            "example": {
+              "transaction_id": "f653bae7-79c9-45c2-87ae-eb5d1090dbf5"
             }
           }
         }
