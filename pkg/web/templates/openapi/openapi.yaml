@@ -1622,10 +1622,129 @@ components:
           example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
         identity:
           $ref: "#/components/schemas/IdentityPayload"
+        transaction:
+          $ref: "#/components/schemas/TransactionPayload"
       required:
         - travel_address
+        - identity
+        - transaction
       example:
         travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        identity:
+          originator:
+            originatorPersons:
+              - naturalPerson:
+                  name:
+                    nameIdentifiers:
+                      - primaryIdentifier: Bond
+                        secondaryIdentifier: James
+                        nameIdentifierType: LEGL
+                  geographicAddress:
+                    - addressType: HOME
+                      streetName: High Street
+                      buildingNumber: 7b
+                      town: London
+                      postCode: SE1 2QH
+                      country: GB
+                  nationalIdentification:
+                    nationalIdentificationTypeCode: DRLC
+                    nationallIdentification: BOND9211110JA9OB
+                    countryOfIssue: GB
+                  customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                  dateAndPlaceOfBirth:
+                    dateOfBirth: 1920-11-11
+                    placeOfBirth: Wattenscheid, Germany
+                  countryOfResidence: GB
+            accountNumber:
+              - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          beneficiary:
+            beneficiaryPersons:
+              - naturalPerson:
+                  name:
+                    nameIdentifiers:
+                      - primaryIdentifier: Miura
+                        secondaryIdentifier: Kentaro
+                        nameIdentifierType: LEGL
+                    localNameIdentifiers:
+                      - primaryIdentifier: 三浦
+                        secondaryIdentifier: 建太郎
+                        nameIdentifierType: LEGL
+                  geographicAddress:
+                    - addressType: HOME
+                      streetName: Shimohirakawa
+                      buildingNumber: 1536-2
+                      townName: 菊川市
+                      countrySubDivision: 静岡県
+                      postCode: 437-1514
+                      country: JP
+                  nationalIdentification:
+                    nationalIdentificationTypeCode: SOCS
+                    nationallIdentification: 0537-73-2271
+                    countryOfIssue: JP
+                  customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                  dateAndPlaceOfBirth:
+                    dateOfBirth: 1979-02-14
+                    placeOfBirth: Tokyo, Japan
+                  countryOfResidence: JP
+            accountNumber:
+              - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+          originatingVASP:
+            originatingVASP:
+              legalPerson:
+                name:
+                  nameIdentifiers:
+                    - legalPersonName: High Street Capital Management, LTD
+                      legalPersonNameIdentifierType: LEGL
+                    - legalPersonName: PubCoin
+                      legalPersonNameIdentifierType: TRAD
+                geographicAddress:
+                  - addressType: BIZZ
+                    streetName: Abbey St.
+                    buildingNumber: "51"
+                    town: Nottingham
+                    postCode: NG7 2NZ
+                    country: GB
+                nationalIdentification:
+                  nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                  nationalIdentifierType: LEIX
+                countryOfRegistration: GB
+          beneficiaryVASP:
+            beneficiaryVASP:
+              legalPerson:
+                name:
+                  nameIdentifiers:
+                    - legalPersonName: Nippon Crypto Exchange, KK
+                      legalPersonNameIdentifierType: LEGL
+                  localNameIdentifiers:
+                    - legalPersonName: 日本仮想通貨取引所株式会社
+                      legalPersonNameIdentifierType: LEGL
+                  phoneticNameIdentifiers:
+                    - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                      legalPersonNameIdentifierType: LEGL
+                geographicAddress:
+                  - addressType: BIZZ
+                    addressLines:
+                      - 滋賀県大津市水明１－３４－２
+                      - 520-0531
+                    country: JP
+                  - addressType: BIZZ
+                    addressLines:
+                      - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
+                      - 520-0531 JAPAN
+                    country: JP
+                nationalIdentification:
+                  nationalIdentifier: 84-1234567
+                  nationalIdentifierType: TXID
+                  registrationAuthority: RA777777
+                countryOfRegistration: JP
+        transaction:
+          txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
+          originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+          amount: 0.46602501
+          network: BTC
+          timestamp: 2024-09-01T16:22:41-05:00
+          extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
     IdentityPayload:
       title: IdentityPayload
       type: object
@@ -1654,7 +1773,113 @@ components:
           $ref: "#/components/schemas/TransferPath"
         payloadMetadata:
           $ref: "#/components/schemas/PayloadMetadata"
-      example: {}
+      example:
+        originator:
+          originatorPersons:
+            - naturalPerson:
+                name:
+                  nameIdentifiers:
+                    - primaryIdentifier: Bond
+                      secondaryIdentifier: James
+                      nameIdentifierType: LEGL
+                geographicAddress:
+                  - addressType: HOME
+                    streetName: High Street
+                    buildingNumber: 7b
+                    town: London
+                    postCode: SE1 2QH
+                    country: GB
+                nationalIdentification:
+                  nationalIdentificationTypeCode: DRLC
+                  nationallIdentification: BOND9211110JA9OB
+                  countryOfIssue: GB
+                customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                dateAndPlaceOfBirth:
+                  dateOfBirth: 1920-11-11
+                  placeOfBirth: Wattenscheid, Germany
+                countryOfResidence: GB
+          accountNumber:
+            - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        beneficiary:
+          beneficiaryPersons:
+            - naturalPerson:
+                name:
+                  nameIdentifiers:
+                    - primaryIdentifier: Miura
+                      secondaryIdentifier: Kentaro
+                      nameIdentifierType: LEGL
+                  localNameIdentifiers:
+                    - primaryIdentifier: 三浦
+                      secondaryIdentifier: 建太郎
+                      nameIdentifierType: LEGL
+                geographicAddress:
+                  - addressType: HOME
+                    streetName: Shimohirakawa
+                    buildingNumber: 1536-2
+                    townName: 菊川市
+                    countrySubDivision: 静岡県
+                    postCode: 437-1514
+                    country: JP
+                nationalIdentification:
+                  nationalIdentificationTypeCode: SOCS
+                  nationallIdentification: 0537-73-2271
+                  countryOfIssue: JP
+                customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                dateAndPlaceOfBirth:
+                  dateOfBirth: 1979-02-14
+                  placeOfBirth: Tokyo, Japan
+                countryOfResidence: JP
+          accountNumber:
+            - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+        originatingVASP:
+          originatingVASP:
+            legalPerson:
+              name:
+                nameIdentifiers:
+                  - legalPersonName: High Street Capital Management, LTD
+                    legalPersonNameIdentifierType: LEGL
+                  - legalPersonName: PubCoin
+                    legalPersonNameIdentifierType: TRAD
+              geographicAddress:
+                - addressType: BIZZ
+                  streetName: Abbey St.
+                  buildingNumber: "51"
+                  town: Nottingham
+                  postCode: NG7 2NZ
+                  country: GB
+              nationalIdentification:
+                nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                nationalIdentifierType: LEIX
+              countryOfRegistration: GB
+        beneficiaryVASP:
+          beneficiaryVASP:
+            legalPerson:
+              name:
+                nameIdentifiers:
+                  - legalPersonName: Nippon Crypto Exchange, KK
+                    legalPersonNameIdentifierType: LEGL
+                localNameIdentifiers:
+                  - legalPersonName: 日本仮想通貨取引所株式会社
+                    legalPersonNameIdentifierType: LEGL
+                phoneticNameIdentifiers:
+                  - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                    legalPersonNameIdentifierType: LEGL
+              geographicAddress:
+                - addressType: BIZZ
+                  addressLines:
+                    - 滋賀県大津市水明１－３４－２
+                    - 520-0531
+                  country: JP
+                - addressType: BIZZ
+                  addressLines:
+                    - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
+                    - 520-0531 JAPAN
+                  country: JP
+              nationalIdentification:
+                nationalIdentifier: 84-1234567
+                nationalIdentifierType: TXID
+                registrationAuthority: RA777777
+              countryOfRegistration: JP
     Originator:
       title: Originator
       type: object
@@ -1683,7 +1908,31 @@ components:
       required:
         - originatorPersons
       example:
-        originatorPersons: []
+        originatorPersons:
+          - naturalPerson:
+              name:
+                nameIdentifiers:
+                  - primaryIdentifier: Bond
+                    secondaryIdentifier: James
+                    nameIdentifierType: LEGL
+              geographicAddress:
+                - addressType: HOME
+                  streetName: High Street
+                  buildingNumber: 7b
+                  town: London
+                  postCode: SE1 2QH
+                  country: GB
+              nationalIdentification:
+                nationalIdentificationTypeCode: DRLC
+                nationallIdentification: BOND9211110JA9OB
+                countryOfIssue: GB
+              customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+              dateAndPlaceOfBirth:
+                dateOfBirth: 1920-11-11
+                placeOfBirth: Wattenscheid, Germany
+              countryOfResidence: GB
+        accountNumber:
+          - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
     Beneficiary:
       title: Beneficiary
       type: object
@@ -1711,7 +1960,36 @@ components:
       required:
         - beneficiaryPersons
       example:
-        beneficiaryPersons: []
+        beneficiaryPersons:
+          - naturalPerson:
+              name:
+                nameIdentifiers:
+                  - primaryIdentifier: Miura
+                    secondaryIdentifier: Kentaro
+                    nameIdentifierType: LEGL
+                localNameIdentifiers:
+                  - primaryIdentifier: 三浦
+                    secondaryIdentifier: 建太郎
+                    nameIdentifierType: LEGL
+              geographicAddress:
+                - addressType: HOME
+                  streetName: Shimohirakawa
+                  buildingNumber: 1536-2
+                  townName: 菊川市
+                  countrySubDivision: 静岡県
+                  postCode: 437-1514
+                  country: JP
+              nationalIdentification:
+                nationalIdentificationTypeCode: SOCS
+                nationallIdentification: 0537-73-2271
+                countryOfIssue: JP
+              customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+              dateAndPlaceOfBirth:
+                dateOfBirth: 1979-02-14
+                placeOfBirth: Tokyo, Japan
+              countryOfResidence: JP
+        accountNumber:
+          - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
     OriginatingVASP:
       title: OriginatingVASP
       type: object
@@ -1724,7 +2002,25 @@ components:
       required:
         - originatingVASP
       example:
-        originatingVASP: {}
+        originatingVASP:
+          legalPerson:
+            name:
+              nameIdentifiers:
+                - legalPersonName: High Street Capital Management, LTD
+                  legalPersonNameIdentifierType: LEGL
+                - legalPersonName: PubCoin
+                  legalPersonNameIdentifierType: TRAD
+            geographicAddress:
+              - addressType: BIZZ
+                streetName: Abbey St.
+                buildingNumber: "51"
+                town: Nottingham
+                postCode: NG7 2NZ
+                country: GB
+            nationalIdentification:
+              nationalIdentifier: GKUH00AIM6DCRXGXVU75
+              nationalIdentifierType: LEIX
+            countryOfRegistration: GB
     BeneficiaryVASP:
       title: BeneficiaryVASP
       type: object
@@ -1737,7 +2033,34 @@ components:
       required:
         - beneficiaryVASP
       example:
-        beneficiaryVASP: {}
+        beneficiaryVASP:
+          legalPerson:
+            name:
+              nameIdentifiers:
+                - legalPersonName: Nippon Crypto Exchange, KK
+                  legalPersonNameIdentifierType: LEGL
+              localNameIdentifiers:
+                - legalPersonName: 日本仮想通貨取引所株式会社
+                  legalPersonNameIdentifierType: LEGL
+              phoneticNameIdentifiers:
+                - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                  legalPersonNameIdentifierType: LEGL
+            geographicAddress:
+              - addressType: BIZZ
+                addressLines:
+                  - 滋賀県大津市水明１－３４－２
+                  - 520-0531
+                country: JP
+              - addressType: BIZZ
+                addressLines:
+                  - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
+                  - 520-0531 JAPAN
+                country: JP
+            nationalIdentification:
+              nationalIdentifier: 84-1234567
+              nationalIdentifierType: TXID
+              registrationAuthority: RA777777
+            countryOfRegistration: JP
     TransferPath:
       title: TransferPath
       type: object
@@ -1750,8 +2073,47 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IntermediaryVASP"
-          example: []
-      example: {}
+          example:
+            - intermediaryVASP:
+                legalPerson:
+                  name:
+                    nameIdentifiers:
+                      - legalPersonName: AliceCoin, Ltd
+                        legalPersonNameTypeCode: LEGL
+                    geographicAddress:
+                      - addressType: BIZZ
+                        streetName: Main Street
+                        buildingNumber: 123
+                        town: Charleston
+                        countrySubDivision: KY
+                        postCode: 51220
+                        country: US
+                    nationalIdentification:
+                      nationalIdentifier: 5IVG006EPHCVSF9WXV86
+                      nationalIdentifierType: LEIX
+                    countryOfRegistration: US
+              sequence: 1
+      example:
+        transferPath:
+          - intermediaryVASP:
+              legalPerson:
+                name:
+                  nameIdentifiers:
+                    - legalPersonName: AliceCoin, Ltd
+                      legalPersonNameTypeCode: LEGL
+                  geographicAddress:
+                    - addressType: BIZZ
+                      streetName: Main Street
+                      buildingNumber: 123
+                      town: Charleston
+                      countrySubDivision: KY
+                      postCode: 51220
+                      country: US
+                  nationalIdentification:
+                    nationalIdentifier: 5IVG006EPHCVSF9WXV86
+                    nationalIdentifierType: LEIX
+                  countryOfRegistration: US
+            sequence: 1
     IntermediaryVASP:
       title: IntermediaryVASP
       type: object
@@ -1760,18 +2122,32 @@ components:
         intermediary VASP.
       properties:
         intermediaryVASP:
-          type: array
-          description: The Legal Person definition of the intermediary VASP(s) in the
-            transfer chain.
-          items:
-            $ref: "#/components/schemas/Person"
-          example: []
+          $ref: "#/components/schemas/Person"
         sequence:
           type: integer
           description: the sequence in a serial chain at which the corresponding
             intermediary VASP participates in the transfer.
           example: 1
-      example: {}
+      example:
+        intermediaryVASP:
+          legalPerson:
+            name:
+              nameIdentifiers:
+                - legalPersonName: AliceCoin, Ltd
+                  legalPersonNameTypeCode: LEGL
+              geographicAddress:
+                - addressType: BIZZ
+                  streetName: Main Street
+                  buildingNumber: 123
+                  town: Charleston
+                  countrySubDivision: KY
+                  postCode: 51220
+                  country: US
+              nationalIdentification:
+                nationalIdentifier: 5IVG006EPHCVSF9WXV86
+                nationalIdentifierType: LEIX
+              countryOfRegistration: US
+        sequence: 1
     PayloadMetadata:
       title: PayloadMetadata
       type: object
@@ -1819,27 +2195,198 @@ components:
           $ref: "#/components/schemas/NaturalPerson"
         legalPerson:
           $ref: "#/components/schemas/LegalPerson"
-      example: {}
+      examples:
+        - naturalPerson:
+            name:
+              nameIdentifiers:
+                - primaryIdentifier: Miura
+                  secondaryIdentifier: Kentaro
+                  nameIdentifierType: LEGL
+              localNameIdentifiers:
+                - primaryIdentifier: 三浦
+                  secondaryIdentifier: 建太郎
+                  nameIdentifierType: LEGL
+            geographicAddress:
+              - addressType: HOME
+                streetName: Shimohirakawa
+                buildingNumber: 1536-2
+                townName: 菊川市
+                countrySubDivision: 静岡県
+                postCode: 437-1514
+                country: JP
+            nationalIdentification:
+              nationalIdentificationTypeCode: SOCS
+              nationallIdentification: 0537-73-2271
+              countryOfIssue: JP
+            customerIdentification: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            dateAndPlaceOfBirth:
+              dateOfBirth: 1979-02-14
+              placeOfBirth: Tokyo, Japan
+            countryOfResidence: JP
+        - legalPerson:
+            name:
+              nameIdentifier:
+                - legalPersonName: Tabadul al'Bitakwin
+                  legalPersonNameIdentifierType: LEGL
+              localNameIdentifier:
+                - legalPersonName: تبادل البيتكوين
+                  legalPersonNameIdentifierType: LEGL
+            geographicAddress:
+              - addressType: GEOG
+                addressLines:
+                  - 4904 Mara Island
+                  - Abu Dhabi Emirate, Al Dhafrah Region
+                  - Western Mahadir
+                country: AE
+            customerNumber: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            nationalIdentification:
+              nationalIdentifier: H7M600ZKXTMEJ8V2ZK52
+              nationalIdentifierType: LEIX
+            countryOfRegistration: AE
     LegalPerson:
       title: LegalPerson
-      type: string
-      example: Hello World
+      description: An entity other than a natural person that can establish a permenant
+        customer releationship with an affected entityh or otherwise own
+        property. This can include companies, bodies corporate, foundations,
+        anstalt, partnerships, or associations and other relevantly similar
+        entities.
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/LegalPersonName"
+        geographicAddress:
+          type: array
+          description: The address of the legal person.
+          items:
+            $ref: "#/components/schemas/Address"
+          example:
+            - addressType: GEOG
+              addressLines:
+                - 4904 Mara Island
+                - Abu Dhabi Emirate, Al Dhafrah Region
+                - Western Mahadir
+              country: AE
+        customerNumber:
+          type: string
+          description: The unique identification number applied by the VASP to the customer.
+          example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        nationalIdentification:
+          $ref: "#/components/schemas/NationalIdentification"
+        countryOfRegistration:
+          type: string
+          description: The country in which the legal person is registered.
+          format: ISO-3166-1 Alpha-2
+          example: AE
+      example:
+        name:
+          nameIdentifier:
+            - legalPersonName: Tabadul al'Bitakwin
+              legalPersonNameIdentifierType: LEGL
+          localNameIdentifier:
+            - legalPersonName: تبادل البيتكوين
+              legalPersonNameIdentifierType: LEGL
+        geographicAddress:
+          - addressType: GEOG
+            addressLines:
+              - 4904 Mara Island
+              - Abu Dhabi Emirate, Al Dhafrah Region
+              - Western Mahadir
+            country: AE
+        customerNumber: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        nationalIdentification:
+          nationalIdentifier: H7M600ZKXTMEJ8V2ZK52
+          nationalIdentifierType: LEIX
+        countryOfRegistration: AE
     LegalPersonName:
       title: LegalPersonName
-      type: string
-      example: Hello World
+      description: The name of the legal person; at least one occurence of the legal person
+        name identifier type must have the value LEGL specified.
+      type: object
+      properties:
+        nameIdentifier:
+          type: array
+          description: The name and type of name by which the legal person is known.
+          items:
+            $ref: "#/components/schemas/LegalPersonNameID"
+          example:
+            - legalPersonName: Tabadul al'Bitakwin
+              legalPersonNameIdentifierType: LEGL
+        localNameIdentifier:
+          type: array
+          description: The name and type of name by which the legal person is known using
+            local characters.
+          items:
+            $ref: "#/components/schemas/LocalLegalPersonNameID"
+          example:
+            - legalPersonName: tbaːdl ʔlbjtkwjn
+              legalPersonNameIdentifierType: LEGL
+        phoneticNameIdentifier:
+          type: array
+          description: An alternate representation of the name of a legal person that
+            corresponds to the manner the name is pronounced.
+          items:
+            $ref: "#/components/schemas/LocalLegalPersonNameID"
+          example:
+            - legalPersonName: tbaːdl ʔlbjtkwjn
+              legalPersonNameIdentifierType: LEGL
+      example:
+        nameIdentifier:
+          - legalPersonName: Tabadul al'Bitakwin
+            legalPersonNameIdentifierType: LEGL
+        localNameIdentifier:
+          - legalPersonName: تبادل البيتكوين
+            legalPersonNameIdentifierType: LEGL
     LegalPersonNameID:
       title: LegalPersonNameID
-      type: string
-      example: Hello World
+      description: The name and type of name by which the legal person is known using latin
+        characters.
+      properties:
+        legalPersonName:
+          type: string
+          description: The name which the legal person is known.
+          example: Tabadul al'Bitakwin
+        legalPersonNameIdentifierType:
+          $ref: "#/components/schemas/LegalPersonNameTypeCode"
+      type: object
+      example:
+        legalPersonName: Tabadul al'Bitakwin
+        legalPersonNameIdentifierType: SHRT
     LocalLegalPersonNameID:
       title: LocalLegalPersonNameID
-      type: string
-      example: Hello World
+      description: The name and type of name by which the legal person is known using local
+        characters or an alternate represesentation of a name that corresponds
+        to the manner in which the name is pronounced.
+      properties:
+        legalPersonName:
+          type: string
+          description: The name which the legal person is known using local characters or a
+            phonetic representation.
+          examples:
+            - تبادل البيتكوين
+            - tbaːdl ʔlbjtkwjn
+        legalPersonNameIdentifierType:
+          $ref: "#/components/schemas/LegalPersonNameTypeCode"
+      type: object
+      examples:
+        - legalPersonName: تبادل البيتكوين
+          legalPersonNameIdentifierType: LEGL
+        - legalPersonName: tbaːdl ʔlbjtkwjn
+          legalPersonNameIdentifierType: TRAD
     LegalPersonNameTypeCode:
       title: LegalPersonNameTypeCode
+      description: A single value corresponding to the nature of name being specified for
+        the legal person. LEGL refers to the official name under which an
+        organization is registered. SHRT specifies a short name of the
+        organization. TRAD is a name used by a business for commercial purposes,
+        although its registered legal name, used for contracts and other formal
+        sitautions, may be another.
       type: string
-      example: Hello World
+      enum:
+        - MISC
+        - LEGL
+        - SHRT
+        - TRAD
+      example: LEGL
     NaturalPerson:
       title: NaturalPerson
       description: A uniquely distinguishable individual; one single person.
@@ -2239,6 +2786,126 @@ components:
         - IDCD
         - LEIX
       example: DRLC
+    TransactionPayload:
+      title: TransactionPayload
+      description: A TRISA message that assists the compliance officer in identifying a
+        virtual asset transaction on the chain. The goal of this payload is to
+        provide enough information to link travel rule compliance information in
+        the identity payload with a transaction on the blockchain or network.
+      type: object
+      properties:
+        txid:
+          type: string
+          description: A transaction ID or hash unique to the chain/network
+          example: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
+        originator:
+          type: string
+          description: the crypto wallet address of the originator
+          example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        beneficiary:
+          type: string
+          description: the crypto wallet address of the beneficiary
+          example: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+        amount:
+          type: number
+          description: the amount of the transaction in the smallest unit to the available
+            network/asset type
+          example: 0.46602501
+        network:
+          type: string
+          format: SLIP-0044
+          description: "The three character SLIP-0044 network code describing the chain the
+            virtual asset belongs to. Coming Soon: DTI."
+          example: BTC
+        timestamp:
+          type: string
+          format: date-time
+          description: The RFC3339 formatted timestamp of when the on-chain transaction
+            occurred.
+          example: 2024-09-01T16:22:41-05:00
+        extra_json:
+          type: string
+          format: base64
+          description: any extra transaction related compliance data as a base64 formatted
+            JSON object.
+          example: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
+        asset_type:
+          type: string
+          description: If the blockchain network hosts multiple asset types, the identifier
+            of the asset type being transferred.
+          example: GAS
+        tag:
+          type: string
+          description: An optional memo or destination tag related to the beneficiary
+            wallet for transfer purposes.
+          example: dt=1234567890
+      required:
+        - originator
+        - beneficiary
+        - network
+      example:
+        txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
+        originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+        amount: 0.46602501
+        network: BTC
+        timestamp: 2024-09-01T16:22:41-05:00
+        extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
+    PendingPayload:
+      title: PendingPayload
+      description: A control flow message to support asynchronous TRISA transfers. Pending
+        messages can be returned as an intermediate response during a compliance
+        transfer if further processing is required before a response can be
+        sent.
+      type: object
+      properties:
+        envelope_id:
+          type: string
+          format: uuid
+          description: The TRISA envelope ID that refers to the compliance communication.
+          example: 148ed35f-fc65-4d5f-aa15-0d231cc534b6
+        received_by:
+          type: string
+          description: The name of the recipient compliance officer or recipient VASP.
+          example: AliceCoin
+        received_at:
+          type: string
+          format: date-time
+          description: The RFC3339 formatted timestamp when the request was received.
+          example: 2024-09-01T16:45:06-05:00
+        message:
+          type: string
+          description: an optional message to respond with to the counterparty.
+          example: This transaction is under compliance review.
+        reply_not_after:
+          type: string
+          format: date-time
+          description: The RFC3339 timestamp when the response will be returned by.
+          example: 2024-09-06T16:00:00-05:00
+        reply_not_before:
+          type: string
+          format: date-time
+          description: The RFC3339 timestamp before which not to expect a response.
+          example: 2024-09-01T17:00:00-05:00
+        extra_json:
+          type: string
+          format: base64
+          description: Any extra data as a base64 encoded JSON object.
+          example: eyJjb21wbGlhbmNlX29mZmljZXIiOiAiQnJlbmRhIEJyYWRsZXkiLCAiZW1haWwiOiAiYnJlbmRhQGV4YW1wbGUuY29tIn0=
+        transaction:
+          $ref: "#/components/schemas/TransactionPayload"
+      example:
+        envelope_id: 148ed35f-fc65-4d5f-aa15-0d231cc534b6
+        received_by: AliceCoin
+        received_at: 2024-09-01T16:45:06-05:00
+        message: This transaction is under compliance review.
+        reply_not_after: 2024-09-06T16:00:00-05:00
+        extra_json: eyJjb21wbGlhbmNlX29mZmljZXIiOiAiQnJlbmRhIEJyYWRsZXkiLCAiZW1haWwiOiAiYnJlbmRhQGV4YW1wbGUuY29tIn0
+        transaction:
+          originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+          amount: 0.46602501
+          network: BTC
   securitySchemes:
     bearerAuth:
       type: http
@@ -3948,6 +4615,121 @@ paths:
                 $ref: "#/components/schemas/Prepared"
               example:
                 travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+                identity:
+                  originator:
+                    originatorPersons:
+                      - naturalPerson:
+                          name:
+                            nameIdentifiers:
+                              - primaryIdentifier: Bond
+                                secondaryIdentifier: James
+                                nameIdentifierType: LEGL
+                          geographicAddress:
+                            - addressType: HOME
+                              streetName: High Street
+                              buildingNumber: 7b
+                              town: London
+                              postCode: SE1 2QH
+                              country: GB
+                          nationalIdentification:
+                            nationalIdentificationTypeCode: DRLC
+                            nationallIdentification: BOND9211110JA9OB
+                            countryOfIssue: GB
+                          customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                          dateAndPlaceOfBirth:
+                            dateOfBirth: 1920-11-11
+                            placeOfBirth: Wattenscheid, Germany
+                          countryOfResidence: GB
+                    accountNumber:
+                      - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                  beneficiary:
+                    beneficiaryPersons:
+                      - naturalPerson:
+                          name:
+                            nameIdentifiers:
+                              - primaryIdentifier: Miura
+                                secondaryIdentifier: Kentaro
+                                nameIdentifierType: LEGL
+                            localNameIdentifiers:
+                              - primaryIdentifier: 三浦
+                                secondaryIdentifier: 建太郎
+                                nameIdentifierType: LEGL
+                          geographicAddress:
+                            - addressType: HOME
+                              streetName: Shimohirakawa
+                              buildingNumber: 1536-2
+                              townName: 菊川市
+                              countrySubDivision: 静岡県
+                              postCode: 437-1514
+                              country: JP
+                          nationalIdentification:
+                            nationalIdentificationTypeCode: SOCS
+                            nationallIdentification: 0537-73-2271
+                            countryOfIssue: JP
+                          customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                          dateAndPlaceOfBirth:
+                            dateOfBirth: 1979-02-14
+                            placeOfBirth: Tokyo, Japan
+                          countryOfResidence: JP
+                    accountNumber:
+                      - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                  originatingVASP:
+                    originatingVASP:
+                      legalPerson:
+                        name:
+                          nameIdentifiers:
+                            - legalPersonName: High Street Capital Management, LTD
+                              legalPersonNameIdentifierType: LEGL
+                            - legalPersonName: PubCoin
+                              legalPersonNameIdentifierType: TRAD
+                        geographicAddress:
+                          - addressType: BIZZ
+                            streetName: Abbey St.
+                            buildingNumber: "51"
+                            town: Nottingham
+                            postCode: NG7 2NZ
+                            country: GB
+                        nationalIdentification:
+                          nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                          nationalIdentifierType: LEIX
+                        countryOfRegistration: GB
+                  beneficiaryVASP:
+                    beneficiaryVASP:
+                      legalPerson:
+                        name:
+                          nameIdentifiers:
+                            - legalPersonName: Nippon Crypto Exchange, KK
+                              legalPersonNameIdentifierType: LEGL
+                          localNameIdentifiers:
+                            - legalPersonName: 日本仮想通貨取引所株式会社
+                              legalPersonNameIdentifierType: LEGL
+                          phoneticNameIdentifiers:
+                            - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                              legalPersonNameIdentifierType: LEGL
+                        geographicAddress:
+                          - addressType: BIZZ
+                            addressLines:
+                              - 滋賀県大津市水明１－３４－２
+                              - 520-0531
+                            country: JP
+                          - addressType: BIZZ
+                            addressLines:
+                              - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
+                              - 520-0531 JAPAN
+                            country: JP
+                        nationalIdentification:
+                          nationalIdentifier: 84-1234567
+                          nationalIdentifierType: TXID
+                          registrationAuthority: RA777777
+                        countryOfRegistration: JP
+                transaction:
+                  txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
+                  originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                  beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+                  amount: 0.46602501
+                  network: BTC
+                  timestamp: 2024-09-01T16:22:41-05:00
+                  extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
         "400":
           description: Bad Prepare IVMS101 Request
           content:
@@ -3997,6 +4779,121 @@ paths:
               $ref: "#/components/schemas/Prepared"
             example:
               travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+              identity:
+                originator:
+                  originatorPersons:
+                    - naturalPerson:
+                        name:
+                          nameIdentifiers:
+                            - primaryIdentifier: Bond
+                              secondaryIdentifier: James
+                              nameIdentifierType: LEGL
+                        geographicAddress:
+                          - addressType: HOME
+                            streetName: High Street
+                            buildingNumber: 7b
+                            town: London
+                            postCode: SE1 2QH
+                            country: GB
+                        nationalIdentification:
+                          nationalIdentificationTypeCode: DRLC
+                          nationallIdentification: BOND9211110JA9OB
+                          countryOfIssue: GB
+                        customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                        dateAndPlaceOfBirth:
+                          dateOfBirth: 1920-11-11
+                          placeOfBirth: Wattenscheid, Germany
+                        countryOfResidence: GB
+                  accountNumber:
+                    - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                beneficiary:
+                  beneficiaryPersons:
+                    - naturalPerson:
+                        name:
+                          nameIdentifiers:
+                            - primaryIdentifier: Miura
+                              secondaryIdentifier: Kentaro
+                              nameIdentifierType: LEGL
+                          localNameIdentifiers:
+                            - primaryIdentifier: 三浦
+                              secondaryIdentifier: 建太郎
+                              nameIdentifierType: LEGL
+                        geographicAddress:
+                          - addressType: HOME
+                            streetName: Shimohirakawa
+                            buildingNumber: 1536-2
+                            townName: 菊川市
+                            countrySubDivision: 静岡県
+                            postCode: 437-1514
+                            country: JP
+                        nationalIdentification:
+                          nationalIdentificationTypeCode: SOCS
+                          nationallIdentification: 0537-73-2271
+                          countryOfIssue: JP
+                        customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                        dateAndPlaceOfBirth:
+                          dateOfBirth: 1979-02-14
+                          placeOfBirth: Tokyo, Japan
+                        countryOfResidence: JP
+                  accountNumber:
+                    - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                originatingVASP:
+                  originatingVASP:
+                    legalPerson:
+                      name:
+                        nameIdentifiers:
+                          - legalPersonName: High Street Capital Management, LTD
+                            legalPersonNameIdentifierType: LEGL
+                          - legalPersonName: PubCoin
+                            legalPersonNameIdentifierType: TRAD
+                      geographicAddress:
+                        - addressType: BIZZ
+                          streetName: Abbey St.
+                          buildingNumber: "51"
+                          town: Nottingham
+                          postCode: NG7 2NZ
+                          country: GB
+                      nationalIdentification:
+                        nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                        nationalIdentifierType: LEIX
+                      countryOfRegistration: GB
+                beneficiaryVASP:
+                  beneficiaryVASP:
+                    legalPerson:
+                      name:
+                        nameIdentifiers:
+                          - legalPersonName: Nippon Crypto Exchange, KK
+                            legalPersonNameIdentifierType: LEGL
+                        localNameIdentifiers:
+                          - legalPersonName: 日本仮想通貨取引所株式会社
+                            legalPersonNameIdentifierType: LEGL
+                        phoneticNameIdentifiers:
+                          - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                            legalPersonNameIdentifierType: LEGL
+                      geographicAddress:
+                        - addressType: BIZZ
+                          addressLines:
+                            - 滋賀県大津市水明１－３４－２
+                            - 520-0531
+                          country: JP
+                        - addressType: BIZZ
+                          addressLines:
+                            - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
+                            - 520-0531 JAPAN
+                          country: JP
+                      nationalIdentification:
+                        nationalIdentifier: 84-1234567
+                        nationalIdentifierType: TXID
+                        registrationAuthority: RA777777
+                      countryOfRegistration: JP
+              transaction:
+                txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
+                originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+                amount: 0.46602501
+                network: BTC
+                timestamp: 2024-09-01T16:22:41-05:00
+                extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
       responses:
         "200":
           description: Succesfully Sent IVMS101 Payload for Existing Transaction
