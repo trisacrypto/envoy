@@ -2042,7 +2042,509 @@
         "title": "Person",
         "type": "object",
         "description": "A Person is either a Natural Person (a uniquely distinguishable individual) or a Legal Person (any other entity besides a natural person that can establish a permenant customer relationship with an affected entity or otherwise own property).",
+        "properties": {
+          "naturalPerson": {
+            "$ref": "#/components/schemas/NaturalPerson"
+          },
+          "legalPerson": {
+            "$ref": "#/components/schemas/LegalPerson"
+          }
+        },
         "example": {}
+      },
+      "LegalPerson": {
+        "title": "LegalPerson",
+        "type": "string",
+        "example": "Hello World"
+      },
+      "LegalPersonName": {
+        "title": "LegalPersonName",
+        "type": "string",
+        "example": "Hello World"
+      },
+      "LegalPersonNameID": {
+        "title": "LegalPersonNameID",
+        "type": "string",
+        "example": "Hello World"
+      },
+      "LocalLegalPersonNameID": {
+        "title": "LocalLegalPersonNameID",
+        "type": "string",
+        "example": "Hello World"
+      },
+      "LegalPersonNameTypeCode": {
+        "title": "LegalPersonNameTypeCode",
+        "type": "string",
+        "example": "Hello World"
+      },
+      "NaturalPerson": {
+        "title": "NaturalPerson",
+        "description": "A uniquely distinguishable individual; one single person.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/NaturalPersonName"
+          },
+          "geographicAddress": {
+            "type": "array",
+            "description": "The particulars of a location at which a person may be communicated with (zero or more).",
+            "items": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "example": [
+              {
+                "addressType": "HOME",
+                "streetName": "Shimohirakawa",
+                "buildingNumber": "1536-2",
+                "townName": "菊川市",
+                "countrySubDivision": "静岡県",
+                "postCode": "437-1514",
+                "country": "JP"
+              }
+            ]
+          },
+          "nationalIdentification": {
+            "$ref": "#/components/schemas/NationalIdentification"
+          },
+          "customerIdentification": {
+            "type": "string",
+            "description": "A distinct identifier that uniquely identifes the person to the institution in context; often a crypto wallet address or customer account number.",
+            "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+          },
+          "dateAndPlaceOfBirth": {
+            "$ref": "#/components/schemas/DateAndPlaceOfBirth"
+          },
+          "countryOfResidence": {
+            "type": "string",
+            "format": "ISO-3166-1 Alpha-2",
+            "description": "Country in which a person resides (the place of a person's home).",
+            "example": "JP"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "example": {
+          "name": {
+            "nameIdentifiers": [
+              {
+                "primaryIdentifier": "Miura",
+                "secondaryIdentifier": "Kentaro",
+                "nameIdentifierType": "LEGL"
+              }
+            ],
+            "localNameIdentifiers": [
+              {
+                "primaryIdentifier": "三浦",
+                "secondaryIdentifier": "建太郎",
+                "nameIdentifierType": "LEGL"
+              }
+            ]
+          },
+          "geographicAddress": [
+            {
+              "addressType": "HOME",
+              "streetName": "Shimohirakawa",
+              "buildingNumber": "1536-2",
+              "townName": "菊川市",
+              "countrySubDivision": "静岡県",
+              "postCode": "437-1514",
+              "country": "JP"
+            }
+          ],
+          "nationalIdentification": {
+            "nationalIdentificationTypeCode": "SOCS",
+            "nationallIdentification": "0537-73-2271",
+            "countryOfIssue": "JP"
+          },
+          "customerIdentification": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+          "dateAndPlaceOfBirth": {
+            "dateOfBirth": "1979-02-14",
+            "placeOfBirth": "Tokyo, Japan"
+          },
+          "countryOfResidence": "JP"
+        }
+      },
+      "NaturalPersonName": {
+        "title": "NaturalPersonName",
+        "description": "The distinct words used as identification for an individual. At least one occurrence of a natural person's name ID must have the value LEGL specified as the natural person name identifier type. At least one name identifier is required, and zero or more local and phonetic name identifiers can be added for ease of identification.",
+        "type": "object",
+        "properties": {
+          "nameIdentifiers": {
+            "type": "array",
+            "description": "Full name separated into primary and secondary identifiers (at least one required and at least one must have the LEGL type).",
+            "items": {
+              "$ref": "#/components/schemas/NaturalPersonNameID"
+            },
+            "example": [
+              {
+                "primaryIdentifier": "Miura",
+                "secondaryIdentifier": "Kentaro",
+                "nameIdentifierType": "LEGL"
+              },
+              {
+                "primaryIdentifier": "Miura",
+                "secondaryIdentifier": "Satoshi",
+                "nameIdentifierType": "BIRT"
+              }
+            ]
+          },
+          "localNameIdentifiers": {
+            "type": "array",
+            "description": "Full name separated into primary and secondary identifiers using local characters.",
+            "items": {
+              "$ref": "#/components/schemas/LocalNaturalPersonNameID"
+            },
+            "example": [
+              {
+                "primaryIdentifier": "三浦",
+                "secondaryIdentifier": "建太郎",
+                "nameIdentifierType": "LEGL"
+              }
+            ]
+          },
+          "phoneticNameIdentifiers": {
+            "type": "array",
+            "description": "Alternate representation of a name that corresponds to the manner the name is pronounced.",
+            "items": {
+              "$ref": "#/components/schemas/LocalNaturalPersonNameID"
+            },
+            "example": [
+              {
+                "primaryIdentifier": "mɪjʉ́ːrə",
+                "secondaryIdentifier": "kɛntˈɑː͡ɹɹo͡ʊ",
+                "nameIdentifierType": "LEGL"
+              },
+              {
+                "primaryIdentifier": "Mee-Rhaa",
+                "secondaryIdentifier": "KehNTaa-ROW",
+                "nameIdentifierType": "LEGL"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nameIdentifiers"
+        ],
+        "example": {
+          "nameIdentifiers": [
+            {
+              "primaryIdentifier": "Miura",
+              "secondaryIdentifier": "Kentaro",
+              "nameIdentifierType": "LEGL"
+            }
+          ],
+          "localNameIdentifiers": [
+            {
+              "primaryIdentifier": "三浦",
+              "secondaryIdentifier": "建太郎",
+              "nameIdentifierType": "LEGL"
+            }
+          ]
+        }
+      },
+      "NaturalPersonNameID": {
+        "title": "NaturalPersonNameID",
+        "description": "A full name separated into primary and secondary identifiers using latin characters transliterated using an appropriate script.",
+        "type": "object",
+        "properties": {
+          "primaryIdentifier": {
+            "type": "string",
+            "description": "This may be the family name, the maiden name or the married name, the main name, the surname, and in some cases, the entire name where the natural person's name cannot be divided into two parts, or where the sender is unable to divide the natural person's name into two parts.",
+            "example": "Miura"
+          },
+          "secondaryIdentifier": {
+            "type": "string",
+            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any oither secondary names.",
+            "example": "Kentaro"
+          },
+          "nameIdentifierType": {
+            "$ref": "#/components/schemas/NaturalPersonNameTypeCode"
+          }
+        },
+        "required": [
+          "primaryIdentifier",
+          "nameIdentifierType"
+        ],
+        "example": {
+          "primaryIdentifier": "Miura",
+          "secondaryIdentifier": "Kentaro",
+          "nameIdentifierType": "LEGL"
+        }
+      },
+      "LocalNaturalPersonNameID": {
+        "title": "LocalNaturalPersonNameID",
+        "description": "Either a full name separated into primary and secondary identifiers using local characters or an Alternate representation of a name that corresponds to the manner the name is pronounced.",
+        "type": "object",
+        "properties": {
+          "primaryIdentifier": {
+            "type": "string",
+            "description": "This may be the family name, the maiden name or the married name, the main name, the surname, and in some cases, the entire name where the natural person's name cannot be divided into two parts, or where the sender is unable to divide the natural person's name into two parts. This name should be represented in local characters or as a phonetic pronounciation.",
+            "examples": [
+              "三浦",
+              "mɪjʉ́ːrə"
+            ]
+          },
+          "secondaryIdentifier": {
+            "type": "string",
+            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any oither secondary names. This name should be represented in local characters or as a phonetic pronounciation.",
+            "examples": [
+              "建太郎",
+              "KehNTaa-ROW"
+            ]
+          },
+          "nameIdentifierType": {
+            "$ref": "#/components/schemas/NaturalPersonNameTypeCode"
+          }
+        },
+        "required": [
+          "primaryIdentifier",
+          "nameIdentifierType"
+        ],
+        "examples": [
+          {
+            "primaryIdentifier": "三浦",
+            "secondaryIdentifier": "建太郎",
+            "nameIdentifierType": "LEGL"
+          },
+          {
+            "primaryIdentifier": "mɪjʉ́ːrə",
+            "secondaryIdentifier": "kɛntˈɑː͡ɹɹo͡ʊ",
+            "nameIdentifierType": "BIRT"
+          },
+          {
+            "primaryIdentifier": "Mee-Rhaa",
+            "secondaryIdentifier": "KehNTaa-ROW",
+            "nameIdentifierType": "LEGL"
+          }
+        ]
+      },
+      "NaturalPersonNameTypeCode": {
+        "title": "NaturalPersonNameTypeCode",
+        "description": "A single value corresponding to the nature of name being adopted for identification. ALIA refers to an alias name other than the legal name by which a natural person is also known. BIRT is a name aassigned a natural person at birth. MAID is the original maiden name of the natural person who has changed their name after marraige. LEGL is a legal name that identifies a natural person for legal, official, or administrative purposes.",
+        "type": "string",
+        "enum": [
+          "MISC",
+          "ALIA",
+          "BIRT",
+          "MAID",
+          "LEGL"
+        ],
+        "example": "LEGL"
+      },
+      "Address": {
+        "title": "Address",
+        "description": "A valid address that identifies the natural or legal person. There must be at least one occurrence of the element addressLine or the occurrence of streetName and buildingName and/or buildingNumber.",
+        "type": "object",
+        "properties": {
+          "addressType": {
+            "$ref": "#/components/schemas/AddressTypeCode"
+          },
+          "department": {
+            "type": "string",
+            "description": "Identification of a division of a large oraganization or building.",
+            "example": "College of Natural Sciences"
+          },
+          "subDepartment": {
+            "type": "string",
+            "description": "Indentification of a sub-division of a large organization or building.",
+            "example": "History Department"
+          },
+          "streetName": {
+            "type": "string",
+            "description": "Name of a street or thoroughfare.",
+            "example": "High Street"
+          },
+          "buildingNumber": {
+            "type": "string",
+            "description": "Number that identifies the position of a building on a street.",
+            "example": "12"
+          },
+          "buildingName": {
+            "type": "string",
+            "description": "Name of the building or house.",
+            "example": "Cromwell House"
+          },
+          "floor": {
+            "type": "string",
+            "description": "Floor or storey within a building.",
+            "example": "Floor 21"
+          },
+          "postBox": {
+            "type": "string",
+            "description": "Numbered box in a post office, assigned to a person or organization, where letters are kept until called for.",
+            "example": "PO Box 1248"
+          },
+          "room": {
+            "type": "string",
+            "description": "Building room number.",
+            "example": "AVW 3224"
+          },
+          "postCode": {
+            "type": "string",
+            "description": "Identifier consisting of a grup of letters and/or numbers that is added to a postal address to assist in sorting of mail.",
+            "example": "OX2 6HY"
+          },
+          "townName": {
+            "type": "string",
+            "description": "Name of a built-up area, with defined boundaries and a local government.",
+            "example": "London"
+          },
+          "townLocationName": {
+            "type": "string",
+            "description": "Specific location name within the town.",
+            "example": "Southwark"
+          },
+          "districtName": {
+            "type": "string",
+            "description": "Identifies a subdivision within a country subdivision.",
+            "example": "Howard County"
+          },
+          "countrySubDivision": {
+            "type": "string",
+            "description": "Identifies a subdivision of a country for example, state, region, province, départment or county.",
+            "example": "MD"
+          },
+          "addressLine": {
+            "type": "array",
+            "description": "Information that locates and identifies a specific address, as defined by postal services, presented in free format text.",
+            "items": {
+              "type": "string",
+              "description": "A single address line",
+              "example": "123 Main Street"
+            },
+            "example": [
+              "123 Main Street",
+              "Suite 200",
+              "Charleston, KY 52212"
+            ]
+          },
+          "country": {
+            "type": "string",
+            "format": "ISO-3166-1 Alpha-2",
+            "description": "Country code of the country location of the address.",
+            "example": "US"
+          }
+        },
+        "required": [
+          "addressType",
+          "country"
+        ],
+        "examples": [
+          {
+            "addressType": "HOME",
+            "addressLine": [
+              "123 Main Street",
+              "Suite 200",
+              "Charleston, KY 52212"
+            ],
+            "country": "US"
+          },
+          {
+            "addressType": "BIZZ",
+            "streetName": "High Street",
+            "buildingNumber": "143",
+            "department": "Suite 41",
+            "floor": "23",
+            "townName": "London",
+            "postCode": "SX1 3H2",
+            "country": "GB"
+          }
+        ]
+      },
+      "AddressTypeCode": {
+        "title": "AddressTypeCode",
+        "description": "Identifies the nature of the address. HOME implies a residential home address; BIZZ a business address; and GEOG is an unspecified physical address sutable for identification of a natural or legal person.",
+        "type": "string",
+        "enum": [
+          "MISC",
+          "HOME",
+          "BIZZ",
+          "GEOG"
+        ],
+        "example": "HOME"
+      },
+      "DateAndPlaceOfBirth": {
+        "title": "DateAndPlaceOfBirth",
+        "description": "Detailed information about a natural person used to specifically distinguish that person from others with similar names. The primary constraint is that the date of birth must be in the past.",
+        "type": "object",
+        "properties": {
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "description": "Date on which a person is born",
+            "example": "1920-11-11"
+          },
+          "placeOfBirth": {
+            "type": "string",
+            "description": "The town and/or the city and/or the suburb and/or the country subdivision and/or the country where the person was born.",
+            "example": "Wattenscheid, Germany"
+          }
+        },
+        "example": {
+          "dateOfBirth": "1920-11-11",
+          "placeOfBirth": "Wattenscheid, Germany"
+        }
+      },
+      "NationalIdentification": {
+        "title": "NationalIdentification",
+        "description": "Valid national identification for the person. Natural persons must specify the national identifier, national identifier type, and country of issue. Legal persons must not have a value for country of issue and must have a value for registration authority if the type is not LEIX.",
+        "type": "object",
+        "properties": {
+          "nationalIdentifier": {
+            "type": "string",
+            "description": "An identifier issued by an appropriate issuing authority",
+            "example": "BOND9211110JA9OB"
+          },
+          "nationalIdentifierType": {
+            "$ref": "#/components/schemas/NationalIdentifierTypeCode"
+          },
+          "countryOfIssue": {
+            "type": "string",
+            "format": "ISO-3166-1 Alpha-2",
+            "description": "Country of the issuing authority",
+            "example": "GB"
+          },
+          "registrationAuthority": {
+            "type": "string",
+            "description": "A code specifying the registration authority from the GLEIF Registration Authorities List.",
+            "example": "RA777777"
+          }
+        },
+        "examples": [
+          {
+            "nationalIdentifier": "BOND9211110JA9OB",
+            "nationalIdentifierType": "DRLC",
+            "countryOfIssue": "GB"
+          },
+          {
+            "nationalIdentifier": "H7M600ZKXTMEJ8V2ZK52",
+            "nationalIdentifierType": "LEIX"
+          },
+          {
+            "nationalIdentifier": "84-1234567",
+            "nationalIdentifierType": "TXID",
+            "registrationAuthority": "RA777777"
+          }
+        ]
+      },
+      "NationalIdentifierTypeCode": {
+        "title": "NationalIdentifierTypeCode",
+        "description": "Identifies the national identification type. Natural persons can use the identifiers \"ARNU\" (alien registration number), \"CCPT\" (passport number), \"DRLC\" (driver's license number), \"FIIN\" (foreign investment identity number), \"SOCS\" (social security number), or \"IDCD\" (identity card number). Legal persons can use the identifiers \"RAID\" (registration authority identifier), \"FIIN\", \"TXID\" (tax identification number), or \"LEIX\" (legal entity identifier) where \"LEIX\" is preferred for legal persons.",
+        "type": "string",
+        "enum": [
+          "MISC",
+          "ARNU",
+          "CCPT",
+          "RAID",
+          "DRLC",
+          "FIIN",
+          "TXID",
+          "SOCS",
+          "IDCD",
+          "LEIX"
+        ],
+        "example": "DRLC"
       }
     },
     "securitySchemes": {
