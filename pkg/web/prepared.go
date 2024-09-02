@@ -192,7 +192,15 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	// Send 200 or 201 depending on if the transaction was created or not.
+	var status int
+	if packet.DB.Created() {
+		status = http.StatusCreated
+	} else {
+		status = http.StatusOK
+	}
+
+	c.Negotiate(status, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "transaction_sent.html",
