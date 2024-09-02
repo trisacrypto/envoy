@@ -3725,6 +3725,156 @@ components:
         - COMPLETED
         - REJECTED
       example: REVIEW
+    User:
+      title: User
+      description: A user of the Envoy system that has access for compliance or
+        administrative purposes.
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+          description: The unique identifier of the user on your Envoy node.
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        name:
+          type: string
+          description: The full name of the user for display purposes.
+          example: John Nolan
+        email:
+          type: string
+          format: email
+          description: The professional email of the user for login.
+          example: jnolan@example.com
+        password:
+          type: string
+          description: When creating a user an alphanumeric password is created and
+            returned in the create response. The password will not be returned
+            on any other request.
+          example: Rf2H6NEzVktb
+        role:
+          type: string
+          description: The name of the role assigned to the user. Admin users have full
+            access and all permisions. Compliance users can manage transactions,
+            counterparties, and customer accounts but not node settings.
+            Observers have read only access.
+          enum:
+            - Admin
+            - Compliance
+            - Observer
+          example: Compliance
+        last_login:
+          type: string
+          format: date-time
+          description: The timestamp that the user last logged in or null if they have
+            never logged in.
+          example: 2024-09-02T17:53:58-05:00
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the user record was created.
+          example: 2024-08-28T10:14:43-05:00
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the user record was last modified.
+          example: 2024-08-28T12:23:24-05:00
+      example:
+        id: 01J6DJ9F691CF8E9H0V3ET0M0E
+        name: John Nolan
+        email: jnolan@example.com
+        role: Compliance
+        last_login: 2024-09-02T17:53:58-05:00
+        created: 2024-08-28T10:14:43-05:00
+        modified: 2024-08-28T12:23:24-05:00
+    UserForm:
+      title: UserForm
+      description: Defines the editable fields to create or update a user record.
+      type: object
+      properties:
+        name:
+          type: string
+          description: Set the full name of the user for display purposes.
+          example: John Nolan
+        email:
+          type: string
+          format: email
+          description: Set the professional email of the user for login.
+          example: jnolan@example.com
+        role:
+          type: string
+          description: The name of the role to assign to the user. Admin users have full
+            access and all permisions. Compliance users can manage transactions,
+            counterparties, and customer accounts but not node settings.
+            Observers have read only access.
+          enum:
+            - Admin
+            - Compliance
+            - Observer
+          example: Compliance
+      example:
+        name: John Nolan
+        email: jnolan@example.com
+        role: Compliance
+    UserList:
+      title: UserList
+      description: A list of User objects, returned in a paginated fashion.
+      type: object
+      properties:
+        page:
+          $ref: "#/components/schemas/PageInfo"
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountSummary"
+          example:
+            - id: 01J6TFMSS0P5FWH8MVZDH23D5A
+              name: Delores Clark
+              email: dclark@example.com
+              role: Observer
+              last_login: null
+              created: 2024-09-02T18:03:55-05:00
+              modified: 2024-09-02T18:03:55-05:00
+            - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+              name: John Nolan
+              email: jnolan@example.com
+              role: Compliance
+              last_login: 2024-09-02T17:53:58-05:00
+              created: 2024-08-28T10:14:43-05:00
+              modified: 2024-08-28T12:23:24-05:00
+      example:
+        page:
+          page_size: 50
+        users:
+          - id: 01J6TFMSS0P5FWH8MVZDH23D5A
+            name: Delores Clark
+            email: dclark@example.com
+            role: Observer
+            last_login: null
+            created: 2024-09-02T18:03:55-05:00
+            modified: 2024-09-02T18:03:55-05:00
+          - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+            name: John Nolan
+            email: jnolan@example.com
+            role: Compliance
+            last_login: 2024-09-02T17:53:58-05:00
+            created: 2024-08-28T10:14:43-05:00
+            modified: 2024-08-28T12:23:24-05:00
+    UserPassword:
+      title: UserPassword
+      description: A form to reset a user's password.
+      type: object
+      properties:
+        password:
+          type: string
+          description: The password to reset for the user.
+          example: supersecretpassword
+        send_email:
+          type: boolean
+          description: If true then an email with the password is sent to the user.
+          example: true
+      example:
+        password: supersecretpassword
+        send_email: false
   securitySchemes:
     bearerAuth:
       type: http
@@ -7618,6 +7768,383 @@ paths:
               example:
                 success: false
                 error: secure envelope not found
+  /v1/users:
+    get:
+      summary: List Users
+      description: Return a paginated list of users stored on the Envoy node.
+      operationId: listUsers
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page_size"
+        - $ref: "#/components/parameters/next_page_token"
+        - $ref: "#/components/parameters/prev_page_token"
+      responses:
+        "200":
+          description: Successful User Page Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+              example:
+                page:
+                  page_size: 50
+                users:
+                  - id: 01J6TFMSS0P5FWH8MVZDH23D5A
+                    name: Delores Clark
+                    email: dclark@example.com
+                    role: Observer
+                    last_login: null
+                    created: 2024-09-02T18:03:55-05:00
+                    modified: 2024-09-02T18:03:55-05:00
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    name: John Nolan
+                    email: jnolan@example.com
+                    role: Compliance
+                    last_login: 2024-09-02T17:53:58-05:00
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad User Page Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse page query request
+        "401":
+          description: Not Authorized to View Users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+    post:
+      summary: Create User
+      description: Create a new envoy user record. When creating a user a new alphanumeric
+        password is created and returned as part of the request. The password
+        isn't shown in any other request. You can reset the password using the
+        change password endpoint.
+      operationId: createUser
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: User information that includes all required writeable fields.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserForm"
+            example:
+              name: John Nolan
+              email: jnolan@example.com
+              role: Compliance
+      responses:
+        "201":
+          description: User Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                name: John Nolan
+                email: jnolan@example.com
+                password: Rf2H6NEzVktb
+                role: Compliance
+                last_login: 2024-09-02T17:53:58-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "400":
+          description: Bad Create User Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse user data
+        "401":
+          description: Not Authorized to Manage Users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "422":
+          description: User Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                error: 2 validation errors occurred
+                errors:
+                  - field: last_login
+                    error: field last_login is a read only field
+                  - field: email
+                    error: "missing email: this field is required"
+  "/v1/users/{userID}":
+    get:
+      summary: User Detail
+      description: Return a detailed record of a user object.
+      operationId: userDetail
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user to fetch a detailed record of.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: User Retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                name: John Nolan
+                email: jnolan@example.com
+                role: Compliance
+                last_login: 2024-09-02T17:53:58-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to View User Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: user not found
+    put:
+      summary: Update User
+      description: Update an user record with new information.
+      operationId: updateUser
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user to update.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      requestBody:
+        description: A complete user record that should reflect the state of the user after
+          the operation.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserForm"
+            example:
+              name: John Nolan
+              email: jnolan@example.com
+              role: Compliance
+      responses:
+        "200":
+          description: User Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                name: John Nolan
+                email: jnolan@example.com
+                role: Compliance
+                last_login: 2024-09-02T17:53:58-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to Update User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: User Not Found (Cannot Update)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: user not found
+        "422":
+          description: User Update Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                error: 2 validation errors occurred
+                errors:
+                  - field: password
+                    error: field password is a read only field
+                  - field: email
+                    error: "missing email: this field is required"
+    delete:
+      summary: Delete User
+      description: Delete a user with the specified ID.
+      operationId: deleteUser
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user to delete.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      responses:
+        "200":
+          description: User Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reply"
+              example:
+                success: true
+        "401":
+          description: Not Authorized to Delete User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: User Not Found (Cannot Delete)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: user not found
+  "/v1/users/{userID}/password":
+    post:
+      summary: Change Password
+      description: Change the users password to the password specified in the request.
+      operationId: changePassword
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user to change the password for.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+      requestBody:
+        required: true
+        description: Password change form.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPassword"
+            example:
+              password: supersecretsquirrel
+              send_email: false
+      responses:
+        "200":
+          description: Password Changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reply"
+              example:
+                success: true
+        "400":
+          description: Bad Change Password Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: could not parse password change request
+        "401":
+          description: Not Authorized to Change User Password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: User Not Found (Could not Change Password)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: user not found
+        "422":
+          description: Change Password Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+              example:
+                success: false
+                error: 1 validation errors occurred
+                errors:
+                  - field: password
+                    error: "missing password: this field is required"
 webhooks:
   transferCallback:
     post:
