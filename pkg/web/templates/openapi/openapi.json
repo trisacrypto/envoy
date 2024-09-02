@@ -1410,7 +1410,131 @@
         "title": "SecureEnvelope",
         "type": "object",
         "description": "A secure envelope holds an encrypted payload that contains the PII compliance information related to a transaction. The goal of a TRISA transaction is for both counterparties to have identical secure envelope payloads, encrypted so that only each counterparty may view the payload. TRP messages are also stored in secure envelopes, though there is no guarantee of how the data is being stored on the counterparty.",
-        "example": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The unique ID of this secure envelope in the Envoy database.",
+            "example": "01J6S9G7GDGNKETY6YDJQC3Z47"
+          },
+          "envelope_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The transaction ID that the secure envelope is associated with; referred to as the envelope ID because it is the ID used in secure envelope TRISA exchanges with the counterparty.",
+            "example": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "out",
+              "in",
+              "any"
+            ],
+            "description": "The send direction of the secure envelope; out refers to a secure envelope sent from the local Envoy node to the remote counterparty; in refers to a secure envelope that was received from a remote counterparty.",
+            "example": "out"
+          },
+          "remote": {
+            "type": "string",
+            "description": "The common name or mTLS certificate identification of the remote counterparty to whom the secure envelope was being sent.",
+            "example": "api.alice.vaspbot.net"
+          },
+          "reply_to": {
+            "type": "string",
+            "format": "ulid",
+            "description": "TRISA secure envelopes come in pairs because the RPC mechanism request is a secure envelope and the reply is also a secure envelope. If this field is populated, it refers to the secure envelope this envelope was a reply to.",
+            "example": "01J6S9RJ2APF7C6M10C8NTYVGX"
+          },
+          "payload": {
+            "type": "string",
+            "format": "base64",
+            "description": "The encrypted payload data. This is the data that was encrypted using the encryption algorithm and key specified in the secure envelope and the data upon which the HMAC signature was computed upon.",
+            "example": "bB42PZaunlTiYPPzrSqytFQN8oCpQNj9CklXNGmgAcejnuDL8gH6WpdNOO+nWYurnI7DnPwSORl8bD2xHcFQ10cph7nPOoU4FZ+6AdFvBvpF7tJrW+zx9XqwKiUqLdQsYKl1kp4TVKNMOdDQCf3fuYrbfz8NL2e5k5RItHy/AGtf3/BDgVKzMFgKkgZntpeXSRaJjDfH3aaPIJtPq1OoNXDhkzPmQW63Fx30LjxquBbnkBHp7BF12IelNdc/5rYsV2YiTAMSxdwlXudewZUVfHYS1OMbaDXF2tmrlWIc0W/4XnxBG1Baku5A8J2Y5+w+AKkPS4vV4erEgVASGkoOgIQLOKkRdB5W72s9aF3jpwm/Bl3tQ6whT28xICf36buf9ovB0bQA5qm46OfrZGIcNpGPLwWId2kUbZIH87V+ICxcCkSqiFdvl9jGOodK9Chf9lIbFafEjdGSbJ47erDEbTD3n8Ch4LMjMRgR/WmtBHkmAg0+ZtP9IZ+dIJ0jPVo+UohdEpjf6dTfDTHQ4om5+yMnkFzxi2qEc3VXfmhGpFbyEck8yUu1FJHgSijI3mmDLGGOCED2+Ljt4TIgeFOz8qhKP+NK/aPI1nGrrtcbZw3YYN5wDAzMC55x9fu3onefQQchuHMsknuRYZZqd8ywFqgY9qaxglwGStK4eWsusG/ko6BvcPflbZZDTnK48PU1LlePNaXQU13lTgMldGNIl39SJ8soJKj7dycggCIEYoRDYWKofF/vjwqI17YaO57tx9i6frPExBVFVIwfvQ37DXJMLNHdo5vGv2rm6Hrp9Dz/xgTSsxk46zHQOz/QETnchunMDKYdyhgScff8tDbKii0u+J+wcOC45q/QgGYVxQMDgu5LGZHDABXEnKrm2MVrjzzsqpACBf4GzJjJCq0SK/OfQcdicFCGffgZXngwxGrEwa896NiwGoMj28udpInXmvlT5Wc0tSf+7sJrUROaMr2pP62AoxVqKPnfNXXucuelzFL+Y6B7jZVju4QbET0+6PF56KkrsMxXuV5Xv37Sxq+STXoPgR1VhZBC24e4uPXIYt4cf3Wq67k2HGnq43ltN2oYAhGC22n8/fa7vjEDXjYFBg5pZCV3MgxNfmgflQU14hLN0jdgyFZlQtzC1Fi7+KOI2cksV7vQ/gQwzIwZ63VaXKRg2UjMNjYyE/J1ZDBOgAwFeSAdYETOrKOVyYCJeBECOBmUdfwNkx6Gib4XabbrwB456mPpm1SWtmai3yk5YnPRcjDo6vlJTXhI3QzX5DvXoMuR4NLrrVlaUAUWbMpl/VnijzrFTZyKCl4zRI+MXOF5xgf8dQ1vQdhquLJGSeiSI4w8dl4g7l2nZY6Ck8hwJ9CAym6PerD/PboxjQDKVxetW3mkG9o8F4Scb2trH8YADaE/ogm+ccTPP7qaQveSyD07Vgb9vv23uQvhvj2nY2PJhYxJxzNnhLSxIJ5jf9p83fItcIoEXnQvQo8YzPPx7oU+TEvlE0xUSTQCiXP4IdBFX0zYKflptWudkoKUKk0hwPZTA+/p8mi1KfHrxPKulebGDey6rW4Bt2++7hiVjaVrQHgpLareyyWjtwFZhElDaCMyM6P3Nsh6jOXGpSI8B4rI2jV6ikbds9A="
+          },
+          "encryption_key": {
+            "type": "string",
+            "format": "base64",
+            "description": "The encryption key, encrypted using the public keys specified by the public key signature. To decrypt the payload, you must first decrypt the encryption key using your private keys.",
+            "example": "Dyi0QAJKwJSMBXppgTBaFbY9rOAWssn25BC+lujipYNYIdvUNqEEkNUOkfQw1wYWWl7z3W8Hd9oogCFUucQ/D3K+pr2CpnGW4owmKyzCwdFrtkUrxdmgus4PzCYQHtRoMadpkj1Z/DRjroMyUotjQY2uou2W34F6xe70US91Dq6QS9/EuRlENzsF0XAdRcgP3TZKIlfi2d5x5Il1RMkzGCCFw30607j/8Yxbik9g0b8ncUk9I4yC8WT4P6JFftEmlxovVJ5qmUUcQmywEqA/0Y2rFt9ycQZRau65uySAEc6qkNIhTQpzLW6wkruCCWmYWbzEil/a//MVs9zYhmKfwqT2ELCnmyEszhUDNXbx4ZMobEF5QSMhYT6oYsu9njboifP9QY5xsUrmCrKzhG3cv33ObR2hojy1GeMXbM/rbl5YPTTfMP/pUQRil4tT2FJv4C6RUkU6dvlK6eiieZR0L7o2lnP+5TQTzuGcqcRt0QF7eTyZ+Ovt0S5w0FA351Xq6DwP4ZeLC/Ce7EHLRfBOiwcg6fGsDfrb9GRlC9yEV/jZL8nTBqjTIeyCsrW2+gzzKrvMXRkjlXXNQzelLO7g+zisAhn7iP9b+lXauaEw+xFiJNMIMLxDGZRi28524W/cCqjNYMDKCNgwvR+4JrTVeOsqYiO08G2K4nPmURBZeMU="
+          },
+          "encryption_algorithm": {
+            "type": "string",
+            "description": "The name of the encryption algorithm used to encrypt the payload.",
+            "example": "AES256-GCM"
+          },
+          "valid_hmac": {
+            "type": "boolean",
+            "description": "Set to true if the HMAC was validated upon receipt of the secure envelope. False if the HMAC is not valid or the secure envelope only contains an error and no payload.",
+            "example": true
+          },
+          "hmac": {
+            "type": "string",
+            "format": "base64",
+            "description": "The HMAC signature of the payload using the HMAC secret and HMAC algorithm. The HMAC is used to cryptographically guarantee that the payload has not been tampered with or modified either in-flight or during compliance long term storage.",
+            "example": "4jFyAEqQgEZ95Q/gllFaznN7ZVcXq9TFM2rrcq+1a+E="
+          },
+          "hmac_secret": {
+            "type": "string",
+            "format": "base64",
+            "description": "The hmac secret, encrypted using the public keys specified by the public key signature. To verify the HMAC signature, you must first decrypt the hmac secret using your private keys.",
+            "example": "dBwAMuFpP6EticvuDY5ikVYlyuT7RM+mS6MOX5QVC2xNtSgmewrAnzP1qPOy6inpBe5JdfWU8N99aacXU6DtkPDrU7SdDny+XLbdgxTRFRPowrA0ADIylnwUfiRigJjuo8Uu8Sg8roVnc/y0ibeVX5KV/h1J043TzcIbQtdJ4SfjVnBpPxOa+mmQr4K4MCSDWinNQPiF8Y+dxANc5Kx31MFii1txPpZJo+BdniASsh2YWBKsqTe6FUVlGnpAnzSmCv9vXRnX5TvTcZsZPOdXJOQDJMpnwoQtP4GuTxCD6Qv08gH2G93M8gwj6N+P4C96rmHjmO/tsqPMasjHcwTgeBSQ8AlTa6+c9uS/Q+woGrOwWdJfPhq2TRdaARAJeMFkCfi2afVK6WoJh5vjjUYpcjWYSNxX683LpdXMOEyMhZF5xeHOk/P1e+mtZO9xGniK8j8ylobybwd8dfXoy3hhHq0MeKQsvUJUPqNoZ0uzfnPkdYe3BFziMg9hhcv2+KX4nifTfBH8ffus+ECR2DFwMeUZI3b7hmtY+LKZy+SNtqAkXKC8ownwcp7zxUFgBIVPnWwFLMa5Dlar1sV2+dOUTVG7WcgxWab47nGLmhVChZmsD13FUBgBR+08fuyTzJ9Gdw7qLhc16lCRrV6JoOoCOgvc1Mi+M7N3y2Ws7Vduq/M="
+          },
+          "hmac_algorithm": {
+            "type": "string",
+            "description": "The name of the hmac algorithm used to sign the payload.",
+            "example": "HMAC-SHA256"
+          },
+          "is_error": {
+            "type": "boolean",
+            "description": "TRISA secure envelopes can contain either errors (in which case the Error field is populated) or secure payloads (in which case the payload and cryptography fields are populated).",
+            "example": false
+          },
+          "error": {
+            "$ref": "#/components/schemas/TRISAError"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The RFC3339 timestamp that the secure envelope was sent.",
+            "example": "2024-09-02T07:12:34-05:00"
+          },
+          "sealed": {
+            "type": "boolean",
+            "description": "If true, the encryption key and hmac secret are encrypted with the public keys specified by the public key signature; if false these fields are in plain text and can be used directly.",
+            "example": true
+          },
+          "public_key_signature": {
+            "$ref": "#/components/schemas/PublicKeySignature"
+          },
+          "transfer_state": {
+            "$ref": "#/components/schemas/TransferState"
+          },
+          "original": {
+            "type": "string",
+            "format": "base64",
+            "description": "The original protocol buffer data for the secure envelope for local storage.",
+            "example": "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"
+          }
+        },
+        "example": {
+          "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+          "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+          "direction": "out",
+          "remote": "api.alice.vaspbot.net",
+          "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+          "payload": "Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW",
+          "encryption_key": "vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=",
+          "encryption_algorithm": "AES256-GCM",
+          "valid_hmac": true,
+          "hmac": "HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=",
+          "hmac_secret": "KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=",
+          "hmac_algorithm": "HMAC-SHA256",
+          "is_error": false,
+          "timestamp": "2024-09-02T07:12:34-05:00",
+          "sealed": true,
+          "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+          "transfer_state": "STARTED",
+          "original": "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"
+        }
       },
       "SecureEnvelopeSummary": {
         "title": "SecureEnvelopeSummary",
@@ -1421,8 +1545,303 @@
       "Envelope": {
         "title": "Envelope",
         "type": "object",
-        "description": "An envelope is a decrypted version of a secure envelope and is used either to allow the Envoy node to perform decryption on behalf of the API client or for the API client to send data to the Envoy node for conversion into a secure envelope.",
-        "example": {}
+        "description": "An envelope is a decrypted version of a secure envelope and is used either to allow the Envoy node to perform decryption on behalf of the API client or for the API client to send data to the Envoy node for conversion into a secure envelope. The envelope will either contain an Error (is_error=True) or it will contain a Payload (is_error=false) consisting of the identity, sent_at, and received_at timestamps and either the transaction or pending payload (not both).",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The unique ID of the secure envelope this envelope was decrypted from.",
+            "example": "01J6S9G7GDGNKETY6YDJQC3Z47"
+          },
+          "envelope_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The transaction ID that the envelope is associated with; referred to as the envelope ID because it is the ID used in secure envelope TRISA exchanges with the counterparty.",
+            "example": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "out",
+              "in",
+              "any"
+            ],
+            "description": "The send direction of the decrypted envelope; out refers to an envelope sent from the local Envoy node to the remote counterparty; in refers to an envelope that was received from a remote counterparty.",
+            "example": "out"
+          },
+          "remote": {
+            "type": "string",
+            "description": "The common name or mTLS certificate identification of the remote counterparty to whom the envelope was being sent.",
+            "example": "api.alice.vaspbot.net"
+          },
+          "reply_to": {
+            "type": "string",
+            "format": "ulid",
+            "description": "TRISA envelopes come in pairs because the RPC mechanism request is a secure envelope and the reply is also a secure envelope. If this field is populated, it refers to the secure envelope this decrypted envelope was a reply to.",
+            "example": "01J6S9RJ2APF7C6M10C8NTYVGX"
+          },
+          "is_error": {
+            "type": "boolean",
+            "description": "TRISA decrypted envelopes can contain either errors (in which case the Error field is populated) or secure payloads (in which case the payload fields are populated).",
+            "example": false
+          },
+          "error": {
+            "$ref": "#/components/schemas/TRISAError"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/IdentityPayload"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/TransactionPayload"
+          },
+          "pending": {
+            "$ref": "#/components/schemas/PendingPayload"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The RFC3339 timestamp that the travel rule information exchange was started for compliance purposes.",
+            "example": "2024-09-02T07:12:33-05:00"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The RFC3339 timestamp that the travel rule information exchange was concluded for compliance purposes.",
+            "example": "2024-09-06T19:04:21-05:00"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The RFC3339 timestamp that the envelope was sent.",
+            "example": "2024-09-02T07:12:34-05:00"
+          },
+          "public_key_signature": {
+            "$ref": "#/components/schemas/PublicKeySignature"
+          },
+          "transfer_state": {
+            "$ref": "#/components/schemas/TransferState"
+          },
+          "secure_envelope": {
+            "$ref": "#/components/schemas/SecureEnvelope"
+          }
+        },
+        "example": {
+          "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+          "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+          "direction": "in",
+          "remote": "trisa.example.jp",
+          "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+          "is_error": false,
+          "identity": {
+            "originator": {
+              "originatorPersons": [
+                {
+                  "naturalPerson": {
+                    "name": {
+                      "nameIdentifier": [
+                        {
+                          "primaryIdentifier": "Bond",
+                          "secondaryIdentifier": "James",
+                          "nameIdentifierType": "LEGL"
+                        }
+                      ]
+                    },
+                    "geographicAddress": [
+                      {
+                        "addressType": "HOME",
+                        "streetName": "High Street",
+                        "buildingNumber": "7b",
+                        "townName": "London",
+                        "postCode": "SE1 2QH",
+                        "country": "GB"
+                      }
+                    ],
+                    "nationalIdentification": {
+                      "nationalIdentifierType": "DRLC",
+                      "nationalIdentifier": "BOND9211110JA9OB",
+                      "countryOfIssue": "GB"
+                    },
+                    "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                    "dateAndPlaceOfBirth": {
+                      "dateOfBirth": "1920-11-11",
+                      "placeOfBirth": "Wattenscheid, Germany"
+                    },
+                    "countryOfResidence": "GB"
+                  }
+                }
+              ],
+              "accountNumber": [
+                "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+              ]
+            },
+            "beneficiary": {
+              "beneficiaryPersons": [
+                {
+                  "naturalPerson": {
+                    "name": {
+                      "nameIdentifier": [
+                        {
+                          "primaryIdentifier": "Miura",
+                          "secondaryIdentifier": "Kentaro",
+                          "nameIdentifierType": "LEGL"
+                        }
+                      ],
+                      "localNameIdentifier": [
+                        {
+                          "primaryIdentifier": "三浦",
+                          "secondaryIdentifier": "建太郎",
+                          "nameIdentifierType": "LEGL"
+                        }
+                      ]
+                    },
+                    "geographicAddress": [
+                      {
+                        "addressType": "HOME",
+                        "streetName": "Shimohirakawa",
+                        "buildingNumber": "1536-2",
+                        "townName": "菊川市",
+                        "countrySubDivision": "静岡県",
+                        "postCode": "437-1514",
+                        "country": "JP"
+                      }
+                    ],
+                    "nationalIdentification": {
+                      "nationalIdentifierType": "SOCS",
+                      "nationalIdentifier": "0537-73-2271",
+                      "countryOfIssue": "JP"
+                    },
+                    "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
+                    "dateAndPlaceOfBirth": {
+                      "dateOfBirth": "1979-02-14",
+                      "placeOfBirth": "Tokyo, Japan"
+                    },
+                    "countryOfResidence": "JP"
+                  }
+                }
+              ],
+              "accountNumber": [
+                "mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw"
+              ]
+            },
+            "originatingVASP": {
+              "originatingVASP": {
+                "legalPerson": {
+                  "name": {
+                    "nameIdentifier": [
+                      {
+                        "legalPersonName": "High Street Capital Management, LTD",
+                        "legalPersonNameIdentifierType": "LEGL"
+                      },
+                      {
+                        "legalPersonName": "PubCoin",
+                        "legalPersonNameIdentifierType": "TRAD"
+                      }
+                    ]
+                  },
+                  "geographicAddress": [
+                    {
+                      "addressType": "BIZZ",
+                      "streetName": "Abbey St.",
+                      "buildingNumber": "51",
+                      "townName": "Nottingham",
+                      "postCode": "NG7 2NZ",
+                      "country": "GB"
+                    }
+                  ],
+                  "nationalIdentification": {
+                    "nationalIdentifier": "GKUH00AIM6DCRXGXVU75",
+                    "nationalIdentifierType": "LEIX"
+                  },
+                  "countryOfRegistration": "GB"
+                }
+              }
+            },
+            "beneficiaryVASP": {
+              "beneficiaryVASP": {
+                "legalPerson": {
+                  "name": {
+                    "nameIdentifier": [
+                      {
+                        "legalPersonName": "Nippon Crypto Exchange, KK",
+                        "legalPersonNameIdentifierType": "LEGL"
+                      }
+                    ],
+                    "localNameIdentifier": [
+                      {
+                        "legalPersonName": "日本仮想通貨取引所株式会社",
+                        "legalPersonNameIdentifierType": "LEGL"
+                      }
+                    ],
+                    "phoneticNameIdentifier": [
+                      {
+                        "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
+                        "legalPersonNameIdentifierType": "LEGL"
+                      }
+                    ]
+                  },
+                  "geographicAddress": [
+                    {
+                      "addressType": "BIZZ",
+                      "addressLine": [
+                        "滋賀県大津市水明１－３４－２",
+                        "520-0531"
+                      ],
+                      "country": "JP"
+                    },
+                    {
+                      "addressType": "BIZZ",
+                      "addressLine": [
+                        "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
+                        "520-0531 JAPAN"
+                      ],
+                      "country": "JP"
+                    }
+                  ],
+                  "nationalIdentification": {
+                    "nationalIdentifier": "84-1234567",
+                    "nationalIdentifierType": "TXID",
+                    "registrationAuthority": "RA777777"
+                  },
+                  "countryOfRegistration": "JP"
+                }
+              }
+            }
+          },
+          "transaction": {
+            "txid": "44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf",
+            "originator": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+            "beneficiary": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv",
+            "amount": 0.46602501,
+            "network": "BTC",
+            "timestamp": "2024-09-01T16:22:41-05:00",
+            "extra_json": "eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ=="
+          },
+          "sent_at": "2024-09-01T16:22:41-05:00",
+          "received_at": "2024-09-06T07:14:29-05:00",
+          "timestamp": "2024-09-06T07:14:30-05:00",
+          "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+          "transfer_state": "STARTED",
+          "secure_envelope": {
+            "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+            "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+            "direction": "out",
+            "remote": "api.alice.vaspbot.net",
+            "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+            "payload": "Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW",
+            "encryption_key": "vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=",
+            "encryption_algorithm": "AES256-GCM",
+            "valid_hmac": true,
+            "hmac": "HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=",
+            "hmac_secret": "KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=",
+            "hmac_algorithm": "HMAC-SHA256",
+            "is_error": false,
+            "timestamp": "2024-09-02T07:12:34-05:00",
+            "sealed": true,
+            "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+            "transfer_state": "STARTED",
+            "original": "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"
+          }
+        }
       },
       "EnvelopeSummary": {
         "title": "EnvelopeSummary",
@@ -1842,7 +2261,7 @@
                 {
                   "naturalPerson": {
                     "name": {
-                      "nameIdentifiers": [
+                      "nameIdentifier": [
                         {
                           "primaryIdentifier": "Bond",
                           "secondaryIdentifier": "James",
@@ -1855,14 +2274,14 @@
                         "addressType": "HOME",
                         "streetName": "High Street",
                         "buildingNumber": "7b",
-                        "town": "London",
+                        "townName": "London",
                         "postCode": "SE1 2QH",
                         "country": "GB"
                       }
                     ],
                     "nationalIdentification": {
-                      "nationalIdentificationTypeCode": "DRLC",
-                      "nationallIdentification": "BOND9211110JA9OB",
+                      "nationalIdentifierType": "DRLC",
+                      "nationalIdentifier": "BOND9211110JA9OB",
                       "countryOfIssue": "GB"
                     },
                     "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
@@ -1883,14 +2302,14 @@
                 {
                   "naturalPerson": {
                     "name": {
-                      "nameIdentifiers": [
+                      "nameIdentifier": [
                         {
                           "primaryIdentifier": "Miura",
                           "secondaryIdentifier": "Kentaro",
                           "nameIdentifierType": "LEGL"
                         }
                       ],
-                      "localNameIdentifiers": [
+                      "localNameIdentifier": [
                         {
                           "primaryIdentifier": "三浦",
                           "secondaryIdentifier": "建太郎",
@@ -1910,8 +2329,8 @@
                       }
                     ],
                     "nationalIdentification": {
-                      "nationalIdentificationTypeCode": "SOCS",
-                      "nationallIdentification": "0537-73-2271",
+                      "nationalIdentifierType": "SOCS",
+                      "nationalIdentifier": "0537-73-2271",
                       "countryOfIssue": "JP"
                     },
                     "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
@@ -1931,7 +2350,7 @@
               "originatingVASP": {
                 "legalPerson": {
                   "name": {
-                    "nameIdentifiers": [
+                    "nameIdentifier": [
                       {
                         "legalPersonName": "High Street Capital Management, LTD",
                         "legalPersonNameIdentifierType": "LEGL"
@@ -1947,7 +2366,7 @@
                       "addressType": "BIZZ",
                       "streetName": "Abbey St.",
                       "buildingNumber": "51",
-                      "town": "Nottingham",
+                      "townName": "Nottingham",
                       "postCode": "NG7 2NZ",
                       "country": "GB"
                     }
@@ -1964,19 +2383,19 @@
               "beneficiaryVASP": {
                 "legalPerson": {
                   "name": {
-                    "nameIdentifiers": [
+                    "nameIdentifier": [
                       {
                         "legalPersonName": "Nippon Crypto Exchange, KK",
                         "legalPersonNameIdentifierType": "LEGL"
                       }
                     ],
-                    "localNameIdentifiers": [
+                    "localNameIdentifier": [
                       {
                         "legalPersonName": "日本仮想通貨取引所株式会社",
                         "legalPersonNameIdentifierType": "LEGL"
                       }
                     ],
-                    "phoneticNameIdentifiers": [
+                    "phoneticNameIdentifier": [
                       {
                         "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
                         "legalPersonNameIdentifierType": "LEGL"
@@ -1986,7 +2405,7 @@
                   "geographicAddress": [
                     {
                       "addressType": "BIZZ",
-                      "addressLines": [
+                      "addressLine": [
                         "滋賀県大津市水明１－３４－２",
                         "520-0531"
                       ],
@@ -1994,7 +2413,7 @@
                     },
                     {
                       "addressType": "BIZZ",
-                      "addressLines": [
+                      "addressLine": [
                         "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
                         "520-0531 JAPAN"
                       ],
@@ -2056,7 +2475,7 @@
               {
                 "naturalPerson": {
                   "name": {
-                    "nameIdentifiers": [
+                    "nameIdentifier": [
                       {
                         "primaryIdentifier": "Bond",
                         "secondaryIdentifier": "James",
@@ -2069,14 +2488,14 @@
                       "addressType": "HOME",
                       "streetName": "High Street",
                       "buildingNumber": "7b",
-                      "town": "London",
+                      "townName": "London",
                       "postCode": "SE1 2QH",
                       "country": "GB"
                     }
                   ],
                   "nationalIdentification": {
-                    "nationalIdentificationTypeCode": "DRLC",
-                    "nationallIdentification": "BOND9211110JA9OB",
+                    "nationalIdentifierType": "DRLC",
+                    "nationalIdentifier": "BOND9211110JA9OB",
                     "countryOfIssue": "GB"
                   },
                   "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
@@ -2097,14 +2516,14 @@
               {
                 "naturalPerson": {
                   "name": {
-                    "nameIdentifiers": [
+                    "nameIdentifier": [
                       {
                         "primaryIdentifier": "Miura",
                         "secondaryIdentifier": "Kentaro",
                         "nameIdentifierType": "LEGL"
                       }
                     ],
-                    "localNameIdentifiers": [
+                    "localNameIdentifier": [
                       {
                         "primaryIdentifier": "三浦",
                         "secondaryIdentifier": "建太郎",
@@ -2124,8 +2543,8 @@
                     }
                   ],
                   "nationalIdentification": {
-                    "nationalIdentificationTypeCode": "SOCS",
-                    "nationallIdentification": "0537-73-2271",
+                    "nationalIdentifierType": "SOCS",
+                    "nationalIdentifier": "0537-73-2271",
                     "countryOfIssue": "JP"
                   },
                   "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
@@ -2145,7 +2564,7 @@
             "originatingVASP": {
               "legalPerson": {
                 "name": {
-                  "nameIdentifiers": [
+                  "nameIdentifier": [
                     {
                       "legalPersonName": "High Street Capital Management, LTD",
                       "legalPersonNameIdentifierType": "LEGL"
@@ -2161,7 +2580,7 @@
                     "addressType": "BIZZ",
                     "streetName": "Abbey St.",
                     "buildingNumber": "51",
-                    "town": "Nottingham",
+                    "townName": "Nottingham",
                     "postCode": "NG7 2NZ",
                     "country": "GB"
                   }
@@ -2178,19 +2597,19 @@
             "beneficiaryVASP": {
               "legalPerson": {
                 "name": {
-                  "nameIdentifiers": [
+                  "nameIdentifier": [
                     {
                       "legalPersonName": "Nippon Crypto Exchange, KK",
                       "legalPersonNameIdentifierType": "LEGL"
                     }
                   ],
-                  "localNameIdentifiers": [
+                  "localNameIdentifier": [
                     {
                       "legalPersonName": "日本仮想通貨取引所株式会社",
                       "legalPersonNameIdentifierType": "LEGL"
                     }
                   ],
-                  "phoneticNameIdentifiers": [
+                  "phoneticNameIdentifier": [
                     {
                       "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
                       "legalPersonNameIdentifierType": "LEGL"
@@ -2200,7 +2619,7 @@
                 "geographicAddress": [
                   {
                     "addressType": "BIZZ",
-                    "addressLines": [
+                    "addressLine": [
                       "滋賀県大津市水明１－３４－２",
                       "520-0531"
                     ],
@@ -2208,7 +2627,7 @@
                   },
                   {
                     "addressType": "BIZZ",
-                    "addressLines": [
+                    "addressLine": [
                       "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
                       "520-0531 JAPAN"
                     ],
@@ -2260,7 +2679,7 @@
             {
               "naturalPerson": {
                 "name": {
-                  "nameIdentifiers": [
+                  "nameIdentifier": [
                     {
                       "primaryIdentifier": "Bond",
                       "secondaryIdentifier": "James",
@@ -2273,14 +2692,14 @@
                     "addressType": "HOME",
                     "streetName": "High Street",
                     "buildingNumber": "7b",
-                    "town": "London",
+                    "townName": "London",
                     "postCode": "SE1 2QH",
                     "country": "GB"
                   }
                 ],
                 "nationalIdentification": {
-                  "nationalIdentificationTypeCode": "DRLC",
-                  "nationallIdentification": "BOND9211110JA9OB",
+                  "nationalIdentifierType": "DRLC",
+                  "nationalIdentifier": "BOND9211110JA9OB",
                   "countryOfIssue": "GB"
                 },
                 "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
@@ -2331,14 +2750,14 @@
             {
               "naturalPerson": {
                 "name": {
-                  "nameIdentifiers": [
+                  "nameIdentifier": [
                     {
                       "primaryIdentifier": "Miura",
                       "secondaryIdentifier": "Kentaro",
                       "nameIdentifierType": "LEGL"
                     }
                   ],
-                  "localNameIdentifiers": [
+                  "localNameIdentifier": [
                     {
                       "primaryIdentifier": "三浦",
                       "secondaryIdentifier": "建太郎",
@@ -2358,8 +2777,8 @@
                   }
                 ],
                 "nationalIdentification": {
-                  "nationalIdentificationTypeCode": "SOCS",
-                  "nationallIdentification": "0537-73-2271",
+                  "nationalIdentifierType": "SOCS",
+                  "nationalIdentifier": "0537-73-2271",
                   "countryOfIssue": "JP"
                 },
                 "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
@@ -2392,7 +2811,7 @@
           "originatingVASP": {
             "legalPerson": {
               "name": {
-                "nameIdentifiers": [
+                "nameIdentifier": [
                   {
                     "legalPersonName": "High Street Capital Management, LTD",
                     "legalPersonNameIdentifierType": "LEGL"
@@ -2408,7 +2827,7 @@
                   "addressType": "BIZZ",
                   "streetName": "Abbey St.",
                   "buildingNumber": "51",
-                  "town": "Nottingham",
+                  "townName": "Nottingham",
                   "postCode": "NG7 2NZ",
                   "country": "GB"
                 }
@@ -2438,19 +2857,19 @@
           "beneficiaryVASP": {
             "legalPerson": {
               "name": {
-                "nameIdentifiers": [
+                "nameIdentifier": [
                   {
                     "legalPersonName": "Nippon Crypto Exchange, KK",
                     "legalPersonNameIdentifierType": "LEGL"
                   }
                 ],
-                "localNameIdentifiers": [
+                "localNameIdentifier": [
                   {
                     "legalPersonName": "日本仮想通貨取引所株式会社",
                     "legalPersonNameIdentifierType": "LEGL"
                   }
                 ],
-                "phoneticNameIdentifiers": [
+                "phoneticNameIdentifier": [
                   {
                     "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
                     "legalPersonNameIdentifierType": "LEGL"
@@ -2460,7 +2879,7 @@
               "geographicAddress": [
                 {
                   "addressType": "BIZZ",
-                  "addressLines": [
+                  "addressLine": [
                     "滋賀県大津市水明１－３４－２",
                     "520-0531"
                   ],
@@ -2468,7 +2887,7 @@
                 },
                 {
                   "addressType": "BIZZ",
-                  "addressLines": [
+                  "addressLine": [
                     "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
                     "520-0531 JAPAN"
                   ],
@@ -2500,7 +2919,7 @@
                 "intermediaryVASP": {
                   "legalPerson": {
                     "name": {
-                      "nameIdentifiers": [
+                      "nameIdentifier": [
                         {
                           "legalPersonName": "AliceCoin, Ltd",
                           "legalPersonNameTypeCode": "LEGL"
@@ -2511,7 +2930,7 @@
                           "addressType": "BIZZ",
                           "streetName": "Main Street",
                           "buildingNumber": 123,
-                          "town": "Charleston",
+                          "townName": "Charleston",
                           "countrySubDivision": "KY",
                           "postCode": 51220,
                           "country": "US"
@@ -2536,7 +2955,7 @@
               "intermediaryVASP": {
                 "legalPerson": {
                   "name": {
-                    "nameIdentifiers": [
+                    "nameIdentifier": [
                       {
                         "legalPersonName": "AliceCoin, Ltd",
                         "legalPersonNameTypeCode": "LEGL"
@@ -2547,7 +2966,7 @@
                         "addressType": "BIZZ",
                         "streetName": "Main Street",
                         "buildingNumber": 123,
-                        "town": "Charleston",
+                        "townName": "Charleston",
                         "countrySubDivision": "KY",
                         "postCode": 51220,
                         "country": "US"
@@ -2584,7 +3003,7 @@
           "intermediaryVASP": {
             "legalPerson": {
               "name": {
-                "nameIdentifiers": [
+                "nameIdentifier": [
                   {
                     "legalPersonName": "AliceCoin, Ltd",
                     "legalPersonNameTypeCode": "LEGL"
@@ -2595,7 +3014,7 @@
                     "addressType": "BIZZ",
                     "streetName": "Main Street",
                     "buildingNumber": 123,
-                    "town": "Charleston",
+                    "townName": "Charleston",
                     "countrySubDivision": "KY",
                     "postCode": 51220,
                     "country": "US"
@@ -2669,14 +3088,14 @@
           {
             "naturalPerson": {
               "name": {
-                "nameIdentifiers": [
+                "nameIdentifier": [
                   {
                     "primaryIdentifier": "Miura",
                     "secondaryIdentifier": "Kentaro",
                     "nameIdentifierType": "LEGL"
                   }
                 ],
-                "localNameIdentifiers": [
+                "localNameIdentifier": [
                   {
                     "primaryIdentifier": "三浦",
                     "secondaryIdentifier": "建太郎",
@@ -2696,8 +3115,8 @@
                 }
               ],
               "nationalIdentification": {
-                "nationalIdentificationTypeCode": "SOCS",
-                "nationallIdentification": "0537-73-2271",
+                "nationalIdentifierType": "SOCS",
+                "nationalIdentifier": "0537-73-2271",
                 "countryOfIssue": "JP"
               },
               "customerIdentification": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
@@ -2727,7 +3146,7 @@
               "geographicAddress": [
                 {
                   "addressType": "GEOG",
-                  "addressLines": [
+                  "addressLine": [
                     "4904 Mara Island",
                     "Abu Dhabi Emirate, Al Dhafrah Region",
                     "Western Mahadir"
@@ -2762,7 +3181,7 @@
             "example": [
               {
                 "addressType": "GEOG",
-                "addressLines": [
+                "addressLine": [
                   "4904 Mara Island",
                   "Abu Dhabi Emirate, Al Dhafrah Region",
                   "Western Mahadir"
@@ -2804,7 +3223,7 @@
           "geographicAddress": [
             {
               "addressType": "GEOG",
-              "addressLines": [
+              "addressLine": [
                 "4904 Mara Island",
                 "Abu Dhabi Emirate, Al Dhafrah Region",
                 "Western Mahadir"
@@ -2988,14 +3407,14 @@
         ],
         "example": {
           "name": {
-            "nameIdentifiers": [
+            "nameIdentifier": [
               {
                 "primaryIdentifier": "Miura",
                 "secondaryIdentifier": "Kentaro",
                 "nameIdentifierType": "LEGL"
               }
             ],
-            "localNameIdentifiers": [
+            "localNameIdentifier": [
               {
                 "primaryIdentifier": "三浦",
                 "secondaryIdentifier": "建太郎",
@@ -3015,8 +3434,8 @@
             }
           ],
           "nationalIdentification": {
-            "nationalIdentificationTypeCode": "SOCS",
-            "nationallIdentification": "0537-73-2271",
+            "nationalIdentifierType": "SOCS",
+            "nationalIdentifier": "0537-73-2271",
             "countryOfIssue": "JP"
           },
           "customerIdentification": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
@@ -3032,7 +3451,7 @@
         "description": "The distinct words used as identification for an individual. At least one occurrence of a natural person's name ID must have the value LEGL specified as the natural person name identifier type. At least one name identifier is required, and zero or more local and phonetic name identifiers can be added for ease of identification.",
         "type": "object",
         "properties": {
-          "nameIdentifiers": {
+          "nameIdentifier": {
             "type": "array",
             "description": "Full name separated into primary and secondary identifiers (at least one required and at least one must have the LEGL type).",
             "items": {
@@ -3051,7 +3470,7 @@
               }
             ]
           },
-          "localNameIdentifiers": {
+          "localNameIdentifier": {
             "type": "array",
             "description": "Full name separated into primary and secondary identifiers using local characters.",
             "items": {
@@ -3065,7 +3484,7 @@
               }
             ]
           },
-          "phoneticNameIdentifiers": {
+          "phoneticNameIdentifier": {
             "type": "array",
             "description": "Alternate representation of a name that corresponds to the manner the name is pronounced.",
             "items": {
@@ -3086,17 +3505,17 @@
           }
         },
         "required": [
-          "nameIdentifiers"
+          "nameIdentifier"
         ],
         "example": {
-          "nameIdentifiers": [
+          "nameIdentifier": [
             {
               "primaryIdentifier": "Miura",
               "secondaryIdentifier": "Kentaro",
               "nameIdentifierType": "LEGL"
             }
           ],
-          "localNameIdentifiers": [
+          "localNameIdentifier": [
             {
               "primaryIdentifier": "三浦",
               "secondaryIdentifier": "建太郎",
@@ -3540,6 +3959,81 @@
             "network": "BTC"
           }
         }
+      },
+      "TRISAError": {
+        "title": "TRISAError",
+        "description": "A rejection or repair error that is stored in a SecureEnvelope. There are two types of errors. A \"Rejection\" (reply=false) informs the counterparty that the on-chain transaction should not proceed because compliance requirements could not be met. A \"Repair\" (reply=true) informs the counterparty that there is some issue with the compliance information that needs to be fixed before the on-chain transaction can proceed.",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The TRISA error code as defined by the TRISA specification. See https://trisa.dev/api/errors/index.html for the complete list of codes. Some common codes are included here as enums.",
+            "enum": [
+              "REJECTED",
+              "UNKNOWN_WALLET_ADDRESS",
+              "UNKNOWN_ORIGINATOR",
+              "UNKOWN_BENEFICIARY",
+              "UNSUPPORTED_CURRENCY",
+              "EXCEEDED_TRADING_VOLUME",
+              "COMPLIANCE_CHECK_FAIL",
+              "NO_COMPLIANCE",
+              "HIGH_RISK",
+              "OUT_OF_NETWORK",
+              "BAD_REQUEST",
+              "UNPARSEABLE_IDENTITY",
+              "PRIVATE_INFO_WRONG_FORMAT",
+              "UNPARSEABLE_TRANSACTION",
+              "MISSING_FIELDS",
+              "INCOMPLETE_IDENTITY",
+              "VALIDATION_ERROR",
+              "COMPLIANCE_PERIOD_EXCEEDED",
+              "CANCELED"
+            ],
+            "example": "INCOMPLETE_IDENTITY"
+          },
+          "message": {
+            "type": "string",
+            "description": "A human readable message stating the reason for the error. This message should be loggable and actionable.",
+            "example": "Our jurisdiction requires date and place of birth as part of the identity payload."
+          },
+          "retry": {
+            "type": "boolean",
+            "description": "If the message that caused the error should be retried with a fix (repair) then set to true. Otherwise set to false if the rejection is permenant and the request should not be retried nor should the on-chain transaction take place.",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retry"
+        ],
+        "example": {
+          "code": "INCOMPLETE_IDENTITY",
+          "message": "Our jurisdiction requires date and place of birth as part of the identity payload.",
+          "retry": true
+        }
+      },
+      "PublicKeySignature": {
+        "title": "PublicKeySignature",
+        "type": "string",
+        "description": "The signature of the public key used to encrypt the secure envelope; used for identifying the keys required for decryption and for auditing the HMAC signature and validation of the secure envelope payload.",
+        "example": "SHA256:DIvHCo8bcx5YR44CldvxojVAerYMGwA81L2GIUxxghw"
+      },
+      "TransferState": {
+        "title": "TransferState",
+        "description": "The transfer_state signals to the counterparty (the recipient of the secure envelope) the intent of the current transfer message. This state is used to determine and update the transaction state (which is slightly different). See https://trisa.dev/api/workflows/index.html for more.",
+        "type": "string",
+        "enum": [
+          "UNSPECIFIED",
+          "STARTED",
+          "PENDING",
+          "REVIEW",
+          "REPAIR",
+          "ACCEPTED",
+          "COMPLETED",
+          "REJECTED"
+        ],
+        "example": "REVIEW"
       }
     },
     "securitySchemes": {
@@ -6024,7 +6518,7 @@
                         {
                           "naturalPerson": {
                             "name": {
-                              "nameIdentifiers": [
+                              "nameIdentifier": [
                                 {
                                   "primaryIdentifier": "Bond",
                                   "secondaryIdentifier": "James",
@@ -6036,18 +6530,18 @@
                               {
                                 "addressType": "HOME",
                                 "streetName": "High Street",
-                                "buildingNumber": "7b",
-                                "town": "London",
+                                "buildingNumber": 1,
+                                "townName": "London",
                                 "postCode": "SE1 2QH",
                                 "country": "GB"
                               }
                             ],
                             "nationalIdentification": {
-                              "nationalIdentificationTypeCode": "DRLC",
-                              "nationallIdentification": "BOND9211110JA9OB",
+                              "nationalIdentifierType": "DRLC",
+                              "nationalIdentifier": "BOND9211110JA9OB",
                               "countryOfIssue": "GB"
                             },
-                            "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                            "customerIdentification": "674907513",
                             "dateAndPlaceOfBirth": {
                               "dateOfBirth": "1920-11-11",
                               "placeOfBirth": "Wattenscheid, Germany"
@@ -6065,17 +6559,10 @@
                         {
                           "naturalPerson": {
                             "name": {
-                              "nameIdentifiers": [
+                              "nameIdentifier": [
                                 {
-                                  "primaryIdentifier": "Miura",
-                                  "secondaryIdentifier": "Kentaro",
-                                  "nameIdentifierType": "LEGL"
-                                }
-                              ],
-                              "localNameIdentifiers": [
-                                {
-                                  "primaryIdentifier": "三浦",
-                                  "secondaryIdentifier": "建太郎",
+                                  "primaryIdentifier": "Swansong",
+                                  "secondaryIdentifier": "Twilda",
                                   "nameIdentifierType": "LEGL"
                                 }
                               ]
@@ -6083,37 +6570,37 @@
                             "geographicAddress": [
                               {
                                 "addressType": "HOME",
-                                "streetName": "Shimohirakawa",
-                                "buildingNumber": "1536-2",
-                                "townName": "菊川市",
-                                "countrySubDivision": "静岡県",
-                                "postCode": "437-1514",
-                                "country": "JP"
+                                "streetName": "Main Street",
+                                "buildingNumber": "123",
+                                "townName": "Casper",
+                                "countrySubDivision": "WY",
+                                "postCode": 82604,
+                                "country": "US"
                               }
                             ],
                             "nationalIdentification": {
-                              "nationalIdentificationTypeCode": "SOCS",
-                              "nationallIdentification": "0537-73-2271",
-                              "countryOfIssue": "JP"
+                              "nationalIdentifierType": "SOCS",
+                              "nationalIdentifier": "880-02-22213",
+                              "countryOfIssue": "US"
                             },
-                            "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
+                            "customerIdentification": "39910432",
                             "dateAndPlaceOfBirth": {
-                              "dateOfBirth": "1979-02-14",
-                              "placeOfBirth": "Tokyo, Japan"
+                              "dateOfBirth": "1978-02-14",
+                              "placeOfBirth": "Toronto, Ontario, Canada"
                             },
-                            "countryOfResidence": "JP"
+                            "countryOfResidence": "US"
                           }
                         }
                       ],
                       "accountNumber": [
-                        "mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw"
+                        "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
                       ]
                     },
                     "originatingVASP": {
                       "originatingVASP": {
                         "legalPerson": {
                           "name": {
-                            "nameIdentifiers": [
+                            "nameIdentifier": [
                               {
                                 "legalPersonName": "High Street Capital Management, LTD",
                                 "legalPersonNameIdentifierType": "LEGL"
@@ -6129,7 +6616,7 @@
                               "addressType": "BIZZ",
                               "streetName": "Abbey St.",
                               "buildingNumber": "51",
-                              "town": "Nottingham",
+                              "townName": "Nottingham",
                               "postCode": "NG7 2NZ",
                               "country": "GB"
                             }
@@ -6146,21 +6633,9 @@
                       "beneficiaryVASP": {
                         "legalPerson": {
                           "name": {
-                            "nameIdentifiers": [
+                            "nameIdentifier": [
                               {
-                                "legalPersonName": "Nippon Crypto Exchange, KK",
-                                "legalPersonNameIdentifierType": "LEGL"
-                              }
-                            ],
-                            "localNameIdentifiers": [
-                              {
-                                "legalPersonName": "日本仮想通貨取引所株式会社",
-                                "legalPersonNameIdentifierType": "LEGL"
-                              }
-                            ],
-                            "phoneticNameIdentifiers": [
-                              {
-                                "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
+                                "legalPersonName": "AliceCoin, LLC",
                                 "legalPersonNameIdentifierType": "LEGL"
                               }
                             ]
@@ -6168,19 +6643,12 @@
                           "geographicAddress": [
                             {
                               "addressType": "BIZZ",
-                              "addressLines": [
-                                "滋賀県大津市水明１－３４－２",
-                                "520-0531"
+                              "addressLine": [
+                                "41 Wall Street",
+                                "Suite 203",
+                                "New York, NY 10042"
                               ],
-                              "country": "JP"
-                            },
-                            {
-                              "addressType": "BIZZ",
-                              "addressLines": [
-                                "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
-                                "520-0531 JAPAN"
-                              ],
-                              "country": "JP"
+                              "country": "US"
                             }
                           ],
                           "nationalIdentification": {
@@ -6188,19 +6656,16 @@
                             "nationalIdentifierType": "TXID",
                             "registrationAuthority": "RA777777"
                           },
-                          "countryOfRegistration": "JP"
+                          "countryOfRegistration": "US"
                         }
                       }
                     }
                   },
                   "transaction": {
-                    "txid": "44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf",
                     "originator": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
                     "beneficiary": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv",
-                    "amount": 0.46602501,
-                    "network": "BTC",
-                    "timestamp": "2024-09-01T16:22:41-05:00",
-                    "extra_json": "eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ=="
+                    "amount": 0.0007,
+                    "network": "BTC"
                   }
                 }
               }
@@ -6276,7 +6741,7 @@
                       {
                         "naturalPerson": {
                           "name": {
-                            "nameIdentifiers": [
+                            "nameIdentifier": [
                               {
                                 "primaryIdentifier": "Bond",
                                 "secondaryIdentifier": "James",
@@ -6289,14 +6754,14 @@
                               "addressType": "HOME",
                               "streetName": "High Street",
                               "buildingNumber": "7b",
-                              "town": "London",
+                              "townName": "London",
                               "postCode": "SE1 2QH",
                               "country": "GB"
                             }
                           ],
                           "nationalIdentification": {
-                            "nationalIdentificationTypeCode": "DRLC",
-                            "nationallIdentification": "BOND9211110JA9OB",
+                            "nationalIdentifierType": "DRLC",
+                            "nationalIdentifier": "BOND9211110JA9OB",
                             "countryOfIssue": "GB"
                           },
                           "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
@@ -6317,14 +6782,14 @@
                       {
                         "naturalPerson": {
                           "name": {
-                            "nameIdentifiers": [
+                            "nameIdentifier": [
                               {
                                 "primaryIdentifier": "Miura",
                                 "secondaryIdentifier": "Kentaro",
                                 "nameIdentifierType": "LEGL"
                               }
                             ],
-                            "localNameIdentifiers": [
+                            "localNameIdentifier": [
                               {
                                 "primaryIdentifier": "三浦",
                                 "secondaryIdentifier": "建太郎",
@@ -6344,8 +6809,8 @@
                             }
                           ],
                           "nationalIdentification": {
-                            "nationalIdentificationTypeCode": "SOCS",
-                            "nationallIdentification": "0537-73-2271",
+                            "nationalIdentifierType": "SOCS",
+                            "nationalIdentifier": "0537-73-2271",
                             "countryOfIssue": "JP"
                           },
                           "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
@@ -6365,7 +6830,7 @@
                     "originatingVASP": {
                       "legalPerson": {
                         "name": {
-                          "nameIdentifiers": [
+                          "nameIdentifier": [
                             {
                               "legalPersonName": "High Street Capital Management, LTD",
                               "legalPersonNameIdentifierType": "LEGL"
@@ -6381,7 +6846,7 @@
                             "addressType": "BIZZ",
                             "streetName": "Abbey St.",
                             "buildingNumber": "51",
-                            "town": "Nottingham",
+                            "townName": "Nottingham",
                             "postCode": "NG7 2NZ",
                             "country": "GB"
                           }
@@ -6398,19 +6863,19 @@
                     "beneficiaryVASP": {
                       "legalPerson": {
                         "name": {
-                          "nameIdentifiers": [
+                          "nameIdentifier": [
                             {
                               "legalPersonName": "Nippon Crypto Exchange, KK",
                               "legalPersonNameIdentifierType": "LEGL"
                             }
                           ],
-                          "localNameIdentifiers": [
+                          "localNameIdentifier": [
                             {
                               "legalPersonName": "日本仮想通貨取引所株式会社",
                               "legalPersonNameIdentifierType": "LEGL"
                             }
                           ],
-                          "phoneticNameIdentifiers": [
+                          "phoneticNameIdentifier": [
                             {
                               "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
                               "legalPersonNameIdentifierType": "LEGL"
@@ -6420,7 +6885,7 @@
                         "geographicAddress": [
                           {
                             "addressType": "BIZZ",
-                            "addressLines": [
+                            "addressLine": [
                               "滋賀県大津市水明１－３４－２",
                               "520-0531"
                             ],
@@ -6428,7 +6893,7 @@
                           },
                           {
                             "addressType": "BIZZ",
-                            "addressLines": [
+                            "addressLine": [
                               "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
                               "520-0531 JAPAN"
                             ],
@@ -6466,7 +6931,223 @@
                 "schema": {
                   "$ref": "#/components/schemas/Envelope"
                 },
-                "example": {}
+                "example": {
+                  "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+                  "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+                  "direction": "in",
+                  "remote": "trisa.example.jp",
+                  "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+                  "is_error": false,
+                  "identity": {
+                    "originator": {
+                      "originatorPersons": [
+                        {
+                          "naturalPerson": {
+                            "name": {
+                              "nameIdentifier": [
+                                {
+                                  "primaryIdentifier": "Bond",
+                                  "secondaryIdentifier": "James",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ]
+                            },
+                            "geographicAddress": [
+                              {
+                                "addressType": "HOME",
+                                "streetName": "High Street",
+                                "buildingNumber": "7b",
+                                "townName": "London",
+                                "postCode": "SE1 2QH",
+                                "country": "GB"
+                              }
+                            ],
+                            "nationalIdentification": {
+                              "nationalIdentifierType": "DRLC",
+                              "nationalIdentifier": "BOND9211110JA9OB",
+                              "countryOfIssue": "GB"
+                            },
+                            "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                            "dateAndPlaceOfBirth": {
+                              "dateOfBirth": "1920-11-11",
+                              "placeOfBirth": "Wattenscheid, Germany"
+                            },
+                            "countryOfResidence": "GB"
+                          }
+                        }
+                      ],
+                      "accountNumber": [
+                        "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+                      ]
+                    },
+                    "beneficiary": {
+                      "beneficiaryPersons": [
+                        {
+                          "naturalPerson": {
+                            "name": {
+                              "nameIdentifier": [
+                                {
+                                  "primaryIdentifier": "Miura",
+                                  "secondaryIdentifier": "Kentaro",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ],
+                              "localNameIdentifier": [
+                                {
+                                  "primaryIdentifier": "三浦",
+                                  "secondaryIdentifier": "建太郎",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ]
+                            },
+                            "geographicAddress": [
+                              {
+                                "addressType": "HOME",
+                                "streetName": "Shimohirakawa",
+                                "buildingNumber": "1536-2",
+                                "townName": "菊川市",
+                                "countrySubDivision": "静岡県",
+                                "postCode": "437-1514",
+                                "country": "JP"
+                              }
+                            ],
+                            "nationalIdentification": {
+                              "nationalIdentifierType": "SOCS",
+                              "nationalIdentifier": "0537-73-2271",
+                              "countryOfIssue": "JP"
+                            },
+                            "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
+                            "dateAndPlaceOfBirth": {
+                              "dateOfBirth": "1979-02-14",
+                              "placeOfBirth": "Tokyo, Japan"
+                            },
+                            "countryOfResidence": "JP"
+                          }
+                        }
+                      ],
+                      "accountNumber": [
+                        "mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw"
+                      ]
+                    },
+                    "originatingVASP": {
+                      "originatingVASP": {
+                        "legalPerson": {
+                          "name": {
+                            "nameIdentifier": [
+                              {
+                                "legalPersonName": "High Street Capital Management, LTD",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              },
+                              {
+                                "legalPersonName": "PubCoin",
+                                "legalPersonNameIdentifierType": "TRAD"
+                              }
+                            ]
+                          },
+                          "geographicAddress": [
+                            {
+                              "addressType": "BIZZ",
+                              "streetName": "Abbey St.",
+                              "buildingNumber": "51",
+                              "townName": "Nottingham",
+                              "postCode": "NG7 2NZ",
+                              "country": "GB"
+                            }
+                          ],
+                          "nationalIdentification": {
+                            "nationalIdentifier": "GKUH00AIM6DCRXGXVU75",
+                            "nationalIdentifierType": "LEIX"
+                          },
+                          "countryOfRegistration": "GB"
+                        }
+                      }
+                    },
+                    "beneficiaryVASP": {
+                      "beneficiaryVASP": {
+                        "legalPerson": {
+                          "name": {
+                            "nameIdentifier": [
+                              {
+                                "legalPersonName": "Nippon Crypto Exchange, KK",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ],
+                            "localNameIdentifier": [
+                              {
+                                "legalPersonName": "日本仮想通貨取引所株式会社",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ],
+                            "phoneticNameIdentifier": [
+                              {
+                                "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ]
+                          },
+                          "geographicAddress": [
+                            {
+                              "addressType": "BIZZ",
+                              "addressLine": [
+                                "滋賀県大津市水明１－３４－２",
+                                "520-0531"
+                              ],
+                              "country": "JP"
+                            },
+                            {
+                              "addressType": "BIZZ",
+                              "addressLine": [
+                                "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
+                                "520-0531 JAPAN"
+                              ],
+                              "country": "JP"
+                            }
+                          ],
+                          "nationalIdentification": {
+                            "nationalIdentifier": "84-1234567",
+                            "nationalIdentifierType": "TXID",
+                            "registrationAuthority": "RA777777"
+                          },
+                          "countryOfRegistration": "JP"
+                        }
+                      }
+                    }
+                  },
+                  "transaction": {
+                    "txid": "44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf",
+                    "originator": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                    "beneficiary": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv",
+                    "amount": 0.46602501,
+                    "network": "BTC",
+                    "timestamp": "2024-09-01T16:22:41-05:00",
+                    "extra_json": "eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ=="
+                  },
+                  "sent_at": "2024-09-01T16:22:41-05:00",
+                  "received_at": "2024-09-06T07:14:29-05:00",
+                  "timestamp": "2024-09-06T07:14:30-05:00",
+                  "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+                  "transfer_state": "STARTED",
+                  "secure_envelope": {
+                    "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+                    "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+                    "direction": "out",
+                    "remote": "api.alice.vaspbot.net",
+                    "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+                    "payload": "Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW",
+                    "encryption_key": "vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=",
+                    "encryption_algorithm": "AES256-GCM",
+                    "valid_hmac": true,
+                    "hmac": "HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=",
+                    "hmac_secret": "KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=",
+                    "hmac_algorithm": "HMAC-SHA256",
+                    "is_error": false,
+                    "timestamp": "2024-09-02T07:12:34-05:00",
+                    "sealed": true,
+                    "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+                    "transfer_state": "STARTED",
+                    "original": "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"
+                  }
+                }
               }
             }
           },
@@ -6477,7 +7158,223 @@
                 "schema": {
                   "$ref": "#/components/schemas/Envelope"
                 },
-                "example": {}
+                "example": {
+                  "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+                  "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+                  "direction": "in",
+                  "remote": "trisa.example.jp",
+                  "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+                  "is_error": false,
+                  "identity": {
+                    "originator": {
+                      "originatorPersons": [
+                        {
+                          "naturalPerson": {
+                            "name": {
+                              "nameIdentifier": [
+                                {
+                                  "primaryIdentifier": "Bond",
+                                  "secondaryIdentifier": "James",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ]
+                            },
+                            "geographicAddress": [
+                              {
+                                "addressType": "HOME",
+                                "streetName": "High Street",
+                                "buildingNumber": "7b",
+                                "townName": "London",
+                                "postCode": "SE1 2QH",
+                                "country": "GB"
+                              }
+                            ],
+                            "nationalIdentification": {
+                              "nationalIdentifierType": "DRLC",
+                              "nationalIdentifier": "BOND9211110JA9OB",
+                              "countryOfIssue": "GB"
+                            },
+                            "customerIdentification": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                            "dateAndPlaceOfBirth": {
+                              "dateOfBirth": "1920-11-11",
+                              "placeOfBirth": "Wattenscheid, Germany"
+                            },
+                            "countryOfResidence": "GB"
+                          }
+                        }
+                      ],
+                      "accountNumber": [
+                        "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
+                      ]
+                    },
+                    "beneficiary": {
+                      "beneficiaryPersons": [
+                        {
+                          "naturalPerson": {
+                            "name": {
+                              "nameIdentifier": [
+                                {
+                                  "primaryIdentifier": "Miura",
+                                  "secondaryIdentifier": "Kentaro",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ],
+                              "localNameIdentifier": [
+                                {
+                                  "primaryIdentifier": "三浦",
+                                  "secondaryIdentifier": "建太郎",
+                                  "nameIdentifierType": "LEGL"
+                                }
+                              ]
+                            },
+                            "geographicAddress": [
+                              {
+                                "addressType": "HOME",
+                                "streetName": "Shimohirakawa",
+                                "buildingNumber": "1536-2",
+                                "townName": "菊川市",
+                                "countrySubDivision": "静岡県",
+                                "postCode": "437-1514",
+                                "country": "JP"
+                              }
+                            ],
+                            "nationalIdentification": {
+                              "nationalIdentifierType": "SOCS",
+                              "nationalIdentifier": "0537-73-2271",
+                              "countryOfIssue": "JP"
+                            },
+                            "customerIdentification": "01J6QNPGSKN2HZGC2F33F3QQRF",
+                            "dateAndPlaceOfBirth": {
+                              "dateOfBirth": "1979-02-14",
+                              "placeOfBirth": "Tokyo, Japan"
+                            },
+                            "countryOfResidence": "JP"
+                          }
+                        }
+                      ],
+                      "accountNumber": [
+                        "mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw"
+                      ]
+                    },
+                    "originatingVASP": {
+                      "originatingVASP": {
+                        "legalPerson": {
+                          "name": {
+                            "nameIdentifier": [
+                              {
+                                "legalPersonName": "High Street Capital Management, LTD",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              },
+                              {
+                                "legalPersonName": "PubCoin",
+                                "legalPersonNameIdentifierType": "TRAD"
+                              }
+                            ]
+                          },
+                          "geographicAddress": [
+                            {
+                              "addressType": "BIZZ",
+                              "streetName": "Abbey St.",
+                              "buildingNumber": "51",
+                              "townName": "Nottingham",
+                              "postCode": "NG7 2NZ",
+                              "country": "GB"
+                            }
+                          ],
+                          "nationalIdentification": {
+                            "nationalIdentifier": "GKUH00AIM6DCRXGXVU75",
+                            "nationalIdentifierType": "LEIX"
+                          },
+                          "countryOfRegistration": "GB"
+                        }
+                      }
+                    },
+                    "beneficiaryVASP": {
+                      "beneficiaryVASP": {
+                        "legalPerson": {
+                          "name": {
+                            "nameIdentifier": [
+                              {
+                                "legalPersonName": "Nippon Crypto Exchange, KK",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ],
+                            "localNameIdentifier": [
+                              {
+                                "legalPersonName": "日本仮想通貨取引所株式会社",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ],
+                            "phoneticNameIdentifier": [
+                              {
+                                "legalPersonName": "Nihon kasō tsūka torihikisho kabushikigaisha",
+                                "legalPersonNameIdentifierType": "LEGL"
+                              }
+                            ]
+                          },
+                          "geographicAddress": [
+                            {
+                              "addressType": "BIZZ",
+                              "addressLine": [
+                                "滋賀県大津市水明１－３４－２",
+                                "520-0531"
+                              ],
+                              "country": "JP"
+                            },
+                            {
+                              "addressType": "BIZZ",
+                              "addressLine": [
+                                "1-34-2 SUIMEI OTSU SHI SHIGA KEN",
+                                "520-0531 JAPAN"
+                              ],
+                              "country": "JP"
+                            }
+                          ],
+                          "nationalIdentification": {
+                            "nationalIdentifier": "84-1234567",
+                            "nationalIdentifierType": "TXID",
+                            "registrationAuthority": "RA777777"
+                          },
+                          "countryOfRegistration": "JP"
+                        }
+                      }
+                    }
+                  },
+                  "transaction": {
+                    "txid": "44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf",
+                    "originator": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i",
+                    "beneficiary": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv",
+                    "amount": 0.46602501,
+                    "network": "BTC",
+                    "timestamp": "2024-09-01T16:22:41-05:00",
+                    "extra_json": "eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ=="
+                  },
+                  "sent_at": "2024-09-01T16:22:41-05:00",
+                  "received_at": "2024-09-06T07:14:29-05:00",
+                  "timestamp": "2024-09-06T07:14:30-05:00",
+                  "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+                  "transfer_state": "STARTED",
+                  "secure_envelope": {
+                    "id": "01J6S9G7GDGNKETY6YDJQC3Z47",
+                    "envelope_id": "cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe",
+                    "direction": "out",
+                    "remote": "api.alice.vaspbot.net",
+                    "reply_to": "01J6S9RJ2APF7C6M10C8NTYVGX",
+                    "payload": "Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW",
+                    "encryption_key": "vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=",
+                    "encryption_algorithm": "AES256-GCM",
+                    "valid_hmac": true,
+                    "hmac": "HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=",
+                    "hmac_secret": "KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=",
+                    "hmac_algorithm": "HMAC-SHA256",
+                    "is_error": false,
+                    "timestamp": "2024-09-02T07:12:34-05:00",
+                    "sealed": true,
+                    "public_key_signature": "SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs",
+                    "transfer_state": "STARTED",
+                    "original": "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"
+                  }
+                }
               }
             }
           },
