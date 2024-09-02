@@ -1011,6 +1011,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	}
 
 	// TODO: handle archive queries
+	code := http.StatusOK
 	if in.Decrypt {
 		envelopes := make([]*envelope.Envelope, 0, len(page.Envelopes))
 		for i, model := range page.Envelopes {
@@ -1020,6 +1021,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 				// If an envelope cannot be decrypted the error is logged but a null
 				// envelope is returned instead of not returning any data.
 				log.Debug().Err(err).Int("envelope", i).Msg("envelope decryption failure")
+				code = http.StatusPartialContent
 			}
 
 			envelopes = append(envelopes, env)
@@ -1038,7 +1040,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 		}
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(code, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "secure_envelope_list.html",
