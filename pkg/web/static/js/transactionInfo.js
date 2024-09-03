@@ -61,12 +61,12 @@ const rejectEP = `/v1/transactions/${transactionID}/reject`
 const transactionSendEP = `/v1/transactions/${transactionID}/send`
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Determine if the request repair checkbox is checked and add to the request parameters.
-  const isRetryChecked = document.getElementById('request_retry')
+  const isRetryChecked = document.getElementById('retry')
   if (e.detail.path === rejectEP && e.detail.verb === 'post') {
     const retryTransaction = isRetryChecked?.checked;
     e.detail.parameters = {
       ...e.detail.parameters,
-      request_retry: retryTransaction,
+      retry: retryTransaction,
     };
   };
 
