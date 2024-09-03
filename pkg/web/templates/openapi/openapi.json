@@ -5022,6 +5022,63 @@
             }
           ]
         }
+      },
+      "StatusReply": {
+        "title": "StatusReply",
+        "description": "A status response that describes the current state of the server.",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "The current health status of the server.",
+            "enum": [
+              "ok",
+              "not ready",
+              "unhealthy",
+              "maintenance"
+            ],
+            "example": "ok"
+          },
+          "version": {
+            "type": "string",
+            "format": "semver",
+            "description": "The current version of the Envoy node.",
+            "example": "1.0.0"
+          },
+          "uptime": {
+            "type": "string",
+            "description": "The amount of time that has passed since the server started.",
+            "example": "537h4m32.628679622s"
+          }
+        },
+        "example": {
+          "status": "ok",
+          "uptime": "537h4m32.628679622s",
+          "version": "1.0.0"
+        }
+      },
+      "TravelAddress": {
+        "title": "TravelAddress",
+        "description": "Used as a request and a response to the travel address utility.",
+        "type": "object",
+        "properties": {
+          "encoded": {
+            "type": "string",
+            "format": "TravelAddress",
+            "description": "A travel address encoded according to the OpenVASP spec.",
+            "example": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v"
+          },
+          "decoded": {
+            "type": "string",
+            "format": "url",
+            "description": "A decoded travel address; a url without the https scheme and the ?t=i query params",
+            "example": "beneficiary.com?t=i"
+          }
+        },
+        "example": {
+          "encoded": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v",
+          "decoded": "beneficiary.com?t=i"
+        }
       }
     },
     "securitySchemes": {
@@ -11875,6 +11932,238 @@
                 "example": {
                   "success": false,
                   "error": "api key not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "summary": "Status",
+        "description": "Status check endpoint that can be used as a heartbeat or debugging tool.",
+        "operationId": "status",
+        "tags": [
+          "Utilities"
+        ],
+        "responses": {
+          "200": {
+            "description": "Online Status Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReply"
+                },
+                "example": {
+                  "status": "ok",
+                  "uptime": "537h4m32.628679622s",
+                  "version": "1.0.0"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request (Should Never Occur)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "something weird happened"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReply"
+                },
+                "example": {
+                  "status": "maintenance",
+                  "uptime": "10m32.5622s",
+                  "version": "1.0.0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/utilities/travel-address/encode": {
+      "post": {
+        "summary": "Encode Travel Address",
+        "description": "Encode a url without the 'https://' scheme, ensuring the '?t=i' query parameter is attached to the end.",
+        "operationId": "encodeTravelAddress",
+        "tags": [
+          "Utilities"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The decoded travel address to encode.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TravelAddress"
+              },
+              "example": {
+                "decoded": "beneficiary.com?t=i"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Travel Address Encoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelAddress"
+                },
+                "example": {
+                  "encoded": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v",
+                  "decoded": "beneficiary.com?t=i"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Encode Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse travel address request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Encode Travel Address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Encode Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "1 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "decoded",
+                      "error": "missing decoded: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/utilities/travel-address/decode": {
+      "post": {
+        "summary": "Decode Travel Address",
+        "description": "Decode a travel address to reveal its contents.",
+        "operationId": "decodeTravelAddress",
+        "tags": [
+          "Utilities"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The encoded travel address to decode.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TravelAddress"
+              },
+              "example": {
+                "encoded": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Travel Address Decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelAddress"
+                },
+                "example": {
+                  "encoded": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v",
+                  "decoded": "beneficiary.com?t=i"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Decode Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse travel address request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Decode Travel Address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Decode Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "1 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "encoded",
+                      "error": "missing encoded: this field is required"
+                    }
+                  ]
                 }
               }
             }
