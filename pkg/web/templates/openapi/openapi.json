@@ -11029,7 +11029,7 @@
       },
       "put": {
         "summary": "Update User",
-        "description": "Update an user record with new information.",
+        "description": "Update a user record with new information.",
         "operationId": "updateUser",
         "tags": [
           "Users"
