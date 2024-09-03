@@ -93,9 +93,9 @@ type Envelope struct {
 }
 
 type Rejection struct {
-	Code         string `json:"code"`
-	Message      string `json:"message"`
-	RequestRetry bool   `json:"request_retry"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Retry   bool   `json:"retry"`
 }
 
 type Repair struct {
@@ -567,9 +567,9 @@ func NewRejection(env *models.SecureEnvelope) (out *Rejection, err error) {
 	}
 
 	out = &Rejection{
-		Code:         env.Envelope.Error.Code.String(),
-		Message:      env.Envelope.Error.Message,
-		RequestRetry: env.Envelope.Error.Retry,
+		Code:    env.Envelope.Error.Code.String(),
+		Message: env.Envelope.Error.Message,
+		Retry:   env.Envelope.Error.Retry,
 	}
 
 	return out, nil
@@ -597,7 +597,7 @@ func (r *Rejection) Proto() *trisa.Error {
 	return &trisa.Error{
 		Code:    trisa.Error_Code(trisa.Error_Code_value[r.Code]),
 		Message: r.Message,
-		Retry:   r.RequestRetry,
+		Retry:   r.Retry,
 	}
 }
 

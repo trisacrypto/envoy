@@ -98,7 +98,6 @@ type Client interface {
 type Reply struct {
 	Success     bool        `json:"success"`
 	Error       string      `json:"error,omitempty"`
-	Version     string      `json:"version,omitempty"`
 	ErrorDetail ErrorDetail `json:"errors,omitempty"`
 }
 

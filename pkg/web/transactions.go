@@ -94,7 +94,7 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -119,7 +119,7 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "transaction_create.html",
@@ -219,7 +219,7 @@ func (s *Server) UpdateTransaction(c *gin.Context) {
 	// Validate the transaction input
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -319,7 +319,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -421,7 +421,6 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, api.Error("could not return incoming response from counterparty"))
 		return
 	}
-
 	c.JSON(http.StatusOK, out)
 }
 
@@ -550,7 +549,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -678,7 +677,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -867,7 +866,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -1012,6 +1011,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	}
 
 	// TODO: handle archive queries
+	code := http.StatusOK
 	if in.Decrypt {
 		envelopes := make([]*envelope.Envelope, 0, len(page.Envelopes))
 		for i, model := range page.Envelopes {
@@ -1021,6 +1021,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 				// If an envelope cannot be decrypted the error is logged but a null
 				// envelope is returned instead of not returning any data.
 				log.Debug().Err(err).Int("envelope", i).Msg("envelope decryption failure")
+				code = http.StatusPartialContent
 			}
 
 			envelopes = append(envelopes, env)
@@ -1039,7 +1040,7 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 		}
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(code, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "secure_envelope_list.html",

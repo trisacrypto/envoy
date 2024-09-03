@@ -77,7 +77,7 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 	// Validate an API key to be created
 	// NOTE: this also validates the permissions using the permissions package in auth
 	if err = in.Validate(true); err != nil {
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -116,7 +116,7 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 	out.Secret = secret
 
 	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "apikey_create.html",
@@ -198,7 +198,7 @@ func (s *Server) UpdateAPIKey(c *gin.Context) {
 	// Validation in update mode (e.g. create=false)
 	if err = in.Validate(false); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 

@@ -24,7 +24,7 @@ func (s *Server) EncodeTravelAddress(c *gin.Context) {
 
 	if err = in.ValidateEncode(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -53,7 +53,7 @@ func (s *Server) DecodeTravelAddress(c *gin.Context) {
 
 	if err = in.ValidateDecode(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 

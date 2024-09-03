@@ -18,7 +18,6 @@ require (
 	github.com/rotationalio/confire v1.0.0
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
-	github.com/swaggest/swgui v1.8.1
 	github.com/trisacrypto/directory v1.8.0
 	github.com/trisacrypto/trisa v1.3.0
 	github.com/urfave/cli/v2 v2.27.2

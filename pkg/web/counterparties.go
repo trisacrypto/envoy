@@ -124,7 +124,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -153,7 +153,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "counterparty_create.html",
@@ -270,8 +270,9 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	}
 
 	// Validation
+	// TODO: can the user edit the peer source?
 	if in.Source != "" && in.Source != models.SourceUserEntry {
-		c.JSON(http.StatusForbidden, api.Error("this record cannot be edited"))
+		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
 		return
 	}
 
@@ -279,7 +280,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	in.Source = ""
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -289,6 +290,13 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	if counterparty, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Ensure the user is not trying to overwrite a directory entity
+	// TODO: can the user edit the peer source?
+	if counterparty.Source != in.Source {
+		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
 		return
 	}
 

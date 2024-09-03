@@ -82,7 +82,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	}
 
 	if err = in.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	// Ensure the created password is returned back to the user
 	out.Password = password
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "user_create.html",
@@ -237,7 +237,7 @@ func (s *Server) UpdateUser(c *gin.Context) {
 	// Validation
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -347,7 +347,7 @@ func (s *Server) ChangeUserPassword(c *gin.Context) {
 	// Validation
 	if err = in.Validate(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 

@@ -12,7 +12,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggest/swgui/v5cdn"
 )
 
 // Sets up the server's middleware and routes.
@@ -110,11 +109,7 @@ func (s *Server) setupRoutes() (err error) {
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	s.router.GET("/v1/docs/openapi.:ext", s.OpenAPI)
-	s.router.GET("/v1/docs", gin.WrapH(v5cdn.New(
-		"TRISA Node API Documentation",
-		"/v1/docs/openapi.json",
-		"/v1/docs",
-	)))
+	s.router.GET("/v1/docs", s.APIDocs)
 
 	// API Routes (Including Content Negotiated Partials)
 	v1 := s.router.Group("/v1")

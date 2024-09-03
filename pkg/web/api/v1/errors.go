@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/trisacrypto/envoy/pkg"
 )
 
 //===========================================================================
@@ -15,14 +13,15 @@ import (
 //===========================================================================
 
 var (
-	Unsuccessful = Reply{Success: false, Version: pkg.Version()}
-	NotFound     = Reply{Success: false, Error: "resource not found", Version: pkg.Version()}
-	NotAllowed   = Reply{Success: false, Error: "method not allowed", Version: pkg.Version()}
+	Unsuccessful = Reply{Success: false}
+	NotFound     = Reply{Success: false, Error: "resource not found"}
+	NotAllowed   = Reply{Success: false, Error: "method not allowed"}
 )
 
 var (
-	ErrInvalidTimestamp = errors.New("payload timestamp has invalid string format")
-	ErrInvalidRejection = errors.New("envelope does not contain a rejection/repair error")
+	ErrInvalidTimestamp     = errors.New("payload timestamp has invalid string format")
+	ErrInvalidRejection     = errors.New("envelope does not contain a rejection/repair error")
+	ErrParsingIVMS101Person = errors.New("unable to parse IVMS101 person record as json or protocol buffers")
 )
 
 // Construct a new response for an error or simply return unsuccessful.

@@ -74,7 +74,10 @@ func (s *Server) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate the account input
+	if err = in.Validate(true); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
 
 	// Convert the API account request into a database model
 	if account, err = in.Model(); err != nil {
@@ -100,7 +103,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "account_create.html",
@@ -220,7 +223,10 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate the account input
+	if err = in.Validate(false); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
 
 	// Convert the API account request into a database model
 	if account, err = in.Model(); err != nil {
@@ -366,7 +372,10 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate the input
+	if err = in.Validate(true); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
 
 	// Convert the request into a database model
 	if model, err = in.Model(nil); err != nil {
@@ -400,7 +409,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	}
 
 	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "crypto_address_create.html",
@@ -492,7 +501,10 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate the crypto address input
+	if err = in.Validate(false); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
 
 	// Convert the crypto address request into a database model
 	if model, err = in.Model(nil); err != nil {

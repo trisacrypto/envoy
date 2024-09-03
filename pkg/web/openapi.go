@@ -64,3 +64,7 @@ func (s *Server) OpenAPI(c *gin.Context) {
 		c.JSON(http.StatusNotFound, api.Error("no openapi resource with the specified extension exists"))
 	}
 }
+
+func (s *Server) APIDocs(c *gin.Context) {
+	c.HTML(http.StatusOK, "apidocs.html", gin.H{})
+}
