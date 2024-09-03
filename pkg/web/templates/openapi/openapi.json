@@ -59,7 +59,7 @@
       "description": "Envoy user access management and identity control for compliance auditing purposes."
     },
     {
-      "name": "API  Keys",
+      "name": "API Keys",
       "description": "Envoy API client access management and identity control for compliance auditing purposes."
     },
     {
@@ -4711,6 +4711,316 @@
         "example": {
           "password": "supersecretpassword",
           "send_email": false
+        }
+      },
+      "APIKey": {
+        "title": "APIKey",
+        "description": "API client access to the Envoy system for machine access to compliance or administrative tasks.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The unique identifier of the api key on your Envoy node. Either this ID or the client ID can be used for key identification.",
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          "description": {
+            "type": "string",
+            "description": "A human readable description of what the API keys are used for (for tracking and auditing purposes).",
+            "example": "Bob's Local Development Keys"
+          },
+          "client_id": {
+            "type": "string",
+            "description": "A random alphanumeric string that identifies the key during authentication.",
+            "example": "kbxiRmtYvLbkYKrlefJoSB"
+          },
+          "last_seen": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp that the API key was last authenticated to the node; null if it has never been used.",
+            "example": "2024-09-02T19:11:04-05:00"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "The permissions assigned to the API key",
+            "items": {
+              "type": "string",
+              "description": "a permission identifier in the form of 'resource:action'",
+              "example": "travelrule:manage"
+            },
+            "example": [
+              "users:view",
+              "apikeys:view",
+              "counterparties:manage",
+              "counterparties:view",
+              "accounts:manage",
+              "accounts:view",
+              "travelrule:manage",
+              "travelrule:view",
+              "config:view",
+              "pki:view"
+            ]
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the api key record was created.",
+            "example": "2024-08-28T10:14:43-05:00"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the api key record was last modified.",
+            "example": "2024-08-28T12:23:24-05:00"
+          }
+        },
+        "example": {
+          "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+          "description": "Bob's Local Development Keys",
+          "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+          "permissions": [
+            "users:view",
+            "apikeys:view",
+            "counterparties:manage",
+            "counterparties:view",
+            "accounts:manage",
+            "accounts:view",
+            "travelrule:manage",
+            "travelrule:view",
+            "config:view",
+            "pki:view"
+          ],
+          "last_seen": "2024-09-02T19:11:04-05:00",
+          "created": "2024-08-28T10:14:43-05:00",
+          "modified": "2024-08-28T12:23:24-05:00"
+        }
+      },
+      "APIKeyForm": {
+        "title": "APIKeyForm",
+        "description": "Defines the editable fields to create or update an api key record.",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Set the human readable description of what the API keys are used for (for tracking and auditing purposes).",
+            "example": "Bob's Local Development Keys"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Assign permissions to the API key (only available on create, not on update).",
+            "items": {
+              "type": "string",
+              "description": "an identifier in the form of 'resource:action' describing the permission.",
+              "example": "travelrule:manage"
+            },
+            "example": [
+              "users:view",
+              "apikeys:view",
+              "counterparties:manage",
+              "counterparties:view",
+              "accounts:manage",
+              "accounts:view",
+              "travelrule:manage",
+              "travelrule:view",
+              "config:view",
+              "pki:view"
+            ]
+          }
+        },
+        "example": {
+          "description": "Bob's Local Development Keys",
+          "permissions": [
+            "users:view",
+            "apikeys:view",
+            "counterparties:manage",
+            "counterparties:view",
+            "accounts:manage",
+            "accounts:view",
+            "travelrule:manage",
+            "travelrule:view",
+            "config:view",
+            "pki:view"
+          ]
+        }
+      },
+      "APIKeyCreated": {
+        "title": "APIKeyCreated",
+        "description": "After an API Key is created a secret is created for API client access and that secret is returned ass part of the payload. This is the only time the secret is shown to the user; if the secret is lost the API key must be revoked and re-created.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ulid",
+            "description": "The unique identifier of the api key that was just created.",
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          "description": {
+            "type": "string",
+            "description": "A human readable description of what the API keys are used for.",
+            "example": "Bob's Local Development Keys"
+          },
+          "client_id": {
+            "type": "string",
+            "description": "A random alphanumeric string that identifies the key during authentication; generated during create.",
+            "example": "kbxiRmtYvLbkYKrlefJoSB"
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "A random alphanumeric string that is used to authenticate the api keys; generated during create.",
+            "example": "R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "The permissions assigned to the API key by the request.",
+            "items": {
+              "type": "string",
+              "description": "a permission identifier",
+              "example": "travelrule:manage"
+            },
+            "example": [
+              "users:view",
+              "apikeys:view",
+              "counterparties:manage",
+              "counterparties:view",
+              "accounts:manage",
+              "accounts:view",
+              "travelrule:manage",
+              "travelrule:view",
+              "config:view",
+              "pki:view"
+            ]
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the api key record was created (now).",
+            "example": "2024-08-28T10:14:43-05:00"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the api key record was last modified (same as created).",
+            "example": "2024-08-28T12:23:24-05:00"
+          }
+        },
+        "example": {
+          "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+          "description": "Bob's Local Development Keys",
+          "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+          "client_secret": "R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng",
+          "permissions": [
+            "users:view",
+            "apikeys:view",
+            "counterparties:manage",
+            "counterparties:view",
+            "accounts:manage",
+            "accounts:view",
+            "travelrule:manage",
+            "travelrule:view",
+            "config:view",
+            "pki:view"
+          ],
+          "created": "2024-08-28T10:14:43-05:00",
+          "modified": "2024-08-28T10:14:43-05:00"
+        }
+      },
+      "APIKeyList": {
+        "title": "APIKeyList",
+        "description": "A list of API Key objects, returned in a paginated fashion.",
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageInfo"
+          },
+          "api_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APIKey"
+            },
+            "example": [
+              {
+                "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                "description": "Bob's Local Development Keys",
+                "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+                "permissions": [
+                  "users:view",
+                  "apikeys:view",
+                  "counterparties:manage",
+                  "counterparties:view",
+                  "accounts:manage",
+                  "accounts:view",
+                  "travelrule:manage",
+                  "travelrule:view",
+                  "config:view",
+                  "pki:view"
+                ],
+                "last_seen": "2024-09-02T19:11:04-05:00",
+                "created": "2024-08-28T10:14:43-05:00",
+                "modified": "2024-08-28T12:23:24-05:00"
+              },
+              {
+                "id": "01J6TM56VAFMZ6YCKXHTG5P407",
+                "description": "Read Only Keys",
+                "client_id": "fhXdLh5CmMh6ooqm1RP7AA",
+                "permissions": [
+                  "users:view",
+                  "apikeys:view",
+                  "counterparties:view",
+                  "accounts:view",
+                  "travelrule:view",
+                  "config:view",
+                  "pki:view"
+                ],
+                "last_seen": "2024-09-02T19:23:28-05:00",
+                "created": "2024-08-28T10:14:43-05:00",
+                "modified": "2024-08-28T12:23:24-05:00"
+              }
+            ]
+          }
+        },
+        "example": {
+          "page": {
+            "page_size": 50
+          },
+          "api_keys": [
+            {
+              "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+              "description": "Bob's Local Development Keys",
+              "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+              "permissions": [
+                "users:view",
+                "apikeys:view",
+                "counterparties:manage",
+                "counterparties:view",
+                "accounts:manage",
+                "accounts:view",
+                "travelrule:manage",
+                "travelrule:view",
+                "config:view",
+                "pki:view"
+              ],
+              "last_seen": "2024-09-02T19:11:04-05:00",
+              "created": "2024-08-28T10:14:43-05:00",
+              "modified": "2024-08-28T12:23:24-05:00"
+            },
+            {
+              "id": "01J6TM56VAFMZ6YCKXHTG5P407",
+              "description": "Read Only Keys",
+              "client_id": "fhXdLh5CmMh6ooqm1RP7AA",
+              "permissions": [
+                "users:view",
+                "apikeys:view",
+                "counterparties:view",
+                "accounts:view",
+                "travelrule:view",
+                "config:view",
+                "pki:view"
+              ],
+              "last_seen": "2024-09-02T19:23:28-05:00",
+              "created": "2024-08-28T10:14:43-05:00",
+              "modified": "2024-08-28T12:23:24-05:00"
+            }
+          ]
         }
       }
     },
@@ -11048,6 +11358,523 @@
                       "error": "missing password: this field is required"
                     }
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/apikeys": {
+      "get": {
+        "summary": "List API Keys",
+        "description": "Return a paginated list of api keys stored on the Envoy node.",
+        "operationId": "listAPIKeys",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page_size"
+          },
+          {
+            "$ref": "#/components/parameters/next_page_token"
+          },
+          {
+            "$ref": "#/components/parameters/prev_page_token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful API Key Page Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyList"
+                },
+                "example": {
+                  "page": {
+                    "page_size": 50
+                  },
+                  "api_keys": [
+                    {
+                      "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                      "description": "Bob's Local Development Keys",
+                      "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+                      "permissions": [
+                        "users:view",
+                        "apikeys:view",
+                        "counterparties:manage",
+                        "counterparties:view",
+                        "accounts:manage",
+                        "accounts:view",
+                        "travelrule:manage",
+                        "travelrule:view",
+                        "config:view",
+                        "pki:view"
+                      ],
+                      "last_seen": "2024-09-02T19:11:04-05:00",
+                      "created": "2024-08-28T10:14:43-05:00",
+                      "modified": "2024-08-28T12:23:24-05:00"
+                    },
+                    {
+                      "id": "01J6TM56VAFMZ6YCKXHTG5P407",
+                      "description": "Read Only Keys",
+                      "client_id": "fhXdLh5CmMh6ooqm1RP7AA",
+                      "permissions": [
+                        "users:view",
+                        "apikeys:view",
+                        "counterparties:view",
+                        "accounts:view",
+                        "travelrule:view",
+                        "config:view",
+                        "pki:view"
+                      ],
+                      "last_seen": "2024-09-02T19:23:28-05:00",
+                      "created": "2024-08-28T10:14:43-05:00",
+                      "modified": "2024-08-28T12:23:24-05:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad API Key Page Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse page query request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View API Keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create API Key",
+        "description": "Create a new envoy api key. When creating an API key a client ID and secret are generated and are returned in the response. This is the only time the secret is visable to the user; if the secret is lost the key must be revoked and regenerated.",
+        "operationId": "createAPIKey",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "API Key information that includes all required writeable fields.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyForm"
+              },
+              "example": {
+                "description": "Bob's Local Development Keys",
+                "permissions": [
+                  "users:view",
+                  "apikeys:view",
+                  "counterparties:manage",
+                  "counterparties:view",
+                  "accounts:manage",
+                  "accounts:view",
+                  "travelrule:manage",
+                  "travelrule:view",
+                  "config:view",
+                  "pki:view"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API Key Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyCreated"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "description": "Bob's Local Development Keys",
+                  "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+                  "client_secret": "R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng",
+                  "permissions": [
+                    "users:view",
+                    "apikeys:view",
+                    "counterparties:manage",
+                    "counterparties:view",
+                    "accounts:manage",
+                    "accounts:view",
+                    "travelrule:manage",
+                    "travelrule:view",
+                    "config:view",
+                    "pki:view"
+                  ],
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T10:14:43-05:00"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Create API Key Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse api key data"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Manage API Keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "API Key Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "2 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "last_login",
+                      "error": "field last_login is a read only field"
+                    },
+                    {
+                      "field": "description",
+                      "error": "missing description: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/apikeys/{keyID}": {
+      "get": {
+        "summary": "API Key Detail",
+        "description": "Return a detailed record of an api key object.",
+        "operationId": "apiKeyDetail",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyID",
+            "in": "path",
+            "description": "The ID of the api key to fetch a detailed record of.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "ULID",
+              "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API Key Retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "description": "Bob's Local Development Keys",
+                  "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+                  "permissions": [
+                    "users:view",
+                    "apikeys:view",
+                    "counterparties:manage",
+                    "counterparties:view",
+                    "accounts:manage",
+                    "accounts:view",
+                    "travelrule:manage",
+                    "travelrule:view",
+                    "config:view",
+                    "pki:view"
+                  ],
+                  "last_seen": "2024-09-02T19:11:04-05:00",
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T12:23:24-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View API Key Detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API Key Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "api key not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update API Key",
+        "description": "Update an api key record with new information.",
+        "operationId": "updateAPIKey",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyID",
+            "in": "path",
+            "description": "The ID of the api key to update.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "ULID",
+              "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "requestBody": {
+          "description": "The only field that can be edited on the API key is its description.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyForm"
+              },
+              "example": {
+                "description": "Production Cluster Keys"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API Key Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                },
+                "example": {
+                  "id": "01J6DJ9F691CF8E9H0V3ET0M0E",
+                  "description": "Production Cluster Keys",
+                  "client_id": "kbxiRmtYvLbkYKrlefJoSB",
+                  "permissions": [
+                    "users:view",
+                    "apikeys:view",
+                    "counterparties:manage",
+                    "counterparties:view",
+                    "accounts:manage",
+                    "accounts:view",
+                    "travelrule:manage",
+                    "travelrule:view",
+                    "config:view",
+                    "pki:view"
+                  ],
+                  "last_seen": "2024-09-02T19:11:04-05:00",
+                  "created": "2024-08-28T10:14:43-05:00",
+                  "modified": "2024-08-28T12:23:24-05:00"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Update API Key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API Key Not Found (Cannot Update)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "api key not found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "API Key Update Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "2 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "client_id",
+                      "error": "field client_id is a read only field"
+                    },
+                    {
+                      "field": "description",
+                      "error": "missing description: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete API Key",
+        "description": "Delete an api key with the specified ID.",
+        "operationId": "deleteAPIKey",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyID",
+            "in": "path",
+            "description": "The ID of the api key to delete.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "ULID",
+              "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API Key Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reply"
+                },
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Delete API Key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API Key Not Found (Cannot Delete)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "api key not found"
                 }
               }
             }
