@@ -2931,54 +2931,34 @@ components:
           $ref: "#/components/schemas/NaturalPerson"
         legalPerson:
           $ref: "#/components/schemas/LegalPerson"
-      examples:
-        - naturalPerson:
-            name:
-              nameIdentifier:
-                - primaryIdentifier: Miura
-                  secondaryIdentifier: Kentaro
-                  nameIdentifierType: LEGL
-              localNameIdentifier:
-                - primaryIdentifier: 三浦
-                  secondaryIdentifier: 建太郎
-                  nameIdentifierType: LEGL
-            geographicAddress:
-              - addressType: HOME
-                streetName: Shimohirakawa
-                buildingNumber: 1536-2
-                townName: 菊川市
-                countrySubDivision: 静岡県
-                postCode: 437-1514
-                country: JP
-            nationalIdentification:
-              nationalIdentifierType: SOCS
-              nationalIdentifier: 0537-73-2271
-              countryOfIssue: JP
-            customerIdentification: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-            dateAndPlaceOfBirth:
-              dateOfBirth: 1979-02-14
-              placeOfBirth: Tokyo, Japan
-            countryOfResidence: JP
-        - legalPerson:
-            name:
-              nameIdentifier:
-                - legalPersonName: Tabadul al'Bitakwin
-                  legalPersonNameIdentifierType: LEGL
-              localNameIdentifier:
-                - legalPersonName: تبادل البيتكوين
-                  legalPersonNameIdentifierType: LEGL
-            geographicAddress:
-              - addressType: GEOG
-                addressLine:
-                  - 4904 Mara Island
-                  - Abu Dhabi Emirate, Al Dhafrah Region
-                  - Western Mahadir
-                country: AE
-            customerNumber: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-            nationalIdentification:
-              nationalIdentifier: H7M600ZKXTMEJ8V2ZK52
-              nationalIdentifierType: LEIX
-            countryOfRegistration: AE
+      example:
+        naturalPerson:
+          name:
+            nameIdentifier:
+              - primaryIdentifier: Miura
+                secondaryIdentifier: Kentaro
+                nameIdentifierType: LEGL
+            localNameIdentifier:
+              - primaryIdentifier: 三浦
+                secondaryIdentifier: 建太郎
+                nameIdentifierType: LEGL
+          geographicAddress:
+            - addressType: HOME
+              streetName: Shimohirakawa
+              buildingNumber: 1536-2
+              townName: 菊川市
+              countrySubDivision: 静岡県
+              postCode: 437-1514
+              country: JP
+          nationalIdentification:
+            nationalIdentifierType: SOCS
+            nationalIdentifier: 0537-73-2271
+            countryOfIssue: JP
+          customerIdentification: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          dateAndPlaceOfBirth:
+            dateOfBirth: 1979-02-14
+            placeOfBirth: Tokyo, Japan
+          countryOfResidence: JP
     LegalPerson:
       title: LegalPerson
       description: An entity other than a natural person that can establish a permenant
@@ -3097,17 +3077,13 @@ components:
           type: string
           description: The name which the legal person is known using local characters or a
             phonetic representation.
-          examples:
-            - تبادل البيتكوين
-            - tbaːdl ʔlbjtkwjn
+          example: tbaːdl ʔlbjtkwjn
         legalPersonNameIdentifierType:
           $ref: "#/components/schemas/LegalPersonNameTypeCode"
       type: object
-      examples:
-        - legalPersonName: تبادل البيتكوين
-          legalPersonNameIdentifierType: LEGL
-        - legalPersonName: tbaːdl ʔlbjtkwjn
-          legalPersonNameIdentifierType: TRAD
+      example:
+        legalPersonName: تبادل البيتكوين
+        legalPersonNameIdentifierType: LEGL
     LegalPersonNameTypeCode:
       title: LegalPersonNameTypeCode
       description: A single value corresponding to the nature of name being specified for
@@ -3288,9 +3264,7 @@ components:
             the sender is unable to divide the natural person's name into two
             parts. This name should be represented in local characters or as a
             phonetic pronounciation.
-          examples:
-            - 三浦
-            - mɪjʉ́ːrə
+          example: mɪjʉ́ːrə
         secondaryIdentifier:
           type: string
           description: These may be the forenames, familiar names, given names, initials,
@@ -3298,24 +3272,16 @@ components:
             legally part of the name) or any oither secondary names. This name
             should be represented in local characters or as a phonetic
             pronounciation.
-          examples:
-            - 建太郎
-            - KehNTaa-ROW
+          example: KehNTaa-ROW
         nameIdentifierType:
           $ref: "#/components/schemas/NaturalPersonNameTypeCode"
       required:
         - primaryIdentifier
         - nameIdentifierType
-      examples:
-        - primaryIdentifier: 三浦
-          secondaryIdentifier: 建太郎
-          nameIdentifierType: LEGL
-        - primaryIdentifier: mɪjʉ́ːrə
-          secondaryIdentifier: kɛntˈɑː͡ɹɹo͡ʊ
-          nameIdentifierType: BIRT
-        - primaryIdentifier: Mee-Rhaa
-          secondaryIdentifier: KehNTaa-ROW
-          nameIdentifierType: LEGL
+      example:
+        primaryIdentifier: 三浦
+        secondaryIdentifier: 建太郎
+        nameIdentifierType: LEGL
     NaturalPersonNameTypeCode:
       title: NaturalPersonNameTypeCode
       description: A single value corresponding to the nature of name being adopted for
@@ -3419,21 +3385,15 @@ components:
       required:
         - addressType
         - country
-      examples:
-        - addressType: HOME
-          addressLine:
-            - 123 Main Street
-            - Suite 200
-            - Charleston, KY 52212
-          country: US
-        - addressType: BIZZ
-          streetName: High Street
-          buildingNumber: "143"
-          department: Suite 41
-          floor: "23"
-          townName: London
-          postCode: SX1 3H2
-          country: GB
+      example:
+        addressType: BIZZ
+        streetName: High Street
+        buildingNumber: "143"
+        department: Suite 41
+        floor: "23"
+        townName: London
+        postCode: SX1 3H2
+        country: GB
     AddressTypeCode:
       title: AddressTypeCode
       description: Identifies the nature of the address. HOME implies a residential home
@@ -3490,15 +3450,9 @@ components:
           description: A code specifying the registration authority from the GLEIF
             Registration Authorities List.
           example: RA777777
-      examples:
-        - nationalIdentifier: BOND9211110JA9OB
-          nationalIdentifierType: DRLC
-          countryOfIssue: GB
-        - nationalIdentifier: H7M600ZKXTMEJ8V2ZK52
-          nationalIdentifierType: LEIX
-        - nationalIdentifier: 84-1234567
-          nationalIdentifierType: TXID
-          registrationAuthority: RA777777
+      example:
+        nationalIdentifier: H7M600ZKXTMEJ8V2ZK52
+        nationalIdentifierType: LEIX
     NationalIdentifierTypeCode:
       title: NationalIdentifierTypeCode
       description: Identifies the national identification type. Natural persons can use the
@@ -3980,7 +3934,7 @@ components:
             - config:view
             - pki:view
       example:
-        description: Bob's Local Development Keys
+        description: Katies's Local Development Keys
         permissions:
           - users:view
           - apikeys:view
@@ -4079,7 +4033,7 @@ components:
             $ref: "#/components/schemas/APIKey"
           example:
             - id: 01J6DJ9F691CF8E9H0V3ET0M0E
-              description: Bob's Local Development Keys
+              description: Chuck's Local Development Keys
               client_id: kbxiRmtYvLbkYKrlefJoSB
               permissions:
                 - users:view
@@ -4114,7 +4068,7 @@ components:
           page_size: 50
         api_keys:
           - id: 01J6DJ9F691CF8E9H0V3ET0M0E
-            description: Bob's Local Development Keys
+            description: Sarah's Local Development Keys
             client_id: kbxiRmtYvLbkYKrlefJoSB
             permissions:
               - users:view
@@ -4131,7 +4085,7 @@ components:
             created: 2024-08-28T10:14:43-05:00
             modified: 2024-08-28T12:23:24-05:00
           - id: 01J6TM56VAFMZ6YCKXHTG5P407
-            description: Read Only Keys
+            description: Observer Keys
             client_id: fhXdLh5CmMh6ooqm1RP7AA
             permissions:
               - users:view
@@ -5933,7 +5887,7 @@ paths:
                           geographicAddress:
                             - addressType: HOME
                               streetName: High Street
-                              buildingNumber: 1
+                              buildingNumber: "1"
                               townName: London
                               postCode: SE1 2QH
                               country: GB
@@ -5962,7 +5916,7 @@ paths:
                               buildingNumber: "123"
                               townName: Casper
                               countrySubDivision: WY
-                              postCode: 82604
+                              postCode: "82604"
                               country: US
                           nationalIdentification:
                             nationalIdentifierType: SOCS
@@ -8485,7 +8439,7 @@ paths:
                   page_size: 50
                 api_keys:
                   - id: 01J6DJ9F691CF8E9H0V3ET0M0E
-                    description: Bob's Local Development Keys
+                    description: Angela's Local Development Keys
                     client_id: kbxiRmtYvLbkYKrlefJoSB
                     permissions:
                       - users:view
@@ -8502,7 +8456,7 @@ paths:
                     created: 2024-08-28T10:14:43-05:00
                     modified: 2024-08-28T12:23:24-05:00
                   - id: 01J6TM56VAFMZ6YCKXHTG5P407
-                    description: Read Only Keys
+                    description: Cluster Read Keys
                     client_id: fhXdLh5CmMh6ooqm1RP7AA
                     permissions:
                       - users:view
@@ -8552,7 +8506,7 @@ paths:
             schema:
               $ref: "#/components/schemas/APIKeyForm"
             example:
-              description: Bob's Local Development Keys
+              description: Taylor's Local Development Keys
               permissions:
                 - users:view
                 - apikeys:view
@@ -8573,7 +8527,7 @@ paths:
                 $ref: "#/components/schemas/APIKeyCreated"
               example:
                 id: 01J6DJ9F691CF8E9H0V3ET0M0E
-                description: Bob's Local Development Keys
+                description: Automated Reporting
                 client_id: kbxiRmtYvLbkYKrlefJoSB
                 client_secret: R4OTqjvlGj02x4PvoPe6bxTopFjQ15QrISG8X3HqD5isWIng
                 permissions:
@@ -8649,7 +8603,7 @@ paths:
                 $ref: "#/components/schemas/APIKey"
               example:
                 id: 01J6DJ9F691CF8E9H0V3ET0M0E
-                description: Bob's Local Development Keys
+                description: Overnight Compliance Checks
                 client_id: kbxiRmtYvLbkYKrlefJoSB
                 permissions:
                   - users:view
@@ -8974,6 +8928,7 @@ webhooks:
       tags:
         - Webhooks
       requestBody:
+        required: true
         description: Callback request contains decrypted secure envelope data and other
           metadata related to the transfer.
         content:
@@ -8984,12 +8939,160 @@ webhooks:
                 transaction_id:
                   type: string
                   format: uuid
-                  description: The related transaction ID, also the TRISA envelope ID
+                  description: The related transaction ID, also the TRISA envelope ID.
                   example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
-              example:
-                transaction_id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: The timestamp that the envelope was sent.
+                  example: 2024-09-02T20:48:57-05:00
+                counterparty:
+                  $ref: "#/components/schemas/Counterparty"
+                hmac_signature:
+                  type: string
+                  format: base64
+                  description: The base64 encoded HMAC signature of the secure envelope (if
+                    encrypted).
+                  example: HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=
+                public_key_signature:
+                  type: string
+                  description: The public key signature of the keys used to encrypt the
+                    payload (if encrypted).
+                  example: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
+                transfer_state:
+                  $ref: "#/components/schemas/TransferState"
+                error:
+                  $ref: "#/components/schemas/TRISAError"
+                payload:
+                  type: object
+                  description: The decrypted payload of the secure envelope.
+                  properties:
+                    identity:
+                      $ref: "#/components/schemas/IdentityPayload"
+                    pending:
+                      $ref: "#/components/schemas/PendingPayload"
+                    transaction:
+                      $ref: "#/components/schemas/TransactionPayload"
+                    sent_at:
+                      type: string
+                      format: date-time
+                      description: The time that the compliance payload was created for
+                        non-repudiation purposes.
+                      example: 2024-09-02T20:55:37-05:00
+                    received_at:
+                      type: string
+                      format: date-time
+                      description: The time that the compliance payload was accepted for
+                        non-repudiation purposes.
+                      example: 2024-09-02T20:55:37-05:00
+                  example: {}
             example:
               transaction_id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+              timestamp: 2024-09-02T20:48:57-05:00
+              counterparty:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                source: gds
+                directory_id: 5154a0aa-502c-4179-a6f2-8b143d59edce
+                registered_directory: trisatest.net
+                protocol: trisa
+                common_name: api.alice.vaspbot.net
+                endpoint: api.alice.vaspbot.net:443
+                travel_address: taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz
+                name: AliceCoin
+                website: https://alice.vaspbot.net
+                country: GB
+                business_category: NON_VASP_ENTITY
+                vasp_categories:
+                  - Other
+                ivms101: EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF
+                verified_on: 2024-08-28T10:14:43-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+              hmac_signature: HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=
+              public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
+              transfer_state: REVIEW
+              payload:
+                identity:
+                  originator:
+                    originatorPersons:
+                      - naturalPerson:
+                          name:
+                            nameIdentifier:
+                              - primaryIdentifier: Bond
+                                secondaryIdentifier: James
+                                nameIdentifierType: LEGL
+                          nationalIdentification:
+                            nationalIdentifierType: DRLC
+                            nationalIdentifier: BOND9211110JA9OB
+                            countryOfIssue: GB
+                          customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                          dateAndPlaceOfBirth:
+                            dateOfBirth: 1920-11-11
+                            placeOfBirth: Wattenscheid, Germany
+                          countryOfResidence: GB
+                    accountNumber:
+                      - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                  beneficiary:
+                    beneficiaryPersons:
+                      - naturalPerson:
+                          name:
+                            nameIdentifier:
+                              - primaryIdentifier: Miura
+                                secondaryIdentifier: Kentaro
+                                nameIdentifierType: LEGL
+                            localNameIdentifier:
+                              - primaryIdentifier: 三浦
+                                secondaryIdentifier: 建太郎
+                                nameIdentifierType: LEGL
+                          nationalIdentification:
+                            nationalIdentifierType: SOCS
+                            nationalIdentifier: 0537-73-2271
+                            countryOfIssue: JP
+                          customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                          dateAndPlaceOfBirth:
+                            dateOfBirth: 1979-02-14
+                            placeOfBirth: Tokyo, Japan
+                          countryOfResidence: JP
+                    accountNumber:
+                      - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                  originatingVASP:
+                    originatingVASP:
+                      legalPerson:
+                        name:
+                          nameIdentifier:
+                            - legalPersonName: High Street Capital Management, LTD
+                              legalPersonNameIdentifierType: LEGL
+                            - legalPersonName: PubCoin
+                              legalPersonNameIdentifierType: TRAD
+                        nationalIdentification:
+                          nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                          nationalIdentifierType: LEIX
+                        countryOfRegistration: GB
+                  beneficiaryVASP:
+                    beneficiaryVASP:
+                      legalPerson:
+                        name:
+                          nameIdentifier:
+                            - legalPersonName: Nippon Crypto Exchange, KK
+                              legalPersonNameIdentifierType: LEGL
+                          localNameIdentifier:
+                            - legalPersonName: 日本仮想通貨取引所株式会社
+                              legalPersonNameIdentifierType: LEGL
+                          phoneticNameIdentifier:
+                            - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                              legalPersonNameIdentifierType: LEGL
+                        geographicAddress: []
+                        nationalIdentification:
+                          nationalIdentifier: 84-1234567
+                          nationalIdentifierType: TXID
+                          registrationAuthority: RA777777
+                        countryOfRegistration: JP
+                transaction:
+                  originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                  beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+                  amount: 0.46602501
+                  network: BTC
+                sent_at: 2024-09-02T20:55:37-05:00
       responses:
         "200":
           description: Successfully Handled Incoming Callback
@@ -8998,14 +9101,131 @@ webhooks:
               schema:
                 type: object
                 properties:
-                  transaction_id: null
-                  type: string
-                  format: uuid
-                  description: Must return the same transaction ID to the server.
-                  example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                  transaction_id:
+                    type: string
+                    format: uuid
+                    description: Must return the same transaction ID to the server.
+                    example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                  error:
+                    $ref: "#/components/schemas/TRISAError"
+                  payload:
+                    type: object
+                    description: The payload of the secure envelope to send back to the
+                      counterparty.
+                    properties:
+                      identity:
+                        $ref: "#/components/schemas/IdentityPayload"
+                      pending:
+                        $ref: "#/components/schemas/PendingPayload"
+                      transaction:
+                        $ref: "#/components/schemas/TransactionPayload"
+                      sent_at:
+                        type: string
+                        format: date-time
+                        description: Echo the sent_at time from the previous envelope..
+                        example: 2024-09-02T20:55:37-05:00
+                      received_at:
+                        type: string
+                        format: date-time
+                        description: If accepted ensure this field is set to the current
+                          timestamp.
+                        example: 2024-09-02T20:55:37-05:00
+                    example: {}
+                  transfer_action:
+                    $ref: "#/components/schemas/TransferState"
               example:
                 transaction_id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
-            example:
-              transaction_id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
-          example:
-            transaction_id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                payload:
+                  identity:
+                    originator:
+                      originatorPersons:
+                        - naturalPerson:
+                            name:
+                              nameIdentifier:
+                                - primaryIdentifier: Bond
+                                  secondaryIdentifier: James
+                                  nameIdentifierType: LEGL
+                            nationalIdentification:
+                              nationalIdentifierType: DRLC
+                              nationalIdentifier: BOND9211110JA9OB
+                              countryOfIssue: GB
+                            customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
+                            dateAndPlaceOfBirth:
+                              dateOfBirth: 1920-11-11
+                              placeOfBirth: Wattenscheid, Germany
+                            countryOfResidence: GB
+                      accountNumber:
+                        - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    beneficiary:
+                      beneficiaryPersons:
+                        - naturalPerson:
+                            name:
+                              nameIdentifier:
+                                - primaryIdentifier: Miura
+                                  secondaryIdentifier: Kentaro
+                                  nameIdentifierType: LEGL
+                              localNameIdentifier:
+                                - primaryIdentifier: 三浦
+                                  secondaryIdentifier: 建太郎
+                                  nameIdentifierType: LEGL
+                            nationalIdentification:
+                              nationalIdentifierType: SOCS
+                              nationalIdentifier: 0537-73-2271
+                              countryOfIssue: JP
+                            customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
+                            dateAndPlaceOfBirth:
+                              dateOfBirth: 1979-02-14
+                              placeOfBirth: Tokyo, Japan
+                            countryOfResidence: JP
+                      accountNumber:
+                        - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                    originatingVASP:
+                      originatingVASP:
+                        legalPerson:
+                          name:
+                            nameIdentifier:
+                              - legalPersonName: High Street Capital Management, LTD
+                                legalPersonNameIdentifierType: LEGL
+                              - legalPersonName: PubCoin
+                                legalPersonNameIdentifierType: TRAD
+                          nationalIdentification:
+                            nationalIdentifier: GKUH00AIM6DCRXGXVU75
+                            nationalIdentifierType: LEIX
+                          countryOfRegistration: GB
+                    beneficiaryVASP:
+                      beneficiaryVASP:
+                        legalPerson:
+                          name:
+                            nameIdentifier:
+                              - legalPersonName: Nippon Crypto Exchange, KK
+                                legalPersonNameIdentifierType: LEGL
+                            localNameIdentifier:
+                              - legalPersonName: 日本仮想通貨取引所株式会社
+                                legalPersonNameIdentifierType: LEGL
+                            phoneticNameIdentifier:
+                              - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
+                                legalPersonNameIdentifierType: LEGL
+                          geographicAddress: []
+                          nationalIdentification:
+                            nationalIdentifier: 84-1234567
+                            nationalIdentifierType: TXID
+                            registrationAuthority: RA777777
+                          countryOfRegistration: JP
+                  transaction:
+                    originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+                    amount: 0.46602501
+                    network: BTC
+                  sent_at: 2024-09-02T20:55:37-05:00
+                  received_at: 2024-09-02T20:58:02-05:00
+                transfer_action: ACCEPTED
+        "400":
+          description: Any Non-200 Will Return a 503 (Unavailable) Error to the Counterparty
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this error may be logged but will not influence the response
+                  to the user.
