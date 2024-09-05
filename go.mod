@@ -19,7 +19,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/trisacrypto/directory v1.8.0
-	github.com/trisacrypto/trisa v1.3.0
+	github.com/trisacrypto/trisa v1.4.0
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/crypto v0.25.0
 	golang.org/x/text v0.16.0
@@ -95,6 +95,7 @@ require (
 	github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	github.com/trisacrypto/lei v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect

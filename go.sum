@@ -187,8 +187,6 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1 h1:dOYG7LS/WK00RWZc8XGgcUTlTxpp3mKhdR2Q9z9HbXM=
-github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
 github.com/nxadm/tail v1.4.11 h1:8feyoE3OzPrcshW5/MJ4sGESc5cqmGkGCWlco4l0bqY=
 github.com/nxadm/tail v1.4.11/go.mod h1:OTaG3NK980DZzxbRq6lEuzgU+mug70nY11sMd4JXXHc=
 github.com/oklog/ulid/v2 v2.1.0 h1:+9lhoxAP56we25tyYETBBY1YLA2SaoLvUFgrP2miPJU=
@@ -253,8 +251,10 @@ github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFd
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/trisacrypto/directory v1.8.0 h1:CLFfUtKvU8AIY9ENuV1/u2ihmmLIFMG1yRXUovwnF6g=
 github.com/trisacrypto/directory v1.8.0/go.mod h1:9CHH3TPmYorARczqv4Nj4EFtElpirDMMNCngRi+Tzmo=
-github.com/trisacrypto/trisa v1.3.0 h1:/qDF8auTvuJczE+zsC+GWUZGQXbbk4D7sjcjr0n2tLA=
-github.com/trisacrypto/trisa v1.3.0/go.mod h1:Mo/uCxu5iKrQXwkkQhvtGbkMBbWC80MxnqMWRZjy6Ws=
+github.com/trisacrypto/lei v1.0.0 h1:LKrwOgYjW+ljzBmN6hGgBbGFAktoRmovyY7ZYZB5/uI=
+github.com/trisacrypto/lei v1.0.0/go.mod h1:OsJZIYPShoSETOphRXAIlHwwesIsvo5PPpEemp/wGZI=
+github.com/trisacrypto/trisa v1.4.0 h1:TDfWdn6tcnXdq9ZqrTy9Lcm57dJifG/pW1bWItNGiJ0=
+github.com/trisacrypto/trisa v1.4.0/go.mod h1:zZCYwaoipb7nvSbKiJDjDf9gPNJKYWMk1WoPXcVkERY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
