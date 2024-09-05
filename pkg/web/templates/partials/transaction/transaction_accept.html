@@ -527,16 +527,16 @@
           {{ $originatingVasp := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson }}
           {{ $originatingLegalPerson := $originatingVasp.Name }}
 
-        {{ range $index, $originatingLegalPerson.NameIdentifiers }}
+        {{ range $originatingLegalPerson.NameIdentifiers }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
-            <label for="orig_vasp_legal_person_name_{{ $index }}" class="label-style">Legal Person Name</label>
-            <input type="text" id="orig_vasp_legal_person_name_{{ $index }}" name="id_orig_legalPersonName_{{ $index }}"
+            <label for="orig_vasp_legal_person_name" class="label-style">Legal Person Name</label>
+            <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legalPersonName"
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
-            <label for="orig_vasp_legal_person_name_identifier_type_{{ $index }}" class="label-style">Legal Person Name Identifier Type</label>
-            <select id="orig_vasp_legal_person_name_identifier_type_{{ $index }}" name="id_orig_legalPersonNameIdentifierType_{{ $index }}"
+            <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
+            <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legalPersonNameIdentifierType"
               class="identifier-types"></select>
             <input type="hidden" class="orig_vasp_legal_person_name_identifier_type"
               value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
@@ -691,7 +691,6 @@
           {{ $beneficiaryVasp := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson }}
 
         {{ range $beneficiaryVasp.Name.NameIdentifiers }}
-      
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
             <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
