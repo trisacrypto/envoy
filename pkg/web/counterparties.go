@@ -163,6 +163,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 func (s *Server) CounterpartyDetail(c *gin.Context) {
 	var (
 		err            error
+		query          *api.EncodingQuery
 		counterpartyID ulid.ULID
 		counterparty   *models.Counterparty
 		out            *api.Counterparty
@@ -171,6 +172,19 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	// Parse the counterpartyID passed in from the URL
 	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
 
@@ -186,6 +200,8 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 		return
 	}
 
+	// Convert the model into an API response
+	// TODO: pass in query for rendering
 	if out, err = api.NewCounterparty(counterparty); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))

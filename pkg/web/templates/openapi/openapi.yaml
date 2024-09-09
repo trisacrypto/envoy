@@ -369,7 +369,7 @@ components:
           example: James
         last_name:
           type: string
-          description: The last or "primary" name of the natural person associated
+          description: The last or "primary" name of the natural person assoociated
             customer account. This name is used to sort accounts.
           example: Bond
         travel_address:
@@ -750,7 +750,7 @@ components:
         name:
           type: string
           description: The name of the counterparty, usually the counterparty's legal or
-            trading name -- for identifying counterparty VASPs with search.
+            trading name -- for identying counterparty VASPs with search.
           example: AliceCoin
         website:
           type: string
@@ -2018,7 +2018,7 @@ components:
         travel_address:
           type: string
           format: TravelAddress
-          description: The travel address of the recipient or counterparty VASP -- used to
+          description: The travel address of the receipient or counterparty VASP -- used to
             identify the counterparty to add their IVMS101 legal person
             information.
           example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
@@ -2120,7 +2120,7 @@ components:
             crypto_address:
               type: string
               description: The crypto wallet address of the originator person where the
-                virtual assets will be transferred from.
+                virtual assets will be transfered from.
               example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
           required:
             - last_name
@@ -2240,7 +2240,7 @@ components:
             crypto_address:
               type: string
               description: The crypto wallet address of the beneficiary person where the
-                virtual assets will be transferred from.
+                virtual assets will be transfered from.
               example: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
           required:
             - last_name
@@ -2269,7 +2269,7 @@ components:
             amount:
               type: number
               description: The amount of the smallest denomination of the virtual asset
-                that is being transferred from the originator to the beneficiary.
+                that is being transfered from the originator to the beneficiary.
               example: 0.0007
             network:
               type: string
@@ -2352,7 +2352,7 @@ components:
         travel_address:
           type: string
           format: TravelAddress
-          description: The travel address of the recipient or counterparty VASP -- used to
+          description: The travel address of the receipient or counterparty VASP -- used to
             identify the counterparty and route the travel rule
             transfer/inquiry.
           example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
@@ -2924,7 +2924,7 @@ components:
       type: object
       description: A Person is either a Natural Person (a uniquely distinguishable
         individual) or a Legal Person (any other entity besides a natural person
-        that can establish a permanent customer relationship with an affected
+        that can establish a permenant customer relationship with an affected
         entity or otherwise own property).
       properties:
         naturalPerson:
@@ -2961,8 +2961,8 @@ components:
           countryOfResidence: JP
     LegalPerson:
       title: LegalPerson
-      description: An entity other than a natural person that can establish a permanent
-        customer relationship with an affected entity or otherwise own
+      description: An entity other than a natural person that can establish a permenant
+        customer releationship with an affected entityh or otherwise own
         property. This can include companies, bodies corporate, foundations,
         anstalt, partnerships, or associations and other relevantly similar
         entities.
@@ -3015,7 +3015,7 @@ components:
         countryOfRegistration: AE
     LegalPersonName:
       title: LegalPersonName
-      description: The name of the legal person; at least one occurrence of the legal person
+      description: The name of the legal person; at least one occurence of the legal person
         name identifier type must have the value LEGL specified.
       type: object
       properties:
@@ -3070,7 +3070,7 @@ components:
     LocalLegalPersonNameID:
       title: LocalLegalPersonNameID
       description: The name and type of name by which the legal person is known using local
-        characters or an alternate representation of a name that corresponds
+        characters or an alternate represesentation of a name that corresponds
         to the manner in which the name is pronounced.
       properties:
         legalPersonName:
@@ -3091,7 +3091,7 @@ components:
         organization is registered. SHRT specifies a short name of the
         organization. TRAD is a name used by a business for commercial purposes,
         although its registered legal name, used for contracts and other formal
-        situations, may be another.
+        sitautions, may be another.
       type: string
       enum:
         - MISC
@@ -3124,7 +3124,7 @@ components:
           $ref: "#/components/schemas/NationalIdentification"
         customerIdentification:
           type: string
-          description: A distinct identifier that uniquely identifies the person to the
+          description: A distinct identifier that uniquely identifes the person to the
             institution in context; often a crypto wallet address or customer
             account number.
           example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
@@ -3238,7 +3238,7 @@ components:
           type: string
           description: These may be the forenames, familiar names, given names, initials,
             prefixes, suffixes, or Roman numerals (where considered to be
-            legally part of the name) or any other secondary names.
+            legally part of the name) or any oither secondary names.
           example: Kentaro
         nameIdentifierType:
           $ref: "#/components/schemas/NaturalPersonNameTypeCode"
@@ -3263,15 +3263,15 @@ components:
             the natural person's name cannot be divided into two parts, or where
             the sender is unable to divide the natural person's name into two
             parts. This name should be represented in local characters or as a
-            phonetic pronunciation.
+            phonetic pronounciation.
           example: mɪjʉ́ːrə
         secondaryIdentifier:
           type: string
           description: These may be the forenames, familiar names, given names, initials,
             prefixes, suffixes, or Roman numerals (where considered to be
-            legally part of the name) or any other secondary names. This name
+            legally part of the name) or any oither secondary names. This name
             should be represented in local characters or as a phonetic
-            pronunciation.
+            pronounciation.
           example: KehNTaa-ROW
         nameIdentifierType:
           $ref: "#/components/schemas/NaturalPersonNameTypeCode"
@@ -3286,9 +3286,9 @@ components:
       title: NaturalPersonNameTypeCode
       description: A single value corresponding to the nature of name being adopted for
         identification. ALIA refers to an alias name other than the legal name
-        by which a natural person is also known. BIRT is a name assigned a
+        by which a natural person is also known. BIRT is a name aassigned a
         natural person at birth. MAID is the original maiden name of the natural
-        person who has changed their name after marriage. LEGL is a legal name
+        person who has changed their name after marraige. LEGL is a legal name
         that identifies a natural person for legal, official, or administrative
         purposes.
       type: string
@@ -3310,11 +3310,11 @@ components:
           $ref: "#/components/schemas/AddressTypeCode"
         department:
           type: string
-          description: Identification of a division of a large organization or building.
+          description: Identification of a division of a large oraganization or building.
           example: College of Natural Sciences
         subDepartment:
           type: string
-          description: Identification of a sub-division of a large organization or
+          description: Indentification of a sub-division of a large organization or
             building.
           example: History Department
         streetName:
@@ -3344,7 +3344,7 @@ components:
           example: AVW 3224
         postCode:
           type: string
-          description: Identifier consisting of a group of letters and/or numbers that is
+          description: Identifier consisting of a grup of letters and/or numbers that is
             added to a postal address to assist in sorting of mail.
           example: OX2 6HY
         townName:
@@ -3398,7 +3398,7 @@ components:
       title: AddressTypeCode
       description: Identifies the nature of the address. HOME implies a residential home
         address; BIZZ a business address; and GEOG is an unspecified physical
-        address suitable for identification of a natural or legal person.
+        address sutable for identification of a natural or legal person.
       type: string
       enum:
         - MISC
@@ -3643,7 +3643,7 @@ components:
           type: boolean
           description: If the message that caused the error should be retried with a fix
             (repair) then set to true. Otherwise set to false if the rejection
-            is permanent and the request should not be retried nor should the
+            is permenant and the request should not be retried nor should the
             on-chain transaction take place.
           example: true
       required:
@@ -3708,7 +3708,7 @@ components:
         role:
           type: string
           description: The name of the role assigned to the user. Admin users have full
-            access and all permissions. Compliance users can manage transactions,
+            access and all permisions. Compliance users can manage transactions,
             counterparties, and customer accounts but not node settings.
             Observers have read only access.
           enum:
@@ -3757,7 +3757,7 @@ components:
         role:
           type: string
           description: The name of the role to assign to the user. Admin users have full
-            access and all permissions. Compliance users can manage transactions,
+            access and all permisions. Compliance users can manage transactions,
             counterparties, and customer accounts but not node settings.
             Observers have read only access.
           enum:
@@ -3949,7 +3949,7 @@ components:
     APIKeyCreated:
       title: APIKeyCreated
       description: After an API Key is created a secret is created for API client access
-        and that secret is returned as part of the payload. This is the only
+        and that secret is returned ass part of the payload. This is the only
         time the secret is shown to the user; if the secret is lost the API key
         must be revoked and re-created.
       type: object
@@ -4225,6 +4225,35 @@ components:
         type: boolean
         example: true
       example: true
+    encoding:
+      name: encoding
+      in: query
+      description: "Specify the encoding of the IVMS101 payload in the response (default:
+        base64), specifying 'none' encoding will cause the JSON payload to be
+        rendered inline with the payload so that you can parse it directly. Note
+        that base64 encoding is urlsafe with padding."
+      required: false
+      schema:
+        type: string
+        enum:
+          - none
+          - base64
+        example: base64
+      example: base64
+    formatq:
+      name: format
+      in: query
+      description: "Specify the format of the IVMS101 payload in the response (default:
+        json), specifying 'pb' encoding will cause the protocol buffers to be
+        returned (base64 encoding required)."
+      required: false
+      schema:
+        type: string
+        enum:
+          - pb
+          - json
+        example: pb
+      example: pb
 paths:
   /v1/authenticate:
     post:
@@ -4476,6 +4505,8 @@ paths:
             format: ULID
             example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - $ref: "#/components/parameters/encoding"
+        - $ref: "#/components/parameters/formatq"
       responses:
         "200":
           description: Account Retrieved
@@ -4864,7 +4895,7 @@ paths:
                 error: crypto address not found
     put:
       summary: Update Crypto Address
-      description: Update a crypto address record with new information.
+      description: Update an crypto address record with new information.
       operationId: updateCryptoAddress
       tags:
         - Crypto Addresses
@@ -4903,7 +4934,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Crypto Address Updated
+          description: Crypto Adress Updated
           content:
             application/json:
               schema:
@@ -4951,8 +4982,8 @@ paths:
                     error: field travel address is a read only field
     delete:
       summary: Delete Crypto Address
-      description: Delete a crypto address with the specified ID belonging to the
-        specified account.
+      description: Delete an crypto address with the specified ID belonging to the
+        specified acccount.
       operationId: deleteCryptoAddress
       tags:
         - Crypto Addresses
@@ -5210,6 +5241,8 @@ paths:
             format: ULID
             example: 01J6DJ9F691CF8E9H0V3ET0M0E
           example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - $ref: "#/components/parameters/encoding"
+        - $ref: "#/components/parameters/formatq"
       responses:
         "200":
           description: Counterparty Retrieved
@@ -5868,7 +5901,7 @@ paths:
                 network: BTC
       responses:
         "200":
-          description: Successfully Prepared IVMS101 Payload
+          description: Succesfully Prepared IVMS101 Payload
           content:
             application/json:
               schema:
@@ -6139,7 +6172,7 @@ paths:
                 extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
       responses:
         "200":
-          description: Successfully Sent IVMS101 Payload for Existing Transaction
+          description: Succesfully Sent IVMS101 Payload for Existing Transaction
           content:
             application/json:
               schema:
@@ -6291,7 +6324,7 @@ paths:
                   transfer_state: STARTED
                   original: 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
         "201":
-          description: Successfully Created Transaction and Sent IVMS101 Payload
+          description: Succesfully Created Transaction and Sent IVMS101 Payload
           content:
             application/json:
               schema:
@@ -6872,7 +6905,7 @@ paths:
   "/v1/transactions/{transactionID}/accept":
     get:
       summary: Accept Preview
-      description: Returns a preview of the identity and transaction payload that the
+      description: Returns the a preview of the identity and transaction payload that the
         counterparty sent for compliance review and acceptance. The compliance
         officer may accept the travel rule information as-is or may make changes
         to the information and accept the compliance exchange in one step.
@@ -7922,7 +7955,7 @@ paths:
     get:
       summary: Secure Envelope Detail
       description: Return a detailed record for a single secure envelope specified by the
-        ID requested.
+        ID reqeusted.
       operationId: secureEnvelopeDetail
       tags:
         - Secure Envelopes
@@ -8217,7 +8250,7 @@ paths:
                 error: user not found
     put:
       summary: Update User
-      description: Update a user record with new information.
+      description: Update an user record with new information.
       operationId: updateUser
       tags:
         - Users
@@ -8491,7 +8524,7 @@ paths:
       summary: Create API Key
       description: Create a new envoy api key. When creating an API key a client ID and
         secret are generated and are returned in the response. This is the only
-        time the secret is visible to the user; if the secret is lost the key
+        time the secret is visable to the user; if the secret is lost the key
         must be revoked and regenerated.
       operationId: createAPIKey
       tags:

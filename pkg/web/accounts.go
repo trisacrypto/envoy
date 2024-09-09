@@ -113,6 +113,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
 		err       error
+		query     *api.EncodingQuery
 		accountID ulid.ULID
 		account   *models.Account
 		out       *api.Account
@@ -121,6 +122,19 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	// Parse the accountID passed in from the URL
 	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
 
@@ -137,6 +151,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	}
 
 	// Convert the model into an API response
+	// TODO: pass in query for rendering
 	if out, err = api.NewAccount(account); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))

@@ -121,9 +121,16 @@ type PageQuery struct {
 	PrevPageToken string `json:"prev_page_token,omitempty" url:"prev_page_token,omitempty" form:"prev_page_token"`
 }
 
+// SearchQuery manages fuzzy string searches.
 type SearchQuery struct {
 	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
 	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"limit"`
+}
+
+// EncodingQuery manages how IVMS101 data is returned.
+type EncodingQuery struct {
+	Encoding string `json:"encoding,omitempty" url:"encoding,omitempty" form:"encoding"`
+	Format   string `json:"format,omitempty" url:"format,omitempty" form:"format"`
 }
 
 func (q *SearchQuery) Validate() error {
@@ -145,4 +152,19 @@ func (q *SearchQuery) Validate() error {
 
 func (q *SearchQuery) Model() *models.SearchQuery {
 	return &models.SearchQuery{Query: q.Query, Limit: q.Limit}
+}
+
+func (q *EncodingQuery) Validate() (err error) {
+	q.Encoding = strings.ToLower(strings.TrimSpace(q.Encoding))
+	q.Format = strings.ToLower(strings.TrimSpace(q.Format))
+
+	if q.Encoding != "" && q.Encoding != "none" && q.Encoding != "base64" {
+		err = ValidationError(err, IncorrectField("encoding", "specify either 'none' or 'base64'"))
+	}
+
+	if q.Format != "" && q.Format != "pb" && q.Format != "json" {
+		err = ValidationError(err, IncorrectField("format", "specify either 'pb' or 'json'"))
+	}
+
+	return err
 }

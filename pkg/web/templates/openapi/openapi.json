@@ -436,7 +436,7 @@
           },
           "last_name": {
             "type": "string",
-            "description": "The last or \"primary\" name of the natural person associated customer account. This name is used to sort accounts.",
+            "description": "The last or \"primary\" name of the natural person assoociated customer account. This name is used to sort accounts.",
             "example": "Bond"
           },
           "travel_address": {
@@ -876,7 +876,7 @@
           },
           "name": {
             "type": "string",
-            "description": "The name of the counterparty, usually the counterparty's legal or trading name -- for identifying counterparty VASPs with search.",
+            "description": "The name of the counterparty, usually the counterparty's legal or trading name -- for identying counterparty VASPs with search.",
             "example": "AliceCoin"
           },
           "website": {
@@ -2372,7 +2372,7 @@
           "travel_address": {
             "type": "string",
             "format": "TravelAddress",
-            "description": "The travel address of the recipient or counterparty VASP -- used to identify the counterparty to add their IVMS101 legal person information.",
+            "description": "The travel address of the receipient or counterparty VASP -- used to identify the counterparty to add their IVMS101 legal person information.",
             "example": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
           },
           "originator": {
@@ -2479,7 +2479,7 @@
               },
               "crypto_address": {
                 "type": "string",
-                "description": "The crypto wallet address of the originator person where the virtual assets will be transferred from.",
+                "description": "The crypto wallet address of the originator person where the virtual assets will be transfered from.",
                 "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
               }
             },
@@ -2609,7 +2609,7 @@
               },
               "crypto_address": {
                 "type": "string",
-                "description": "The crypto wallet address of the beneficiary person where the virtual assets will be transferred from.",
+                "description": "The crypto wallet address of the beneficiary person where the virtual assets will be transfered from.",
                 "example": "mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv"
               }
             },
@@ -2642,7 +2642,7 @@
             "properties": {
               "amount": {
                 "type": "number",
-                "description": "The amount of the smallest denomination of the virtual asset that is being transferred from the originator to the beneficiary.",
+                "description": "The amount of the smallest denomination of the virtual asset that is being transfered from the originator to the beneficiary.",
                 "example": 0.0007
               },
               "network": {
@@ -2735,7 +2735,7 @@
           "travel_address": {
             "type": "string",
             "format": "TravelAddress",
-            "description": "The travel address of the recipient or counterparty VASP -- used to identify the counterparty and route the travel rule transfer/inquiry.",
+            "description": "The travel address of the receipient or counterparty VASP -- used to identify the counterparty and route the travel rule transfer/inquiry.",
             "example": "taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi"
           },
           "identity": {
@@ -3572,7 +3572,7 @@
       "Person": {
         "title": "Person",
         "type": "object",
-        "description": "A Person is either a Natural Person (a uniquely distinguishable individual) or a Legal Person (any other entity besides a natural person that can establish a permanent customer relationship with an affected entity or otherwise own property).",
+        "description": "A Person is either a Natural Person (a uniquely distinguishable individual) or a Legal Person (any other entity besides a natural person that can establish a permenant customer relationship with an affected entity or otherwise own property).",
         "properties": {
           "naturalPerson": {
             "$ref": "#/components/schemas/NaturalPerson"
@@ -3626,7 +3626,7 @@
       },
       "LegalPerson": {
         "title": "LegalPerson",
-        "description": "An entity other than a natural person that can establish a permanent customer relationship with an affected entity or otherwise own property. This can include companies, bodies corporate, foundations, anstalt, partnerships, or associations and other relevantly similar entities.",
+        "description": "An entity other than a natural person that can establish a permenant customer releationship with an affected entityh or otherwise own property. This can include companies, bodies corporate, foundations, anstalt, partnerships, or associations and other relevantly similar entities.",
         "type": "object",
         "properties": {
           "name": {
@@ -3701,7 +3701,7 @@
       },
       "LegalPersonName": {
         "title": "LegalPersonName",
-        "description": "The name of the legal person; at least one occurrence of the legal person name identifier type must have the value LEGL specified.",
+        "description": "The name of the legal person; at least one occurence of the legal person name identifier type must have the value LEGL specified.",
         "type": "object",
         "properties": {
           "nameIdentifier": {
@@ -3780,7 +3780,7 @@
       },
       "LocalLegalPersonNameID": {
         "title": "LocalLegalPersonNameID",
-        "description": "The name and type of name by which the legal person is known using local characters or an alternate representation of a name that corresponds to the manner in which the name is pronounced.",
+        "description": "The name and type of name by which the legal person is known using local characters or an alternate represesentation of a name that corresponds to the manner in which the name is pronounced.",
         "properties": {
           "legalPersonName": {
             "type": "string",
@@ -3799,7 +3799,7 @@
       },
       "LegalPersonNameTypeCode": {
         "title": "LegalPersonNameTypeCode",
-        "description": "A single value corresponding to the nature of name being specified for the legal person. LEGL refers to the official name under which an organization is registered. SHRT specifies a short name of the organization. TRAD is a name used by a business for commercial purposes, although its registered legal name, used for contracts and other formal situations, may be another.",
+        "description": "A single value corresponding to the nature of name being specified for the legal person. LEGL refers to the official name under which an organization is registered. SHRT specifies a short name of the organization. TRAD is a name used by a business for commercial purposes, although its registered legal name, used for contracts and other formal sitautions, may be another.",
         "type": "string",
         "enum": [
           "MISC",
@@ -3840,7 +3840,7 @@
           },
           "customerIdentification": {
             "type": "string",
-            "description": "A distinct identifier that uniquely identifies the person to the institution in context; often a crypto wallet address or customer account number.",
+            "description": "A distinct identifier that uniquely identifes the person to the institution in context; often a crypto wallet address or customer account number.",
             "example": "mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i"
           },
           "dateAndPlaceOfBirth": {
@@ -3987,7 +3987,7 @@
           },
           "secondaryIdentifier": {
             "type": "string",
-            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any other secondary names.",
+            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any oither secondary names.",
             "example": "Kentaro"
           },
           "nameIdentifierType": {
@@ -4011,12 +4011,12 @@
         "properties": {
           "primaryIdentifier": {
             "type": "string",
-            "description": "This may be the family name, the maiden name or the married name, the main name, the surname, and in some cases, the entire name where the natural person's name cannot be divided into two parts, or where the sender is unable to divide the natural person's name into two parts. This name should be represented in local characters or as a phonetic pronunciation.",
+            "description": "This may be the family name, the maiden name or the married name, the main name, the surname, and in some cases, the entire name where the natural person's name cannot be divided into two parts, or where the sender is unable to divide the natural person's name into two parts. This name should be represented in local characters or as a phonetic pronounciation.",
             "example": "mɪjʉ́ːrə"
           },
           "secondaryIdentifier": {
             "type": "string",
-            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any other secondary names. This name should be represented in local characters or as a phonetic pronunciation.",
+            "description": "These may be the forenames, familiar names, given names, initials, prefixes, suffixes, or Roman numerals (where considered to be legally part of the name) or any oither secondary names. This name should be represented in local characters or as a phonetic pronounciation.",
             "example": "KehNTaa-ROW"
           },
           "nameIdentifierType": {
@@ -4035,7 +4035,7 @@
       },
       "NaturalPersonNameTypeCode": {
         "title": "NaturalPersonNameTypeCode",
-        "description": "A single value corresponding to the nature of name being adopted for identification. ALIA refers to an alias name other than the legal name by which a natural person is also known. BIRT is a name assigned a natural person at birth. MAID is the original maiden name of the natural person who has changed their name after marriage. LEGL is a legal name that identifies a natural person for legal, official, or administrative purposes.",
+        "description": "A single value corresponding to the nature of name being adopted for identification. ALIA refers to an alias name other than the legal name by which a natural person is also known. BIRT is a name aassigned a natural person at birth. MAID is the original maiden name of the natural person who has changed their name after marraige. LEGL is a legal name that identifies a natural person for legal, official, or administrative purposes.",
         "type": "string",
         "enum": [
           "MISC",
@@ -4056,12 +4056,12 @@
           },
           "department": {
             "type": "string",
-            "description": "Identification of a division of a large organization or building.",
+            "description": "Identification of a division of a large oraganization or building.",
             "example": "College of Natural Sciences"
           },
           "subDepartment": {
             "type": "string",
-            "description": "Identification of a sub-division of a large organization or building.",
+            "description": "Indentification of a sub-division of a large organization or building.",
             "example": "History Department"
           },
           "streetName": {
@@ -4096,7 +4096,7 @@
           },
           "postCode": {
             "type": "string",
-            "description": "Identifier consisting of a group of letters and/or numbers that is added to a postal address to assist in sorting of mail.",
+            "description": "Identifier consisting of a grup of letters and/or numbers that is added to a postal address to assist in sorting of mail.",
             "example": "OX2 6HY"
           },
           "townName": {
@@ -4157,7 +4157,7 @@
       },
       "AddressTypeCode": {
         "title": "AddressTypeCode",
-        "description": "Identifies the nature of the address. HOME implies a residential home address; BIZZ a business address; and GEOG is an unspecified physical address suitable for identification of a natural or legal person.",
+        "description": "Identifies the nature of the address. HOME implies a residential home address; BIZZ a business address; and GEOG is an unspecified physical address sutable for identification of a natural or legal person.",
         "type": "string",
         "enum": [
           "MISC",
@@ -4408,7 +4408,7 @@
           },
           "retry": {
             "type": "boolean",
-            "description": "If the message that caused the error should be retried with a fix (repair) then set to true. Otherwise set to false if the rejection is permanent and the request should not be retried nor should the on-chain transaction take place.",
+            "description": "If the message that caused the error should be retried with a fix (repair) then set to true. Otherwise set to false if the rejection is permenant and the request should not be retried nor should the on-chain transaction take place.",
             "example": true
           }
         },
@@ -4474,7 +4474,7 @@
           },
           "role": {
             "type": "string",
-            "description": "The name of the role assigned to the user. Admin users have full access and all permissions. Compliance users can manage transactions, counterparties, and customer accounts but not node settings. Observers have read only access.",
+            "description": "The name of the role assigned to the user. Admin users have full access and all permisions. Compliance users can manage transactions, counterparties, and customer accounts but not node settings. Observers have read only access.",
             "enum": [
               "Admin",
               "Compliance",
@@ -4529,7 +4529,7 @@
           },
           "role": {
             "type": "string",
-            "description": "The name of the role to assign to the user. Admin users have full access and all permissions. Compliance users can manage transactions, counterparties, and customer accounts but not node settings. Observers have read only access.",
+            "description": "The name of the role to assign to the user. Admin users have full access and all permisions. Compliance users can manage transactions, counterparties, and customer accounts but not node settings. Observers have read only access.",
             "enum": [
               "Admin",
               "Compliance",
@@ -4758,7 +4758,7 @@
       },
       "APIKeyCreated": {
         "title": "APIKeyCreated",
-        "description": "After an API Key is created a secret is created for API client access and that secret is returned as part of the payload. This is the only time the secret is shown to the user; if the secret is lost the API key must be revoked and re-created.",
+        "description": "After an API Key is created a secret is created for API client access and that secret is returned ass part of the payload. This is the only time the secret is shown to the user; if the secret is lost the API key must be revoked and re-created.",
         "type": "object",
         "properties": {
           "id": {
@@ -5078,6 +5078,38 @@
           "example": true
         },
         "example": true
+      },
+      "encoding": {
+        "name": "encoding",
+        "in": "query",
+        "description": "Specify the encoding of the IVMS101 payload in the response (default: base64), specifying 'none' encoding will cause the JSON payload to be rendered inline with the payload so that you can parse it directly. Note that base64 encoding is urlsafe with padding.",
+        "required": false,
+        "default": "base64",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "none",
+            "base64"
+          ],
+          "example": "base64"
+        },
+        "example": "base64"
+      },
+      "formatq": {
+        "name": "format",
+        "in": "query",
+        "description": "Specify the format of the IVMS101 payload in the response (default: json), specifying 'pb' encoding will cause the protocol buffers to be returned (base64 encoding required).",
+        "required": false,
+        "default": "json",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "pb",
+            "json"
+          ],
+          "example": "pb"
+        },
+        "example": "pb"
       }
     }
   },
@@ -5456,6 +5488,12 @@
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
           }
         ],
         "responses": {
@@ -6044,7 +6082,7 @@
       },
       "put": {
         "summary": "Update Crypto Address",
-        "description": "Update a crypto address record with new information.",
+        "description": "Update an crypto address record with new information.",
         "operationId": "updateCryptoAddress",
         "tags": [
           "Crypto Addresses"
@@ -6098,7 +6136,7 @@
         },
         "responses": {
           "200": {
-            "description": "Crypto Address Updated",
+            "description": "Crypto Adress Updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -6175,7 +6213,7 @@
       },
       "delete": {
         "summary": "Delete Crypto Address",
-        "description": "Delete a crypto address with the specified ID belonging to the specified account.",
+        "description": "Delete an crypto address with the specified ID belonging to the specified acccount.",
         "operationId": "deleteCryptoAddress",
         "tags": [
           "Crypto Addresses"
@@ -6568,6 +6606,12 @@
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
           }
         ],
         "responses": {
@@ -7484,7 +7528,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully Prepared IVMS101 Payload",
+            "description": "Succesfully Prepared IVMS101 Payload",
             "content": {
               "application/json": {
                 "schema": {
@@ -7905,7 +7949,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully Sent IVMS101 Payload for Existing Transaction",
+            "description": "Succesfully Sent IVMS101 Payload for Existing Transaction",
             "content": {
               "application/json": {
                 "schema": {
@@ -8132,7 +8176,7 @@
             }
           },
           "201": {
-            "description": "Successfully Created Transaction and Sent IVMS101 Payload",
+            "description": "Succesfully Created Transaction and Sent IVMS101 Payload",
             "content": {
               "application/json": {
                 "schema": {
@@ -9016,7 +9060,7 @@
     "/v1/transactions/{transactionID}/accept": {
       "get": {
         "summary": "Accept Preview",
-        "description": "Returns a preview of the identity and transaction payload that the counterparty sent for compliance review and acceptance. The compliance officer may accept the travel rule information as-is or may make changes to the information and accept the compliance exchange in one step.",
+        "description": "Returns the a preview of the identity and transaction payload that the counterparty sent for compliance review and acceptance. The compliance officer may accept the travel rule information as-is or may make changes to the information and accept the compliance exchange in one step.",
         "operationId": "acceptPreview",
         "tags": [
           "Transaction Workflows"
@@ -10597,7 +10641,7 @@
     "/v1/transactions/{transactionID}/secure-envelopes/{envelopeID}": {
       "get": {
         "summary": "Secure Envelope Detail",
-        "description": "Return a detailed record for a single secure envelope specified by the ID requested.",
+        "description": "Return a detailed record for a single secure envelope specified by the ID reqeusted.",
         "operationId": "secureEnvelopeDetail",
         "tags": [
           "Secure Envelopes"
@@ -11029,7 +11073,7 @@
       },
       "put": {
         "summary": "Update User",
-        "description": "Update a user record with new information.",
+        "description": "Update an user record with new information.",
         "operationId": "updateUser",
         "tags": [
           "Users"
@@ -11446,7 +11490,7 @@
       },
       "post": {
         "summary": "Create API Key",
-        "description": "Create a new envoy api key. When creating an API key a client ID and secret are generated and are returned in the response. This is the only time the secret is visible to the user; if the secret is lost the key must be revoked and regenerated.",
+        "description": "Create a new envoy api key. When creating an API key a client ID and secret are generated and are returned in the response. This is the only time the secret is visable to the user; if the secret is lost the key must be revoked and regenerated.",
         "operationId": "createAPIKey",
         "tags": [
           "API Keys"
