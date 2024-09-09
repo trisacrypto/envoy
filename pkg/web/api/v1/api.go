@@ -8,7 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
+
+func init() {
+	ivms101.AllowRekeying()
+	ivms101.DisallowUnknownFields()
+}
 
 //===========================================================================
 // Service Interface
