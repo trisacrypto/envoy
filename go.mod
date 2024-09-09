@@ -19,7 +19,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/trisacrypto/directory v1.8.0
-	github.com/trisacrypto/trisa v1.4.0
+	github.com/trisacrypto/trisa v1.4.1
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/crypto v0.25.0
 	golang.org/x/text v0.16.0
