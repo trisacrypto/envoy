@@ -121,26 +121,27 @@ type PageQuery struct {
 	PrevPageToken string `json:"prev_page_token,omitempty" url:"prev_page_token,omitempty" form:"prev_page_token"`
 }
 
+// SearchQuery manages fuzzy string searches.
 type SearchQuery struct {
 	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
 	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"limit"`
 }
 
-func (q *SearchQuery) Validate() error {
+func (q *SearchQuery) Validate() (err error) {
 	q.Query = strings.TrimSpace(q.Query)
 	if q.Query == "" {
-		return MissingField("query")
+		err = ValidationError(err, MissingField("query"))
 	}
 
 	if q.Limit < 0 {
-		return IncorrectField("limit", "limit cannot be less than zero")
+		err = ValidationError(err, IncorrectField("limit", "limit cannot be less than zero"))
 	}
 
 	if q.Limit > 50 {
-		return IncorrectField("limit", "maximum number of search results that can be returned is 50")
+		err = ValidationError(err, IncorrectField("limit", "maximum number of search results that can be returned is 50"))
 	}
 
-	return nil
+	return err
 }
 
 func (q *SearchQuery) Model() *models.SearchQuery {

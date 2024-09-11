@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
 //===========================================================================
@@ -22,6 +24,7 @@ var (
 	ErrInvalidTimestamp     = errors.New("payload timestamp has invalid string format")
 	ErrInvalidRejection     = errors.New("envelope does not contain a rejection/repair error")
 	ErrParsingIVMS101Person = errors.New("unable to parse IVMS101 person record as json or protocol buffers")
+	ErrUnknownEncoding      = errors.New("could not detect data encoding please specify and try again")
 )
 
 // Construct a new response for an error or simply return unsuccessful.
@@ -116,6 +119,10 @@ func IncorrectField(field, issue string) *FieldError {
 
 func ReadOnlyField(field string) *FieldError {
 	return &FieldError{verb: "read-only field", field: field, issue: "this field cannot be written by the user"}
+}
+
+func InvalidIVMS101(err *ivms101.FieldError) *FieldError {
+	return &FieldError{verb: "", field: err.Field(), issue: err.Error()}
 }
 
 func OneOfMissing(fields ...string) *FieldError {

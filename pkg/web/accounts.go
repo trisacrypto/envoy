@@ -62,6 +62,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	var (
 		err     error
 		in      *api.Account
+		query   *api.EncodingQuery
 		account *models.Account
 		out     *api.Account
 	)
@@ -74,6 +75,20 @@ func (s *Server) CreateAccount(c *gin.Context) {
 		return
 	}
 
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	in.SetEncoding(query)
 	if err = in.Validate(true); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err)
 		return
@@ -96,7 +111,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	}
 
 	// Convert the model back to an API response
-	if out, err = api.NewAccount(account); err != nil {
+	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(fmt.Errorf("serialization failed: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -113,6 +128,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
 		err       error
+		query     *api.EncodingQuery
 		accountID ulid.ULID
 		account   *models.Account
 		out       *api.Account
@@ -121,6 +137,19 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	// Parse the accountID passed in from the URL
 	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
 
@@ -137,7 +166,7 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	}
 
 	// Convert the model into an API response
-	if out, err = api.NewAccount(account); err != nil {
+	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -156,6 +185,7 @@ func (s *Server) UpdateAccountPreview(c *gin.Context) {
 	var (
 		err       error
 		accountID ulid.ULID
+		query     *api.EncodingQuery
 		account   *models.Account
 		out       *api.Account
 	)
@@ -163,6 +193,19 @@ func (s *Server) UpdateAccountPreview(c *gin.Context) {
 	// Parse the accountID passed in from the URL
 	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
 
@@ -179,7 +222,7 @@ func (s *Server) UpdateAccountPreview(c *gin.Context) {
 	}
 
 	// Convert the model into an API response
-	if out, err = api.NewAccount(account); err != nil {
+	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -197,6 +240,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	var (
 		err       error
 		accountID ulid.ULID
+		query     *api.EncodingQuery
 		in        *api.Account
 		out       *api.Account
 		account   *models.Account
@@ -216,6 +260,19 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 		return
 	}
 
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
 	// Sanity check the account IDs of the update request
 	if err = ulids.CheckIDMatch(in.ID, accountID); err != nil {
 		c.Error(err)
@@ -223,6 +280,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 		return
 	}
 
+	in.SetEncoding(query)
 	if err = in.Validate(false); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err)
 		return
@@ -249,7 +307,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	}
 
 	// Convert the model back to an API response
-	if out, err = api.NewAccount(account); err != nil {
+	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
