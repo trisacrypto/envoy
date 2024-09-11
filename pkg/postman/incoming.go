@@ -156,7 +156,7 @@ func (i *Incoming) UpdateTransaction() (err error) {
 func (i *Incoming) WebhookRequest() *webhook.Request {
 	request := &webhook.Request{
 		Timestamp:     i.original.Timestamp,
-		HMAC:          base64.RawStdEncoding.EncodeToString(i.original.Hmac),
+		HMAC:          base64.RawURLEncoding.EncodeToString(i.original.Hmac),
 		PKS:           i.original.PublicKeySignature,
 		TransferState: i.original.TransferState.String(),
 		Error:         i.original.Error,
@@ -164,8 +164,9 @@ func (i *Incoming) WebhookRequest() *webhook.Request {
 	}
 
 	// Ignore any errors: we expect that this has been validated already
+	// TODO: configure the webhook to specify the encoding and format of the IVMS record
 	request.TransactionID, _ = i.Envelope.UUID()
-	request.Counterparty, _ = api.NewCounterparty(i.packet.Counterparty)
+	request.Counterparty, _ = api.NewCounterparty(i.packet.Counterparty, nil)
 
 	return request
 }

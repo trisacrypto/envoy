@@ -127,44 +127,23 @@ type SearchQuery struct {
 	Limit int    `json:"limit,omitempty" url:"limit,omitempty" form:"limit"`
 }
 
-// EncodingQuery manages how IVMS101 data is returned.
-type EncodingQuery struct {
-	Encoding string `json:"encoding,omitempty" url:"encoding,omitempty" form:"encoding"`
-	Format   string `json:"format,omitempty" url:"format,omitempty" form:"format"`
-}
-
-func (q *SearchQuery) Validate() error {
+func (q *SearchQuery) Validate() (err error) {
 	q.Query = strings.TrimSpace(q.Query)
 	if q.Query == "" {
-		return MissingField("query")
+		err = ValidationError(err, MissingField("query"))
 	}
 
 	if q.Limit < 0 {
-		return IncorrectField("limit", "limit cannot be less than zero")
+		err = ValidationError(err, IncorrectField("limit", "limit cannot be less than zero"))
 	}
 
 	if q.Limit > 50 {
-		return IncorrectField("limit", "maximum number of search results that can be returned is 50")
+		err = ValidationError(err, IncorrectField("limit", "maximum number of search results that can be returned is 50"))
 	}
 
-	return nil
+	return err
 }
 
 func (q *SearchQuery) Model() *models.SearchQuery {
 	return &models.SearchQuery{Query: q.Query, Limit: q.Limit}
-}
-
-func (q *EncodingQuery) Validate() (err error) {
-	q.Encoding = strings.ToLower(strings.TrimSpace(q.Encoding))
-	q.Format = strings.ToLower(strings.TrimSpace(q.Format))
-
-	if q.Encoding != "" && q.Encoding != "none" && q.Encoding != "base64" {
-		err = ValidationError(err, IncorrectField("encoding", "specify either 'none' or 'base64'"))
-	}
-
-	if q.Format != "" && q.Format != "pb" && q.Format != "json" {
-		err = ValidationError(err, IncorrectField("format", "specify either 'pb' or 'json'"))
-	}
-
-	return err
 }

@@ -2,8 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -11,7 +9,6 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/ulids"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
@@ -33,6 +30,7 @@ type Account struct {
 	CryptoAddresses []*CryptoAddress `json:"crypto_addresses,omitempty"`
 	Created         time.Time        `json:"created,omitempty"`
 	Modified        time.Time        `json:"modified,omitempty"`
+	encoding        *EncodingQuery   `json:"-"`
 }
 
 type CryptoAddress struct {
@@ -56,7 +54,11 @@ type CryptoAddressList struct {
 	CryptoAddresses []*CryptoAddress `json:"crypto_addresses"`
 }
 
-func NewAccount(model *models.Account) (out *Account, err error) {
+func NewAccount(model *models.Account, encoding *EncodingQuery) (out *Account, err error) {
+	if encoding == nil {
+		encoding = &EncodingQuery{}
+	}
+
 	out = &Account{
 		ID:            model.ID,
 		CustomerID:    model.CustomerID.String,
@@ -65,16 +67,19 @@ func NewAccount(model *models.Account) (out *Account, err error) {
 		TravelAddress: model.TravelAddress.String,
 		Created:       model.Created,
 		Modified:      model.Modified,
+		encoding:      encoding,
 	}
 
 	// Render the IVMS101 data as as base64 encoded JSON string
-	// TODO: select rendering using protocol buffers or JSON as a config option.
 	if model.IVMSRecord != nil {
-		if data, err := json.Marshal(model.IVMSRecord); err != nil {
+		if out.IVMSRecord, err = out.encoding.Marshal(model.IVMSRecord); err != nil {
 			// Log the error but do not stop processing
-			log.Error().Err(err).Str("account_id", model.ID.String()).Msg("could not marshal IVMS101 record to JSON")
-		} else {
-			out.IVMSRecord = base64.URLEncoding.EncodeToString(data)
+			log.Error().Err(err).
+				Str("account_id", model.ID.String()).
+				Str("encoding", encoding.Encoding).
+				Str("format", encoding.Format).
+				Bool("is_base64_std", encoding.b64std).
+				Msg("could not marshal IVMS101 record")
 		}
 	}
 
@@ -104,12 +109,12 @@ func NewAccountList(page *models.AccountsPage) (out *AccountsList, err error) {
 
 	for _, model := range page.Accounts {
 		var account *Account
-		if account, err = NewAccount(model); err != nil {
+		if account, err = NewAccount(model, nil); err != nil {
 			return nil, err
 		}
 
-		// Remove list fields not needed for the summary info
-		// TODO: instead of removing, do not select this data from the database.
+		// Ensure the fields not returned in ScanSummary are set to zero-values so that
+		// they are omitted from the JSON response (the database does not return these).
 		account.IVMSRecord = ""
 		account.CryptoAddresses = nil
 
@@ -158,22 +163,14 @@ func (a *Account) IVMS101() (p *ivms101.Person, err error) {
 		return nil, ErrParsingIVMS101Person
 	}
 
-	// Try decoding URL base64 first, then STD before resorting to a string
-	var data []byte
-	if data, err = base64.URLEncoding.DecodeString(a.IVMSRecord); err != nil {
-		if data, err = base64.StdEncoding.DecodeString(a.IVMSRecord); err != nil {
-			data = []byte(a.IVMSRecord)
-		}
+	if a.encoding == nil {
+		a.encoding = &EncodingQuery{}
 	}
 
-	// Try unmarshaling JSON first, then protocol buffers
 	p = &ivms101.Person{}
-	if err = json.Unmarshal(data, p); err != nil {
-		if err = proto.Unmarshal(data, p); err != nil {
-			return nil, ErrParsingIVMS101Person
-		}
+	if err = a.encoding.Unmarshal(a.IVMSRecord, p); err != nil {
+		return nil, err
 	}
-
 	return p, nil
 }
 
@@ -193,13 +190,33 @@ func (a *Account) Validate(create bool) (err error) {
 	}
 
 	if _, perr := a.IVMS101(); perr != nil {
-		err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
+		switch e := perr.(type) {
+		case ivms101.ValidationErrors:
+			for _, ve := range e {
+				err = ValidationError(err, InvalidIVMS101(ve))
+			}
+		case *ivms101.FieldError:
+			err = ValidationError(err, InvalidIVMS101(e))
+		case ValidationErrors:
+			err = ValidationError(err, e...)
+		case *FieldError:
+			err = ValidationError(err, e)
+		default:
+			err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
+		}
 	}
 
 	if len(a.CryptoAddresses) > 0 {
 		err = ValidationError(err, ReadOnlyField("crypto_addresses"))
 	}
 	return err
+}
+
+func (a *Account) SetEncoding(encoding *EncodingQuery) {
+	if encoding == nil {
+		encoding = &EncodingQuery{}
+	}
+	a.encoding = encoding
 }
 
 func NewCryptoAddress(model *models.CryptoAddress) (*CryptoAddress, error) {

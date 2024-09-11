@@ -1,0 +1,41 @@
+{
+  "name": {
+    "nameIdentifier": [
+      {
+        "legalPersonName": "BitChainX Financial Services, LLC",
+        "legalPersonNameIdentifierType": "LEGL"
+      },
+      {
+        "legalPersonName": "BitChainX",
+        "legalPersonNameIdentifierType": "SHRT"
+      }
+    ],
+    "phoneticNameIdentifier": [
+      {
+        "legalPersonName": "bɪtʧeɪnɛks faɪˈnænʃᵊl ˈsɜːvɪsɪz, ɛl-ɛl-siː",
+        "legalPersonNameIdentifierType": "LEGL"
+      },
+      {
+        "legalPersonName": "bɪtʧeɪnɛks",
+        "legalPersonNameIdentifierType": "SHRT"
+      }
+    ]
+  },
+  "geographicAddress": [
+    {
+      "addressType": "BIZZ",
+      "streetName": "Elk Rd Little",
+      "buildingNumber": "372",
+      "townName": "Tuscon",
+      "countrySubDivision": "AZ",
+      "postCode": "85710",
+      "country": "US"
+    }
+  ],
+  "customerNumber": "4c421794-3b25-4875-b51b-637de3704f54",
+  "nationalIdentification": {
+    "nationalIdentifier": "648F000D9C0ANWRAL314",
+    "nationalIdentifierType": "LEIX"
+  },
+  "countryOfRegistration": "US"
+}
