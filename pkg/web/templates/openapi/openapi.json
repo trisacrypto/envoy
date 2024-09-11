@@ -5082,9 +5082,8 @@
       "encoding": {
         "name": "encoding",
         "in": "query",
-        "description": "Specify the encoding of the IVMS101 payload in the response (default: base64), specifying 'none' encoding will cause the JSON payload to be rendered inline with the payload so that you can parse it directly. Note that base64 encoding is urlsafe with padding.",
+        "description": "Specify the encoding of the IVMS101 payload in the response or request (default: base64), specifying 'none' encoding will cause the JSON payload to be rendered/parsed inline with the payload. Note that base64 encoding is urlsafe with padding.",
         "required": false,
-        "default": "base64",
         "schema": {
           "type": "string",
           "enum": [
@@ -5098,9 +5097,8 @@
       "formatq": {
         "name": "format",
         "in": "query",
-        "description": "Specify the format of the IVMS101 payload in the response (default: json), specifying 'pb' encoding will cause the protocol buffers to be returned (base64 encoding required).",
+        "description": "Specify the format of the IVMS101 payload in the response or request (default: json), specifying 'pb' encoding will cause the protocol buffers to be returned/parsed (base64 encoding required).",
         "required": false,
-        "default": "json",
         "schema": {
           "type": "string",
           "enum": [
@@ -5369,6 +5367,14 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
+          }
+        ],
         "requestBody": {
           "required": true,
           "description": "Account information that includes all required writeable fields and no crypto addresses.",
@@ -5589,6 +5595,12 @@
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
           }
         ],
         "requestBody": {
@@ -6398,6 +6410,14 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
+          }
+        ],
         "requestBody": {
           "required": true,
           "description": "Counterparty information that includes all required writeable fields.",
@@ -6700,6 +6720,12 @@
               "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
             },
             "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          },
+          {
+            "$ref": "#/components/parameters/encoding"
+          },
+          {
+            "$ref": "#/components/parameters/formatq"
           }
         ],
         "requestBody": {
