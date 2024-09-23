@@ -114,7 +114,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
   const repairTransactionEP = `/v1/transactions/${id}/repair`;
   if (e.detail.path === transactionAcceptEP && e.detail.verb === 'post' || e.detail.path === repairTransactionEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
-    console.log(params)
 
     let data = {
       identity: {
