@@ -188,7 +188,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     for (const key in params) {
       // Remove prefix from the key.
       const newKey = key.split('_').slice(2).join('_');
-      const indx = key.split('_')[3];
+      const nameIndx = key.split('_')[3];
 
       switch (true) {
         // Set the transaction details.
@@ -245,7 +245,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set the originating VASP name identifiers and name identifier type.
         case key.startsWith('id_orig_legalPersonNameIdentifierType_'):
-          originatingVASP.name.nameIdentifier.push({ legalPersonName: params[`id_orig_legalPersonName_${indx}`], legalPersonNameIdentifierType: params[`id_orig_legalPersonNameIdentifierType_${indx}`] });
+          originatingVASP.name.nameIdentifier.push({ legalPersonName: params[`id_orig_legalPersonName_${nameIndx}`], legalPersonNameIdentifierType: params[`id_orig_legalPersonNameIdentifierType_${nameIndx}`] });
           break;
         // Set the originating VASP address line.
         case key.startsWith('address_orig'):
@@ -265,7 +265,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           break;
         // Set the beneficiary VASP name identifiers and name identifier type.
         case key.startsWith('id_benf_legalPersonNameIdentifierType_'):          
-          beneficiaryVASP.name.nameIdentifier.push({ legalPersonName: params[`id_benf_legalPersonName_${indx}`], legalPersonNameIdentifierType: params[`id_benf_legalPersonNameIdentifierType_${indx}`] });
+          beneficiaryVASP.name.nameIdentifier.push({ legalPersonName: params[`id_benf_legalPersonName_${nameIndx}`], legalPersonNameIdentifierType: params[`id_benf_legalPersonNameIdentifierType_${nameIndx}`] });
           break;
         // Set the beneficiary VASP address line.
         case key.startsWith('address_benf'):

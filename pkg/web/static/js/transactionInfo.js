@@ -74,7 +74,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === transactionSendEP && e.detail.verb === 'post') {
     const params = e.detail.parameters;
     let envelope = JSON.parse(params.envelope)
-    console.log(envelope)
     let data = {
       identity: envelope.identity,
       transaction: envelope.transaction,
