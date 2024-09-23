@@ -32,7 +32,7 @@
           </div>
           <div>
             <label for="asset_type" class="label-style">Asset Type</label>
-            <input type="text" id="asset_type" name="env_transaction_asset_type" value="{{ .Pending.Transaction.AssetType }}"
+            <input type="text" id="asset_type" name="env_transaction_assetType" value="{{ .Pending.Transaction.AssetType }}"
               class="input-style" />
           </div>
           <div>
@@ -183,13 +183,6 @@
           <input type="hidden" class="originator_id_country_of_issue" value="" />
         </div>
         {{ end }}
-
-        {{ range .Identity.Originator.AccountNumbers }}
-        <div>
-          <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="acct_og_account_number" value="{{ . }}" class="input-style" />
-        </div>
-        {{ end }}
       </div>
       {{ else }}
       <div class="my-5">
@@ -273,11 +266,6 @@
           <label for="originator_id_country_of_issue" class="label-style">Country of Issue</label>
           <select id="originator_id_country_of_issue" name="originator_id_countryOfIssue" class="countries"></select>
           <input type="hidden" class="originator_id_country_of_issue" value="" />
-        </div>
-      
-        <div>
-          <label for="orig_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="orig_account_numbers" name="acct_og_accountNumber" value="" class="input-style" />
         </div>
       </div>
       {{ end }}
@@ -419,13 +407,6 @@
         </div>
         {{ end }}
 
-        {{ range .Identity.Beneficiary.AccountNumbers }}
-        <div>
-          <label for="benf_account_numbers" class="label-style">Account Number</label>
-          <input type="text" id="benf_account_numbers" name="acct_bf_accountNumber" value="{{ . }}" class="input-style" />
-        </div>
-        {{ end }}
-
         {{ else }}
         <div class="my-5">
           <div class="grid gap-6 my-4 md:grid-cols-2">
@@ -512,10 +493,6 @@
             <input type="hidden" class="beneficiary_id_country_of_issue" value="" />
           </div>
         
-          <div>
-            <label for="benf_account_numbers" class="label-style">Account Number</label>
-            <input type="text" id="benf_account_numbers" name="acct_bf_accountNumber" value="" class="input-style" />
-          </div>
         </div>
         {{ end }}
       </div>
@@ -527,18 +504,18 @@
           {{ $originatingVasp := .Identity.OriginatingVasp.OriginatingVasp.Person.LegalPerson }}
           {{ $originatingLegalPerson := $originatingVasp.Name }}
 
-        {{ range $originatingLegalPerson.NameIdentifiers }}
+        {{ range $index, $originatingVaspName := $originatingLegalPerson.NameIdentifiers }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
-            <label for="orig_vasp_legal_person_name" class="label-style">Legal Person Name</label>
-            <input type="text" id="orig_vasp_legal_person_name" name="id_orig_legalPersonName"
+            <label for="orig_vasp_legal_person_name_{{ $index }}" class="label-style">Legal Person Name</label>
+            <input type="text" id="orig_vasp_legal_person_name_{{ $index }}" name="id_orig_legalPersonName_{{ $index }}"
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
-            <label for="orig_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier Type</label>
-            <select id="orig_vasp_legal_person_name_identifier_type" name="id_orig_legalPersonNameIdentifierType"
+            <label for="orig_vasp_legal_person_name_identifier_type_{{ $index }}" class="label-style">Legal Person Name Identifier Type</label>
+            <select id="orig_vasp_legal_person_name_identifier_type_{{ $index }}" name="id_orig_legalPersonNameIdentifierType_{{ $index }}"
               class="identifier-types"></select>
-            <input type="hidden" class="orig_vasp_legal_person_name_identifier_type"
+            <input type="hidden" class="orig_vasp_legal_person_name_identifier_type_{{ $index }}"
               value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
           </div>
         </div>
@@ -690,19 +667,20 @@
         {{ if .Identity.BeneficiaryVasp }}
           {{ $beneficiaryVasp := .Identity.BeneficiaryVasp.BeneficiaryVasp.Person.LegalPerson }}
 
-        {{ range $beneficiaryVasp.Name.NameIdentifiers }}
+          {{ range $index, $beneficiaryVaspName := $beneficiaryVasp.Name.NameIdentifiers }}
         <div class="grid gap-6 my-4 md:grid-cols-2">
           <div>
-            <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
-            <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName"
+            <label for="benf_vasp_legal_person_name_{{ $index }}" class="label-style">Name Identifier</label>
+            <input type="text" id="benf_vasp_legal_person_name_{{ $index }}" name="id_benf_legalPersonName_{{ $index }}"
               value="{{ .LegalPersonName }}" class="input-style" />
           </div>
           <div>
-            <label for="benf_vasp_legal_person_name_identifier_type" class="label-style">Legal Person Name Identifier
-              Type</label>
-            <select id="benf_vasp_legal_person_name_identifier_type" name="id_benf_legalPersonNameIdentifierType"
+            <label for="benf_vasp_legal_person_name_identifier_type_{{ $index }}" class="label-style">
+              Legal Person Name Identifier Type
+            </label>
+            <select id="benf_vasp_legal_person_name_identifier_type_{{ $index}}" name="id_benf_legalPersonNameIdentifierType_{{ $index }}"
               class="identifier-types"></select>
-            <input type="hidden" class="benf_vasp_legal_person_name_identifier_type"
+            <input type="hidden" class="benf_vasp_legal_person_name_identifier_type_{{ $index }}"
               value="{{ .LegalPersonNameIdentifierType }}" data-id="legal-person-name-type" />
           </div>
         </div>
