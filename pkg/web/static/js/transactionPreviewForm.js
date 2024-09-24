@@ -128,7 +128,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
               }],
               nationalIdentification: {},
               dateAndPlaceOfBirth:{},
-              accountNumber: []
             },
           }],
         },
@@ -143,7 +142,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
               }],
               nationalIdentification: {},
               dateAndPlaceOfBirth:{},
-              accountNumber: []
             },
           }]
         },
@@ -151,7 +149,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           originatingVASP: {
             legalPerson: {
               name: {
-                nameIdentifier: [{}]
+                nameIdentifier: []
               },
               geographicAddress: [{
                 addressLine: []
@@ -164,7 +162,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           beneficiaryVASP: {
             legalPerson: {
               name: {
-                nameIdentifier: [{}]
+                nameIdentifier: []
               },
               geographicAddress: [{
                 addressLine: []
@@ -190,6 +188,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
     for (const key in params) {
       // Remove prefix from the key.
       const newKey = key.split('_').slice(2).join('_');
+      const nameIndx = key.split('_')[3];
 
       switch (true) {
         // Set the transaction details.
@@ -220,10 +219,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         case key.startsWith('originator_id_'):
           originatorPerson.nationalIdentification[newKey] = params[key];
           break;
-        // Set the originator account number.
-        case key.startsWith('acct_og_'):
-          originatorPerson.accountNumber.push(params[key]);
-          break;
         // Set the beneficiary name identifiers and name identifier type.
         case key.startsWith('id_bf_'):
           beneficiaryPerson.name.nameIdentifier[0][newKey] = params[key];
@@ -248,13 +243,9 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         case key.startsWith('beneficiary_id_'):
           beneficiaryPerson.nationalIdentification[newKey] = params[key];
           break;
-        // Set the beneficiary account number.
-        case key.startsWith('acct_bf_'):
-          beneficiaryPerson.accountNumber.push(params[key]);
-          break;
         // Set the originating VASP name identifiers and name identifier type.
-        case key.startsWith('id_orig'):
-          originatingVASP.name.nameIdentifier[0][newKey] = params[key];
+        case key.startsWith('id_orig_legalPersonNameIdentifierType_'):
+          originatingVASP.name.nameIdentifier.push({ legalPersonName: params[`id_orig_legalPersonName_${nameIndx}`], legalPersonNameIdentifierType: params[`id_orig_legalPersonNameIdentifierType_${nameIndx}`] });
           break;
         // Set the originating VASP address line.
         case key.startsWith('address_orig'):
@@ -273,8 +264,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           originatingVASP[newKey] = params[key];
           break;
         // Set the beneficiary VASP name identifiers and name identifier type.
-        case key.startsWith('id_benf'):
-          beneficiaryVASP.name.nameIdentifier[0][newKey] = params[key];
+        case key.startsWith('id_benf_legalPersonNameIdentifierType_'):          
+          beneficiaryVASP.name.nameIdentifier.push({ legalPersonName: params[`id_benf_legalPersonName_${nameIndx}`], legalPersonNameIdentifierType: params[`id_benf_legalPersonNameIdentifierType_${nameIndx}`] });
           break;
         // Set the beneficiary VASP address line.
         case key.startsWith('address_benf'):
