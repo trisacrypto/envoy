@@ -90,7 +90,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 
 	in.SetEncoding(query)
 	if err = in.Validate(true); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -282,7 +282,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 
 	in.SetEncoding(query)
 	if err = in.Validate(false); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -431,7 +431,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	}
 
 	if err = in.Validate(true); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -560,7 +560,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	}
 
 	if err = in.Validate(false); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
