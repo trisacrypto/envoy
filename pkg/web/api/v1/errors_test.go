@@ -145,3 +145,56 @@ func ExampleValidationErrors() {
 	//   invalid field ssn: ssn should be 8 digits only
 	//   missing date_of_birth: this field is required
 }
+
+func TestFieldError(t *testing.T) {
+	t.Run("Subfield", func(t *testing.T) {
+		tests := []struct {
+			err      *api.FieldError
+			parent   string
+			expected string
+		}{
+			{
+				api.MissingField("last_name"),
+				"person",
+				"missing person.last_name: this field is required",
+			},
+			{
+				api.IncorrectField("banner", "banner must have ## prefix"),
+				"prom.queen",
+				"invalid field prom.queen.banner: banner must have ## prefix",
+			},
+		}
+
+		for i, tc := range tests {
+			err := tc.err.Subfield(tc.parent)
+			require.EqualError(t, err, tc.expected, "test case %d failed", i)
+		}
+	})
+
+	t.Run("SubfieldArray", func(t *testing.T) {
+		tests := []struct {
+			err      *api.FieldError
+			parent   string
+			index    int
+			expected string
+		}{
+			{
+				api.MissingField("last_name"),
+				"persons",
+				0,
+				"missing persons[0].last_name: this field is required",
+			},
+			{
+				api.IncorrectField("banner", "banner must have ## prefix"),
+				"prom.queens",
+				14,
+				"invalid field prom.queens[14].banner: banner must have ## prefix",
+			},
+		}
+
+		for i, tc := range tests {
+			err := tc.err.SubfieldArray(tc.parent, tc.index)
+			require.EqualError(t, err, tc.expected, "test case %d failed", i)
+		}
+	})
+}

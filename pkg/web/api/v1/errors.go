@@ -180,6 +180,16 @@ func (e *FieldError) Error() string {
 	return fmt.Sprintf("%s %s: %s", e.verb, e.field, e.issue)
 }
 
+func (e *FieldError) Subfield(parent string) *FieldError {
+	e.field = fmt.Sprintf("%s.%s", parent, e.field)
+	return e
+}
+
+func (e *FieldError) SubfieldArray(parent string, index int) *FieldError {
+	e.field = fmt.Sprintf("%s[%d].%s", parent, index, e.field)
+	return e
+}
+
 type ValidationErrors []*FieldError
 
 func (e ValidationErrors) Error() string {
