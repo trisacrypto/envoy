@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -190,28 +191,35 @@ func (a *Account) Validate(create bool) (err error) {
 	}
 
 	if a.IVMSRecord != "" {
-		if _, perr := a.IVMS101(); perr != nil {
-			switch e := perr.(type) {
+		if record, perr := a.IVMS101(); perr != nil {
+			err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
+		} else if verr := record.Validate(); verr != nil {
+			switch e := verr.(type) {
 			case ivms101.ValidationErrors:
 				for _, ve := range e {
 					err = ValidationError(err, InvalidIVMS101(ve))
 				}
 			case *ivms101.FieldError:
 				err = ValidationError(err, InvalidIVMS101(e))
-			case ValidationErrors:
-				err = ValidationError(err, e...)
-			case *FieldError:
-				err = ValidationError(err, e)
 			default:
-				err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
+				err = ValidationError(err, IncorrectField("ivms101", verr.Error()))
 			}
 		}
 	}
 
 	if len(a.CryptoAddresses) > 0 {
-		for _, address := range a.CryptoAddresses {
+		for i, address := range a.CryptoAddresses {
 			if cerr := address.Validate(create); cerr != nil {
-				err = ValidationError(err, IncorrectField("crypto_addresses", cerr.Error()))
+				switch e := cerr.(type) {
+				case ValidationErrors:
+					for _, fe := range e {
+						err = ValidationError(err, fe.SubfieldArray("crypto_addresses", i))
+					}
+				case *FieldError:
+					err = ValidationError(err, e.SubfieldArray("crypto_addresses", i))
+				default:
+					panic(fmt.Errorf("unhandled validation error type %T on crypto_addresses[%d]", e, i))
+				}
 			}
 		}
 	}
