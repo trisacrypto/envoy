@@ -165,6 +165,47 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 	})
 }
 
+func (s *Server) UpdateAPIKeyPreview(c *gin.Context) {
+	var (
+		err    error
+		keyID  ulid.ULID
+		apikey *models.APIKey
+		out    *api.APIKey
+	)
+
+	// Parse the keyID from the URL
+	if keyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("apikey not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if apikey, err = s.store.RetrieveAPIKey(c.Request.Context(), keyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("apikey not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to process apikey detail request"))
+		return
+	}
+
+	if out, err = api.NewAPIKey(apikey); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("unable to process apikey detail request"))
+		return
+	}
+
+	// Content negotiation
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "apikey_preview.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+	})
+}
+
 func (s *Server) UpdateAPIKey(c *gin.Context) {
 	var (
 		err    error
