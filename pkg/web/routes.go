@@ -211,6 +211,7 @@ func (s *Server) setupRoutes() (err error) {
 			apikeys.GET("", authorize(permiss.APIKeysView), s.ListAPIKeys)
 			apikeys.POST("", authorize(permiss.APIKeysManage), s.CreateAPIKey)
 			apikeys.GET("/:id", authorize(permiss.APIKeysView), s.APIKeyDetail)
+			apikeys.GET("/:id/edit", authorize(permiss.APIKeysManage), s.UpdateAPIKeyPreview)
 			apikeys.PUT("/:id", authorize(permiss.APIKeysManage), s.UpdateAPIKey)
 			apikeys.DELETE("/:id", authorize(permiss.APIKeysRevoke), s.DeleteAPIKey)
 		}
