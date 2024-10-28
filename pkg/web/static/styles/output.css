@@ -3088,6 +3088,10 @@ details.collapse summary::-webkit-details-marker {
   justify-content: space-between;
 }
 
+.justify-around {
+  justify-content: space-around;
+}
+
 .gap-4 {
   gap: 1rem;
 }
@@ -3537,6 +3541,11 @@ details.collapse summary::-webkit-details-marker {
 .text-blue-700 {
   --tw-text-opacity: 1;
   color: rgb(29 78 216 / var(--tw-text-opacity));
+}
+
+.text-blue-800 {
+  --tw-text-opacity: 1;
+  color: rgb(30 64 175 / var(--tw-text-opacity));
 }
 
 .text-gray-500 {
