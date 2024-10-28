@@ -1,0 +1,49 @@
+{{ template "base" . }}
+{{ define "content" }}
+
+<section class="mx-8 py-9">
+   <div class="flex justify-around items-center my-4 md:m-8">
+    <a href="/transactions" class="btn btn-sm btn-circle btn-ghost text-xl">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span class="sr-only">Go back</span>
+    </a>
+    <h1 class="mx-auto font-semibold text-2xl md:text-3xl text-center text-balance">Send Sunrise Message</h1>
+   </div>
+  <section class="my-4 md:m-8">
+    <p class="my-2 md:text-lg">
+      Create a sunrise message to share transfer details with an out-of-network counterparty.
+      You will need a valid email address for your counterparty. If your counterparty is in the TRISA or TRP networks,
+      <a href="/send-envelope" class="underline text-blue-700">send a secure envelope</a> instead.
+    </p>
+    <!-- TODO: Add htmx attributes -->
+    <form id="sunrise-msg-form" method="post">
+
+      <section class="py-2 border-t border-t-black">
+        <div class="my-5">
+          <label for="vasp_name" class="label-style">Counterparty VASP Entity Name</label>
+          <input type="text" id="vasp_name" name="vasp_name" placeholder="Enter counterparty VASP name" class="input-style" />
+        </div>
+        <div class="my-5">
+          <label for="email" class="label-style">Email Address</label>
+          <input type="text" id="email" name="email" placeholder="Enter counterparty VASP email address" class="input-style" />
+        </div>
+      </section>
+
+      {{ template "originator_information" . }}
+
+      {{ template "sunrise_beneficiary" . }}
+
+      {{ template "virtual_asset" . }}
+
+      <button id="preview-msg-bttn" class="mx-auto block btn bg-primary text-white font-semibold hover:bg-primary/90">Preview Message</button>
+    </form>
+  </section>
+</section>
+
+<!-- TODO: Add preview message modal -->
+
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/msgSelElements.js"></script>
+{{ end }}

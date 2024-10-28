@@ -1,42 +1,4 @@
-import { countriesArray, naturalPersonNtlIdTypeArray, networksArray } from './constants.js';
 import { setSuccessToast } from './utils.js';
-
-const network = 'network';
-const country = 'country';
-const nationalIdType = 'idType';
-
-const envelopeDropdowns = [
-  { sel: '#networks', options: network },
-  { sel: '#orig_countries', options: country },
-  { sel: '#benf_countries', options: country },
-  { sel: '#og_id_country', options: country },
-  { sel: '#bf_id_country', options: country },
-  { sel: '#og_id_type_code', options: nationalIdType },
-  { sel: '#bf_id_type_code', options: nationalIdType },
-];
-
-envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.options));
-
-function setSlimSelect(sel, options) {
-  const newDropdown = new SlimSelect({
-    select: sel
-  });
-
-  if (options === network) {
-    networksArray.unshift({ 'placeholder': true, 'text': 'Select a network', 'value': '' });
-    newDropdown.setData(networksArray);
-  };
-
-  if (options === country) {
-    countriesArray.unshift({ 'placeholder': true, 'text': 'Select a country', 'value': '' });
-    newDropdown.setData(countriesArray);
-  };
-
-  if (options === nationalIdType) {
-    naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
-    newDropdown.setData(naturalPersonNtlIdTypeArray);
-  };
-};
 
 document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === '/v1/transactions/prepare' && e.detail.verb === 'post') {
