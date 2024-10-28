@@ -6,9 +6,9 @@ import "fmt"
 const (
 	VersionMajor         = 0
 	VersionMinor         = 27
-	VersionPatch         = 0
+	VersionPatch         = 1
 	VersionReleaseLevel  = "beta"
-	VersionReleaseNumber = 32
+	VersionReleaseNumber = 33
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=$(git rev-parse --short HEAD)'"

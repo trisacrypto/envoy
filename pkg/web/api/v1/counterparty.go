@@ -176,20 +176,22 @@ func (c *Counterparty) Validate() (err error) {
 		}
 	}
 
-	if _, perr := c.IVMS101(); perr != nil {
-		switch e := perr.(type) {
-		case ivms101.ValidationErrors:
-			for _, ve := range e {
-				err = ValidationError(err, InvalidIVMS101(ve))
+	if c.IVMSRecord != "" {
+		if _, perr := c.IVMS101(); perr != nil {
+			switch e := perr.(type) {
+			case ivms101.ValidationErrors:
+				for _, ve := range e {
+					err = ValidationError(err, InvalidIVMS101(ve))
+				}
+			case *ivms101.FieldError:
+				err = ValidationError(err, InvalidIVMS101(e))
+			case ValidationErrors:
+				err = ValidationError(err, e...)
+			case *FieldError:
+				err = ValidationError(err, e)
+			default:
+				err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
 			}
-		case *ivms101.FieldError:
-			err = ValidationError(err, InvalidIVMS101(e))
-		case ValidationErrors:
-			err = ValidationError(err, e...)
-		case *FieldError:
-			err = ValidationError(err, e)
-		default:
-			err = ValidationError(err, IncorrectField("ivms101", perr.Error()))
 		}
 	}
 
