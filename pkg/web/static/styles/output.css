@@ -2851,11 +2851,6 @@ details.collapse summary::-webkit-details-marker {
   margin-bottom: 1.5rem;
 }
 
-.my-auto {
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -2940,20 +2935,16 @@ details.collapse summary::-webkit-details-marker {
   display: none;
 }
 
+.h-16 {
+  height: 4rem;
+}
+
 .h-4 {
   height: 1rem;
 }
 
 .h-\[28px\] {
   height: 28px;
-}
-
-.h-16 {
-  height: 4rem;
-}
-
-.h-auto {
-  height: auto;
 }
 
 .h-full {
@@ -3022,10 +3013,6 @@ details.collapse summary::-webkit-details-marker {
 
 .w-full {
   width: 100%;
-}
-
-.w-16 {
-  width: 4rem;
 }
 
 .min-w-0 {
@@ -3109,10 +3096,6 @@ details.collapse summary::-webkit-details-marker {
   gap: 1.5rem;
 }
 
-.gap-8 {
-  gap: 2rem;
-}
-
 .gap-x-1 {
   -moz-column-gap: 0.25rem;
        column-gap: 0.25rem;
@@ -3140,10 +3123,6 @@ details.collapse summary::-webkit-details-marker {
 
 .gap-y-3 {
   row-gap: 0.75rem;
-}
-
-.self-center {
-  align-self: center;
 }
 
 .overflow-x-auto {
@@ -3244,6 +3223,16 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity)) !important;
 }
 
+.bg-\[\#E66809\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(230 104 9 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#F5F5F5\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(245 245 245 / var(--tw-bg-opacity));
+}
+
 .bg-\[\#FFFDD0\] {
   --tw-bg-opacity: 1;
   background-color: rgb(255 253 208 / var(--tw-bg-opacity));
@@ -3307,16 +3296,6 @@ details.collapse summary::-webkit-details-marker {
 .bg-warning {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-wa,oklch(var(--wa)/var(--tw-bg-opacity)));
-}
-
-.bg-\[\#E66809\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(230 104 9 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#F5F5F5\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(245 245 245 / var(--tw-bg-opacity));
 }
 
 .p-1 {
@@ -3923,6 +3902,10 @@ body main {
   }
 }
 
+.hover\:bg-\[\#E66809\]\/90:hover {
+  background-color: rgb(230 104 9 / 0.9);
+}
+
 .hover\:bg-black\/80:hover {
   background-color: rgb(0 0 0 / 0.8);
 }
@@ -3949,14 +3932,6 @@ body main {
 
 .hover\:bg-warning\/80:hover {
   background-color: var(--fallback-wa,oklch(var(--wa)/0.8));
-}
-
-.hover\:bg-\[\#E66809\]\/80:hover {
-  background-color: rgb(230 104 9 / 0.8);
-}
-
-.hover\:bg-\[\#E66809\]\/90:hover {
-  background-color: rgb(230 104 9 / 0.9);
 }
 
 .hover\:text-primary:hover {
@@ -4107,10 +4082,6 @@ body main {
     padding: 1.5rem;
   }
 
-  .md\:p-4 {
-    padding: 1rem;
-  }
-
   .md\:px-36 {
     padding-left: 9rem;
     padding-right: 9rem;
@@ -4119,11 +4090,6 @@ body main {
   .md\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
-  }
-
-  .md\:px-2 {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
   }
 
   .md\:text-3xl {
