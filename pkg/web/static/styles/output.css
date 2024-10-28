@@ -1569,6 +1569,12 @@ html {
   }
 }
 
+.card.compact .card-body {
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
 .checkbox:focus {
   box-shadow: none;
 }
@@ -2905,6 +2911,10 @@ details.collapse summary::-webkit-details-marker {
   margin-top: 2rem;
 }
 
+.mt-auto {
+  margin-top: auto;
+}
+
 .block {
   display: block;
 }
@@ -2925,12 +2935,20 @@ details.collapse summary::-webkit-details-marker {
   display: none;
 }
 
+.h-16 {
+  height: 4rem;
+}
+
 .h-4 {
   height: 1rem;
 }
 
 .h-\[28px\] {
   height: 28px;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .max-h-64 {
@@ -3203,6 +3221,16 @@ details.collapse summary::-webkit-details-marker {
 .\!bg-gray-50 {
   --tw-bg-opacity: 1 !important;
   background-color: rgb(249 250 251 / var(--tw-bg-opacity)) !important;
+}
+
+.bg-\[\#E66809\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(230 104 9 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#F5F5F5\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(245 245 245 / var(--tw-bg-opacity));
 }
 
 .bg-\[\#FFFDD0\] {
@@ -3874,6 +3902,10 @@ body main {
   }
 }
 
+.hover\:bg-\[\#E66809\]\/90:hover {
+  background-color: rgb(230 104 9 / 0.9);
+}
+
 .hover\:bg-black\/80:hover {
   background-color: rgb(0 0 0 / 0.8);
 }
@@ -3948,6 +3980,10 @@ body main {
 }
 
 @media (min-width: 640px) {
+  .sm\:h-auto {
+    height: auto;
+  }
+
   .sm\:flex-row {
     flex-direction: row;
   }
@@ -3962,6 +3998,10 @@ body main {
 
   .sm\:gap-y-0 {
     row-gap: 0px;
+  }
+
+  .sm\:p-4 {
+    padding: 1rem;
   }
 }
 
