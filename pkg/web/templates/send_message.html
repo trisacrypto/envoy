@@ -15,8 +15,7 @@
       You will need a valid email address for your counterparty. If your counterparty is in the TRISA or TRP networks,
       <a href="/send-envelope" class="underline text-blue-700">send a secure envelope</a> instead.
     </p>
-    <!-- TODO: Add htmx attributes -->
-    <form id="sunrise-msg-form" method="post">
+    <form id="sunrise-msg-form" hx-post="" hx-target="#preview_msg" hx-indicator="#loader" hx-ext="json-enc" method="post">
 
       <section class="py-2 border-t border-t-black">
         <div class="my-5">
@@ -35,12 +34,14 @@
 
       {{ template "virtual_asset" . }}
 
-      <button id="preview-msg-bttn" class="mx-auto block btn bg-primary text-white font-semibold hover:bg-primary/90">Preview Message</button>
+      <button type="button" onclick="preview_msg.showModal()" id="preview-msg-bttn" class="mx-auto block btn bg-primary text-white font-semibold hover:bg-primary/90">Preview Message</button>
     </form>
   </section>
 </section>
 
-<!-- TODO: Add preview message modal -->
+ <dialog id="preview_msg" class="modal">
+  <span id="loader" class="htmx-indicator loading loading-spinner loading-lg"></span>
+ </dialog>
 
 {{ end }}
 

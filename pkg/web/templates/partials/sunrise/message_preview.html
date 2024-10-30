@@ -1,0 +1,182 @@
+<div id="preview-msg-container" class="modal-box mx-auto relative p-4 max-w-5xl">
+  <div class="max-h-[450px] overflow-y-auto">
+    <!-- Modal header -->
+    <div class="md:flex items-center justify-between p-4 border border-black bg-neutral">
+      <div class="mb-4 md:mb-0">
+        <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+          Sunrise Message: Preview
+        </h1>
+      </div>
+      <div class="flex flex-row gap-x-2 md:gap-4">
+        <button type="button" onclick="preview_msg.close()" class="btn bg-warning w-32 text-white hover:bg-warning/90">Cancel</button>
+        <button type="submit" class="submit-btn btn w-32 bg-success text-white hover:bg-success/90">Send</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal content -->
+  <section class="py-4">
+    <div class="py-2 ml-1">
+      <h3 class="py-1"><span class="font-semibold">From:</span> {originator}</h3>
+      <h3 class="py-1"><span class="font-semibold">To:</span> {beneficiary}</h3>
+      <h3 class="py-1 text-balance"><span class="font-semibold">Subject:</span> Action Required: Review and Complete Travel Rule Data Exchange from {originator}</h3>
+    </div>
+    <div class="border border-black my-4 rounded p-4">
+      <p>Dear {beneficiary_name},</p>
+      <p class="py-2">We have a pending transaction that requires exchanging Travel Rule data. Please click the secure link below to verify your identity, review the originator data, and provide the necessary beneficiary information to complete the transfer.</p>
+      <p class="py-2">The link will expire in 7 days.</p>
+      <div class="py-2"><a href="">View Travel Rule Data</a></div>
+      <p class="py-2">Your prompt action is needed to ensure compliance with the Travel Rule.</p>
+      <p class="py-2">Best regards,</p>
+      <p class="py-2">{originator_name}</p>
+    </div>
+  </section>
+  <div>
+    <p class="pb-4">The following information will be displayed to the counterparty after clicking the secure link. Please confirm before sending. Click cancel to edit.</p>
+    <section class="mx-auto mb-4 p-4 md:mx-0 lg:mb-0 md:p-6 border border-black rounded bg-neutral">
+      <div class="grid md:grid-cols-2">
+        <div class="mb-4">
+          <h2 class="pb-2 text-lg font-bold">TRANSACTION DETAILS</h2>
+          <dl>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Originator Crypto Address</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Amount</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Network</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Asset Type</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Transaction ID/Hash</dt>
+              <dd></dd>
+            </div>
+          </dl>
+        </div>
+        <div>
+          <h2 class="pb-2 text-lg font-bold">BENEFICIARY</h2>
+          <dl>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Beneficiary Crypto Address</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Beneficiary Email Address</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">First Name</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Last Name</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Country</dt>
+              <dd></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+      <div class="my-4 grid md:grid-cols-2">
+        <div class="mb-4">
+          <h2 class="pb-2 text-lg font-bold">ORIGINATOR</h2>
+          <dl>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Name Identifiers</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Name Identifiers Type</dt>
+              <dd class="identifier-type badge-style"></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Date of Birth</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Place of Birth</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Address</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Country of Residence</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Customer Identification</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">National Identification Number</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">National Identification Type</dt>
+              <dd class="identifier-type badge-style"></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Country of Issue</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Accounts Numbers</dt>
+              <dd></dd>
+            </div>
+          </dl>
+        </div>
+        <div>
+          <h2 class="pb-2 text-lg font-bold">ORIGINATING VASP</h2>
+          <dl>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Name Identifiers</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Name Identifiers Type</dt>
+              <dd class="identifier-type badge-style"></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Address</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Address Type</dt>
+              <dd class="identifier-type badge-style"></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">National Identification</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">National Identification Type</dt>
+              <dd class="identifier-type badge-style"></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Country of Issue</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Registration Authority</dt>
+              <dd></dd>
+            </div>
+            <div class="transaction-preview-container">
+              <dt class="font-semibold">Country of Registration</dt>
+              <dd></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
