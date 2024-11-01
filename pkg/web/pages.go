@@ -88,11 +88,11 @@ func (s *Server) SendMessageForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "send_message.html", scene.New(c))
 }
 
-func (s *Server) Verify(c *gin.Context) {
+func (s *Server) VerifySunriseUser(c *gin.Context) {
 	c.HTML(http.StatusOK, "verify.html", scene.New(c))
 }
 
-func (s *Server) ViewSunriseMessage(c *gin.Context) {
+func (s *Server) SunriseMessagePreview(c *gin.Context) {
 	c.HTML(http.StatusOK, "view_message.html", scene.New(c))
 }
 
