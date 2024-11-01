@@ -92,6 +92,10 @@ func (s *Server) Verify(c *gin.Context) {
 	c.HTML(http.StatusOK, "verify.html", scene.New(c))
 }
 
+func (s *Server) ViewSunriseMessage(c *gin.Context) {
+	c.HTML(http.StatusOK, "view_message.html", scene.New(c))
+}
+
 func (s *Server) TravelAddressUtility(c *gin.Context) {
 	c.HTML(http.StatusOK, "traveladdress.html", scene.New(c))
 }
