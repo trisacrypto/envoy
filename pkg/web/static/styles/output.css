@@ -3065,6 +3065,10 @@ details.collapse summary::-webkit-details-marker {
   max-width: 20rem;
 }
 
+.flex-1 {
+  flex: 1 1 0%;
+}
+
 .table-fixed {
   table-layout: fixed;
 }

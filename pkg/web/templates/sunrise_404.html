@@ -1,0 +1,15 @@
+{{ template "sunrise" . }}
+{{ define "content" }}
+
+<section class="text-center py-12">
+  <img src="/static/404error.svg" alt="404 Error" class="w-[350px] mx-auto" />
+  <p class="py-4 text-xl">Sorry, we couldn't find the page you're looking for. Try going back to a previous page or contact <a href="mailto:support@rotational.io" class="text-blue-700">support@rotational.io </a>for assistance.</p>
+  <p class="py-4 text-xl">If you're not yet part of the TRISA network, consider joining to streamline future Travel Rule compliance and secure data exchanges.</p>
+
+  <div class="my-10 flex items-center gap-x-4 max-w-sm mx-auto">
+    <a onclick="window.history.back()" class="flex-1 p-4 rounded-md bg-black text-white font-semibold hover:bg-black/80">Go Back</a>
+    <a href="https://vaspdirectory.net/" target="_blank" class="flex-1 p-4 rounded-md bg-primary text-white font-semibold hover:bg-primary/80">Join TRISA Network</a>
+  </div>
+</section>
+
+{{ end }}
