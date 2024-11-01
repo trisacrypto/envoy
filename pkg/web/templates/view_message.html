@@ -1,0 +1,26 @@
+{{ template "sunrise" . }}
+{{ define "content" }}
+
+<section class="mx-8 py-14">
+  <h1 class="pb-4 text-2xl md:text-3xl font-semibold text-center text-balance">
+    Welcome to the Secure Travel Rule Data Exchange
+  </h1>
+  <p class="py-4 text-lg">
+    Review the travel rule data and provide the required beneficiary information to accept the
+    transaction. If you're not yet part of the TRISA network, <a href="https://vaspdirectory.net/" target="_blank" class="underline text-blue-700">consider joining</a> 
+    to streamline future Travel Rule compliance and secure data exchanges.
+  </p>
+  
+  <!-- TODO: Add htmx attributes -->
+  <div id="sunrise-transaction"></div>
+
+</section>
+
+<!-- Reject modal -->
+{{ template "transaction_rejection" . }}
+
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/msgSelElements.js"></script>
+{{ end }}

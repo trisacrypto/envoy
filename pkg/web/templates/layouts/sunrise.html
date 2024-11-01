@@ -1,0 +1,19 @@
+{{ define "sunrise" }}
+<!DOCTYPE html>
+<html lang="en">
+  {{ template "head" . }}
+<body>
+
+  {{ template "sunrise_header" . }}
+  
+  <main>
+    {{ block "content" . }}{{ end }}
+  </main>
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/json-enc.js"></script>
+  <script src="https://unpkg.com/slim-select@latest/dist/slimselect.min.js"></script>
+  <script type="module" src="/static/js/main.js"></script>
+  {{ block "appcode" . }}{{ end }}
+</body>
+</html>
+{{ end }}
