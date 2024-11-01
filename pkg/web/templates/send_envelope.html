@@ -2,7 +2,13 @@
 {{ define "content" }}
 
 <section class="mx-8 py-9">
-  <h1 class="font-semibold text-2xl md:text-3xl text-center text-balance">Send New Secure Envelope</h1>
+  <div class="flex justify-around items-center my-4 md:m-8">
+    <a href="/" class="btn btn-sm btn-circle btn-ghost text-xl">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span class="sr-only">Go back</span>
+    </a>
+    <h1 class="mx-auto font-semibold text-2xl md:text-3xl text-center text-balance">Send New Secure Envelope</h1>
+  </div>
   <section class="my-4 md:m-8">
     <p class="my-2 md:text-lg">Create a secure envelope to share transfer details with the counterparty.</p>
     <form id="secure-envelope-form" hx-post="/v1/transactions/prepare" hx-target="#preview_envelope" hx-indicator="#loader" hx-ext="json-enc" method="post">
