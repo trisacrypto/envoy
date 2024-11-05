@@ -102,8 +102,6 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
 	s.router.GET("/send-message", authenticate, s.SendMessageForm)
-	s.router.GET("/verify", s.VerifySunriseUser)
-	s.router.GET("/sunrise-accept", s.SunriseMessagePreview)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/users", authenticate, s.UsersManagement)
@@ -111,8 +109,16 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
 
 	// Swagger documentation with Swagger UI hosted from a CDN
+	// NOTE: should documentation require authentication?
 	s.router.GET("/v1/docs/openapi.:ext", s.OpenAPI)
 	s.router.GET("/v1/docs", s.APIDocs)
+
+	// Sunrise Routes (can be disabled by the middleware)
+	sunrise := s.router.Group("/sunrise", s.SunriseEnabled())
+	{
+		sunrise.GET("/verify", s.VerifySunriseUser)
+		sunrise.GET("/accept", s.SunriseMessagePreview)
+	}
 
 	// API Routes (Including Content Negotiated Partials)
 	v1 := s.router.Group("/v1")
