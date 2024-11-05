@@ -4,6 +4,26 @@
 <section class="mx-8 py-14">
   <h1 class="my-3 text-2xl md:text-3xl font-semibold text-center text-balance">Welcome to the Secure Travel Rule Data Exchange</h1>
   <div id="verification"></div>
-</section>
 
+  <div id="verify-email" class="mx-auto max-w-4xl">
+    <p class="py-4 text-lg">
+      {Originator VASP Name} is requesting confirmation of Travel Rule data for a pending transaction. To securely
+      review the data and complete the transaction, please confirm your identity by entering your email address below.
+    </p>
+    <!-- TODO: Add htmx attributes -->
+    <form id="verify-email-form" class="py-2" method="post" hx-post="" hx-target="#verify-email" hx-swap="outerHTML" hx-ext="json-enc" hx-indicator="loader">
+      <label for="email" class="label-style">Verify Email Address</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email address" class="input-style" />
+      <div class="flex justify-end py-4">
+        <button type="submit" class="submit-btn btn w-32 bg-primary text-white font-semibold hover:bg-primary/90">
+          <span class="submit-btn-text">Submit</span>
+          <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <img src="/static/lock.svg" alt="" class="mx-auto w-1/4 h-auto mt-12" />
+  
+</section>
 {{ end }}
