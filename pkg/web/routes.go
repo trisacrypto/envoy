@@ -101,7 +101,6 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/transactions/:id/repair", authenticate, s.TransactionsRepairPreview)
 	s.router.GET("/transactions/:id/info", authenticate, s.TransactionsInfo)
 	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
-	s.router.GET("/send-message", authenticate, s.SendMessageForm)
 	s.router.GET("/accounts", authenticate, s.Accounts)
 	s.router.GET("/counterparty", authenticate, s.CounterpartyVasps)
 	s.router.GET("/users", authenticate, s.UsersManagement)
@@ -118,6 +117,7 @@ func (s *Server) setupRoutes() (err error) {
 	{
 		sunrise.GET("/verify", s.VerifySunriseUser)
 		sunrise.GET("/accept", s.SunriseMessagePreview)
+		s.router.GET("/message", authenticate, s.SendMessageForm)
 	}
 
 	// API Routes (Including Content Negotiated Partials)

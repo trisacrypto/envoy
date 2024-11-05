@@ -8,6 +8,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,6 +59,9 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 		WriteTimeout:      20 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}
+
+	// Update the scene with the configuration
+	scene.WithConf(&conf)
 
 	return s, nil
 }
