@@ -8,12 +8,18 @@ package scene
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
 
-// Compute the version of the package at runtime so it is static for all contexts.
-var version = pkg.Version()
+var (
+	// Compute the version of the package at runtime so it is static for all contexts.
+	version = pkg.Version()
+
+	// Configuration values set from the global configuration to be included in context.
+	sunriseEnabled *bool
+)
 
 // Keys for default Scene context items
 const (
@@ -22,6 +28,7 @@ const (
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
 	APIData         = "APIData"
+	SunriseEnabled  = "SunriseEnabled"
 )
 
 type Scene map[string]interface{}
@@ -46,6 +53,11 @@ func New(c *gin.Context) Scene {
 	} else {
 		context[IsAuthenticated] = true
 		context[User] = claims
+	}
+
+	// Add configuration values
+	if sunriseEnabled != nil {
+		context[SunriseEnabled] = *sunriseEnabled
 	}
 
 	return context
@@ -199,4 +211,12 @@ func (s Scene) APIKeyDetail() *api.APIKey {
 		}
 	}
 	return nil
+}
+
+//===========================================================================
+// Set Global Scene for Context
+//===========================================================================
+
+func WithConf(conf *config.Config) {
+	sunriseEnabled = &conf.Sunrise.Enabled
 }

@@ -35,6 +35,7 @@ type Config struct {
 	Node          TRISAConfig         `split_words:"true"`
 	DirectorySync DirectorySyncConfig `split_words:"true"`
 	TRP           TRPConfig           `split_words:"true"`
+	Sunrise       SunriseConfig       `split_words:"true"`
 	RegionInfo    RegionInfo          `split_words:"true"`
 	processed     bool
 }
@@ -105,6 +106,10 @@ type TRPConfig struct {
 type TRPIdentityConfig struct {
 	VASPName string `split_words:"true" desc:"specify the name response in a trp identity request"`
 	LEI      string `required:"false" desc:"the lei of your vasp to respond to a trp identity request"`
+}
+
+type SunriseConfig struct {
+	Enabled bool `default:"true" desc:"if false, it will not be possible to send sunrise emails and sunrise endpoints will return a 404"`
 }
 
 // Optional region and deployment information associated with the node.

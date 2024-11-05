@@ -53,6 +53,7 @@ var testEnv = map[string]string{
 	"TRISA_TRP_CERTS":                       "fixtures/certs/trp/certs.pem",
 	"TRISA_TRP_IDENTITY_VASP_NAME":          "Testing VASP",
 	"TRISA_TRP_IDENTITY_LEI":                "GTFZ00N6IHYMHHNT8S51",
+	"TRISA_SUNRISE_ENABLED":                 "false",
 	"REGION_INFO_ID":                        "2840302",
 	"REGION_INFO_NAME":                      "us-east4c",
 	"REGION_INFO_COUNTRY":                   "US",
@@ -112,6 +113,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_TRP_CERTS"], conf.TRP.Certs)
 	require.Equal(t, testEnv["TRISA_TRP_IDENTITY_VASP_NAME"], conf.TRP.Identity.VASPName)
 	require.Equal(t, testEnv["TRISA_TRP_IDENTITY_LEI"], conf.TRP.Identity.LEI)
+	require.False(t, conf.Sunrise.Enabled)
 	require.Equal(t, testEnv["REGION_INFO_NAME"], conf.RegionInfo.Name)
 	require.Equal(t, testEnv["REGION_INFO_COUNTRY"], conf.RegionInfo.Country)
 	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)
