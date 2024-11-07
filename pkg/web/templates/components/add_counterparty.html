@@ -1,0 +1,116 @@
+{{ define "add_cparty_modal" }}
+
+{{ $sunrise := .SunriseEnabled }}
+
+<dialog id="add_cparty_modal" class="modal">
+  <div class="modal-box max-w-3xl max-h-screen">
+    <div class="flex justify-between items-center">
+      <h1 class="font-bold text-xl">Add New Counterparty VASP</h1>
+      <button onclick="add_cparty_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <p class="py-4">Add new counterparty VASP details.</p>
+    <div>
+      <form id="new-cparty-form" hx-post="/v1/counterparties" hx-ext="json-enc" hx-target="#counterparties" hx-swap-oob="outerHTML:#counterparties" method="post">
+        <div class="mb-4 grid gap-6 md:grid-cols-2">
+          <div>
+            <label for="name" class="label-style">VASP Name</label>
+            <input type="text" id="name" name="name" class="input-style" />
+          </div>
+          <div>
+            <label for="website" class="label-style">Website</label>
+            <input type="text" id="website" name="website" class="input-style" />
+          </div>
+        </div>
+        <div class="mb-4 grid gap-6 md:grid-cols-2">
+          <div>
+            <label for="common_name" class="label-style">Common Name</label>
+            <input type="text" id="common_name" name="common_name" class="input-style" />
+          </div>
+          <div>
+            <label for="endpoint" class="label-style">Endpoint</label>
+            <input type="text" id="endpoint" name="endpoint" class="input-style" />
+          </div>
+        </div>
+
+        {{ if $sunrise }}
+        <div class="mb-4 grid gap-6 md:grid-cols-2">
+          <div>
+            <label for="officer_name" class="label-style">Compliance Officer Name</label>
+            <input type="text" id="officer_name" name="officer_name" class="input-style" />
+          </div>
+          <div>
+            <label for="officer_email" class="label-style">Compliance Officer Email Address</label>
+            <input type="text" id="officer_email" name="officer_email" class="input-style" />
+          </div>
+        </div>
+        {{ end }}
+
+        <div class="mb-4">
+          <div>
+            <label for="countries" class="label-style">Country</label>
+            <select id="countries" name="country">
+            </select>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="signing_key" class="label-style">Signing Key (optional)</label>
+          <input type="text" id="signing_key" name="signing_key" class="input-style" />
+        </div>
+        <div class="mb-6">
+          <h3 class="font-bold">Supported Protocols</h3>
+          <div class="mt-2 flex items-center gap-x-4">
+            {{ if $sunrise }}
+            <div class="flex items-center">
+              <input type="checkbox" id="trp" name="protocol" value="sunrise" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+              <label for="sunrise" class="ms-2 text-sm font-medium text-gray-900">Email</label>
+            </div>
+            {{ end }}
+            <div class="flex items-center">
+              <input type="checkbox" id="trisa" name="protocol" value="trisa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+              <label for="trisa" class="ms-2 text-sm font-medium text-gray-900">TRISA</label>
+            </div>
+            <div class="flex items-center">
+              <input type="checkbox" id="trp" name="protocol" value="trp" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" />
+              <label for="trp" class="ms-2 text-sm font-medium text-gray-900">TRP</label>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 items-center gap-x-6 mb-6">
+          <div>
+            <label for="preferred_protocol" class="label-style">Select Preferred Protocol</label>
+            <select id="preferred_protocol" size="2" class="overflow-y-auto bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+              {{ if $sunrise }}
+              <option value="sunrise">Email</option>
+              {{ end }}
+              <option value="trisa">TRISA</option>
+              <option value="trp">TRP</option>
+            </select>
+          </div>
+          <div>
+            <label for="auto_approve" class="label-style">Auto Accept?</label>
+            <select id="auto_approve" size="2" class="overflow-y-auto bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+              <option value="true">YES</option>
+              <option value="false">NO</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="tag" class="label-style">Notes</label>
+          <textarea id="tag" name="tag" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+        <div class="flex justify-center">
+          <button class="submit-btn w-44 btn bg-primary font-semibold text-lg text-white hover:bg-primary/90">
+            <span class="submit-btn-text">Save</span>
+            <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="country-content"></div>
+</dialog>
+
+{{ end }}
