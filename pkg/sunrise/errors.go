@@ -8,4 +8,5 @@ var (
 	ErrInvalidEnvelopeID = errors.New("invalid sunrise token: no envelope id")
 	ErrInvalidExpiration = errors.New("invalid sunrise token: no expiration timestamp")
 	ErrInvalidNonce      = errors.New("invalid sunrise token: incorrect nonce")
+	ErrInvalidSignature  = errors.New("invalid sunrise token: incorrect hmac signature")
 )
