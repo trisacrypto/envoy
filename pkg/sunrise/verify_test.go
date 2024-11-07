@@ -5,14 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 )
 
 func TestVerification(t *testing.T) {
 	// Generate verification token and signature
-	verify, signature, err := sunrise.NewToken(uuid.New(), time.Now().Add(1*time.Hour)).Sign()
+	verify, signature, err := sunrise.NewToken(ulids.New(), time.Now().Add(1*time.Hour)).Sign()
 	require.NoError(t, err, "could not sign token")
 
 	// Create tokens string to send to user; assume that the signature is saved to db and loaded again
@@ -39,13 +40,13 @@ func TestVerification(t *testing.T) {
 
 func TestNewToken(t *testing.T) {
 	t.Run("DefaultExpiration", func(t *testing.T) {
-		token := sunrise.NewToken(uuid.New(), time.Time{})
+		token := sunrise.NewToken(ulids.New(), time.Time{})
 		require.False(t, token.Expiration.IsZero(), "expected an expiration timestamp to be set")
 		require.True(t, token.Expiration.After(time.Now()), "expiration is not set in the future")
 	})
 
 	t.Run("NonceGeneration", func(t *testing.T) {
-		token := sunrise.NewToken(uuid.New(), time.Now())
+		token := sunrise.NewToken(ulids.New(), time.Now())
 		data, err := token.MarshalBinary()
 		require.NoError(t, err, "could not marshal binary")
 
@@ -54,13 +55,13 @@ func TestNewToken(t *testing.T) {
 	})
 
 	t.Run("Randomness", func(t *testing.T) {
-		envelopeID := uuid.New()
+		sunriseID := ulids.New()
 		expiration := time.Now().Add(1 * time.Hour)
 
-		// Generate 16 tokens with the same envelopeID and expiration timestamp
+		// Generate 16 tokens with the same sunriseID and expiration timestamp
 		tokens := make([]*sunrise.Token, 0, 16)
 		for i := 0; i < 16; i++ {
-			tokens = append(tokens, sunrise.NewToken(envelopeID, expiration))
+			tokens = append(tokens, sunrise.NewToken(sunriseID, expiration))
 		}
 
 		// Ensure that all marshaled tokens are different (because of the nonce)
@@ -90,15 +91,15 @@ func TestTokenExpiration(t *testing.T) {
 		assert require.BoolAssertionFunc
 	}{
 		{
-			sunrise.NewToken(uuid.New(), time.Now().Add(7*24*time.Hour)),
+			sunrise.NewToken(ulids.New(), time.Now().Add(7*24*time.Hour)),
 			require.False,
 		},
 		{
-			sunrise.NewToken(uuid.New(), time.Now().Add(-7*24*time.Hour)),
+			sunrise.NewToken(ulids.New(), time.Now().Add(-7*24*time.Hour)),
 			require.True,
 		},
 		{
-			&sunrise.Token{EnvelopeID: uuid.New()},
+			&sunrise.Token{SunriseID: ulids.New()},
 			require.True,
 		},
 	}
@@ -110,35 +111,35 @@ func TestTokenExpiration(t *testing.T) {
 
 func TestTokenSign(t *testing.T) {
 	t.Run("Happy", func(t *testing.T) {
-		token := sunrise.NewToken(uuid.New(), time.Now())
+		token := sunrise.NewToken(ulids.New(), time.Now())
 		verification, signature, err := token.Sign()
 		require.NoError(t, err, "could not sign token")
-		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte uuid + 64 byte secret)")
+		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte ulid + 64 byte secret)")
 		require.Len(t, signature.Signature(), 32, "unexpected length of hmac signature (32 bytes for sha256)")
 	})
 
 	t.Run("WithoutNonce", func(t *testing.T) {
-		token := &sunrise.Token{EnvelopeID: uuid.New(), Expiration: time.Now()}
+		token := &sunrise.Token{SunriseID: ulids.New(), Expiration: time.Now()}
 		verification, signature, err := token.Sign()
 		require.NoError(t, err, "could not sign token")
-		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte uuid + 64 byte secret)")
+		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte ulid + 64 byte secret)")
 		require.Len(t, signature.Signature(), 32, "unexpected length of hmac signature (32 bytes for sha256)")
 	})
 
 	t.Run("VerificationToken", func(t *testing.T) {
-		envelopeID := uuid.New()
-		verify, _, err := sunrise.NewToken(envelopeID, time.Time{}).Sign()
+		sunriseID := ulids.New()
+		verify, _, err := sunrise.NewToken(sunriseID, time.Time{}).Sign()
 		require.NoError(t, err, "could not sign token")
 
-		require.Equal(t, envelopeID, verify.EnvelopeID(), "expected envelope ID to match")
+		require.Equal(t, sunriseID, verify.SunriseID(), "expected sunrise ID to match")
 		require.Len(t, verify.Secret(), 64, "expected secret to be 64 bytes long")
 	})
 
 	t.Run("Sad", func(t *testing.T) {
 		testCases := []*sunrise.Token{
 			{},
-			{EnvelopeID: uuid.New()},
-			{EnvelopeID: uuid.Nil, Expiration: time.Now()},
+			{SunriseID: ulids.New()},
+			{SunriseID: ulids.Null, Expiration: time.Now()},
 		}
 
 		for i, token := range testCases {
@@ -150,8 +151,8 @@ func TestTokenSign(t *testing.T) {
 	})
 
 	t.Run("SecretRandomness", func(t *testing.T) {
-		// Create a token with constant nonce, uuid, and expiration
-		token := sunrise.NewToken(uuid.New(), time.Now().Add(1*time.Hour))
+		// Create a token with constant nonce, ulid, and expiration
+		token := sunrise.NewToken(ulids.New(), time.Now().Add(1*time.Hour))
 
 		// Create 16 verification tokens from the same token
 
@@ -185,9 +186,9 @@ func TestTokenSign(t *testing.T) {
 func TestTokenBinary(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		testCases := []*sunrise.Token{
-			sunrise.NewToken(uuid.MustParse("24035c84-ff3d-4da2-aef7-8683d9c00978"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
-			sunrise.NewToken(uuid.New(), time.Now()),
-			sunrise.NewToken(uuid.New(), time.Now().Add(312391*time.Hour)),
+			sunrise.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
+			sunrise.NewToken(ulids.New(), time.Now()),
+			sunrise.NewToken(ulids.New(), time.Now().Add(312391*time.Hour)),
 		}
 
 		for i, token := range testCases {
@@ -209,11 +210,11 @@ func TestTokenBinary(t *testing.T) {
 			err   error
 		}{
 			{
-				sunrise.NewToken(uuid.Nil, time.Now()),
-				sunrise.ErrInvalidEnvelopeID,
+				sunrise.NewToken(ulids.Null, time.Now()),
+				sunrise.ErrInvalidSunriseID,
 			},
 			{
-				&sunrise.Token{EnvelopeID: uuid.New(), Expiration: time.Time{}},
+				&sunrise.Token{SunriseID: ulids.New(), Expiration: time.Time{}},
 				sunrise.ErrInvalidExpiration,
 			},
 		}
@@ -281,9 +282,9 @@ func TestTokenBinary(t *testing.T) {
 func TestSignedTokenBinary(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		testCases := []*sunrise.Token{
-			sunrise.NewToken(uuid.MustParse("24035c84-ff3d-4da2-aef7-8683d9c00978"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
-			sunrise.NewToken(uuid.New(), time.Now()),
-			sunrise.NewToken(uuid.New(), time.Now().Add(312391*time.Hour)),
+			sunrise.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
+			sunrise.NewToken(ulids.New(), time.Now()),
+			sunrise.NewToken(ulids.New(), time.Now().Add(312391*time.Hour)),
 		}
 
 		for i, token := range testCases {
@@ -369,7 +370,7 @@ func TestVerificationToken(t *testing.T) {
 		tks := "k0ZmbMJcQeyFtAtZ0_2EXMHwJ1ufcB4831ozVeHzAcVpyKybKzelG0l9qbJ4K5IUjaGSx5EdJ_9rSR8RVry3g13DJ-Dh4NktFFSY0ULIkMY"
 		token, err := sunrise.ParseVerification(tks)
 		require.NoError(t, err, "could not parse good verification token")
-		require.Equal(t, token.EnvelopeID(), uuid.MustParse("9346666c-c25c-41ec-85b4-0b59d3fd845c"), "unexpected envelope id")
+		require.Equal(t, token.SunriseID(), ulid.MustParse("4K8SK6SGJW87P8BD0BB79ZV12W"), "unexpected sunrise id")
 
 		secret := []byte{
 			0xc1, 0xf0, 0x27, 0x5b, 0x9f, 0x70, 0x1e, 0x3c, 0xdf, 0x5a, 0x33, 0x55, 0xe1, 0xf3, 0x1, 0xc5,

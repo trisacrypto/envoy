@@ -5,13 +5,15 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql/driver"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 )
 
 const (
@@ -31,7 +33,7 @@ const (
 // Tokens can be used to generate SignedTokens and SignedTokens can be used to send a
 // secure verification token and to verify that tokens belong to the specified user.
 type Token struct {
-	EnvelopeID uuid.UUID // Envelope ID of the transaction
+	SunriseID  ulid.ULID // ID of the sunrise record in the database
 	Expiration time.Time // Expiration date of the token (not after)
 	nonce      []byte    // Random nonce for cryptographic security
 }
@@ -54,13 +56,13 @@ type VerificationToken []byte
 // Create a new token with the specified ID and expiration timestamp. If the timestamp
 // is zero valued, then a timestamp in the future will be generated with the default
 // expiration deadline.
-func NewToken(envelopeID uuid.UUID, expiration time.Time) *Token {
+func NewToken(sunriseID ulid.ULID, expiration time.Time) *Token {
 	if expiration.IsZero() {
 		expiration = time.Now().Add(defaultTTL)
 	}
 
 	token := &Token{
-		EnvelopeID: envelopeID,
+		SunriseID:  sunriseID,
 		Expiration: expiration,
 		nonce:      make([]byte, nonceLength),
 	}
@@ -110,7 +112,7 @@ func (t *Token) Sign() (token VerificationToken, signature *SignedToken, err err
 
 	// Create the verification token
 	token = make(VerificationToken, verifyTokenLength)
-	copy(token[0:16], t.EnvelopeID[:])
+	copy(token[0:16], t.SunriseID[:])
 	copy(token[16:], secret)
 
 	return token, signature, nil
@@ -129,7 +131,7 @@ func (t *Token) MarshalBinary() ([]byte, error) {
 	}
 
 	data := make([]byte, maxTokenLength)
-	copy(data[:16], t.EnvelopeID[:])
+	copy(data[:16], t.SunriseID[:])
 
 	i := binary.PutVarint(data[16:], t.Expiration.UnixNano())
 	l := 16 + i
@@ -151,8 +153,8 @@ func (t *Token) readFrom(data []byte) (int, error) {
 		return 0, ErrSize
 	}
 
-	// Parse envelope ID
-	t.EnvelopeID = uuid.UUID(data[:16])
+	// Parse sunrise ID
+	t.SunriseID = ulid.ULID(data[:16])
 
 	// Parse expiration time
 	exp, i := binary.Varint(data[16 : 16+binary.MaxVarintLen64])
@@ -173,8 +175,8 @@ func (t *Token) readFrom(data []byte) (int, error) {
 }
 
 func (t *Token) Validate() (err error) {
-	if t.EnvelopeID == uuid.Nil {
-		err = errors.Join(err, ErrInvalidEnvelopeID)
+	if ulids.IsZero(t.SunriseID) {
+		err = errors.Join(err, ErrInvalidSunriseID)
 	}
 
 	if t.Expiration.IsZero() {
@@ -189,7 +191,7 @@ func (t *Token) Validate() (err error) {
 }
 
 func (t *Token) Equal(o *Token) bool {
-	return bytes.Equal(t.EnvelopeID[:], o.EnvelopeID[:]) &&
+	return bytes.Equal(t.SunriseID[:], o.SunriseID[:]) &&
 		t.Expiration.Equal(o.Expiration) &&
 		bytes.Equal(t.nonce, o.nonce)
 }
@@ -222,6 +224,25 @@ func (t *SignedToken) Verify(token VerificationToken) (secure bool, err error) {
 // Retrieve the signature from the signed token.
 func (t *SignedToken) Signature() []byte {
 	return t.signature
+}
+
+// Scan the signed token from a database query.
+func (t *SignedToken) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if !ok {
+		return ErrUnexpectedType
+	}
+
+	return t.UnmarshalBinary(data)
+}
+
+// Produce a database value from the signed token for inserts/updates to database.
+func (t *SignedToken) Value() (_ driver.Value, err error) {
+	var data []byte
+	if data, err = t.MarshalBinary(); err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func (t *SignedToken) MarshalBinary() (out []byte, err error) {
@@ -290,8 +311,8 @@ func ParseVerification(tks string) (_ VerificationToken, err error) {
 	return VerificationToken(token), nil
 }
 
-func (v VerificationToken) EnvelopeID() uuid.UUID {
-	return uuid.UUID(v[:16])
+func (v VerificationToken) SunriseID() ulid.ULID {
+	return ulid.ULID(v[:16])
 }
 
 func (v VerificationToken) Secret() []byte {
