@@ -3109,6 +3109,10 @@ details.collapse summary::-webkit-details-marker {
   align-items: center;
 }
 
+.items-baseline {
+  align-items: baseline;
+}
+
 .justify-end {
   justify-content: flex-end;
 }
@@ -3260,6 +3264,11 @@ details.collapse summary::-webkit-details-marker {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity)) !important;
 }
 
+.bg-\[\#DDFFDD\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(221 255 221 / var(--tw-bg-opacity));
+}
+
 .bg-\[\#E66809\] {
   --tw-bg-opacity: 1;
   background-color: rgb(230 104 9 / var(--tw-bg-opacity));
@@ -3268,6 +3277,11 @@ details.collapse summary::-webkit-details-marker {
 .bg-\[\#F5F5F5\] {
   --tw-bg-opacity: 1;
   background-color: rgb(245 245 245 / var(--tw-bg-opacity));
+}
+
+.bg-\[\#FFDDDD\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 221 221 / var(--tw-bg-opacity));
 }
 
 .bg-\[\#FFFDD0\] {
@@ -3422,6 +3436,11 @@ details.collapse summary::-webkit-details-marker {
 .py-5 {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
+}
+
+.py-6 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 .py-8 {
