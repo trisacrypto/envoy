@@ -22,7 +22,7 @@
 </div>
 
 <section>
-  <form>
+  <form hx-post="" hx-target="#sunrise-response" hx-ext="json-enc" hx-indicator="#loader">
     <div class="mt-4"></div>
     <section class="py-2 border-t border-t-black">
       <h2 class="my-4 font-bold">BENEFICIARY DETAILS</h2>
@@ -109,7 +109,6 @@
       </div>
     </section>
 
-    <!-- TODO: Add htmx attributes to buttons -->
     <div class="py-4 flex justify-center items-center gap-x-2">
       <button
         type="button"
