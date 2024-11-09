@@ -45,6 +45,11 @@ type APIKeyPage struct {
 	Page    *PageInfo `json:"page"`
 }
 
+type SunrisePage struct {
+	Messages []*Sunrise `json:"messages"`
+	Page     *PageInfo  `json:"page"`
+}
+
 func PageInfoFrom(in *PageInfo) (out *PageInfo) {
 	out = &PageInfo{
 		PageSize: DefaultPageSize,

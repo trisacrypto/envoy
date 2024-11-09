@@ -35,17 +35,29 @@ func (s *Sunrise) Scan(scanner Scanner) error {
 	)
 }
 
+// Scans a partial SELECT into the Sunrise model for listing the sunrise model
+func (s *Sunrise) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&s.ID,
+		&s.EnvelopeID,
+		&s.Expiration,
+		&s.Status,
+		&s.SentOn,
+		&s.VerifiedOn,
+	)
+}
+
 // Get the complete named params of the sunrise message from the model.
 func (s *Sunrise) Params() []any {
 	return []any{
 		sql.Named("id", s.ID),
-		sql.Named("envelope_id", s.EnvelopeID),
+		sql.Named("envelopeID", s.EnvelopeID),
 		sql.Named("email", s.Email),
 		sql.Named("expiration", s.Expiration),
 		sql.Named("signature", s.Signature),
 		sql.Named("status", s.Status),
-		sql.Named("sent_on", s.SentOn),
-		sql.Named("verified_on", s.VerifiedOn),
+		sql.Named("sentOn", s.SentOn),
+		sql.Named("verifiedOn", s.VerifiedOn),
 		sql.Named("created", s.Created),
 		sql.Named("modified", s.Modified),
 	}
