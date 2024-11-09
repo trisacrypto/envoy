@@ -1,0 +1,51 @@
+<div class="flex items-center justify-between" hx-target="#sunrise-data" hx-swap="innerHTML">
+  <h2 class="text-xl font-semibold">Secure Message Data</h2>
+  <div>
+    <button type="button" class="max-w-fit btn bg-black text-white hover:bg-black/80">Download Message Data</button>
+  </div>
+</div>
+<div class="py-4">
+  
+  <div tabindex="0" class="my-4 collapse bg-base-200">
+    <div class="collapse-title text-xl font-semibold">Transaction Details:</div>
+    <div class="collapse-content">
+      <dl>
+        <div class="grid grid-cols-2">
+          <div class="transaction-preview-container">
+            <dt class="font-semibold">Amount</dt>
+            <dd></dd>
+          </div>
+          <div class="transaction-preview-container">
+            <dt class="font-semibold">Network</dt>
+            <dd></dd>
+          </div>
+        </div>
+        <div class="grid grid-cols-2">
+          <div class="transaction-preview-container">
+            <dt class="font-semibold">Asset Type</dt>
+            <dd></dd>
+          </div>
+          <div class="transaction-preview-container">
+            <dt class="font-semibold">Transaction ID/Hash</dt>
+            <dd></dd>
+          </div>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <div tabindex="0" class="my-4 collapse bg-base-200">
+    <div class="collapse-title text-xl font-semibold">Originator Details:</div>
+    <div class="collapse-content">
+      <!-- TODO: Display originator details -->
+    </div>
+  </div>
+
+  <div tabindex="0" class="my-4 collapse bg-base-200">
+    <div class="collapse-title text-xl font-semibold">Beneficiary Details:</div>
+    <div class="collapse-content">
+      <!-- TODO: Display beneficiary details -->
+    </div>
+  </div>
+
+</div>
