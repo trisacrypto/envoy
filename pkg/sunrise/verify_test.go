@@ -222,7 +222,7 @@ func TestTokenBinary(t *testing.T) {
 		for i, tc := range testCases {
 			data, err := tc.token.MarshalBinary()
 			require.Nil(t, data, "test case %d returned non-nil data", i)
-			require.ErrorIs(t, err, tc.err, "test case %d return the wrong error", i)
+			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
 	})
 
@@ -274,7 +274,7 @@ func TestTokenBinary(t *testing.T) {
 		for i, tc := range testCases {
 			token := &sunrise.Token{}
 			err := token.UnmarshalBinary(tc.data)
-			require.ErrorIs(t, err, tc.err, "test case %d return the wrong error", i)
+			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
 	})
 }
@@ -317,7 +317,7 @@ func TestSignedTokenBinary(t *testing.T) {
 		for i, tc := range testCases {
 			data, err := tc.token.MarshalBinary()
 			require.Nil(t, data, "test case %d returned non-nil data", i)
-			require.ErrorIs(t, err, tc.err, "test case %d return the wrong error", i)
+			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
 	})
 
@@ -360,7 +360,7 @@ func TestSignedTokenBinary(t *testing.T) {
 		for i, tc := range testCases {
 			token := &sunrise.SignedToken{}
 			err := token.UnmarshalBinary(tc.data)
-			require.ErrorIs(t, err, tc.err, "test case %d return the wrong error", i)
+			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
 	})
 }
