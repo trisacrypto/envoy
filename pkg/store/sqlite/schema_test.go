@@ -40,6 +40,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Secure Envelope Meta",
 			Path: "0004_secure_envelope_meta.sql",
 		},
+		{
+			ID:   5,
+			Name: "Sunrise Tokens",
+			Path: "0005_sunrise_tokens.sql",
+		},
 	}
 
 	for i, migration := range migrations {
