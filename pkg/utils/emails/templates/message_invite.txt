@@ -1,0 +1,10 @@
+Hello {{ .BeneficiaryName }},
+
+{{ .OriginatorName }} has sent a secure Travel Rule Data Message that is pending your approval. To review the message click or copy the following link into your browser:
+
+{{ .VerifyURL }}
+
+If you have trouble visiting the link, please contact us at support@rotational.io.
+
+Thank you,
+The Envoy Team

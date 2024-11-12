@@ -1,0 +1,20 @@
+{{ template "base" . }}
+
+{{ define "title" }}You Have Received a Travel Rule Data Message from {{ .OriginatorName }}{{ end }}
+
+{{ define "content" }}
+<section class="content">
+  <p>Hello {{ .BeneficiaryName }},</p>
+
+  <p>{{ .OriginatorName }} has sent a secure Travel Rule Data Message that is pending your approval. To review the message click this <a rel="noopener" target="_blank" href="{{ .VerifyURL }}">link</a>.</p>
+
+  <p>If you cannot click the link, please copy and paste the following URL into your browser:</p>
+  <p><a href="{{ .VerifyURL }}">{{ .VerifyURL }}</a></p>
+
+  <p>If you have trouble visiting the link, please contact us at <a href="mailto:support@rotational.io">support@rotational.io</a>.</p>
+
+  <p>Thank you, <br /> <br /> The Envoy Team</p>
+
+</section>
+
+{{ end }}

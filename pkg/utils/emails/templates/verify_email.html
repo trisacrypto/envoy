@@ -1,0 +1,18 @@
+{{ template "base" . }}
+
+{{ define "title" }}{{ .Code }} is Your verification Code{{ end }}
+
+{{ define "content" }}
+<section class="content">
+  <p>Verify your email to view your Travel Rule Data Message.</p>
+
+  <p>Your one time code is:</p>
+  <p class="code">{{ .Code }}</p>
+
+  <p>If you did not request this email, please ignore it. For security reasons, this code will expire in 15 minutes.</p>
+
+  <p>If you have trouble verifying your email address, please contact us at <a href="mailto:support@rotational.io">support@rotational.io</a>.</p>
+
+</section>
+
+{{ end }}
