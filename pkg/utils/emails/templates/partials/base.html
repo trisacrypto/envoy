@@ -1,28 +1,155 @@
 {{ define "base" }}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ block "title" . }}{{ end }}</title>
+<!doctype html>
+<html
+  lang="en"
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="utf-8" />
+    <!-- utf-8 works for most cases -->
+    <meta name="viewport" content="width=device-width" />
+    <!-- Forcing initial-scale shouldn't be necessary -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Use the latest (edge) version of IE rendering engine -->
+    <meta name="x-apple-disable-message-reformatting" />
+    <!-- Disable auto-scale in iOS 10 Mail entirely -->
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+    <!-- Tell iOS not to automatically link certain text strings. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>{{ block "title" . }}{{ end }}</title>
 
-  {{ template "style" . }}
-  
-</head>
-<body>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
+    {{ template "style" . }}
+
+    <!-- Makes background images in 72ppi Outlook render at correct size. -->
+    <!--[if gte mso 9]>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+    <![endif]-->
+  </head>
+
+  <body
+    width="100%"
+    style="
+      margin: 0;
+      padding: 0 !important;
+      mso-line-height-rule: exactly;
+      background-color: #ffffff;
+      font-family: Montserrat, Open Sans, Helvetica, Arial,sans-serif; 
+      color: #1a2227;
+    "
+    class="email-bg"
+  >
+    <center
+      role="article"
+      aria-roledescription="email"
+      lang="en"
+      style="width: 100%; background-color: #ffffff"
+      class="email-bg"
+    >
+      <!--[if mso | IE]>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;" class="email-bg">
     <tr>
-      <td>&nbsp;</td>
-      <td>
-        {{ block "content" . }}{{ end }}
+    <td>
+    <![endif]-->
+
+      <!-- Visually Hidden Preheader Text : BEGIN -->
+      <div
+        style="max-height: 0; overflow: hidden; mso-hide: all"
+        aria-hidden="true"
+      >
+      {{ block "preheader" . }}{{ end }}
+      </div>
+      <!-- Visually Hidden Preheader Text : END -->
+
+      <!-- Create white space after the desired preview text so email clients don’t pull other distracting text into the inbox preview. -->
+      <!-- Preview Text Spacing Hack : BEGIN -->
+      <div
+        style="
+          display: none;
+          font-size: 1px;
+          line-height: 1px;
+          max-height: 0px;
+          max-width: 0px;
+          opacity: 0;
+          overflow: hidden;
+          mso-hide: all;
+          font-family: sans-serif;
+        "
+      >
+        &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+      </div>
+      <!-- Preview Text Spacing Hack : END -->
+
+      <!--
+            Set the email width. Defined in two places:
+            1. max-width for all clients except Desktop Windows Outlook, allowing the email to squish on narrow but never go wider than 680px.
+            2. MSO tags for Desktop Windows Outlook enforce a 680px width.
+            Note: The Fluid and Responsive templates have a different width (600px). The hybrid grid is more "fragile", and I've found that 680px is a good width. Change with caution.
+        -->
+      <div style="max-width: 680px; margin: 0 auto" class="email-container">
+        <!--[if mso]>
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="680">
+            <tr>
+            <td>
+            <![endif]-->
+
+        <!-- Email Body : BEGIN -->
+        <table
+          role="presentation"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          width="100%"
+          style="margin: auto"
+        >
+          <tr>
+            <td style="padding: 20px 0; text-align: center">
+              <img
+                src="/static/envoy-logo.png"
+                width="200"
+                height="auto"
+                alt="Logo"
+                border="0"
+                style="
+                  height: auto;
+                  background: #dddddd;
+                  font-family: sans-serif;
+                  font-size: 16px;
+                  line-height: 20px;
+                  color: #000000;
+                "
+              />
+            </td>
+          </tr>
+          {{ block "content" . }}{{ end }}
+        </table>
 
         {{ template "footer" . }}
-      </td>
-      <td>&nbsp;</td>
-    </tr>
-  </table>
-</body>
-</html>
 
+        <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+      </div>
+
+      <!--[if mso | IE]>
+    </td>
+    </tr>
+    </table>
+    <![endif]-->
+    </center>
+  </body>
+</html>
 {{ end }}
