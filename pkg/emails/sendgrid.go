@@ -16,7 +16,13 @@ func NewSGEmail(email string) (_ *sgmail.Email, err error) {
 
 func NewSGEmails(emails []string) (out []*sgmail.Email, err error) {
 	out = make([]*sgmail.Email, 0, len(emails))
-
+	for _, email := range emails {
+		var addr *sgmail.Email
+		if addr, err = NewSGEmail(email); err != nil {
+			return nil, err
+		}
+		out = append(out, addr)
+	}
 	return out, nil
 }
 
