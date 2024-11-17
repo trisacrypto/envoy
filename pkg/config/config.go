@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ type Config struct {
 	DirectorySync DirectorySyncConfig `split_words:"true"`
 	TRP           TRPConfig           `split_words:"true"`
 	Sunrise       SunriseConfig       `split_words:"true"`
+	Email         emails.Config       `split_words:"true"`
 	RegionInfo    RegionInfo          `split_words:"true"`
 	processed     bool
 }

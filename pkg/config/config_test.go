@@ -54,6 +54,7 @@ var testEnv = map[string]string{
 	"TRISA_TRP_IDENTITY_VASP_NAME":          "Testing VASP",
 	"TRISA_TRP_IDENTITY_LEI":                "GTFZ00N6IHYMHHNT8S51",
 	"TRISA_SUNRISE_ENABLED":                 "false",
+	"TRISA_EMAIL_TESTING":                   "true",
 	"REGION_INFO_ID":                        "2840302",
 	"REGION_INFO_NAME":                      "us-east4c",
 	"REGION_INFO_COUNTRY":                   "US",
