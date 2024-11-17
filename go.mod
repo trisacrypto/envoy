@@ -1,8 +1,6 @@
 module github.com/trisacrypto/envoy
 
-go 1.22.7
-
-toolchain go1.23.2
+go 1.23.2
 
 require (
 	cloud.google.com/go/secretmanager v1.14.2
@@ -20,6 +18,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rotationalio/confire v1.1.0
 	github.com/rs/zerolog v1.33.0
+	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/stretchr/testify v1.9.0
 	github.com/trisacrypto/directory v1.8.1
 	github.com/trisacrypto/trisa v1.4.1

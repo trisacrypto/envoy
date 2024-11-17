@@ -1,8 +1,8 @@
 package emails
 
 import (
-	"errors"
 	"fmt"
+	"net/mail"
 	"net/smtp"
 
 	"github.com/jordan-wright/email"
@@ -10,10 +10,10 @@ import (
 
 // The emails config allows users to either send messages via SendGrid or via SMTP.
 type Config struct {
-	FromEmail string         `split_words:"true" desc:"the email address that messages are sent from"`
-	Testing   bool           `split_words:"true" default:"false" desc:"set the emailer to testing mode to ensure no live emails are sent"`
-	SMTP      SMTPConfig     `split_words:"true"`
-	SendGrid  SendGridConfig `split_words:"false"`
+	Sender   string         `split_words:"true" desc:"the email address that messages are sent from"`
+	Testing  bool           `split_words:"true" default:"false" desc:"set the emailer to testing mode to ensure no live emails are sent"`
+	SMTP     SMTPConfig     `split_words:"true"`
+	SendGrid SendGridConfig `split_words:"false"`
 }
 
 // Configuration for sending emails via SMTP.
@@ -45,14 +45,17 @@ func (c Config) Validate() (err error) {
 	}
 
 	// Check that a from email exists and that it is parseable
-	// TODO: ensure it can be parsed
-	if c.FromEmail == "" {
-		return errors.New("invalid configuration: from email is required")
+	if c.Sender == "" {
+		return ErrConfigMissingSender
+	}
+
+	if _, perr := mail.ParseAddress(c.Sender); perr != nil {
+		return ErrConfigInvalidSender
 	}
 
 	// Cannot specify both email mechanisms
 	if c.SMTP.Enabled() && c.SendGrid.Enabled() {
-		return errors.New("invalid configuration: cannot specify configuration for both smtp and sendgrid")
+		return ErrConfigConflict
 	}
 
 	// Validate the SMTP configuration
@@ -83,16 +86,16 @@ func (c SMTPConfig) Validate() (err error) {
 	}
 
 	if c.Port == 0 {
-		return errors.New("invalid configuration: smtp port is required")
+		return ErrConfigMissingPort
 	}
 
 	if c.PoolSize < 1 {
-		return errors.New("invalid configuration: smtp connections pool size must be greater than zero")
+		return ErrConfigPoolSize
 	}
 
 	if c.UseCRAMMD5 {
 		if c.Username == "" || c.Password == "" {
-			return errors.New("invalid configuration: smtp cram-md5 requires username and password")
+			return ErrConfigCRAMMD5Auth
 		}
 	}
 

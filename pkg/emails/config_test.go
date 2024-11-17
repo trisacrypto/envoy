@@ -10,7 +10,7 @@ import (
 )
 
 var testEnv = map[string]string{
-	"EMAIL_FROM_EMAIL":        "Jane Szack <jane@example.com>",
+	"EMAIL_SENDER":            "Jane Szack <jane@example.com>",
 	"EMAIL_TESTING":           "true",
 	"EMAIL_SMTP_HOST":         "smtp.example.com",
 	"EMAIL_SMTP_PORT":         "25",
@@ -28,7 +28,7 @@ func TestConfig(t *testing.T) {
 
 	// NOTE: no validation is run while creating the config from the environment
 	conf, err := config()
-	require.Equal(t, testEnv["EMAIL_FROM_EMAIL"], conf.FromEmail)
+	require.Equal(t, testEnv["EMAIL_SENDER"], conf.Sender)
 	require.True(t, conf.Testing)
 	require.Equal(t, testEnv["EMAIL_SMTP_HOST"], conf.SMTP.Host)
 	require.Equal(t, uint16(25), conf.SMTP.Port)
@@ -75,15 +75,15 @@ func TestConfigValidation(t *testing.T) {
 				Testing: false,
 			},
 			{
-				FromEmail: "peony@example.com",
-				Testing:   false,
+				Sender:  "peony@example.com",
+				Testing: false,
 				SendGrid: emails.SendGridConfig{
 					APIKey: "sg:fakeapikey",
 				},
 			},
 			{
-				FromEmail: "peony@example.com",
-				Testing:   false,
+				Sender:  "peony@example.com",
+				Testing: false,
 				SMTP: emails.SMTPConfig{
 					Host:       "smtp.example.com",
 					Port:       587,
@@ -107,26 +107,34 @@ func TestConfigValidation(t *testing.T) {
 	t.Run("Invalid", func(t *testing.T) {
 		testCases := []struct {
 			conf emails.Config
-			emsg string
+			err  error
 		}{
 			{
 				emails.Config{
 					Testing: false,
 					SMTP:    emails.SMTPConfig{Host: "email.example.com"},
 				},
-				"invalid configuration: from email is required",
+				emails.ErrConfigMissingSender,
 			},
 			{
 				emails.Config{
 					Testing:  false,
 					SendGrid: emails.SendGridConfig{APIKey: "sg:fakeapikey"},
 				},
-				"invalid configuration: from email is required",
+				emails.ErrConfigMissingSender,
 			},
 			{
 				emails.Config{
-					FromEmail: "orchid@example.com",
-					Testing:   false,
+					Sender:  "foo",
+					Testing: false,
+					SMTP:    emails.SMTPConfig{Host: "smtp.example.com"},
+				},
+				emails.ErrConfigInvalidSender,
+			},
+			{
+				emails.Config{
+					Sender:  "orchid@example.com",
+					Testing: false,
 					SMTP: emails.SMTPConfig{
 						Host: "smtp.example.com",
 					},
@@ -134,34 +142,34 @@ func TestConfigValidation(t *testing.T) {
 						APIKey: "sg:fakeapikey",
 					},
 				},
-				"invalid configuration: cannot specify configuration for both smtp and sendgrid",
+				emails.ErrConfigConflict,
 			},
 			{
 				emails.Config{
-					FromEmail: "orchid@example.com",
-					Testing:   false,
+					Sender:  "orchid@example.com",
+					Testing: false,
 					SMTP: emails.SMTPConfig{
 						Host: "smtp.example.com",
 						Port: 0,
 					},
 				},
-				"invalid configuration: smtp port is required",
+				emails.ErrConfigMissingPort,
 			},
 			{
 				emails.Config{
-					FromEmail: "orchid@example.com",
-					Testing:   false,
+					Sender:  "orchid@example.com",
+					Testing: false,
 					SMTP: emails.SMTPConfig{
 						Host: "smtp.example.com",
 						Port: 527,
 					},
 				},
-				"invalid configuration: smtp connections pool size must be greater than zero",
+				emails.ErrConfigPoolSize,
 			},
 			{
 				emails.Config{
-					FromEmail: "orchid@example.com",
-					Testing:   false,
+					Sender:  "orchid@example.com",
+					Testing: false,
 					SMTP: emails.SMTPConfig{
 						Host:       "smtp.example.com",
 						Port:       527,
@@ -169,12 +177,12 @@ func TestConfigValidation(t *testing.T) {
 						UseCRAMMD5: true,
 					},
 				},
-				"invalid configuration: smtp cram-md5 requires username and password",
+				emails.ErrConfigCRAMMD5Auth,
 			},
 		}
 
 		for i, tc := range testCases {
-			require.EqualError(t, tc.conf.Validate(), tc.emsg, "test case %d failed", i)
+			require.ErrorIs(t, tc.conf.Validate(), tc.err, "test case %d failed", i)
 		}
 	})
 }

@@ -1,12 +1,12 @@
 package emails
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"path/filepath"
-	"strings"
 )
 
 const (
@@ -56,27 +56,40 @@ func init() {
 
 // Render returns the text and html executed templates for the specified name and data.
 // Ensure that the extension is not supplied to the render method.
-func Render(name string, data interface{}) (text, html string, err error) {
+func Render(name string, data interface{}) (text, html []byte, err error) {
 	if text, err = render(name+".txt", data); err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
 
 	if html, err = render(name+".html", data); err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
 
 	return text, html, nil
 }
 
-func render(name string, data interface{}) (_ string, err error) {
-	t, ok := templates[name]
-	if !ok {
-		return "", fmt.Errorf("could not find %q in templates", name)
+func RenderString(name string, data interface{}) (text, html string, err error) {
+	var (
+		tb []byte
+		hb []byte
+	)
+
+	if tb, hb, err = Render(name, data); err != nil {
+		return "", "", nil
 	}
 
-	buf := &strings.Builder{}
-	if err = t.Execute(buf, data); err != nil {
-		return "", err
+	return string(tb), string(hb), nil
+}
+
+func render(name string, data interface{}) (_ []byte, err error) {
+	t, ok := templates[name]
+	if !ok {
+		return nil, fmt.Errorf("could not find %q in templates", name)
 	}
-	return buf.String(), nil
+
+	buf := &bytes.Buffer{}
+	if err = t.Execute(buf, data); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
