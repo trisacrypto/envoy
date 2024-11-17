@@ -31,10 +31,16 @@ type SendGridConfig struct {
 	APIKey string `split_words:"true" required:"false" desc:"set the sendgrid api key to use sendgrid as the email backend"`
 }
 
+// Returns true if either SMTP is configured or SendGrid is.
+func (c Config) Available() bool {
+	return c.SMTP.Enabled() || c.SendGrid.Enabled()
+}
+
 func (c Config) Validate() (err error) {
 	// It is important that if we're in testing mode that we do not validate the
 	// config because this creates dependencies for config validation in other modules.
-	if c.Testing {
+	// If the config is not available, then do not validate it.
+	if c.Testing || !c.Available() {
 		return nil
 	}
 
@@ -42,11 +48,6 @@ func (c Config) Validate() (err error) {
 	// TODO: ensure it can be parsed
 	if c.FromEmail == "" {
 		return errors.New("invalid configuration: from email is required")
-	}
-
-	// At least one email mechanism must be enabled
-	if !c.SMTP.Enabled() && !c.SendGrid.Enabled() {
-		return errors.New("invalid configuration: specify either smtp or sendgrid configuration")
 	}
 
 	// Cannot specify both email mechanisms

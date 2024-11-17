@@ -18,6 +18,7 @@ var (
 	version = pkg.Version()
 
 	// Configuration values set from the global configuration to be included in context.
+	// SunriseEnabled is true iff sunrise is enabled and email messaging is available
 	sunriseEnabled *bool
 )
 
@@ -218,5 +219,7 @@ func (s Scene) APIKeyDetail() *api.APIKey {
 //===========================================================================
 
 func WithConf(conf *config.Config) {
-	sunriseEnabled = &conf.Sunrise.Enabled
+	// Compute the sunriseEnabled boolean
+	enabled := conf.Sunrise.Enabled && conf.Email.Available()
+	sunriseEnabled = &enabled
 }

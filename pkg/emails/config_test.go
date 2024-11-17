@@ -40,9 +40,40 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, err, "could not process configuration from the environment")
 }
 
+func TestConfigAvailable(t *testing.T) {
+	testCases := []struct {
+		conf   emails.Config
+		assert require.BoolAssertionFunc
+	}{
+		{
+			emails.Config{},
+			require.False,
+		},
+		{
+			emails.Config{
+				SMTP: emails.SMTPConfig{Host: "email.example.com"},
+			},
+			require.True,
+		},
+		{
+			emails.Config{
+				SendGrid: emails.SendGridConfig{APIKey: "sg:fakeapikey"},
+			},
+			require.True,
+		},
+	}
+
+	for i, tc := range testCases {
+		tc.assert(t, tc.conf.Available(), "test case %d failed", i)
+	}
+}
+
 func TestConfigValidation(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		testCases := []emails.Config{
+			{
+				Testing: false,
+			},
 			{
 				FromEmail: "peony@example.com",
 				Testing:   false,
@@ -81,15 +112,16 @@ func TestConfigValidation(t *testing.T) {
 			{
 				emails.Config{
 					Testing: false,
+					SMTP:    emails.SMTPConfig{Host: "email.example.com"},
 				},
 				"invalid configuration: from email is required",
 			},
 			{
 				emails.Config{
-					FromEmail: "orchid@example.com",
-					Testing:   false,
+					Testing:  false,
+					SendGrid: emails.SendGridConfig{APIKey: "sg:fakeapikey"},
 				},
-				"invalid configuration: specify either smtp or sendgrid configuration",
+				"invalid configuration: from email is required",
 			},
 			{
 				emails.Config{
