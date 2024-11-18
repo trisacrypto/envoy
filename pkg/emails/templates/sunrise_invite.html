@@ -1,7 +1,7 @@
 {{ template "base" . }}
 
 {{define "title" }}You Have Received a Travel Rule Data Message from {{ .OriginatorName }}{{ end }}
-{{ define "preheader" }}A secure travel rule message is waiting for your approval. {{ end }}
+{{ define "preheader" }}A secure travel rule message is waiting for your approval.{{ end }}
 
 {{ define "content" }}
 <tr>
@@ -10,7 +10,7 @@
       <tr>
         <td style="padding: 20px; font-family: sans-serif; font-size: 16px; line-height: 20px; color: #000000;">
 
-          <p style="margin: 0 0 16px;">Dear Name,</p>
+          <p style="margin: 0 0 16px;">Hello {{ .BeneficiaryName }},</p>
           <p style="padding: 12px 0; margin: 0;">
             {{ .OriginatorName }} has sent a secure Travel Rule Data Message that is pending your approval. To review
             the message click the button below.

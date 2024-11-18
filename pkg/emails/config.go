@@ -6,6 +6,7 @@ import (
 	"net/smtp"
 
 	"github.com/jordan-wright/email"
+	"github.com/sendgrid/sendgrid-go"
 )
 
 // The emails config allows users to either send messages via SendGrid or via SMTP.
@@ -127,4 +128,8 @@ func (c SendGridConfig) Validate() (err error) {
 		return nil
 	}
 	return nil
+}
+
+func (c SendGridConfig) Client() *sendgrid.Client {
+	return sendgrid.NewSendClient(c.APIKey)
 }

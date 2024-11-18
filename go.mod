@@ -18,6 +18,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rotationalio/confire v1.1.0
 	github.com/rs/zerolog v1.33.0
+	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/stretchr/testify v1.9.0
 	github.com/trisacrypto/directory v1.8.1

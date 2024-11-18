@@ -1,94 +1,147 @@
 package emails
 
 import (
-	"fmt"
-	"net/mail"
+	"context"
+	"errors"
+	"net/smtp"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/jordan-wright/email"
+	"github.com/rs/zerolog/log"
 
+	"github.com/sendgrid/rest"
+	"github.com/sendgrid/sendgrid-go"
 	sgmail "github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-type Email struct {
-	Sender   string
-	To       []string
-	Subject  string
-	Template string
-	Scene    interface{}
+// Package level variable to enclose email sending details.
+var (
+	initialized bool
+	config      Config
+	auth        smtp.Auth
+	pool        *email.Pool
+	sg          *sendgrid.Client
+)
+
+// Hidden package level variables for sending messages.
+const (
+	defaultTimeout      = 30 * time.Second
+	multiplier          = 2.0
+	randomizationFactor = 0.45
+	maxInterval         = 45 * time.Second
+	maxElapsedTime      = 180 * time.Second
+	initialInterval     = 2500 * time.Millisecond
+)
+
+// Configure the package to start sending emails.
+func Configure(conf Config) (err error) {
+	if err = conf.Validate(); err != nil {
+		return err
+	}
+
+	// TODO: if in testing mode create a mock for sending emails.
+
+	if conf.SMTP.Enabled() {
+		auth = conf.SMTP.Auth()
+		if pool, err = conf.SMTP.Pool(); err != nil {
+			return err
+		}
+	}
+
+	if conf.SendGrid.Enabled() {
+		sg = conf.SendGrid.Client()
+	}
+
+	config = conf
+	initialized = true
+	return nil
 }
 
-// Validate that all required data is present to assemble a sendable email.
-func (e *Email) Validate() error {
+// Send an email using the configured send methodology. Uses exponential backoff to
+// retry multiple times on error with an increasing delay between attempts.
+func Send(email *Email) (err error) {
+	// The package must be initialized to send.
+	if !initialized {
+		return ErrNotInitialized
+	}
+
+	// Select the send function to deliver the email with.
+	var send sender
 	switch {
-	case e.Subject == "":
-		return ErrMissingSubject
-	case e.Sender == "":
-		return ErrMissingSender
-	case len(e.To) == 0:
-		return ErrMissingRecipient
-	case e.Template == "":
-		return ErrMissingTemplate
+	case config.SMTP.Enabled():
+		send = sendSMTP
+	case config.SendGrid.Enabled():
+		send = sendSendGrid
+	case config.Testing:
+		send = sendMock
+	default:
+		panic("unhandled send email method")
 	}
 
-	if _, err := mail.ParseAddress(e.Sender); err != nil {
-		return fmt.Errorf("invalid sender email address %q: %w", e.Sender, ErrIncorrectEmail)
+	// Configure exponential backoff
+	opts := []backoff.ExponentialBackOffOpts{
+		backoff.WithMultiplier(multiplier),
+		backoff.WithRandomizationFactor(randomizationFactor),
+		backoff.WithMaxInterval(maxInterval),
+		backoff.WithMaxElapsedTime(maxElapsedTime),
+		backoff.WithInitialInterval(initialInterval),
 	}
 
-	for _, to := range e.To {
-		if _, err := mail.ParseAddress(to); err != nil {
-			return fmt.Errorf("invalid recipient email address %q: %w", to, ErrIncorrectEmail)
+	// Attempt to send the message with multiple retries using exponential backoff.
+	ticker := backoff.NewTicker(backoff.NewExponentialBackOff(opts...))
+	for range ticker.C {
+		if serr := send(email); serr != nil {
+			log.Debug().Err(serr).Msg("could not send email, retrying")
+			err = errors.Join(err, serr)
+			continue
 		}
+
+		// Operation successful so do not return an error from previous attempts
+		err = nil
+		ticker.Stop()
+		break
+	}
+
+	return err
+
+}
+
+type sender func(*Email) error
+
+func sendSMTP(e *Email) (err error) {
+	var msg *email.Email
+	if msg, err = e.ToSMTP(); err != nil {
+		return err
+	}
+
+	if err = pool.Send(msg, defaultTimeout); err != nil {
+		return err
+	}
+	return nil
+}
+
+func sendSendGrid(e *Email) (err error) {
+	var msg *sgmail.SGMailV3
+	if msg, err = e.ToSendGrid(); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	var rep *rest.Response
+	if rep, err = sg.SendWithContext(ctx, msg); err != nil {
+		return err
+	}
+
+	if rep.StatusCode < 200 || rep.StatusCode >= 300 {
+		return errors.New(rep.Body)
 	}
 
 	return nil
 }
 
-// Return an email struct that can be sent via SMTP
-func (e *Email) ToSMTP() (msg *email.Email, err error) {
-	if err = e.Validate(); err != nil {
-		return nil, err
-	}
-
-	msg = email.NewEmail()
-	msg.From = e.Sender
-	msg.To = e.To
-	msg.Subject = e.Subject
-
-	if msg.Text, msg.HTML, err = Render(e.Template, e.Scene); err != nil {
-		return nil, err
-	}
-
-	return msg, nil
-}
-
-// Return an email struct that can be sent via SendGrid
-func (e *Email) ToSendGrid() (msg *sgmail.SGMailV3, err error) {
-	if err = e.Validate(); err != nil {
-		return nil, err
-	}
-
-	// See: https://github.com/sendgrid/sendgrid-go/blob/16f25e4d92886b2733473a19977ccf1aa625a89b/helpers/mail/mail_v3.go#L186-L195
-	msg = new(sgmail.SGMailV3)
-	msg.Subject = e.Subject
-	msg.SetFrom(MustNewSGEmail(e.Sender))
-
-	p := sgmail.NewPersonalization()
-	p.AddTos(MustNewSGEmails(e.To)...)
-	msg.AddPersonalizations(p)
-
-	var (
-		text string
-		html string
-	)
-
-	if text, html, err = RenderString(e.Template, e.Scene); err != nil {
-		return nil, err
-	}
-
-	msg.AddContent(
-		sgmail.NewContent("text/plain", text),
-		sgmail.NewContent("text/html", html),
-	)
-
-	return msg, nil
+func sendMock(*Email) (err error) {
+	return errors.New("not implemented")
 }
