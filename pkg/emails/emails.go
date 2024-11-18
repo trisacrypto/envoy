@@ -3,7 +3,6 @@ package emails
 import (
 	"context"
 	"errors"
-	"net/smtp"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -19,7 +18,6 @@ import (
 var (
 	initialized bool
 	config      Config
-	auth        smtp.Auth
 	pool        *email.Pool
 	sg          *sendgrid.Client
 )
@@ -43,7 +41,6 @@ func Configure(conf Config) (err error) {
 	// TODO: if in testing mode create a mock for sending emails.
 
 	if conf.SMTP.Enabled() {
-		auth = conf.SMTP.Auth()
 		if pool, err = conf.SMTP.Pool(); err != nil {
 			return err
 		}
