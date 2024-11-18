@@ -214,6 +214,8 @@ var testEnv = map[string]string{
 	"TRISA_NODE_CERTS":             "fixtures/certs/certs.gz",
 	"TRISA_DIRECTORY_SYNC_ENABLED": "false",
 	"TRISA_TRP_ENABLED":            "false",
+	"TRISA_EMAIL_TESTING":          "true",
+	"TRISA_EMAIL_SMTP_HOST":        "email.example.com",
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified
