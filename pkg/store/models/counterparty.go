@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/oklog/ulid/v2"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
@@ -19,7 +20,6 @@ const (
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
-// TODO: make sure that we add contacts associated with this model.
 type Counterparty struct {
 	Model
 	Source              string               // either directory or locally created
@@ -35,6 +35,7 @@ type Counterparty struct {
 	VASPCategories      VASPCategories       // the categories of how the VASP handles crypto assets
 	VerifiedOn          sql.NullTime         // the datetime the VASP was verified in the directory (directory only)
 	IVMSRecord          *ivms101.LegalPerson // IVMS101 record for the counterparty
+	contacts            []*Contact           // Associated contacts if any
 }
 
 // Scan a complete SELECT into the counterparty model
@@ -93,6 +94,68 @@ func (c *Counterparty) Params() []any {
 		sql.Named("created", c.Created),
 		sql.Named("modified", c.Modified),
 	}
+}
+
+// Returns the associated contacts if they are cached on the counterparty, otherwise
+// returns an ErrMissingAssociation error if not.
+func (c *Counterparty) Contacts() ([]*Contact, error) {
+	if c.contacts == nil {
+		return nil, errors.ErrMissingAssociation
+	}
+	return c.contacts, nil
+}
+
+// Used by store implementation to cache associated contacts on the counterparty.
+func (c *Counterparty) SetContacts(contacts []*Contact) {
+	c.contacts = contacts
+}
+
+type Contact struct {
+	Model
+	Name           string        // The full name of the contact
+	Email          string        // A unique address for the contact (professional email) must be lowercase
+	Role           string        // A description of what the contact does at the counterparty
+	CounterpartyID ulid.ULID     // Reference to the counterparty the contact is associated with
+	counterparty   *Counterparty // Associated counterparty if fetched from the database
+}
+
+// Scan a complete SELECT into the counterparty model
+func (c *Contact) Scan(scanner Scanner) error {
+	return scanner.Scan(
+		&c.ID,
+		&c.Name,
+		&c.Email,
+		&c.Role,
+		&c.CounterpartyID,
+		&c.Created,
+		&c.Modified,
+	)
+}
+
+// Get complete named params of the counterparty from the model.
+func (c *Contact) Params() []any {
+	return []any{
+		sql.Named("id", c.ID),
+		sql.Named("name", c.Name),
+		sql.Named("email", c.Email),
+		sql.Named("role", c.Role),
+		sql.Named("counterpartyID", c.CounterpartyID),
+		sql.Named("created", c.Created),
+		sql.Named("modified", c.Modified),
+	}
+}
+
+// Returns the associated counterparty if it is cached on the model, otherwise returns
+// an ErrMissingAssociation error.
+func (c *Contact) Counterparty() (*Counterparty, error) {
+	if c.counterparty == nil {
+		return nil, errors.ErrMissingAssociation
+	}
+	return c.counterparty, nil
+}
+
+func (c *Contact) SetCounterparty(counterparty *Counterparty) {
+	c.counterparty = counterparty
 }
 
 type CounterpartySourceInfo struct {
