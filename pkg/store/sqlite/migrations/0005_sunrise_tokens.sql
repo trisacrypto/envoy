@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     created         DATETIME NOT NULL,
     modified        DATETIME NOT NULL,
     FOREIGN KEY (counterparty_id) REFERENCES counterparties(id) ON DELETE CASCADE
-)
+);
 
 -- The sunrise table stores verification tokens and enough information to manage
 -- sunrise accounts and resend tokens without loading the transaction from the db.
