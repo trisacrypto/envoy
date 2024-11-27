@@ -201,6 +201,16 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
 			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
+
+			// Contacts Resource (nested on Counterparty)
+			contacts := counterparties.Group("/:id/contacts")
+			{
+				contacts.GET("", authorize(permiss.CounterpartiesView), s.ListContacts)
+				contacts.POST("", authorize(permiss.CounterpartiesManage), s.CreateContact)
+				contacts.GET("/:contactID", authorize(permiss.CounterpartiesView), s.ContactDetail)
+				contacts.PUT("/:contactID", authorize(permiss.CounterpartiesManage), s.UpdateContact)
+				contacts.DELETE("/:contactID", authorize(permiss.CounterpartiesManage), s.DeleteContact)
+			}
 		}
 
 		// Users Resource

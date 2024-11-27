@@ -433,3 +433,284 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 		HTMLName: "counterparty_delete.html",
 	})
 }
+
+func (s *Server) ListContacts(c *gin.Context) {
+	var (
+		err            error
+		in             *api.PageQuery
+		counterpartyID ulid.ULID
+		query          *models.PageInfo
+		page           *models.ContactsPage
+		out            *api.ContactList
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Parse the URL parameters from the input request
+	in = &api.PageQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
+		return
+	}
+
+	// TODO: implement better pagination mechanism (with pagination tokens)
+
+	// Fetch the list of contacts from the database
+	if page, err = s.store.ListContacts(c.Request.Context(), counterpartyID, query); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process contacts list request"))
+		return
+	}
+
+	// Convert the page into a contact list object
+	if out, err = api.NewContactList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process contacts list request"))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "contact_list.html",
+	})
+}
+
+func (s *Server) CreateContact(c *gin.Context) {
+	var (
+		err            error
+		in             *api.Contact
+		counterpartyID ulid.ULID
+		model          *models.Contact
+		out            *api.Contact
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Parse the input from the POST request
+	in = &api.Contact{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse contact data"))
+		return
+	}
+
+	if err = in.Validate(true); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	// Convert the request into a database model
+	if model, err = in.Model(nil); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Associate the model with the counterparty
+	model.CounterpartyID = counterpartyID
+
+	// Create the model in the database
+	if err = s.store.CreateContact(c.Request.Context(), model); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		// TODO: handle constraint violations
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model back to an API response
+	if out, err = api.NewContact(model); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusCreated, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "contact_create.html",
+	})
+}
+
+func (s *Server) ContactDetail(c *gin.Context) {
+	var (
+		err            error
+		counterpartyID ulid.ULID
+		contactID      ulid.ULID
+		model          *models.Contact
+		out            *api.Contact
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Parse the contactID passed in from the URL
+	if contactID, err = ulid.Parse(c.Param("contactID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("contact not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if model, err = s.store.RetrieveContact(c.Request.Context(), contactID, counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("contact or counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert model into an API response
+	if out, err = api.NewContact(model); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "contact_detail.html",
+	})
+}
+
+func (s *Server) UpdateContact(c *gin.Context) {
+	var (
+		err            error
+		counterpartyID ulid.ULID
+		contactID      ulid.ULID
+		in             *api.Contact
+		model          *models.Contact
+		out            *api.Contact
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Parse the contactID passed in from the URL
+	if contactID, err = ulid.Parse(c.Param("contactID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("contact not found"))
+		return
+	}
+
+	// Parse contact data from the PUT request
+	in = &api.Contact{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not parse contact data"))
+		return
+	}
+
+	// Sanity check the IDs of the update request
+	if err = ulids.CheckIDMatch(in.ID, contactID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if err = in.Validate(false); err != nil {
+		c.JSON(http.StatusUnsupportedMediaType, api.Error(err))
+		return
+	}
+
+	// Convert the contact request into a database model
+	if model, err = in.Model(nil); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Associate the counterprty ID with the model
+	model.CounterpartyID = counterpartyID
+
+	// Update the model in the database (which will update the pointer).
+	if err = s.store.UpdateContact(c.Request.Context(), model); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("contact or counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model back to an api response
+	if out, err = api.NewContact(model); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "contact_update.html",
+	})
+}
+
+func (s *Server) DeleteContact(c *gin.Context) {
+	var (
+		err            error
+		counterpartyID ulid.ULID
+		contactID      ulid.ULID
+	)
+
+	// Parse the counterpartyID passed in from the URL
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+		return
+	}
+
+	// Parse the contactID passed in from the URL
+	if contactID, err = ulid.Parse(c.Param("contactID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("contact not found"))
+		return
+	}
+
+	// Delete the contact from the database
+	if err = s.store.DeleteContact(c.Request.Context(), contactID, counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("contact or counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: scene.Scene{"CounterpartyID": counterpartyID, "ContactID": contactID},
+		JSONData: api.Reply{Success: true},
+		HTMLName: "contact_delete.html",
+	})
+}

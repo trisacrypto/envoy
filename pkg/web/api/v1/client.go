@@ -516,6 +516,49 @@ func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error
 }
 
 //===========================================================================
+// Contacts Resource
+//===========================================================================
+
+const contactsEP = "contacts"
+
+func (s *APIv1) ListContacts(ctx context.Context, counterpartyID ulid.ULID, in *PageQuery) (out *ContactList, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, counterpartyID.String(), contactsEP)
+	if err = s.List(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CreateContact(ctx context.Context, counterpartyID ulid.ULID, in *Counterparty) (out *Contact, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, counterpartyID.String(), contactsEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) ContactDetail(ctx context.Context, counterpartyID, contactID ulid.ULID) (out *Contact, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, counterpartyID.String(), cryptoAddressesEP, contactID.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) UpdateContact(ctx context.Context, counterpartyID ulid.ULID, in *Counterparty) (out *Contact, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, counterpartyID.String(), cryptoAddressesEP, in.ID.String())
+	if err = s.Update(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) DeleteContact(ctx context.Context, counterpartyID, contactID ulid.ULID) (err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, counterpartyID.String(), cryptoAddressesEP, contactID.String())
+	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
 // Users Resource
 //===========================================================================
 

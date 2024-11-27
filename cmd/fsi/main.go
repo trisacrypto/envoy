@@ -46,6 +46,13 @@ func main() {
 			Before:   connectDB,
 			After:    closeDB,
 			Category: "localhost",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "reset",
+					Aliases: []string{"r"},
+					Usage:   "delete an existing database before resetting it",
+				},
+			},
 		},
 		{
 			Name:     "inspect",
@@ -96,6 +103,33 @@ func initGDS(c *cli.Context) (err error) {
 	ctx := context.Background()
 	envoyID, counterpartyID := "", ""
 
+	if c.Bool("reset") {
+		if err = closeDB(c); err != nil {
+			return err
+		}
+
+		var dsn *store.DSN
+		if dsn, err = store.ParseDSN(conf.Database.URL); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+		if dsn.Scheme != "leveldb" {
+			return cli.Exit("can only delete leveldb databases", 1)
+		}
+
+		if dsn.Path == "" {
+			return cli.Exit("cannot identify path to database", 1)
+		}
+
+		if err = os.RemoveAll(dsn.Path); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+		if err = connectDB(c); err != nil {
+			return err
+		}
+	}
+
 	// Create VASP record for envoy node
 	if envoyID, err = db.CreateVASP(ctx, envoyVASP()); err != nil {
 		return cli.Exit(fmt.Errorf("could not create envoy record: %w", err), 1)
@@ -144,7 +178,28 @@ func envoyVASP() *pb.VASP {
 			},
 			CountryOfRegistration: "US",
 		},
-		Contacts:            &pb.Contacts{},
+		Contacts: &pb.Contacts{
+			Administrative: &pb.Contact{
+				Name:  "Lillian W. Robertson",
+				Email: "lillian@envoy.local",
+				Phone: "+1 859-322-9025",
+			},
+			Legal: &pb.Contact{
+				Name:  "Gloria C. Coombs",
+				Email: "gloria@envoy.local",
+				Phone: "+1 757-558-3634",
+			},
+			Billing: &pb.Contact{
+				Name:  "Kyle S. Steller",
+				Email: "kyle@envoy.local",
+				Phone: "",
+			},
+			Technical: &pb.Contact{
+				Name:  "Cortez B. Adams",
+				Email: "cortez@envoy.local",
+				Phone: "",
+			},
+		},
 		IdentityCertificate: nil,
 		SigningCertificates: nil,
 		CommonName:          "envoy.local",
@@ -200,7 +255,28 @@ func counterpartyVASP() *pb.VASP {
 			},
 			CountryOfRegistration: "DE",
 		},
-		Contacts:            &pb.Contacts{},
+		Contacts: &pb.Contacts{
+			Administrative: &pb.Contact{
+				Name:  "Ralph Ritter",
+				Email: "ralph@counterparty.local",
+				Phone: "+49 02243 80 59 03",
+			},
+			Legal: &pb.Contact{
+				Name:  "Michael Beyer",
+				Email: "michael@counterparty.local",
+				Phone: "+49 04269 46 01 63",
+			},
+			Billing: &pb.Contact{
+				Name:  "Michelle Probst",
+				Email: "michelle@counterparty.local",
+				Phone: "+49 09771 12 49 34",
+			},
+			Technical: &pb.Contact{
+				Name:  "Katja Jager",
+				Email: "katja@counterparty.local",
+				Phone: "+49 073 29 73 45",
+			},
+		},
 		IdentityCertificate: nil,
 		SigningCertificates: nil,
 		CommonName:          "counterparty.local",

@@ -101,10 +101,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 		}
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 const retreiveAccountSQL = "SELECT * FROM accounts WHERE id=:id"
@@ -168,10 +165,7 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 const deleteAccountSQL = "DELETE FROM accounts WHERE id=:id"
@@ -334,6 +328,8 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 		return nil, err
 	}
 
+	// TODO: retrieve account and associate it with the crypto address.
+
 	tx.Commit()
 	return addr, nil
 }
@@ -373,10 +369,7 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 const deleteCryptoAddressSQL = "DELETE FROM crypto_addresses WHERE id=:cryptoAddressID and account_id=:accountID"
@@ -398,8 +391,5 @@ func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }

@@ -2,11 +2,15 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
@@ -34,14 +38,29 @@ type Counterparty struct {
 	VASPCategories      []string       `json:"vasp_categories,omitempty"`
 	VerifiedOn          time.Time      `json:"verified_on,omitempty"`
 	IVMSRecord          string         `json:"ivms101,omitempty"`
+	Contacts            []*Contact     `json:"contacts,omitempty"`
 	Created             time.Time      `json:"created,omitempty"`
 	Modified            time.Time      `json:"modified,omitempty"`
 	encoding            *EncodingQuery `json:"-"`
 }
 
+type Contact struct {
+	ID       ulid.ULID `json:"id,omitempty"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Role     string    `json:"role"`
+	Created  time.Time `json:"created,omitempty"`
+	Modified time.Time `json:"modified,omitempty"`
+}
+
 type CounterpartyList struct {
 	Page           *PageQuery      `json:"page"`
 	Counterparties []*Counterparty `json:"counterparties"`
+}
+
+type ContactList struct {
+	Page     *PageQuery `json:"page"`
+	Contacts []*Contact `json:"contacts"`
 }
 
 func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *Counterparty, err error) {
@@ -79,6 +98,21 @@ func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *
 				Bool("is_base64_std", encoding.b64std).
 				Msg("could not marshal IVMS101 record")
 		}
+	}
+
+	// Collect the contact associations
+	var contacts []*models.Contact
+	if contacts, err = model.Contacts(); err != nil {
+		if !errors.Is(err, dberr.ErrMissingAssociation) {
+			return nil, err
+		}
+	}
+
+	// Add the contacts to the response
+	out.Contacts = make([]*Contact, 0, len(contacts))
+	for _, contact := range contacts {
+		c, _ := NewContact(contact)
+		out.Contacts = append(out.Contacts, c)
 	}
 
 	// Compute the travel address from the endpoint (ignore errors)
@@ -226,6 +260,16 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 		}
 	}
 
+	if len(c.Contacts) > 0 {
+		contacts := make([]*models.Contact, 0, len(c.Contacts))
+		for _, contact := range c.Contacts {
+			cm, _ := contact.Model(model)
+			contacts = append(contacts, cm)
+		}
+
+		model.SetContacts(contacts)
+	}
+
 	return model, nil
 }
 
@@ -234,6 +278,75 @@ func (c *Counterparty) SetEncoding(encoding *EncodingQuery) {
 		encoding = &EncodingQuery{}
 	}
 	c.encoding = encoding
+}
+
+func NewContact(model *models.Contact) (*Contact, error) {
+	return &Contact{
+		ID:       model.ID,
+		Name:     model.Name,
+		Email:    model.Email,
+		Role:     model.Role,
+		Created:  model.Created,
+		Modified: model.Modified,
+	}, nil
+}
+
+func NewContactList(page *models.ContactsPage) (out *ContactList, err error) {
+	out = &ContactList{
+		Page:     &PageQuery{},
+		Contacts: make([]*Contact, 0, len(page.Contacts)),
+	}
+
+	for _, model := range page.Contacts {
+		var contact *Contact
+		if contact, err = NewContact(model); err != nil {
+			return nil, err
+		}
+		out.Contacts = append(out.Contacts, contact)
+	}
+
+	return out, nil
+}
+
+func (c *Contact) Model(counterparty *models.Counterparty) (*models.Contact, error) {
+	contact := &models.Contact{
+		Model: models.Model{
+			ID:       c.ID,
+			Created:  c.Created,
+			Modified: c.Modified,
+		},
+		Name:  c.Name,
+		Email: c.Email,
+		Role:  c.Role,
+	}
+
+	if counterparty != nil {
+		contact.CounterpartyID = counterparty.ID
+		contact.SetCounterparty(counterparty)
+	}
+	return contact, nil
+}
+
+var emailre = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+func (c *Contact) Validate(create bool) (err error) {
+	if create {
+		if !ulids.IsZero(c.ID) {
+			err = ValidationError(err, ReadOnlyField("id"))
+		}
+	}
+
+	c.Name = strings.TrimSpace(c.Name)
+	c.Role = strings.TrimSpace(c.Role)
+
+	c.Email = strings.ToLower(strings.TrimSpace(c.Email))
+	if c.Email == "" {
+		err = ValidationError(err, MissingField("email"))
+	} else if !emailre.MatchString(c.Email) {
+		err = ValidationError(err, IncorrectField("email", "not an email address"))
+	}
+
+	return err
 }
 
 func EndpointTravelAddress(endpoint, protocol string) (string, error) {
