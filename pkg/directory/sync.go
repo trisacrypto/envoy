@@ -16,6 +16,7 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
+	trisa "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
 )
 
 // Syncs the VASPs stored in the Global TRISA Directory (GDS) to local storage for
@@ -242,6 +243,28 @@ func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error
 		IVMSRecord:          detail.LegalPerson,
 	}
 
+	// Add contacts to the counterparty
+	contacts := make([]*models.Contact, 0, 4)
+	if contact := makeContact(detail.Contacts.Administrative, "Administrative Representative"); contact != nil {
+		contacts = append(contacts, contact)
+	}
+
+	if contact := makeContact(detail.Contacts.Technical, "Technical Support"); contact != nil {
+		contacts = append(contacts, contact)
+	}
+
+	if contact := makeContact(detail.Contacts.Legal, "Compliance Officer"); contact != nil {
+		contacts = append(contacts, contact)
+	}
+
+	if contact := makeContact(detail.Contacts.Billing, "Billing and Accounts"); contact != nil {
+		contacts = append(contacts, contact)
+	}
+
+	if len(contacts) > 0 {
+		vasp.SetContacts(contacts)
+	}
+
 	// Parse the verifiedOn timestamp
 	if detail.MemberSummary.VerifiedOn != "" {
 		var verifiedOn time.Time
@@ -252,4 +275,16 @@ func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error
 	}
 
 	return vasp, nil
+}
+
+func makeContact(contact *trisa.Contact, role string) *models.Contact {
+	if contact == nil || contact.Email == "" {
+		return nil
+	}
+
+	return &models.Contact{
+		Name:  contact.Name,
+		Email: contact.Email,
+		Role:  role,
+	}
 }
