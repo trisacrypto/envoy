@@ -117,7 +117,7 @@ func (s *Server) setupRoutes() (err error) {
 	{
 		sunrise.GET("/verify", s.VerifySunriseUser)
 		sunrise.GET("/accept", s.SunriseMessagePreview)
-		sunrise.GET("/message", authenticate, s.SendMessageForm)
+		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
 	}
 
 	// API Routes (Including Content Negotiated Partials)

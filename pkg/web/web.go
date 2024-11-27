@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"github.com/trisacrypto/trisa/pkg/openvasp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +24,7 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 		conf:  conf,
 		store: store,
 		trisa: network,
+		trp:   openvasp.NewClient(),
 	}
 
 	// If not enabled, return just the server stub

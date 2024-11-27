@@ -292,6 +292,9 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 // Transaction Detail Actions
 //===========================================================================
 
+// Sends a new envelope as provided by the API user to the counterparty in an existing
+// transaction. The transaction should have the protocol and sending details associated
+// with it in advance of the send since they will not be specified by the requester.
 func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	var (
 		err        error

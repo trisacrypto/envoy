@@ -19,6 +19,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/openvasp"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 )
 
@@ -33,6 +34,7 @@ type Server struct {
 	url     *url.URL
 	vasp    *models.Counterparty
 	trisa   network.Network
+	trp     *openvasp.Client
 	started time.Time
 	healthy bool
 	ready   bool
