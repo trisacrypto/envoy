@@ -3,6 +3,7 @@ package api_test
 import (
 	"testing"
 
+	"github.com/oklog/ulid/v2"
 	. "github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/stretchr/testify/require"
@@ -193,5 +194,66 @@ func TestCounterpartyValidate(t *testing.T) {
 		require.True(t, ok, "expected error to be ValidationErrors")
 		require.Len(t, verr, 8)
 
+	})
+}
+
+func TestContactValidate(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
+		testCases := []struct {
+			contact *Contact
+			create  bool
+		}{
+			{
+				&Contact{Email: "bdenison@example.com"},
+				true,
+			},
+			{
+				&Contact{Name: "Barry Denison", Email: "bdenison@example.co.uk", Role: "Compliance Officer"},
+				true,
+			},
+			{
+				&Contact{ID: ulid.MustParse("01JDQCF64H7F3M408V3ADFWB9R"), Name: "Barry Denison", Email: "barry.denison@example.co.uk", Role: "Compliance Officer"},
+				false,
+			},
+		}
+
+		for i, tc := range testCases {
+			err := tc.contact.Validate(tc.create)
+			require.NoError(t, err, "test case %d failed", i)
+		}
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		testCases := []struct {
+			contact *Contact
+			create  bool
+			err     string
+		}{
+			{
+				&Contact{ID: ulid.MustParse("01JDQCF64H7F3M408V3ADFWB9R"), Email: "bdenison@example.com"},
+				true,
+				"read-only field id: this field cannot be written by the user",
+			},
+			{
+				&Contact{ID: ulid.MustParse("01JDQCF64H7F3M408V3ADFWB9R"), Email: ""},
+				false,
+				"missing email: this field is required",
+			},
+			{
+				&Contact{Email: "bob"},
+				true,
+				"invalid field email: not an email address",
+			},
+			{
+				&Contact{Email: "Bob Dylan <bob@foo.com>"},
+				true,
+				"invalid field email: not an email address",
+			},
+		}
+
+		for i, tc := range testCases {
+			err := tc.contact.Validate(tc.create)
+			require.EqualError(t, err, tc.err, "test case %d failed", i)
+		}
 	})
 }

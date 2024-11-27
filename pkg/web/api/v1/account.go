@@ -279,6 +279,7 @@ func (c *CryptoAddress) Model(acct *models.Account) (*models.CryptoAddress, erro
 	}
 
 	if acct != nil {
+		addr.AccountID = acct.ID
 		addr.SetAccount(acct)
 	}
 	return addr, nil
