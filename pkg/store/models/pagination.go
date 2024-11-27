@@ -35,6 +35,11 @@ type CounterpartyPage struct {
 	Page           *PageInfo       `json:"page"`
 }
 
+type ContactsPage struct {
+	Contacts []*Contact `json:"contacts"`
+	Page     *PageInfo  `json:"page"`
+}
+
 type UserPage struct {
 	Users []*User   `json:"users"`
 	Page  *PageInfo `json:"page"`

@@ -43,6 +43,7 @@ type Store interface {
 	TransactionStore
 	AccountStore
 	CounterpartyStore
+	ContactStore
 	UserStore
 	APIKeyStore
 }
@@ -122,6 +123,14 @@ type CounterpartyStore interface {
 	LookupCounterparty(ctx context.Context, commonName string) (*models.Counterparty, error)
 	UpdateCounterparty(context.Context, *models.Counterparty) error
 	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error
+}
+
+type ContactStore interface {
+	ListContacts(ctx context.Context, counterpartyID ulid.ULID, page *models.PageInfo) (*models.ContactsPage, error)
+	CreateContact(context.Context, *models.Contact) error
+	RetrieveContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (*models.Contact, error)
+	UpdateContact(context.Context, *models.Contact) error
+	DeleteContact(ctx context.Context, contactID, counterpartyID ulid.ULID) error
 }
 
 type TravelAddressStore interface {

@@ -42,6 +42,10 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 			return nil, err
 		}
 
+		// Ensure that contacts is non-nil and zero-valued
+		counterparty.SetContacts(make([]*models.Contact, 0))
+
+		// Append counterparty to the page
 		out.Counterparties = append(out.Counterparties, counterparty)
 	}
 
@@ -84,6 +88,7 @@ func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) (
 const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :created, :modified)"
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
+	// Basic validation
 	if !ulids.IsZero(counterparty.ID) {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -94,13 +99,24 @@ func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Cou
 	}
 	defer tx.Rollback()
 
+	// Update the model metadata in place and create a new ID
 	counterparty.ID = ulids.New()
 	counterparty.Created = time.Now()
 	counterparty.Modified = counterparty.Created
 
+	// Insert the counterparty
 	if _, err = tx.Exec(createCounterpartySQL, counterparty.Params()...); err != nil {
 		// TODO: handle constraint violations
 		return err
+	}
+
+	// Insert any associated contacts with the counterparty
+	contacts, _ := counterparty.Contacts()
+	for _, contact := range contacts {
+		contact.CounterpartyID = counterparty.ID
+		if err = s.createContact(tx, contact); err != nil {
+			return err
+		}
 	}
 
 	return tx.Commit()
@@ -115,6 +131,19 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 	}
 	defer tx.Rollback()
 
+	if counterparty, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+		return nil, err
+	}
+
+	if err = s.listContacts(tx, counterparty); err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return counterparty, nil
+}
+
+func retrieveCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (counterparty *models.Counterparty, err error) {
 	counterparty = &models.Counterparty{}
 	if err = counterparty.Scan(tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", counterpartyID))); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -122,8 +151,6 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 		}
 		return nil, err
 	}
-
-	tx.Commit()
 	return counterparty, nil
 }
 
@@ -151,6 +178,7 @@ func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (coun
 const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
+	// Basic validation
 	if ulids.IsZero(counterparty.ID) {
 		return dberr.ErrMissingID
 	}
@@ -161,8 +189,10 @@ func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Cou
 	}
 	defer tx.Rollback()
 
+	// Update modified timestamp (in place).
 	counterparty.Modified = time.Now()
 
+	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateCounterpartySQL, counterparty.Params()...); err != nil {
 		// TODO: handle constraint violations
@@ -185,6 +215,198 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
+		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return tx.Commit()
+}
+
+const listContactsSQL = "SELECT * FROM contacts WHERE counterparty_id=:counterpartyID"
+
+// List contacts associated with the specified counterparty.
+func (s *Store) ListContacts(ctx context.Context, counterpartyID ulid.ULID, page *models.PageInfo) (out *models.ContactsPage, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// Check to ensure the associated counterparty exists
+	var counterparty *models.Counterparty
+	if counterparty, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+		return nil, err
+	}
+
+	// TODO: handle pagination
+	out = &models.ContactsPage{
+		Contacts: make([]*models.Contact, 0),
+		Page:     models.PageInfoFrom(page),
+	}
+
+	var rows *sql.Rows
+	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		contact := &models.Contact{}
+		if err = contact.Scan(rows); err != nil {
+			return nil, err
+		}
+
+		contact.SetCounterparty(counterparty)
+		out.Contacts = append(out.Contacts, contact)
+	}
+
+	if errors.Is(rows.Err(), sql.ErrNoRows) {
+		return nil, dberr.ErrNotFound
+	}
+
+	tx.Commit()
+	return out, nil
+}
+
+func (s *Store) listContacts(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterparty.ID)); err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	contacts := make([]*models.Contact, 0)
+	for rows.Next() {
+		contact := &models.Contact{}
+		if err = contact.Scan(rows); err != nil {
+			return err
+		}
+
+		contact.SetCounterparty(counterparty)
+		contacts = append(contacts, contact)
+	}
+
+	counterparty.SetContacts(contacts)
+	return nil
+}
+
+const createContactSQL = "INSERT INTO contacts (id, name, email, role, counterparty_id, created, modified) VALUES (:id, :name, :email, :role, :counterpartyID, :created, :modified)"
+
+func (s *Store) CreateContact(ctx context.Context, contact *models.Contact) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = s.createContact(tx, contact); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) createContact(tx *sql.Tx, contact *models.Contact) (err error) {
+	if !ulids.IsZero(contact.ID) {
+		return dberr.ErrNoIDOnCreate
+	}
+
+	if ulids.IsZero(contact.CounterpartyID) {
+		return dberr.ErrMissingReference
+	}
+
+	// Update the model metadata in place and create a new ID
+	contact.ID = ulids.New()
+	contact.Created = time.Now()
+	contact.Modified = contact.Created
+
+	if _, err = tx.Exec(createContactSQL, contact.Params()...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return dberr.ErrNotFound
+		}
+
+		// TODO: handle constraint violations
+		return err
+	}
+	return nil
+}
+
+const retrieveContactSQL = "SELECT * FROM contacts WHERE id=:id and counterparty_id=:counterpartyID"
+
+func (s *Store) RetrieveContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (contact *models.Contact, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	contact = &models.Contact{}
+	if err = contact.Scan(tx.QueryRow(retrieveContactSQL, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	// TODO: retrieve counterparty and associate it with the contact.
+
+	tx.Commit()
+	return contact, nil
+}
+
+// TODO: this must be an upsert/delete since the data is being modified on the relation
+const updateContactSQL = "UPDATE contacts SET name=:name, email=:email, role=:role, modified=:modified WHERE id=:id AND counterparty_id=:counterpartyID"
+
+func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err error) {
+	// Basic validation
+	if ulids.IsZero(contact.ID) {
+		return dberr.ErrMissingID
+	}
+
+	if ulids.IsZero(contact.CounterpartyID) {
+		return dberr.ErrMissingReference
+	}
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Update modified timestamp (in place).
+	contact.Modified = time.Now()
+
+	// Execute the update into the database
+	var result sql.Result
+	if result, err = tx.Exec(updateContactSQL, contact.Params()...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return dberr.ErrNotFound
+		}
+
+		// TODO: handle constraint violations
+		return err
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return tx.Commit()
+}
+
+const deleteContact = "DELETE FROM contacts WHERE id=:id AND counterparty_id=:counterpartyID"
+
+func (s *Store) DeleteContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var result sql.Result
+	if result, err = tx.Exec(deleteContact, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID)); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return dberr.ErrNotFound
+		}
 		return err
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
