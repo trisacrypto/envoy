@@ -77,6 +77,13 @@ type Client interface {
 	UpdateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	DeleteCounterparty(context.Context, ulid.ULID) error
 
+	// Contacts Resource
+	ListContacts(ctx context.Context, counterpartyID ulid.ULID, in *PageQuery) (*ContactList, error)
+	CreateContact(ctx context.Context, counterpartyID ulid.ULID, in *Counterparty) (*Contact, error)
+	ContactDetail(ctx context.Context, counterpartyID, contactID ulid.ULID) (*Contact, error)
+	UpdateContact(ctx context.Context, counterpartyID ulid.ULID, in *Counterparty) (*Contact, error)
+	DeleteContact(ctx context.Context, counterpartyID, contactID ulid.ULID) error
+
 	// Users Resource
 	ListUsers(context.Context, *PageQuery) (*UserList, error)
 	CreateUser(context.Context, *User) (*User, error)
