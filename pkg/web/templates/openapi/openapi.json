@@ -812,6 +812,14 @@
             "description": "The base64 encoded representation of a JSON or protocol buffer IVMS101 record for the legal person of the counterparty.",
             "example": "EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF"
           },
+          "contacts": {
+            "type": "array",
+            "description": "A list of compliance contact email addresses associated with the counterparty for technical support or sunrise requests.",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            },
+            "example": []
+          },
           "created": {
             "type": "string",
             "format": "date-time",
@@ -842,6 +850,24 @@
             "Other"
           ],
           "ivms101": "EmcKLwoeChpBbGljZSBUcmFkaW5nIENvbXBhbnksIExURBABCg0KCUFsaWNlQ29pbhADEjAIAiILTWFpbiBTdHJlZXQqAzEyM1IFNTU4ODBaClNtYWxsdmlsbGVqAktZggECVVMqAkRF",
+          "contacts": [
+            {
+              "id": "01JDQDM9QG9056TS0B7YXSDP0K",
+              "name": "James Duffy",
+              "email": "jduffy@alice.vaspbot.net",
+              "role": "Compliance Officer",
+              "created": "2024-11-27T12:21:08-06:00",
+              "modified": "2024-11-27T12:21:08-06:00"
+            },
+            {
+              "id": "01JDQDPEC3KWSW4FMFEHPETS00",
+              "name": "Alice Barnes",
+              "email": "alice@alice.vaspbot.net",
+              "role": "Technical Support",
+              "created": "2024-08-28T10:14:43-05:00",
+              "modified": "2024-08-28T12:23:24-05:00"
+            }
+          ],
           "verified_on": "2024-08-28T10:14:43-05:00",
           "created": "2024-08-28T10:14:43-05:00",
           "modified": "2024-08-28T12:23:24-05:00"
@@ -4991,6 +5017,112 @@
         "example": {
           "encoded": "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v",
           "decoded": "beneficiary.com?t=i"
+        }
+      },
+      "Contact": {
+        "title": "Contact",
+        "type": "object",
+        "description": "The contact officer of a compliance officer or technical support representative at a counterparty VASP. This information is used to send emails to the recipient.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "ULID",
+            "description": "The unique identifier of the contact on your Envoy node.",
+            "example": "01JDQDM9QG9056TS0B7YXSDP0K"
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the compliance officer (first last).",
+            "example": "James Duffy"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "The professional email address of the contact (must be unique and associated with only one counterparty).",
+            "example": "jduffy@alice.vaspbot.net"
+          },
+          "role": {
+            "type": "string",
+            "description": "The type of role or responsibilities the contact has at the counterparty.",
+            "example": "Compliance Officer"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the contact record was created.",
+            "example": "2024-11-27T12:21:08-06:00"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the contact record was last modified.",
+            "example": "2024-11-27T12:21:08-06:00"
+          }
+        },
+        "example": {
+          "id": "01JDQDM9QG9056TS0B7YXSDP0K",
+          "name": "James Duffy",
+          "email": "jduffy@alice.vaspbot.net",
+          "role": "Compliance Officer",
+          "created": "2024-11-27T12:21:08-06:00",
+          "modified": "2024-11-27T12:21:08-06:00"
+        }
+      },
+      "ContactList": {
+        "title": "ContactList",
+        "type": "object",
+        "description": "A list of Contact objects, returned in a paginated fashion.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageInfo"
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            },
+            "example": [
+              {
+                "id": "01JDQDM9QG9056TS0B7YXSDP0K",
+                "name": "James Duffy",
+                "email": "jduffy@alice.vaspbot.net",
+                "role": "Compliance Officer",
+                "created": "2024-11-27T12:21:08-06:00",
+                "modified": "2024-11-27T12:21:08-06:00"
+              },
+              {
+                "id": "01JDQDPEC3KWSW4FMFEHPETS00",
+                "name": "Alice Barnes",
+                "email": "alice@alice.vaspbot.net",
+                "role": "Technical Support",
+                "created": "2024-08-28T10:14:43-05:00",
+                "modified": "2024-08-28T12:23:24-05:00"
+              }
+            ]
+          }
+        },
+        "example": {
+          "page": {
+            "page_size": 50
+          },
+          "contacts": [
+            {
+              "id": "01JDQDM9QG9056TS0B7YXSDP0K",
+              "name": "James Duffy",
+              "email": "jduffy@alice.vaspbot.net",
+              "role": "Compliance Officer",
+              "created": "2024-11-27T12:21:08-06:00",
+              "modified": "2024-11-27T12:21:08-06:00"
+            },
+            {
+              "id": "01JDQDPEC3KWSW4FMFEHPETS00",
+              "name": "Alice Barnes",
+              "email": "alice@alice.vaspbot.net",
+              "role": "Technical Support",
+              "created": "2024-08-28T10:14:43-05:00",
+              "modified": "2024-08-28T12:23:24-05:00"
+            }
+          ]
         }
       }
     },
