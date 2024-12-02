@@ -15,8 +15,10 @@ const (
 	SourceDirectorySync = "gds"
 	SourceUserEntry     = "user"
 	SourcePeer          = "peer"
+	ProtocolUnknown     = "unknown"
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
+	ProtocolSunrise     = "sunrise"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
