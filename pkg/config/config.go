@@ -111,7 +111,10 @@ type TRPIdentityConfig struct {
 }
 
 type SunriseConfig struct {
-	Enabled bool `default:"true" desc:"if false, it will not be possible to send sunrise emails and sunrise endpoints will return a 404"`
+	Enabled        bool   `default:"true" desc:"if false, it will not be possible to send sunrise emails and sunrise endpoints will return a 404"`
+	BaseURL        string `split_words:"true" env:"TRISA_WEB_ORIGIN" desc:"the base url for handling sunrise requests, to put into outgoing emails"`
+	InviteEndpoint string `split_words:"true" default:"/sunrise/verify" desc:"the path of the endpoint for sunrise token verification"`
+	inviteURL      *url.URL
 }
 
 // Optional region and deployment information associated with the node.
@@ -246,6 +249,14 @@ func (c *TRPConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (c *SunriseConfig) InviteURL() *url.URL {
+	if c.inviteURL == nil {
+		c.inviteURL, _ = url.Parse(c.BaseURL)
+		c.inviteURL.Path = c.InviteEndpoint
+	}
+	return c.inviteURL
 }
 
 // Determines if region info is available or not.

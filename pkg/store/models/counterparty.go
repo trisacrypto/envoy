@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
@@ -172,6 +173,14 @@ func (c *Contact) Counterparty() (*Counterparty, error) {
 
 func (c *Contact) SetCounterparty(counterparty *Counterparty) {
 	c.counterparty = counterparty
+}
+
+// Return the RFC 5322 address as implemented by the net/mail package.
+func (c *Contact) Address() *mail.Address {
+	return &mail.Address{
+		Name:    c.Name,
+		Address: c.Email,
+	}
 }
 
 type CounterpartySourceInfo struct {

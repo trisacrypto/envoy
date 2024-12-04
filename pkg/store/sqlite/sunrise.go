@@ -208,6 +208,11 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 			Protocol:   models.ProtocolSunrise,
 			CommonName: domainFromEmail(email),
 			Endpoint:   fmt.Sprintf("mailto:%s", email),
+			Name:       name,
+		}
+
+		if out.CommonName != "" {
+			out.Website = sql.NullString{Valid: true, String: "https://" + out.CommonName}
 		}
 
 		// Add contact to the counterparty

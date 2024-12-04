@@ -59,8 +59,8 @@ func TestServerEnabled(t *testing.T) {
 			Enabled:    true,
 			APIEnabled: true,
 			UIEnabled:  false,
-			BindAddr:   "127.0.0.1:9100",
-			Origin:     "http://locahost:9100",
+			BindAddr:   "127.0.0.1:57132",
+			Origin:     "http://locahost:57132",
 		}}
 
 		srv, err := web.New(conf, store, network)
@@ -79,7 +79,7 @@ func TestServerEnabled(t *testing.T) {
 		}
 
 		statusForAPIRequest := func(endpoint, method string) (int, error) {
-			uri := &url.URL{Scheme: "http", Host: "localhost:9100", Path: endpoint}
+			uri := &url.URL{Scheme: "http", Host: "localhost:57132", Path: endpoint}
 			req, err := http.NewRequest(method, uri.String(), nil)
 			if err != nil {
 				return 0, err
@@ -90,7 +90,7 @@ func TestServerEnabled(t *testing.T) {
 		}
 
 		statusForUIRequest := func(endpoint, method string) (int, error) {
-			uri := &url.URL{Scheme: "http", Host: "localhost:9100", Path: endpoint}
+			uri := &url.URL{Scheme: "http", Host: "localhost:57132", Path: endpoint}
 			req, err := http.NewRequest(method, uri.String(), nil)
 			if err != nil {
 				return 0, err
@@ -152,8 +152,8 @@ func TestServerEnabled(t *testing.T) {
 			Enabled:    true,
 			APIEnabled: false,
 			UIEnabled:  true,
-			BindAddr:   "127.0.0.1:9100",
-			Origin:     "http://locahost:9100",
+			BindAddr:   "127.0.0.1:57132",
+			Origin:     "http://locahost:57132",
 		}}
 
 		srv, err := web.New(conf, store, network)
@@ -172,7 +172,7 @@ func TestServerEnabled(t *testing.T) {
 		}
 
 		statusForAPIRequest := func(endpoint, method string) (int, error) {
-			uri := &url.URL{Scheme: "http", Host: "localhost:9100", Path: endpoint}
+			uri := &url.URL{Scheme: "http", Host: "localhost:57132", Path: endpoint}
 			req, err := http.NewRequest(method, uri.String(), nil)
 			if err != nil {
 				return 0, err
@@ -183,7 +183,7 @@ func TestServerEnabled(t *testing.T) {
 		}
 
 		statusForUIRequest := func(endpoint, method string) (int, error) {
-			uri := &url.URL{Scheme: "http", Host: "localhost:9100", Path: endpoint}
+			uri := &url.URL{Scheme: "http", Host: "localhost:57132", Path: endpoint}
 			req, err := http.NewRequest(method, uri.String(), nil)
 			if err != nil {
 				return 0, err
