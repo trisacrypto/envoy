@@ -84,18 +84,6 @@ func (s *Server) SendEnvelopeForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "send_envelope.html", scene.New(c))
 }
 
-func (s *Server) SendMessageForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "send_message.html", scene.New(c))
-}
-
-func (s *Server) VerifySunriseUser(c *gin.Context) {
-	c.HTML(http.StatusOK, "verify.html", scene.New(c))
-}
-
-func (s *Server) SunriseMessagePreview(c *gin.Context) {
-	c.HTML(http.StatusOK, "view_message.html", scene.New(c))
-}
-
 func (s *Server) TravelAddressUtility(c *gin.Context) {
 	c.HTML(http.StatusOK, "traveladdress.html", scene.New(c))
 }
