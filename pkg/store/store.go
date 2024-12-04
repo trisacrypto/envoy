@@ -44,6 +44,7 @@ type Store interface {
 	AccountStore
 	CounterpartyStore
 	ContactStore
+	SunriseStore
 	UserStore
 	APIKeyStore
 }
@@ -135,6 +136,16 @@ type ContactStore interface {
 
 type TravelAddressStore interface {
 	UseTravelAddressFactory(models.TravelAddressFactory)
+}
+
+// Sunrise store manages both contacts and counterparties.
+type SunriseStore interface {
+	ListSunrise(context.Context, *models.PageInfo) (*models.SunrisePage, error)
+	CreateSunrise(context.Context, *models.Sunrise) error
+	RetrieveSunrise(context.Context, ulid.ULID) (*models.Sunrise, error)
+	UpdateSunrise(context.Context, *models.Sunrise) error
+	DeleteSunrise(context.Context, ulid.ULID) error
+	GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (*models.Counterparty, error)
 }
 
 type UserStore interface {

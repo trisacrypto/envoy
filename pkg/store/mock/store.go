@@ -170,6 +170,30 @@ func (s *Store) DeleteContact(ctx context.Context, contactID, counterpartyID uli
 func (s *Store) UseTravelAddressFactory(models.TravelAddressFactory) {
 }
 
+func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (out *models.SunrisePage, err error) {
+	return nil, nil
+}
+
+func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
+	return nil
+}
+
+func (s *Store) RetrieveSunrise(ctx context.Context, id ulid.ULID) (msg *models.Sunrise, err error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
+	return nil
+}
+
+func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
+	return nil
+}
+
+func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (*models.Counterparty, error) {
+	return nil, nil
+}
+
 func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (*models.UserPage, error) {
 	return nil, nil
 }

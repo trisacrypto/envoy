@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -59,7 +58,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 
 	// Get or create the counterparty for the associated email address
-	if beneficiaryVASP, err = s.SunriseCounterparty(c.Request.Context(), in.Email, in.Counterparty); err != nil {
+	if beneficiaryVASP, err = s.store.GetOrCreateSunriseCounterparty(c.Request.Context(), in.Email, in.Counterparty); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
 		return
@@ -141,8 +140,4 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		Data:     out,
 		HTMLName: "transaction_sent.html",
 	})
-}
-
-func (s *Server) SunriseCounterparty(ctx context.Context, email, counterparty string) (*models.Counterparty, error) {
-	return nil, nil
 }

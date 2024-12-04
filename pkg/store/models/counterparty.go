@@ -17,6 +17,7 @@ const (
 	SourcePeer          = "peer"
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
+	ProtocolSunrise     = "sunrise"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
@@ -108,6 +109,21 @@ func (c *Counterparty) Contacts() ([]*Contact, error) {
 // Used by store implementation to cache associated contacts on the counterparty.
 func (c *Counterparty) SetContacts(contacts []*Contact) {
 	c.contacts = contacts
+}
+
+// Lookup an email address in the counterparty contacts to see if it exists.
+func (c *Counterparty) HasContact(email string) (bool, error) {
+	if c.contacts == nil {
+		return false, errors.ErrMissingAssociation
+	}
+
+	for _, contact := range c.contacts {
+		if contact.Email == email {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 type Contact struct {

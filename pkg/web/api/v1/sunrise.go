@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/mail"
 	"strings"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -18,11 +19,18 @@ type Sunrise struct {
 }
 
 func (s *Sunrise) Validate() (err error) {
-	if strings.TrimSpace(s.Email) == "" {
+	s.Email = strings.ToLower(strings.TrimSpace(s.Email))
+	if s.Email == "" {
 		err = ValidationError(err, MissingField("email"))
 	}
 
-	if strings.TrimSpace(s.Counterparty) == "" {
+	// Attempt to parse the email address
+	if _, perr := mail.ParseAddress(s.Email); perr != nil {
+		err = ValidationError(err, IncorrectField("email", perr.Error()))
+	}
+
+	s.Counterparty = strings.TrimSpace(s.Counterparty)
+	if s.Counterparty == "" {
 		err = ValidationError(err, MissingField("counterparty"))
 	}
 
