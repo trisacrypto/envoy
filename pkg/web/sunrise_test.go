@@ -7,11 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 )
 
 func TestSunriseIntegration(t *testing.T) {
+	// Load local .env if it exists to make setting envvars easier.
+	godotenv.Load()
+
 	// This test sends a sunrise message to a locally running server; it is skipped if
 	// the $SUNRISE_TEST_INTEGRATION environment variable is not set to a boolean true.
 	SkipByEnvVar(t, "SUNRISE_TEST_INTEGRATION")
