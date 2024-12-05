@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
@@ -17,6 +18,7 @@ const (
 	SourcePeer          = "peer"
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
+	ProtocolSunrise     = "sunrise"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
@@ -110,6 +112,21 @@ func (c *Counterparty) SetContacts(contacts []*Contact) {
 	c.contacts = contacts
 }
 
+// Lookup an email address in the counterparty contacts to see if it exists.
+func (c *Counterparty) HasContact(email string) (bool, error) {
+	if c.contacts == nil {
+		return false, errors.ErrMissingAssociation
+	}
+
+	for _, contact := range c.contacts {
+		if contact.Email == email {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 type Contact struct {
 	Model
 	Name           string        // The full name of the contact
@@ -156,6 +173,14 @@ func (c *Contact) Counterparty() (*Counterparty, error) {
 
 func (c *Contact) SetCounterparty(counterparty *Counterparty) {
 	c.counterparty = counterparty
+}
+
+// Return the RFC 5322 address as implemented by the net/mail package.
+func (c *Contact) Address() *mail.Address {
+	return &mail.Address{
+		Name:    c.Name,
+		Address: c.Email,
+	}
 }
 
 type CounterpartySourceInfo struct {

@@ -120,6 +120,10 @@ func (p *Prepare) Transaction() *generic.Transaction {
 	}
 }
 
+func (p *Person) FullName() string {
+	return strings.TrimSpace(p.FirstName + " " + p.LastName)
+}
+
 func (p *Person) NaturalPerson() *ivms101.Person {
 	addrLines := []string{
 		strings.TrimSpace(p.AddrLine1),

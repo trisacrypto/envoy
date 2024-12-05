@@ -228,6 +228,10 @@ func (t *SignedToken) Signature() []byte {
 
 // Scan the signed token from a database query.
 func (t *SignedToken) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
 	data, ok := value.([]byte)
 	if !ok {
 		return ErrUnexpectedType
@@ -238,6 +242,10 @@ func (t *SignedToken) Scan(value interface{}) error {
 
 // Produce a database value from the signed token for inserts/updates to database.
 func (t *SignedToken) Value() (_ driver.Value, err error) {
+	if t == nil {
+		return nil, nil
+	}
+
 	var data []byte
 	if data, err = t.MarshalBinary(); err != nil {
 		return nil, err

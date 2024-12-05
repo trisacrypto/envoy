@@ -302,6 +302,23 @@ func (s *APIv1) Repair(ctx context.Context, transactionID uuid.UUID, in *Envelop
 }
 
 //===========================================================================
+// Temporary Sunrise Action
+//===========================================================================
+
+const (
+	sunriseEP     = "/v1/sunrise"
+	sendSunriseEP = "send"
+)
+
+func (s *APIv1) SendSunrise(ctx context.Context, in *Sunrise) (out *Transaction, err error) {
+	endpoint, _ := url.JoinPath(sunriseEP, sendSunriseEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+//===========================================================================
 // Secure and Decrypted Envelopes Resource
 //===========================================================================
 

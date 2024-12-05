@@ -99,6 +99,14 @@ func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Cou
 	}
 	defer tx.Rollback()
 
+	if err = s.createCounterparty(tx, counterparty); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) createCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
 	// Update the model metadata in place and create a new ID
 	counterparty.ID = ulids.New()
 	counterparty.Created = time.Now()
@@ -119,7 +127,7 @@ func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Cou
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const retreiveCounterpartySQL = "SELECT * FROM counterparties WHERE id=:id"

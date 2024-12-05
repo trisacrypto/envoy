@@ -1,5 +1,11 @@
 package emails
 
+import (
+	"net/url"
+
+	"github.com/trisacrypto/envoy/pkg/sunrise"
+)
+
 //===========================================================================
 // Sunrise Invite
 //===========================================================================
@@ -17,7 +23,20 @@ func NewSunriseInvite(recipient string, data SunriseInviteData) (*Email, error) 
 type SunriseInviteData struct {
 	OriginatorName  string
 	BeneficiaryName string
-	VerifyURL       string
+	BaseURL         *url.URL
+	Token           sunrise.VerificationToken
+}
+
+func (s SunriseInviteData) VerifyURL() string {
+	if s.BaseURL == nil {
+		return ""
+	}
+
+	params := make(url.Values, 1)
+	params.Set("token", s.Token.String())
+
+	s.BaseURL.RawQuery = params.Encode()
+	return s.BaseURL.String()
 }
 
 //===========================================================================
@@ -25,7 +44,7 @@ type SunriseInviteData struct {
 //===========================================================================
 
 const (
-	VerifyEmailRE       = "One time verification code"
+	VerifyEmailRE       = "One-time verification code"
 	VerifyEmailTemplate = "verify_email"
 )
 
