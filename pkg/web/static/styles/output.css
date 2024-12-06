@@ -2896,6 +2896,14 @@ details.collapse summary::-webkit-details-marker {
   margin-inline-start: 0.5rem;
 }
 
+.mt-0 {
+  margin-top: 0px;
+}
+
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -2954,6 +2962,10 @@ details.collapse summary::-webkit-details-marker {
 
 .h-4 {
   height: 1rem;
+}
+
+.h-5 {
+  height: 1.25rem;
 }
 
 .h-\[28px\] {
@@ -3018,6 +3030,10 @@ details.collapse summary::-webkit-details-marker {
 
 .w-48 {
   width: 12rem;
+}
+
+.w-5 {
+  width: 1.25rem;
 }
 
 .w-52 {
@@ -3150,6 +3166,11 @@ details.collapse summary::-webkit-details-marker {
 .gap-x-2 {
   -moz-column-gap: 0.5rem;
        column-gap: 0.5rem;
+}
+
+.gap-x-3 {
+  -moz-column-gap: 0.75rem;
+       column-gap: 0.75rem;
 }
 
 .gap-x-4 {
