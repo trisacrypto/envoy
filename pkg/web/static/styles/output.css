@@ -2940,6 +2940,10 @@ details.collapse summary::-webkit-details-marker {
   margin-top: 0.125rem;
 }
 
+.mt-2\.5 {
+  margin-top: 0.625rem;
+}
+
 .block {
   display: block;
 }
