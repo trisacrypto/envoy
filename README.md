@@ -4,7 +4,6 @@
 
 Complete documentation for Envoy can be found at [https://trisa.dev/envoy](https://trisa.dev/envoy).
 
-
 ## Running Envoy Locally
 
 **NOTE**: Development is happening rapidly on the node right now; if these instructions don't work correctly, please open an issue on GitHub so we can review the docs.
@@ -79,3 +78,28 @@ $ docker compose exec counterparty.local envoy createuser -e [email] -r admin
 You can access the counterparty at [http://localhost:9000](http://localhost:9000) or at [http://counterparty.local:9000](http://counterparty.local:9000) if you have edited your hosts file.
 
 > **NOTE**: Due to the way cookie domains work with the credentials, you can only be logged into either the envoy development node or the counterparty development node at the same time. It's annoying, but you'll have to login again when switching between nodes unfortunately.
+
+
+## Envoy Implementation Options
+
+| Open Source                                                                                                         | One-Time Setup                                                                                                                                    | Managed Service                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Envoy is open source (MIT License). Download, install, integrate, host and support your own Envoy node and service. | The Envoy team will install and configure your Envoy node in your environment while you host, maintain, and support the node on an ongoing basis. | The Envoy team will install, configure, host, maintain, and support an Envoy node for you. Includes dedicated, provenance-aware node with regional deployments. |
+|                                                                                                                     |                                                                                                                                                   |                                                                                                                                                                 |
+
+If you’d like more information on the one-time integration service or managed services, [schedule a demo](https://rtnl.link/p2WzzmXDuSu) with the Envoy team!
+
+
+## Envoy Support
+
+|                        | Open Source            | One-Time Setup         | Managed Service |
+| ------------------------------- | ---------------------- | ---------------------- | ---------------------- |
+| [Envoy Documentation](https://trisa.dev/envoy/index.html)                                            | 	&#10003;                                    | 	&#10003;                                    | 	&#10003;                                    |
+| Access to [TRISA Slack Community](https://trisa-workspace.slack.com/)                                | 	&#10003;                                    | 	&#10003;                                    | 	&#10003;                                    |
+| Training from Envoy Team                                       |                                              | 	&#10003;                                    | 	&#10003;                                    |
+| Dedicated Support                                              |                                              |                                              | 	&#10003;                                    |
+| Response Time*                                                 | Within 5 business days                       | Within 5 business days                       | Within 3 business days                       |
+
+
+
+*The Envoy team's business hours are 9AM - 6PM Eastern.
