@@ -1,7 +1,6 @@
 document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === '/sunrise/message' && e.detail.verb === 'post') {
     const params = e.detail.parameters;
-    console.log('params', params);
 
     let data = {
       email: params.email,
@@ -10,7 +9,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         identification: {},
       },
       beneficiary: {
-        identification: {},
       },
       transfer: {
         amount: parseFloat(params.amount),
@@ -34,8 +32,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         data.beneficiary[key.replace('benf_', '')] = params[key];
       };
     };
-
-    console.log('data', data);
 
     // Modify outgoing request data.
     e.detail.parameters = data;

@@ -1,7 +1,7 @@
 {{ template "base" . }}
 {{ define "content" }}
 
-<section class="mx-8 py-9">
+<section id="sunrise" class="mx-8 py-9">
    <div class="flex justify-around items-center my-4 md:m-8">
     <a href="/transactions" class="btn btn-sm btn-circle btn-ghost text-xl">
       <i class="fa-solid fa-arrow-left"></i>
@@ -15,18 +15,18 @@
       You will need a valid email address for your counterparty. If your counterparty is in the TRISA or TRP networks,
       <a href="/send-envelope" class="underline text-blue-700">send a secure envelope</a> instead.
     </p>
-    <form id="sunrise-msg-form" hx-post="/sunrise/message" hx-ext="json-enc" method="post">
+    <form id="sunrise-msg-form" hx-post="/sunrise/message" hx-target="#sunrise" hx-swap="outerHTML" hx-indicator="#loader" hx-ext="json-enc" method="post">
 
-      <section class="py-2 border-t border-t-black">
+      <div class="py-2 border-t border-t-black">
         <div class="my-5">
-          <label for="vasp_name" class="label-style">Counterparty VASP Entity Name</label>
-          <input type="text" id="vasp_name" name="vasp_name" placeholder="Enter counterparty VASP name" class="input-style" />
+          <label for="counterparty" class="label-style">Counterparty VASP Entity Name</label>
+          <input type="text" id="counterparty" name="counterparty" placeholder="Enter counterparty VASP name" class="input-style" />
         </div>
         <div class="my-5">
           <label for="email" class="label-style">Email Address</label>
           <input type="text" id="email" name="email" placeholder="Enter counterparty VASP email address" class="input-style" />
         </div>
-      </section>
+      </div>
 
       {{ template "originator_information" . }}
 
@@ -34,7 +34,7 @@
 
       {{ template "virtual_asset" . }}
 
-      <button type="button" id="preview-msg-bttn" class="mx-auto block btn bg-primary text-white font-semibold hover:bg-primary/90">Send Message</button>
+      <button id="preview-msg-bttn" class="mx-auto block btn bg-primary text-white font-semibold hover:bg-primary/90">Send Message</button>
     </form>
   </section>
 </section>
