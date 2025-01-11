@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS sunrise (
     envelope_id     TEXT NOT NULL,
     email           TEXT NOT NULL,
     expiration      DATETIME NOT NULL,
-    signature       BLOB NOT NULL,
+    signature       BLOB DEFAULT NULL,
     status          TEXT NOT NULL,
     sent_on         DATETIME DEFAULT NULL,
     verified_on     DATETIME DEFAULT NULL,

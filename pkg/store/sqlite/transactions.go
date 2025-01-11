@@ -608,6 +608,14 @@ func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error)
 	return nil
 }
 
+func (p *PreparedTransaction) CreateSunrise(in *models.Sunrise) error {
+	return createSunrise(p.tx, in)
+}
+
+func (p *PreparedTransaction) UpdateSunrise(in *models.Sunrise) error {
+	return updateSunrise(p.tx, in)
+}
+
 func (p *PreparedTransaction) Rollback() error {
 	return p.tx.Rollback()
 }

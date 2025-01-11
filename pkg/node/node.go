@@ -9,6 +9,7 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/directory"
+	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/metrics"
 	"github.com/trisacrypto/envoy/pkg/store"
@@ -79,6 +80,11 @@ func New(conf config.Config) (node *Node, err error) {
 	// Configure the webhook if it's enabled
 	if conf.WebhookEnabled() {
 		node.webhook = webhook.New(conf.Webhook())
+	}
+
+	// Configure email if it's available
+	if err = emails.Configure(conf.Email); err != nil {
+		return nil, err
 	}
 
 	// Create the TRISA management system

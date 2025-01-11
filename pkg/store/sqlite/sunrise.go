@@ -59,6 +59,8 @@ const createSunriseSQL = "INSERT INTO sunrise (id, envelope_id, email, expiratio
 // Create a sunrise message in the database.
 func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
 	// Basic validation
+	// Note: this is duplicated in updateSunrise but better to check before starting a
+	// transaction that will take up system resources.
 	if !ulids.IsZero(msg.ID) {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -69,6 +71,22 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	}
 	defer tx.Rollback()
 
+	if err = createSunrise(tx, msg); err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func createSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
+	// Basic validation
+	if !ulids.IsZero(msg.ID) {
+		return dberr.ErrNoIDOnCreate
+	}
+
 	// Create IDs and model metadata, updating the sunrise message in place.
 	msg.ID = ulids.New()
 	msg.Created = time.Now()
@@ -77,10 +95,6 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	// Execute the insert into the database
 	if _, err = tx.Exec(createSunriseSQL, msg.Params()...); err != nil {
 		// TODO: handle constraint violations
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
 		return err
 	}
 	return nil
@@ -120,6 +134,8 @@ const updateSunriseSQL = "UPDATE sunrise SET envelope_id=:envelopeID, email=:ema
 // Update sunrise message information.
 func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
 	// Basic validation
+	// Note: this is duplicated in updateSunrise but better to check before starting a
+	// transaction that will take up system resources.
 	if ulids.IsZero(msg.ID) {
 		return dberr.ErrMissingID
 	}
@@ -129,6 +145,22 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 		return err
 	}
 	defer tx.Rollback()
+
+	if err = updateSunrise(tx, msg); err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
+	// Basic validation
+	if ulids.IsZero(msg.ID) {
+		return dberr.ErrMissingID
+	}
 
 	// Update modified timestamp (in place).
 	msg.Modified = time.Now()
@@ -142,9 +174,6 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
 	return nil
 }
 

@@ -32,8 +32,14 @@ const (
 	initialInterval     = 2500 * time.Millisecond
 )
 
-// Configure the package to start sending emails.
+// Configure the package to start sending emails. If there is no valid email
+// configuration available then configuration is gracefully ignored without error.
 func Configure(conf Config) (err error) {
+	// Do not configure email if it is not available but also do not return an error.
+	if !conf.Available() {
+		return nil
+	}
+
 	if err = conf.Validate(); err != nil {
 		return err
 	}
