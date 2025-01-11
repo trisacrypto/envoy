@@ -67,7 +67,10 @@ func (s *Server) Serve(errc chan<- error) (err error) {
 		}
 	}()
 
-	log.Info().Str("url", s.URL()).Msg("compliance and admin web user interface started")
+	log.Info().
+		Str("url", s.URL()).
+		Bool("sunrise", s.conf.Sunrise.Enabled && s.conf.Email.Available()).
+		Msg("compliance and admin web user interface started")
 	return nil
 }
 

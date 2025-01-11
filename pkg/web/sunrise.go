@@ -138,7 +138,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		}
 
 		// This method will create the ID on the sunrise record
-		if err = s.store.CreateSunrise(ctx, record); err != nil {
+		if err = packet.DB.CreateSunrise(record); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 			return
@@ -170,7 +170,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 
 		// Update the sunrise record in the database with the token and sent on timestamp
 		record.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
-		if err = s.store.UpdateSunrise(ctx, record); err != nil {
+		if err = packet.DB.UpdateSunrise(record); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 			return

@@ -245,6 +245,9 @@ const (
 	colorUnspecified   = "text-gray-500"
 	tooltipUnspecified = "The transfer state is unknown or purposefully not specified."
 
+	colorDraft   = "text-gray-500"
+	tooltipDraft = "The TRISA exchange is in a draft state and has not been sent."
+
 	colorPending   = "text-yellow-700"
 	tooltipPending = "Action is required by the sending party, await a following RPC."
 
@@ -272,6 +275,8 @@ func (c *Transaction) ColorStatus() string {
 	switch c.Status {
 	case models.StatusUnspecified, "":
 		return colorUnspecified
+	case models.StatusDraft:
+		return colorDraft
 	case models.StatusPending:
 		return colorPending
 	case models.StatusReview:
@@ -293,6 +298,8 @@ func (c *Transaction) TooltipStatus() string {
 	switch c.Status {
 	case models.StatusUnspecified, "":
 		return tooltipUnspecified
+	case models.StatusDraft:
+		return tooltipDraft
 	case models.StatusPending:
 		return tooltipPending
 	case models.StatusReview:
