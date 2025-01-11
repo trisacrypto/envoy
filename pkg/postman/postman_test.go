@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/postman"
+	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -65,4 +68,34 @@ func loadPayloadFixture(identityFixture, txnFixture string) (payload *api.Payloa
 	}
 
 	return payload, nil
+}
+
+func loadCertificate(path string) (_ keys.Key, err error) {
+	var data []byte
+	if data, err = os.ReadFile(path); err != nil {
+		return nil, err
+	}
+
+	cert := &keys.Certificate{}
+	if err = cert.Unmarshal(data); err != nil {
+		return nil, err
+	}
+
+	return cert, nil
+}
+
+func mockPeer(t *testing.T) peers.Peer {
+	info := &peers.Info{
+		ID:                  "123e4567-e89b-12d3-a456-426614174000",
+		RegisteredDirectory: "testing",
+		CommonName:          "example.com",
+		Endpoint:            "passthrough://bufnet",
+		Name:                "Mock VASP",
+		Country:             "US",
+		VerifiedOn:          time.Date(2024, 12, 12, 12, 12, 12, 0, time.UTC),
+	}
+
+	peer, err := peers.NewMock(info)
+	require.NoError(t, err, "could not create mock peer")
+	return peer
 }

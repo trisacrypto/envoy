@@ -4,6 +4,8 @@ import "github.com/trisacrypto/envoy/pkg/store/models"
 
 type PreparedTransaction struct{}
 
+var _ models.PreparedTransaction = &PreparedTransaction{}
+
 func (p *PreparedTransaction) Created() bool {
 	return false
 }
@@ -23,6 +25,9 @@ func (p *PreparedTransaction) AddCounterparty(*models.Counterparty) error {
 func (p *PreparedTransaction) AddEnvelope(*models.SecureEnvelope) error {
 	return nil
 }
+
+func (p *PreparedTransaction) CreateSunrise(*models.Sunrise) error { return nil }
+func (p *PreparedTransaction) UpdateSunrise(*models.Sunrise) error { return nil }
 
 func (p *PreparedTransaction) Rollback() error {
 	return nil

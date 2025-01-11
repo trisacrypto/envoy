@@ -31,6 +31,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 // Packet is the base struct for all messaging interactions including TRISA, TRP and
@@ -39,14 +40,15 @@ import (
 // use this struct directly but will use the protocol structs which embed this struct.
 // TODO: add audit log information
 type Packet struct {
-	log          zerolog.Logger             // the log context so that postman actions can be debugged
-	db           models.PreparedTransaction // database context for storing and updating transactions
-	in           *Incoming                  // the incoming message received from the remote counteparty
-	out          *Outgoing                  // the outgoing message sent to the remote counterparty
-	txn          *models.Transaction        // the transaction db record that this packet is associated with
-	counterparty *models.Counterparty       // the counterparty db record associated with the transaction
-	request      Direction                  // the direction of the request (e.g. the initial message)
-	reply        Direction                  // direction of the reply (e.g. the response to the request)
+	Log          zerolog.Logger             // the log context so that postman actions can be debugged
+	DB           models.PreparedTransaction // database context for storing and updating transactions
+	In           *Incoming                  // the incoming message received from the remote counteparty
+	Out          *Outgoing                  // the outgoing message sent to the remote counterparty
+	Transaction  *models.Transaction        // the transaction db record that this packet is associated with
+	Counterparty *models.Counterparty       // the counterparty db record associated with the transaction
+	StorageKey   keys.PublicKey             // the public key used to encrypt the stored envelope
+	Request      Direction                  // the direction of the request (e.g. the initial message)
+	Reply        Direction                  // direction of the reply (e.g. the response to the request)
 }
 
 //===========================================================================
@@ -54,93 +56,76 @@ type Packet struct {
 //===========================================================================
 
 // Send is the basic mechanism to create a new packet whose request is outgoing.
-func Send(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState, opts ...Option) (packet *Packet, err error) {
+func Send(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState) (packet *Packet, err error) {
 	packet = &Packet{
-		in:      &Incoming{},
-		out:     &Outgoing{},
-		request: DirectionOutgoing,
-		reply:   DirectionIncoming,
+		In:      &Incoming{},
+		Out:     &Outgoing{},
+		Request: DirectionOutgoing,
+		Reply:   DirectionIncoming,
 	}
 
 	// Create the logger to log messages with (can be overriden by external caller)
-	packet.log = log.With().
+	packet.Log = log.With().
 		Str("envelope_id", envelopeID.String()).
-		Str("direction", packet.request.String()).
+		Str("direction", packet.Request.String()).
 		Logger()
 
 	// Add parent to submessages
-	packet.in.packet = packet
-	packet.out.packet = packet
+	packet.In.packet = packet
+	packet.Out.packet = packet
 
 	envelopeOpts := []envelope.Option{
 		envelope.WithEnvelopeID(envelopeID.String()),
 		envelope.WithTransferState(transferState),
 	}
 
-	if packet.out.Envelope, err = envelope.New(payload, envelopeOpts...); err != nil {
+	if packet.Out.Envelope, err = envelope.New(payload, envelopeOpts...); err != nil {
 		return nil, fmt.Errorf("could not create envelope for payload: %w", err)
-	}
-
-	// Apply options
-	// NOTE: subclasses should not pass options into this method if using it to instantiate a packet.
-	for _, opt := range opts {
-		opt(packet)
 	}
 
 	return packet, nil
 }
 
 // SendReject creates a new packet with an error payload to send as an outgoing request.
-func SendReject(reject *api.Error, envelopeID uuid.UUID, opts ...Option) (packet *Packet, err error) {
+func SendReject(reject *api.Error, envelopeID uuid.UUID) (packet *Packet, err error) {
 	packet = &Packet{
-		in:      &Incoming{},
-		out:     &Outgoing{},
-		request: DirectionOutgoing,
-		reply:   DirectionIncoming,
+		In:      &Incoming{},
+		Out:     &Outgoing{},
+		Request: DirectionOutgoing,
+		Reply:   DirectionIncoming,
 	}
 
 	// Add parent to submessages
-	packet.in.packet = packet
-	packet.out.packet = packet
+	packet.In.packet = packet
+	packet.Out.packet = packet
 
 	// The envelope package should set the correct transfer state based on retry.
-	if packet.out.Envelope, err = envelope.WrapError(reject, envelope.WithEnvelopeID(envelopeID.String())); err != nil {
+	if packet.Out.Envelope, err = envelope.WrapError(reject, envelope.WithEnvelopeID(envelopeID.String())); err != nil {
 		return nil, fmt.Errorf("could not create rejection envelope: %w", err)
-	}
-
-	// Apply options
-	// NOTE: subclasses should not pass options into this method if using it to instantiate a packet.
-	for _, opt := range opts {
-		opt(packet)
 	}
 
 	return packet, nil
 }
 
 // Receive is the basic mechanism to create a new packet whose request is incoming.
-func Receive(envelope *envelope.Envelope, opts ...Option) (packet *Packet) {
+// TODO: modify this to a more simple form.
+func Receive(envelope *envelope.Envelope) (packet *Packet) {
 	packet = &Packet{
-		in:      &Incoming{Envelope: envelope},
-		out:     &Outgoing{},
-		request: DirectionIncoming,
-		reply:   DirectionOutgoing,
+		In:      &Incoming{Envelope: envelope},
+		Out:     &Outgoing{},
+		Request: DirectionIncoming,
+		Reply:   DirectionOutgoing,
 	}
 
-	// Create the logger to log messages with (can be overriden by external caller)
-	packet.log = log.With().
+	// Create the logger to log messages with (can be overridden by external caller)
+	packet.Log = log.With().
 		Str("envelope_id", envelope.ID()).
-		Str("direction", packet.request.String()).
+		Str("direction", packet.Request.String()).
 		Logger()
 
 	// Add parent to submessages
-	packet.in.packet = packet
-	packet.out.packet = packet
-
-	// Apply options
-	// NOTE: subclasses should not pass options into this method if using it to instantiate a packet.
-	for _, opt := range opts {
-		opt(packet)
-	}
+	packet.In.packet = packet
+	packet.Out.packet = packet
 
 	return packet
 }
@@ -151,19 +136,27 @@ func Receive(envelope *envelope.Envelope, opts ...Option) (packet *Packet) {
 
 // Returns the envelopeID from the request envelope (e.g. the first envelope in the packet)
 func (p *Packet) EnvelopeID() string {
-	switch p.request {
+	switch p.Request {
 	case DirectionIncoming:
-		return p.in.Envelope.ID()
+		return p.In.Envelope.ID()
 	case DirectionOutgoing:
-		return p.out.Envelope.ID()
+		return p.Out.Envelope.ID()
 	default:
 		panic("request direction not set on packet")
 	}
 }
 
+// Attempts to identify the proper protocol to send the packet based on the counterparty.
+func (p *Packet) Protocol() string {
+	if p.Counterparty == nil {
+		return ""
+	}
+	return p.Counterparty.Protocol
+}
+
 // Updates the transaction from the current state in the database.
 func (p *Packet) RefreshTransaction() (err error) {
-	if p.txn, err = p.db.Fetch(); err != nil {
+	if p.Transaction, err = p.DB.Fetch(); err != nil {
 		return err
 	}
 	return nil
@@ -171,53 +164,21 @@ func (p *Packet) RefreshTransaction() (err error) {
 
 // Ready checks if the packet has everything it needs to perform its work.
 func (p *Packet) Ready() (err error) {
-	if p.db == nil {
+	if p.DB == nil {
 		err = errors.Join(err, ErrDatabaseNotReady)
 	}
 
-	if p.txn == nil {
+	if p.Transaction == nil {
 		err = errors.Join(err, ErrTransactionNotReady)
 	}
 
-	if p.counterparty == nil {
+	if p.Counterparty == nil {
 		err = errors.Join(err, ErrCounterpartyNotReady)
 	}
 
-	if !p.request.Valid() || !p.reply.Valid() || p.in == nil || p.out == nil {
+	if !p.Request.Valid() || !p.Reply.Valid() || p.In == nil || p.Out == nil {
 		err = errors.Join(err, ErrPacketNotReady)
 	}
 
 	return err
-}
-
-//===========================================================================
-// Packet Accessor Methods (to avoid direct setting of fields)
-//===========================================================================
-
-func (p *Packet) DB() models.PreparedTransaction {
-	return p.db
-}
-
-func (p *Packet) In() *Incoming {
-	return p.in
-}
-
-func (p *Packet) Out() *Outgoing {
-	return p.out
-}
-
-func (p *Packet) Transaction() *models.Transaction {
-	return p.txn
-}
-
-func (p *Packet) Counterparty() *models.Counterparty {
-	return p.counterparty
-}
-
-func (p *Packet) Request() Direction {
-	return p.request
-}
-
-func (p *Packet) Reply() Direction {
-	return p.reply
 }
