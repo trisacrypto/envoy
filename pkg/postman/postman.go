@@ -45,18 +45,20 @@ const (
 // Packets contain both an incoming and an outgoing message and are used to ensure that
 // an entire tranfer packet can be correctly constructed for both envelopes.
 type Packet struct {
-	DB           models.PreparedTransaction // Database interaction methods
-	In           *Incoming                  // The incoming message that needs to be decrypted
-	Out          *Outgoing                  // The outgoing message that needs to be encrypted
-	Log          zerolog.Logger             // The log context for more effective logging
-	Counterparty *models.Counterparty       // The remote identified counterparty
-	Transaction  *models.Transaction        // The associated transaction with the packet
-	Peer         peers.Peer                 // The remote peer the transfer is being conducted with
-	PeerInfo     *peers.Info                // The peer info for finding the counterparty
-	User         *models.User               // The user that created the request, if any
-	APIKey       *models.APIKey             // The api key that created the request, if any
-	Request      Direction                  // Determines if the initial message was incoming or outgoing
-	Reply        Direction                  // Determines if the reply was incoming or outgoing
+	DB            models.PreparedTransaction // Database interaction methods
+	In            *Incoming                  // The incoming message that needs to be decrypted
+	Out           *Outgoing                  // The outgoing message that needs to be encrypted
+	Log           zerolog.Logger             // The log context for more effective logging
+	TravelAddress string                     // The original travel address (if TRP) to send the packet to
+	Counterparty  *models.Counterparty       // The remote identified counterparty
+	Transaction   *models.Transaction        // The associated transaction with the packet
+	Peer          peers.Peer                 // The remote peer the transfer is being conducted with (if TRISA)
+	PeerInfo      *peers.Info                // The peer info for finding the counterparty (if TRISA)
+	User          *models.User               // The user that created the request, if any
+	APIKey        *models.APIKey             // The api key that created the request, if any
+	Request       Direction                  // Determines if the initial message was incoming or outgoing
+	Reply         Direction                  // Determines if the reply was incoming or outgoing
+	protocol      string                     // The protocol the packet is being sent with
 }
 
 func Send(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState, log zerolog.Logger) (packet *Packet, err error) {
@@ -141,6 +143,31 @@ func (p *Packet) EnvelopeID() string {
 	default:
 		panic("request direction not set on packet")
 	}
+}
+
+// Returns the transfer state from the request envelope (e.g. the first envelope in the
+// packet) - so if it is an outgoing message, it returns the transfer state from the
+// outgoing payload and if it is incoming from the incoming payload.
+func (p *Packet) TransferState() api.TransferState {
+	switch p.Request {
+	case DirectionIncoming:
+		return p.In.Envelope.TransferState()
+	case DirectionOutgoing:
+		return p.Out.Envelope.TransferState()
+	default:
+		panic("request direction not set on packet")
+	}
+}
+
+// Gets the protocol that the packet is being sent with; if no protocol has been set
+// then the protocol of the counterparty is used.
+func (p *Packet) Protocol() string {
+	if p.protocol == "" {
+		if p.Counterparty != nil {
+			p.protocol = p.Counterparty.Protocol
+		}
+	}
+	return p.protocol
 }
 
 // Receive updates the incoming message with the specified secure envelope, e.g. in the
