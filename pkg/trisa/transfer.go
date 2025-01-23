@@ -42,8 +42,8 @@ func (s *Server) Transfer(ctx context.Context, in *api.SecureEnvelope) (_ *api.S
 	log = log.With().Str("peer", peer.String()).Str("envelope_id", in.Id).Logger()
 
 	// Create a packet to handle the incoming request
-	var packet *postman.Packet
-	if packet, err = postman.Receive(in, log, peer); err != nil {
+	var packet *postman.TRISAPacket
+	if packet, err = postman.ReceiveTRISA(in, log, peer); err != nil {
 		log.Error().Err(err).Msg("could not start trisa transfer")
 		return nil, internalError
 	}
@@ -116,8 +116,8 @@ func (s *Server) TransferStream(stream api.TRISANetwork_TransferStreamServer) (e
 			}
 
 			// Create a packet to handle the incoming request
-			var packet *postman.Packet
-			if packet, err = postman.Receive(in, log, peer); err != nil {
+			var packet *postman.TRISAPacket
+			if packet, err = postman.ReceiveTRISA(in, log, peer); err != nil {
 				log.Error().Err(err).Msg("could not handle stream message, stream closing")
 				return
 			}
@@ -159,7 +159,7 @@ func (s *Server) TransferStream(stream api.TRISANetwork_TransferStreamServer) (e
 // TRISA Transfer Handler Methods
 //===========================================================================
 
-func (s *Server) Handle(ctx context.Context, p *postman.Packet) (err error) {
+func (s *Server) Handle(ctx context.Context, p *postman.TRISAPacket) (err error) {
 	// Ensure that the error returned from this function is a gRPC error
 	defer func() {
 		if err != nil {
@@ -245,7 +245,7 @@ func (s *Server) Handle(ctx context.Context, p *postman.Packet) (err error) {
 	return nil
 }
 
-func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error) {
+func (s *Server) HandleSealed(ctx context.Context, p *postman.TRISAPacket) (err error) {
 	// Identify the unsealing keys to decrypt the incoming envelope
 	if p.In.UnsealingKey, err = s.network.UnsealingKey(p.In.PublicKeySignature(), p.Peer.Name()); err != nil {
 		// Return TRISA rejection message if we cannot unseal the envelope
@@ -323,7 +323,7 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.Packet) (err error
 	return nil
 }
 
-func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error) {
+func (s *Server) HandleError(ctx context.Context, p *postman.TRISAPacket) (err error) {
 	// If the transaction doesn't exist, why are we receiving an error?
 	if p.DB.Created() {
 		return status.Error(codes.NotFound, "transaction does not exist")
@@ -373,7 +373,7 @@ func (s *Server) HandleError(ctx context.Context, p *postman.Packet) (err error)
 
 // Returns a response by using the webhook to perform a callback. If the webhook errors
 // then a service unavailable grpc error is returned.
-func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *postman.Packet) (err error) {
+func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *postman.TRISAPacket) (err error) {
 	// Create the webhook request (note that setting a nil payload will cause no issues if this is an error envelope)
 	request := p.In.WebhookRequest()
 	if err = request.AddPayload(payload); err != nil {
@@ -418,7 +418,7 @@ func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *p
 
 // Automatic response determination based on incoming state. This method will either
 // echo back the response as required or return a pending message if necessary.
-func (s *Server) DefaultResponse(payload *api.Payload, p *postman.Packet) (err error) {
+func (s *Server) DefaultResponse(payload *api.Payload, p *postman.TRISAPacket) (err error) {
 	switch p.In.TransferState() {
 	// If the incoming state is unspecified, started, review, or repair, return pending
 	case api.TransferStateUnspecified, api.TransferStarted, api.TransferReview, api.TransferRepair:

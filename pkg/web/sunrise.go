@@ -40,7 +40,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		beneficiaryVASP *models.Counterparty
 		originatorVASP  *models.Counterparty
 		payload         *trisa.Payload
-		packet          *postman.Packet
+		packet          *postman.TRISAPacket
 	)
 
 	in = &api.Sunrise{}
@@ -82,7 +82,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Create a packet to begin the sending process
-	if packet, err = postman.Send(payload, envelopeID, trisa.TransferStarted, log); err != nil {
+	if packet, err = postman.SendTRISA(payload, envelopeID, trisa.TransferStarted, log); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 		return

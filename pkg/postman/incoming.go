@@ -82,7 +82,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		// Create the incoming secure envelope model
 		i.model = &models.SecureEnvelope{
 			Direction:     models.DirectionIncoming,
-			Remote:        sql.NullString{Valid: i.packet.PeerInfo.CommonName != "", String: i.packet.PeerInfo.CommonName},
+			Remote:        i.packet.Remote(),
 			ReplyTo:       ulids.NullULID{},
 			IsError:       i.Envelope.IsError(),
 			EncryptionKey: i.original.EncryptionKey,

@@ -78,7 +78,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 		se := o.Proto()
 		o.model = &models.SecureEnvelope{
 			Direction:     models.DirectionOutgoing,
-			Remote:        sql.NullString{Valid: o.packet.PeerInfo.CommonName != "", String: o.packet.PeerInfo.CommonName},
+			Remote:        o.packet.Remote(),
 			ReplyTo:       ulids.NullULID{},
 			IsError:       o.Envelope.IsError(),
 			EncryptionKey: nil,
@@ -208,7 +208,7 @@ func (o *Outgoing) reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err err
 }
 
 // StatusFromTransferState determines what the status should be based on the outgoing
-// message transfer state. For example, if the outgiong transfer state is pending, then
+// message transfer state. For example, if the outgoing transfer state is pending, then
 // the Transfer should be marked as needing review.
 func (o *Outgoing) StatusFromTransferState() string {
 	if o.packet.Reply == DirectionOutgoing {
@@ -255,7 +255,7 @@ func (o *Outgoing) StatusFromTransferState() string {
 	}
 
 	// These states will likely be temporarily set on the transaction as a request, but
-	// then will be overrided depending on the state of the incoming reply to our message.
+	// then will be overridden depending on the state of the incoming reply to our message.
 	switch ts := o.Envelope.TransferState(); ts {
 	case api.TransferStateUnspecified:
 		return models.StatusUnspecified

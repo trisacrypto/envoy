@@ -298,7 +298,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		in         *api.Envelope
 		out        *api.Envelope
 		envelopeID uuid.UUID
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	ctx := c.Request.Context()
@@ -329,7 +329,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	// Create the outgoing packet
 	if in.Error != nil {
 		// Create a secure envelope with an error
-		if packet, err = postman.SendReject(in.Error, envelopeID, log); err != nil {
+		if packet, err = postman.SendTRISAReject(in.Error, envelopeID, log); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer"))
 			return
@@ -343,7 +343,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 			return
 		}
 
-		if packet, err = postman.Send(payload, envelopeID, in.ParseTransferState(), log); err != nil {
+		if packet, err = postman.SendTRISA(payload, envelopeID, in.ParseTransferState(), log); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer"))
 			return
@@ -527,7 +527,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		in         *api.Envelope
 		payload    *trisa.Payload
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -569,7 +569,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 	}
 
 	// Send the payload with the accept transfer state
-	if packet, err = postman.Send(payload, envelopeID, trisa.TransferAccepted, log); err != nil {
+	if packet, err = postman.SendTRISA(payload, envelopeID, trisa.TransferAccepted, log); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer accept"))
 		return
@@ -658,7 +658,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		envelopeID uuid.UUID
 		in         *api.Rejection
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -684,7 +684,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
-	if packet, err = postman.SendReject(in.Proto(), envelopeID, log); err != nil {
+	if packet, err = postman.SendTRISAReject(in.Proto(), envelopeID, log); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process reject transaction request"))
 		return
@@ -847,7 +847,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		in         *api.Envelope
 		payload    *trisa.Payload
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -886,7 +886,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	}
 
 	// Send the payload with the accept transfer state
-	if packet, err = postman.Send(payload, envelopeID, trisa.TransferReview, log); err != nil {
+	if packet, err = postman.SendTRISA(payload, envelopeID, trisa.TransferReview, log); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer repair"))
 		return

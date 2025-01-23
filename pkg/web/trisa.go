@@ -21,7 +21,7 @@ import (
 // counterparty specified and storing both the outgoing and incoming secure envelopes in
 // the database. This method is used to send the prepared transaction, to send envelopes
 // for a transaction, and in the accept/reject workflows.
-func (s *Server) SendEnvelope(ctx context.Context, packet *postman.Packet) (err error) {
+func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) (err error) {
 	// Step 1: Determine if this is a TRISA or TRP transaction and use the correct handler
 	// to send the outgoing message (which might be updated during the send process) and to
 	// receive the incoming reply from the counterparty.
@@ -57,7 +57,7 @@ func (s *Server) SendEnvelope(ctx context.Context, packet *postman.Packet) (err 
 	return nil
 }
 
-func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.Packet) (err error) {
+func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.TRISAPacket) (err error) {
 	// Get the peer from the specified counterparty
 	if p.Peer, err = s.trisa.LookupPeer(ctx, p.Counterparty.CommonName, ""); err != nil {
 		return fmt.Errorf("could not lookup peer for counterparty %q (%s): %w", p.Counterparty.CommonName, p.Counterparty.ID, err)
