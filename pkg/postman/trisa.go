@@ -28,7 +28,11 @@ func SendTRISA(envelopeID uuid.UUID, payload *api.Payload, transferState api.Tra
 		Packet: *parent,
 	}
 
-	packet.resolver = packet
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	packet.Packet.resolver = packet
 	return packet, nil
 }
 
@@ -42,7 +46,11 @@ func SendTRISAReject(envelopeID uuid.UUID, reject *api.Error) (packet *TRISAPack
 		Packet: *parent,
 	}
 
-	packet.resolver = packet
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	packet.Packet.resolver = packet
 	return packet, nil
 }
 
@@ -52,16 +60,21 @@ func ReceiveTRISA(in *api.SecureEnvelope, peer peers.Peer) (packet *TRISAPacket,
 		return nil, err
 	}
 
-	parent.resolver = packet
 	packet = &TRISAPacket{
 		Packet: *parent,
+		Peer:   peer,
 	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
 
 	if packet.PeerInfo, err = peer.Info(); err != nil {
 		return nil, fmt.Errorf("could not identify counterparty in transaction: %w", err)
 	}
 
 	packet.Counterparty = packet.PeerInfo.Model()
+	packet.Packet.resolver = packet
 	return packet, nil
 }
 

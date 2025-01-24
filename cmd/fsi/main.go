@@ -214,8 +214,23 @@ func inspectGDS(c *cli.Context) (err error) {
 
 func integrationTests(c *cli.Context) (err error) {
 	log.Debug().Msg("running integration tests")
+	passed, failed := 0, 0
 
-	log.Debug().Msg("integration tests complete")
+	tests := map[string]func() error{
+		"full trisa workflow approved": testTRISAWorkflow_Approve,
+	}
+
+	for name, testf := range tests {
+		if err = testf(); err != nil {
+			failed++
+			log.Warn().Err(err).Bool("failed", true).Str("name", name).Msg("test failed")
+		} else {
+			passed++
+			log.Info().Bool("passed", true).Str("name", name).Msg("test passed")
+		}
+	}
+
+	log.Info().Int("passed", passed).Int("failed", failed).Msg("integration tests complete")
 	return nil
 }
 

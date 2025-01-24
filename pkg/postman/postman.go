@@ -138,7 +138,7 @@ func (p *Packet) EnvelopeID() string {
 // otherwise this method is a no-op and returns no error.
 func (p *Packet) ResolveCounterparty() (err error) {
 	if p.resolver != nil {
-		return p.ResolveCounterparty()
+		return p.resolver.ResolveCounterparty()
 	}
 	return nil
 }

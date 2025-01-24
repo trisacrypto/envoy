@@ -129,7 +129,7 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 
 	// Create a packet to begin the sending process
 	envelopeID := uuid.New()
-	if packet, err = postman.SendTRISA(uuid.New(), payload, trisa.TransferStarted); err != nil {
+	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferStarted); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
 		return
