@@ -127,17 +127,17 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		return
 	}
 
-	// Create the log with the envelope ID for debugging
-	envelopeID := uuid.New()
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
 	// Create a packet to begin the sending process
-	if packet, err = postman.SendTRISA(payload, envelopeID, trisa.TransferStarted, log); err != nil {
+	envelopeID := uuid.New()
+	if packet, err = postman.SendTRISA(uuid.New(), payload, trisa.TransferStarted); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
 		return
 	}
+
+	// Add the log to the packet for debugging
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the counterparty from the travel address in the request
 	if packet.Counterparty, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {

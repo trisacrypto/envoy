@@ -16,11 +16,13 @@ func TestSendTRISA(t *testing.T) {
 	require.NoError(t, err, "could not load payload fixture")
 
 	envelopeID := uuid.New()
-	transferState := api.TransferStarted
 	log := log.With().Str("envelope_id", envelopeID.String()).Logger()
+	transferState := api.TransferStarted
 
-	packet, err := postman.SendTRISA(payload, envelopeID, transferState, log)
+	packet, err := postman.SendTRISA(envelopeID, payload, transferState)
 	require.NoError(t, err, "could not create packet with valid payload and envelope")
+
+	packet.Log = log
 
 	// Ensure packet has been instantiated correctly
 	require.NotNil(t, packet.In, "the packet needs to have an instantiated incoming message")
@@ -53,8 +55,10 @@ func TestSendTRISAReject(t *testing.T) {
 			envelopeID := uuid.New()
 			log := log.With().Str("envelope_id", envelopeID.String()).Logger()
 
-			packet, err := postman.SendTRISAReject(msg, envelopeID, log)
+			packet, err := postman.SendTRISAReject(envelopeID, msg)
 			require.NoError(t, err, "could not create packet with valid rejection and envelope")
+
+			packet.Log = log
 
 			// Ensure packet has been instantiated correctly
 			require.NotNil(t, packet.In, "the packet needs to have an instantiated incoming message")

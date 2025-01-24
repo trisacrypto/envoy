@@ -113,7 +113,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 		o.model.Timestamp, _ = o.Envelope.Timestamp()
 
 		// This assumes that the incoming model has already been created!
-		if o.packet.Reply == DirectionOutgoing {
+		if o.packet.reply == DirectionOutgoing {
 			o.model.ReplyTo = ulids.NullULID{
 				Valid: true, ULID: o.packet.In.Model().ID,
 			}
@@ -137,7 +137,7 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 	// If the transaction is new and being created by the local node add the
 	// counterparty and source; otherwise make sure the same counterparty is involved.
 	// TODO: make sure it's the same counterparty or return an error.
-	if o.packet.DB.Created() && o.packet.Request == DirectionOutgoing {
+	if o.packet.DB.Created() && o.packet.request == DirectionOutgoing {
 		// Add the transaction details from the payload of the outgoing message
 		if payload := o.Envelope.FindPayload(); payload != nil {
 			o.packet.Transaction = TransactionFromPayload(payload)
@@ -211,7 +211,7 @@ func (o *Outgoing) reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err err
 // message transfer state. For example, if the outgoing transfer state is pending, then
 // the Transfer should be marked as needing review.
 func (o *Outgoing) StatusFromTransferState() string {
-	if o.packet.Reply == DirectionOutgoing {
+	if o.packet.reply == DirectionOutgoing {
 		// If this is a reply to an incoming packet and the response is Pending, then
 		// we need to determine what state the incoming message was in to determine
 		// what pending action needs to be completed.

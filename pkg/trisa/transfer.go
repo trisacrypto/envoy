@@ -38,17 +38,15 @@ func (s *Server) Transfer(ctx context.Context, in *api.SecureEnvelope) (_ *api.S
 		return nil, status.Error(codes.Unauthenticated, "could not identify remote peer from mTLS certificates")
 	}
 
-	// Add peer to the log context and log message received.
-	log = log.With().Str("peer", peer.String()).Str("envelope_id", in.Id).Logger()
-
 	// Create a packet to handle the incoming request
 	var packet *postman.TRISAPacket
-	if packet, err = postman.ReceiveTRISA(in, log, peer); err != nil {
+	if packet, err = postman.ReceiveTRISA(in, peer); err != nil {
 		log.Error().Err(err).Msg("could not start trisa transfer")
 		return nil, internalError
 	}
 
 	// Log that the incoming transfer has been received
+	packet.Log = log.With().Str("peer", peer.String()).Str("envelope_id", in.Id).Logger()
 	packet.Log.Debug().Msg("trisa transfer received")
 
 	// Handle the incoming transfer
@@ -117,10 +115,13 @@ func (s *Server) TransferStream(stream api.TRISANetwork_TransferStreamServer) (e
 
 			// Create a packet to handle the incoming request
 			var packet *postman.TRISAPacket
-			if packet, err = postman.ReceiveTRISA(in, log, peer); err != nil {
+			if packet, err = postman.ReceiveTRISA(in, peer); err != nil {
 				log.Error().Err(err).Msg("could not handle stream message, stream closing")
 				return
 			}
+
+			// Add the logger to the packet
+			packet.Log = log.With().Str("envelope_id", in.Id).Logger()
 
 			if err = s.Handle(ctx, packet); err != nil {
 				packet.Log.Warn().Err(err).Msg("unable to handle transfer request, stream closing")

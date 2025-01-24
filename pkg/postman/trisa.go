@@ -1,24 +1,3 @@
-/*
-Postman providers helper functionality for managing TRISA and TRP transfers and
-sorting them and storing them in the database. This package is intended to unify the
-functionality across the TRISA node, the TRP node, and the Web API/UI.
-
-On every single travel rule transaction, no matter if it's TRISA or TRP, no matter
-if it's sent from the node or received into the node, whether or not it's a new
-transaction or an update to an old transaction the following things must happen:
-
-1. The message(s) must be validated
-2. The transfer packet must be associated with a transaction
-3. The transaction status must be updated, and potentially other parts of the transaction
-4. The counterparty must be identified
-5. Error envelopes have to be handled correctly
-6. The keys for the envelope must be loaded for decryption
-7. Sealed envelopes need to be decrypted
-8. HMAC signatures need to be checked
-9. The outgoing envelope must be resealed with internal keys
-10. The envelopes and all changes must be saved to the database
-11. The audit log must be updated
-*/
 package postman
 
 import (
@@ -26,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
 
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 
@@ -40,77 +18,43 @@ type TRISAPacket struct {
 	PeerInfo *peers.Info // The peer info for finding the counterparty
 }
 
-func SendTRISA(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState, log zerolog.Logger) (packet *TRISAPacket, err error) {
+func SendTRISA(envelopeID uuid.UUID, payload *api.Payload, transferState api.TransferState) (packet *TRISAPacket, err error) {
+	var parent *Packet
+	if parent, err = Send(envelopeID, payload, transferState); err != nil {
+		return nil, err
+	}
+
 	packet = &TRISAPacket{
-		Packet: Packet{
-			In:      &Incoming{},
-			Out:     &Outgoing{},
-			Log:     log,
-			Request: DirectionOutgoing,
-			Reply:   DirectionIncoming,
-		},
+		Packet: *parent,
 	}
 
-	// Add parent to submessages
-	packet.In.packet = &packet.Packet
-	packet.Out.packet = &packet.Packet
 	packet.resolver = packet
-
-	opts := []envelope.Option{
-		envelope.WithEnvelopeID(envelopeID.String()),
-		envelope.WithTransferState(transferState),
-	}
-
-	if packet.Out.Envelope, err = envelope.New(payload, opts...); err != nil {
-		return nil, fmt.Errorf("could not create envelope for payload: %w", err)
-	}
-
 	return packet, nil
 }
 
-func SendTRISAReject(reject *api.Error, envelopeID uuid.UUID, log zerolog.Logger) (packet *TRISAPacket, err error) {
+func SendTRISAReject(envelopeID uuid.UUID, reject *api.Error) (packet *TRISAPacket, err error) {
+	var parent *Packet
+	if parent, err = SendReject(envelopeID, reject); err != nil {
+		return nil, err
+	}
+
 	packet = &TRISAPacket{
-		Packet: Packet{
-			In:      &Incoming{},
-			Out:     &Outgoing{},
-			Log:     log,
-			Request: DirectionOutgoing,
-			Reply:   DirectionIncoming,
-		},
+		Packet: *parent,
 	}
 
-	// Add parent to submessages
-	packet.In.packet = &packet.Packet
-	packet.Out.packet = &packet.Packet
 	packet.resolver = packet
-
-	// The envelope package should set the correct transfer state based on retry.
-	if packet.Out.Envelope, err = envelope.WrapError(reject, envelope.WithEnvelopeID(envelopeID.String())); err != nil {
-		return nil, fmt.Errorf("could not create rejection envelope: %w", err)
-	}
-
 	return packet, nil
 }
 
-func ReceiveTRISA(in *api.SecureEnvelope, log zerolog.Logger, peer peers.Peer) (packet *TRISAPacket, err error) {
-	packet = &TRISAPacket{
-		Packet: Packet{
-			In:      &Incoming{original: in},
-			Out:     &Outgoing{},
-			Log:     log,
-			Request: DirectionIncoming,
-			Reply:   DirectionOutgoing,
-		},
-		Peer: peer,
+func ReceiveTRISA(in *api.SecureEnvelope, peer peers.Peer) (packet *TRISAPacket, err error) {
+	var parent *Packet
+	if parent, err = Receive(in); err != nil {
+		return nil, err
 	}
 
-	// Add parent to submessages
-	packet.In.packet = &packet.Packet
-	packet.Out.packet = &packet.Packet
-	packet.resolver = packet
-
-	if packet.In.Envelope, err = envelope.Wrap(packet.In.original); err != nil {
-		return nil, fmt.Errorf("could not wrap incoming secure envelope: %w", err)
+	parent.resolver = packet
+	packet = &TRISAPacket{
+		Packet: *parent,
 	}
 
 	if packet.PeerInfo, err = peer.Info(); err != nil {
