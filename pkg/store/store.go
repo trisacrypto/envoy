@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
 	"time"
@@ -66,6 +67,11 @@ var (
 	_ Store   = &sqlite.Store{}
 	_ Secrets = &secrets.GCP{}
 )
+
+// The Stats interface exposes database statistics if it is available from the backend.
+type Stats interface {
+	Stats() sql.DBStats
+}
 
 // TransactionStore stores some lightweight information about specific transactions
 // stored in the database (most of which is not sensitive and is used for indexing).
