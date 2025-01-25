@@ -217,7 +217,9 @@ func integrationTests(c *cli.Context) (err error) {
 	passed, failed := 0, 0
 
 	tests := map[string]func() error{
-		"full trisa workflow approved": testTRISAWorkflow_Approve,
+		"trisa workflow approved": testTRISAWorkflow_Approve,
+		"trisa workflow rejected": testTRISAWorkflow_Reject,
+		"trisa workflow repair":   testTRISAWorkflow_Repair,
 	}
 
 	for name, testf := range tests {

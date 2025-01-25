@@ -1,0 +1,18 @@
+{
+  "first_name": "Mark",
+  "last_name": "Brown",
+  "customer_id": "01JJD8Z3KSPKX668PXBQ9EJZRS",
+  "identification": {
+    "type_code": "",
+    "number": "",
+    "country": "",
+    "dob": "1998-06-28",
+    "birth_place": "Crafton, PA"
+  },
+  "addr_line_1": "1031 Spring Street",
+  "addr_line_2": "",
+  "city": "San Antonio",
+  "state": "TX",
+  "post_code": "78205",
+  "country": "US"
+}

@@ -1,0 +1,18 @@
+{
+  "first_name": "Fearne",
+  "last_name": "Duncan",
+  "customer_id": "01JJD8Z8VPZAHE0X30226F41KA",
+  "identification": {
+    "type_code": "SOCS",
+    "number": "767-42-5555",
+    "country": "US",
+    "dob": "1998-06-28",
+    "birth_place": "Tazewell, VA"
+  },
+  "addr_line_1": "4892 Lamberts Branch Road",
+  "addr_line_2": "",
+  "city": "Ft Lauderdale",
+  "state": "FL",
+  "post_code": "33311",
+  "country": "US"
+}

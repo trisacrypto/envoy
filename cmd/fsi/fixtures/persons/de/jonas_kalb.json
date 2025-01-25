@@ -1,0 +1,18 @@
+{
+  "first_name": "Jonas",
+  "last_name": "Kalb",
+  "customer_id": "",
+  "identification": {
+    "type_code": "SOCS",
+    "number": "1891057543367",
+    "country": "DE",
+    "dob": "",
+    "birth_place": ""
+  },
+  "addr_line_1": "Landsberger Allee 43",
+  "addr_line_2": "",
+  "city": "München",
+  "state": "",
+  "post_code": "80083",
+  "country": "DE"
+}
