@@ -21,6 +21,72 @@ var (
 	success = map[string]interface{}{"success": true}
 )
 
+func TestStatus(t *testing.T) {
+	t.Run("Available", func(t *testing.T) {
+		fixture := &api.StatusReply{}
+		err := loadFixture("testdata/status.json", fixture)
+		require.NoError(t, err, "could not load status fixture")
+
+		_, client := testServer(t, &testServerConfig{
+			expectedMethod: http.MethodGet,
+			expectedPath:   "/v1/status",
+			fixture:        fixture,
+			statusCode:     http.StatusOK,
+		})
+
+		rep, err := client.Status(ctx)
+		require.NoError(t, err, "could not execute status request")
+		require.Equal(t, fixture, rep, "expected reply to be equal to the fixture")
+	})
+
+	t.Run("Maintenance", func(t *testing.T) {
+		fixture := &api.StatusReply{}
+		err := loadFixture("testdata/status.json", fixture)
+		require.NoError(t, err, "could not load status fixture")
+		fixture.Status = "maintenance"
+
+		_, client := testServer(t, &testServerConfig{
+			expectedMethod: http.MethodGet,
+			expectedPath:   "/v1/status",
+			fixture:        fixture,
+			statusCode:     http.StatusServiceUnavailable,
+		})
+
+		rep, err := client.Status(ctx)
+		require.NoError(t, err, "could not execute status request")
+		require.Equal(t, fixture, rep, "expected reply to be equal to the fixture")
+	})
+
+	t.Run("Internal", func(t *testing.T) {
+		_, client := testServer(t, &testServerConfig{
+			expectedMethod: http.MethodGet,
+			expectedPath:   "/v1/status",
+			fixture:        nil,
+			statusCode:     http.StatusInternalServerError,
+		})
+
+		_, err := client.Status(ctx)
+		CheckStatusError(t, err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	})
+}
+
+func TestDBInfo(t *testing.T) {
+	fixture := &api.DBInfo{}
+	err := loadFixture("testdata/dbinfo.json", fixture)
+	require.NoError(t, err, "could not load dbinfo fixture")
+
+	_, client := testServer(t, &testServerConfig{
+		expectedMethod: http.MethodGet,
+		expectedPath:   "/v1/dbinfo",
+		fixture:        fixture,
+		statusCode:     http.StatusOK,
+	})
+
+	rep, err := client.DBInfo(ctx)
+	require.NoError(t, err, "could not execute dbinfo request")
+	require.Equal(t, fixture, rep, "expected reply to be equal to the fixture")
+}
+
 func TestListTransactions(t *testing.T) {
 	fixture := &api.TransactionsList{}
 	err := loadFixture("testdata/transaction_list.json", fixture)
@@ -146,4 +212,14 @@ func loadFixture(path string, v interface{}) (err error) {
 	}
 	defer f.Close()
 	return json.NewDecoder(f).Decode(v)
+}
+
+func CheckStatusError(t *testing.T, err error, code int, message string) {
+	require.Error(t, err, "expected an error")
+
+	serr, ok := err.(*api.StatusError)
+	require.True(t, ok, "expected error to be a status error")
+
+	require.Equal(t, code, serr.StatusCode, "unexpected status code")
+	require.Equal(t, message, serr.Reply.Error, "unexpected status message")
 }

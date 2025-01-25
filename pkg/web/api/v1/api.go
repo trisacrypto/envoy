@@ -24,6 +24,7 @@ func init() {
 // internal API (e.g. the API that users can integrate with).
 type Client interface {
 	Status(context.Context) (*StatusReply, error)
+	DBInfo(context.Context) (*DBInfo, error)
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
 	Authenticate(context.Context, *APIAuthentication) (*LoginReply, error)
 	Reauthenticate(context.Context, *ReauthenticateRequest) (*LoginReply, error)
@@ -122,6 +123,19 @@ type StatusReply struct {
 	Status  string `json:"status"`
 	Uptime  string `json:"uptime,omitempty"`
 	Version string `json:"version,omitempty"`
+}
+
+// A copy of the sql.DBStats struct that implements JSON serialization.
+type DBInfo struct {
+	MaxOpenConnections int    `json:"max_open_connections"` // Maximum number of open connections to the database.
+	OpenConnections    int    `json:"open_connections"`     // The number of established connections both in use and idle.
+	InUse              int    `json:"in_use"`               // The number of connections currently in use.
+	Idle               int    `json:"idle"`                 // The number of idle connections.
+	WaitCount          int64  `json:"wait_count"`           // The total number of connections waited for.
+	WaitDuration       string `json:"wait_duration"`        // The total time blocked waiting for a new connection.
+	MaxIdleClosed      int64  `json:"max_idle_closed"`      // The total number of connections closed due to SetMaxIdleConns.
+	MaxIdleTimeClosed  int64  `json:"max_idle_time_closed"` // The total number of connections closed due to SetConnMaxIdleTime.
+	MaxLifetimeClosed  int64  `json:"max_lifetime_closed"`  // The total number of connections closed due to SetConnMaxLifetime.
 }
 
 // PageQuery manages paginated list requests.

@@ -84,7 +84,7 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 
 	// Detect other errors
 	if rep.StatusCode != http.StatusOK && rep.StatusCode != http.StatusServiceUnavailable {
-		return nil, fmt.Errorf("%s", rep.Status)
+		return nil, &StatusError{StatusCode: rep.StatusCode, Reply: Reply{Error: http.StatusText(rep.StatusCode)}}
 	}
 
 	// Deserialize the JSON data from the response
@@ -92,6 +92,22 @@ func (s *APIv1) Status(ctx context.Context) (out *StatusReply, err error) {
 	if err = json.NewDecoder(rep.Body).Decode(out); err != nil {
 		return nil, fmt.Errorf("could not deserialize status reply: %s", err)
 	}
+	return out, nil
+}
+
+const dbinfoEP = "/v1/dbinfo"
+
+func (s *APIv1) DBInfo(ctx context.Context) (out *DBInfo, err error) {
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, dbinfoEP, nil, nil); err != nil {
+		return nil, err
+	}
+
+	out = &DBInfo{}
+	if _, err = s.Do(req, out, true); err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 
@@ -902,7 +918,11 @@ func (s *APIv1) Do(req *http.Request, data interface{}, checkStatus bool) (rep *
 				return rep, serr
 			}
 
-			serr.Reply = Unsuccessful
+			// If we can't read a reply from JSON return a generic response
+			serr.Reply = Reply{
+				Success: false,
+				Error:   http.StatusText(rep.StatusCode),
+			}
 			return rep, serr
 		}
 	}
