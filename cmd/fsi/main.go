@@ -3,32 +3,50 @@ package main
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/trisacrypto/directory/pkg/gds/config"
 	"github.com/trisacrypto/directory/pkg/store"
 	dbconf "github.com/trisacrypto/directory/pkg/store/config"
 	"github.com/trisacrypto/directory/pkg/utils/logger"
-
-	"github.com/trisacrypto/trisa/pkg/ivms101"
-	"github.com/trisacrypto/trisa/pkg/openvasp"
-	"github.com/trisacrypto/trisa/pkg/slip0044"
 	pb "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
 
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
-	db   store.Store
-	conf config.Config
+	db                 store.Store
+	conf               config.Config
+	envoyClient        api.Client
+	counterpartyClient api.Client
 )
+
+//go:embed fixtures/*
+var fixtures embed.FS
+
+func init() {
+	// Initializes zerolog with our default logging requirements
+	zerolog.TimeFieldFormat = time.TimeOnly
+	zerolog.TimestampFieldName = "time"
+	zerolog.MessageFieldName = "msg"
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
+	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
+}
 
 func main() {
 	godotenv.Load()
@@ -37,10 +55,54 @@ func main() {
 	app.Name = "fsi"
 	app.Usage = "initialize the local development environment for testing purposes"
 	app.Version = pkg.Version()
-	app.Flags = []cli.Flag{}
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "log-level",
+			Aliases: []string{"l"},
+			Usage:   "set the log level for the test runner",
+			EnvVars: []string{"FSI_LOG_LEVEL"},
+			Value:   "debug",
+		},
+		&cli.StringFlag{
+			Name:    "envoy-endpoint",
+			Aliases: []string{"E"},
+			Usage:   "the endpoint of the envoy node",
+			EnvVars: []string{"FSI_ENVOY_ENDPOINT"},
+		},
+		&cli.StringFlag{
+			Name:    "envoy-client-id",
+			Aliases: []string{"ECID"},
+			Usage:   "the client id of the envoy node",
+			EnvVars: []string{"FSI_ENVOY_CLIENT_ID"},
+		},
+		&cli.StringFlag{
+			Name:    "envoy-secret",
+			Aliases: []string{"ES"},
+			Usage:   "the api client secret of the envoy node",
+			EnvVars: []string{"FSI_ENVOY_SECRET"},
+		},
+		&cli.StringFlag{
+			Name:    "counterparty-endpoint",
+			Aliases: []string{"CE"},
+			Usage:   "the endpoint of the counterparty node",
+			EnvVars: []string{"FSI_COUNTERPARTY_ENDPOINT"},
+		},
+		&cli.StringFlag{
+			Name:    "counterparty-client-id",
+			Aliases: []string{"CCID"},
+			Usage:   "the client id of the counterparty node",
+			EnvVars: []string{"FSI_COUNTERPARTY_CLIENT_ID"},
+		},
+		&cli.StringFlag{
+			Name:    "counterparty-secret",
+			Aliases: []string{"CS"},
+			Usage:   "the api client secret of the counterparty node",
+			EnvVars: []string{"FSI_COUNTERPARTY_SECRET"},
+		},
+	}
 	app.Commands = []*cli.Command{
 		{
-			Name:     "init-gds",
+			Name:     "gds:init",
 			Usage:    "populate the local GDS with the docker-compose node information",
 			Action:   initGDS,
 			Before:   connectDB,
@@ -55,7 +117,7 @@ func main() {
 			},
 		},
 		{
-			Name:     "inspect",
+			Name:     "gds:inspect",
 			Usage:    "check the contents of the local GDS",
 			Action:   inspectGDS,
 			Before:   connectDB,
@@ -63,32 +125,11 @@ func main() {
 			Category: "localhost",
 		},
 		{
-			Name:     "send-trp",
-			Usage:    "send a trp test message",
-			Action:   sendTRP,
-			Category: "trp",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:     "address",
-					Aliases:  []string{"a", "travel-address"},
-					Required: true,
-				},
-				&cli.StringFlag{
-					Name:     "asset",
-					Aliases:  []string{"n", "coin-type"},
-					Required: true,
-				},
-				&cli.Float64Flag{
-					Name:     "amount",
-					Aliases:  []string{"amt"},
-					Required: true,
-				},
-				&cli.StringFlag{
-					Name:     "identity",
-					Aliases:  []string{"i"},
-					Required: true,
-				},
-			},
+			Name:     "tests:run",
+			Usage:    "run all integration tests with specified configuration",
+			Action:   integrationTests,
+			Before:   connectClients,
+			Category: "tests",
 		},
 	}
 
@@ -131,171 +172,28 @@ func initGDS(c *cli.Context) (err error) {
 	}
 
 	// Create VASP record for envoy node
-	if envoyID, err = db.CreateVASP(ctx, envoyVASP()); err != nil {
+	var envoy *pb.VASP
+	if envoy, err = envoyVASP(); err != nil {
+		return cli.Exit(fmt.Errorf("could not read envoy record: %w", err), 1)
+	}
+
+	if envoyID, err = db.CreateVASP(ctx, envoy); err != nil {
 		return cli.Exit(fmt.Errorf("could not create envoy record: %w", err), 1)
 	}
 	fmt.Printf("created envoy record in local gds with id: %s\n", envoyID)
 
 	// Create VASP record for counterparty node
-	if counterpartyID, err = db.CreateVASP(ctx, counterpartyVASP()); err != nil {
+	var counterparty *pb.VASP
+	if counterparty, err = counterpartyVASP(); err != nil {
+		return cli.Exit(fmt.Errorf("could not read counterparty record: %w", err), 1)
+	}
+
+	if counterpartyID, err = db.CreateVASP(ctx, counterparty); err != nil {
 		return cli.Exit(fmt.Errorf("could not create counterparty record: %w", err), 1)
 	}
 	fmt.Printf("created counterparty record in local gds with id: %s\n", counterpartyID)
 
 	return nil
-}
-
-func envoyVASP() *pb.VASP {
-	return &pb.VASP{
-		RegisteredDirectory: "trisatest.dev",
-		Entity: &ivms101.LegalPerson{
-			Name: &ivms101.LegalPersonName{
-				NameIdentifiers: []*ivms101.LegalPersonNameId{
-					{
-						LegalPersonName:               "Localhost Development",
-						LegalPersonNameIdentifierType: ivms101.LegalPersonLegal,
-					},
-				},
-				LocalNameIdentifiers:    nil,
-				PhoneticNameIdentifiers: nil,
-			},
-			GeographicAddresses: []*ivms101.Address{
-				{
-					AddressType: ivms101.AddressTypeBusiness,
-					AddressLine: []string{
-						"1803 Welsh Bush Rd",
-						"Utica, MN 55104",
-					},
-					Country: "US",
-				},
-			},
-			CustomerNumber: "376128278645689",
-			NationalIdentification: &ivms101.NationalIdentification{
-				NationalIdentifier:     "0FOH00SEASDBQDSGOI84",
-				NationalIdentifierType: ivms101.NationalIdentifierLEIX,
-				CountryOfIssue:         "",
-				RegistrationAuthority:  "",
-			},
-			CountryOfRegistration: "US",
-		},
-		Contacts: &pb.Contacts{
-			Administrative: &pb.Contact{
-				Name:  "Lillian W. Robertson",
-				Email: "lillian@envoy.local",
-				Phone: "+1 859-322-9025",
-			},
-			Legal: &pb.Contact{
-				Name:  "Gloria C. Coombs",
-				Email: "gloria@envoy.local",
-				Phone: "+1 757-558-3634",
-			},
-			Billing: &pb.Contact{
-				Name:  "Kyle S. Steller",
-				Email: "kyle@envoy.local",
-				Phone: "",
-			},
-			Technical: &pb.Contact{
-				Name:  "Cortez B. Adams",
-				Email: "cortez@envoy.local",
-				Phone: "",
-			},
-		},
-		IdentityCertificate: nil,
-		SigningCertificates: nil,
-		CommonName:          "envoy.local",
-		TrisaEndpoint:       "envoy.local:8100",
-		Website:             "http://envoy.local:8000",
-		BusinessCategory:    pb.BusinessCategoryBusiness,
-		VaspCategories:      []string{"DEX", "Exchange"},
-		EstablishedOn:       "2024-06-05",
-		Trixo:               &pb.TRIXOQuestionnaire{},
-		VerificationStatus:  pb.VerificationState_VERIFIED,
-		VerifiedOn:          time.Now().Format(time.RFC3339),
-		FirstListed:         time.Now().Format(time.RFC3339),
-		LastUpdated:         time.Now().Format(time.RFC3339),
-		Signature:           nil,
-		Version:             nil,
-		Extra:               nil,
-		CertificateWebhook:  "",
-		NoEmailDelivery:     true,
-	}
-}
-
-func counterpartyVASP() *pb.VASP {
-	return &pb.VASP{
-		RegisteredDirectory: "trisatest.dev",
-		Entity: &ivms101.LegalPerson{
-			Name: &ivms101.LegalPersonName{
-				NameIdentifiers: []*ivms101.LegalPersonNameId{
-					{
-						LegalPersonName:               "Localhost Counterparty",
-						LegalPersonNameIdentifierType: ivms101.LegalPersonLegal,
-					},
-				},
-				LocalNameIdentifiers:    nil,
-				PhoneticNameIdentifiers: nil,
-			},
-			GeographicAddresses: []*ivms101.Address{
-				{
-					AddressType: ivms101.AddressTypeBusiness,
-					AddressLine: []string{
-						"Markische Strasse 75",
-						"Dortmund 44141",
-						"North Rhine-Westphalia",
-					},
-					Country: "DE",
-				},
-			},
-			CustomerNumber: "2149535420055041",
-			NationalIdentification: &ivms101.NationalIdentification{
-				NationalIdentifier:     "2T3800PLME5FJEPUKZ74",
-				NationalIdentifierType: ivms101.NationalIdentifierLEIX,
-				CountryOfIssue:         "",
-				RegistrationAuthority:  "",
-			},
-			CountryOfRegistration: "DE",
-		},
-		Contacts: &pb.Contacts{
-			Administrative: &pb.Contact{
-				Name:  "Ralph Ritter",
-				Email: "ralph@counterparty.local",
-				Phone: "+49 02243 80 59 03",
-			},
-			Legal: &pb.Contact{
-				Name:  "Michael Beyer",
-				Email: "michael@counterparty.local",
-				Phone: "+49 04269 46 01 63",
-			},
-			Billing: &pb.Contact{
-				Name:  "Michelle Probst",
-				Email: "michelle@counterparty.local",
-				Phone: "+49 09771 12 49 34",
-			},
-			Technical: &pb.Contact{
-				Name:  "Katja Jager",
-				Email: "katja@counterparty.local",
-				Phone: "+49 073 29 73 45",
-			},
-		},
-		IdentityCertificate: nil,
-		SigningCertificates: nil,
-		CommonName:          "counterparty.local",
-		TrisaEndpoint:       "counterparty.local:9100",
-		Website:             "http://counterparty.local:9000",
-		BusinessCategory:    pb.BusinessCategoryBusiness,
-		VaspCategories:      []string{"DEX", "Exchange"},
-		EstablishedOn:       "2024-06-05",
-		Trixo:               &pb.TRIXOQuestionnaire{},
-		VerificationStatus:  pb.VerificationState_VERIFIED,
-		VerifiedOn:          time.Now().Format(time.RFC3339),
-		FirstListed:         time.Now().Format(time.RFC3339),
-		LastUpdated:         time.Now().Format(time.RFC3339),
-		Signature:           nil,
-		Version:             nil,
-		Extra:               nil,
-		CertificateWebhook:  "",
-		NoEmailDelivery:     true,
-	}
 }
 
 func inspectGDS(c *cli.Context) (err error) {
@@ -307,64 +205,34 @@ func inspectGDS(c *cli.Context) (err error) {
 		}
 		fmt.Printf("%s %s\n", vasp.CommonName, vasp.VerificationStatus)
 	}
-
 	return nil
 }
 
-func sendTRP(c *cli.Context) (err error) {
-	client := openvasp.NewClient()
-	envelopeID := uuid.New()
+//===========================================================================
+// Integration Tests
+//===========================================================================
 
-	var coinType slip0044.CoinType
-	if coinType, err = slip0044.ParseCoinType(c.String("asset")); err != nil {
-		return cli.Exit(fmt.Errorf("could not parse coin type %q: %w", c.String("asset"), err), 1)
+func integrationTests(c *cli.Context) (err error) {
+	log.Debug().Msg("running integration tests")
+	passed, failed := 0, 0
+
+	tests := map[string]func() error{
+		"trisa workflow approved": testTRISAWorkflow_Approve,
+		"trisa workflow rejected": testTRISAWorkflow_Reject,
+		"trisa workflow repair":   testTRISAWorkflow_Repair,
 	}
 
-	inquiry := &openvasp.Inquiry{
-		TRP: &openvasp.TRPInfo{
-			Address:           c.String("address"),
-			RequestIdentifier: envelopeID.String(),
-		},
-		Asset: &openvasp.Asset{
-			DTI:     "2L8HS2MNP",
-			SLIP044: coinType,
-		},
-		Amount:   c.Float64("amount"),
-		Callback: fmt.Sprintf("https://envoy.local:8200/transfers/%s/confirm", envelopeID),
-		IVMS101:  &ivms101.IdentityPayload{},
+	for name, testf := range tests {
+		if err = testf(); err != nil {
+			failed++
+			log.Warn().Err(err).Bool("failed", true).Str("name", name).Msg("test failed")
+		} else {
+			passed++
+			log.Info().Bool("passed", true).Str("name", name).Msg("test passed")
+		}
 	}
 
-	var identity []byte
-	if identity, err = os.ReadFile(c.String("identity")); err != nil {
-		return cli.Exit(fmt.Errorf("could not open json data: %w", err), 1)
-	}
-
-	if err = json.Unmarshal(identity, &inquiry.IVMS101); err != nil {
-		return cli.Exit(fmt.Errorf("could not unmarshal identity payload: %w", err), 1)
-	}
-
-	v, _ := json.MarshalIndent(inquiry, "", "  ")
-	fmt.Println(string(v))
-
-	var rep *openvasp.TravelRuleResponse
-	if rep, err = client.Inquiry(inquiry); err != nil {
-		return cli.Exit(fmt.Errorf("could not make trp request: %w", err), 1)
-	}
-
-	fmt.Printf("received response with status code %d\n", rep.StatusCode)
-
-	info := rep.Info()
-	data, _ := json.MarshalIndent(info, "", "  ")
-	fmt.Println(string(data))
-
-	var resolution *openvasp.InquiryResolution
-	if resolution, err = rep.InquiryResolution(); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	data, _ = json.MarshalIndent(resolution, "", "  ")
-	fmt.Println(string(data))
-
+	log.Info().Int("passed", passed).Int("failed", failed).Msg("integration tests complete")
 	return nil
 }
 
@@ -405,4 +273,121 @@ func closeDB(c *cli.Context) (err error) {
 		return cli.Exit(err, 2)
 	}
 	return nil
+}
+
+func connectClients(c *cli.Context) (err error) {
+	if err = setLogLevel(c); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	if err = connectEnvoy(c); err != nil {
+		return cli.Exit(fmt.Errorf("could not connect to envoy: %w", err), 1)
+	}
+
+	if err = connectCounterparty(c); err != nil {
+		return cli.Exit(fmt.Errorf("could not connect to counterparty: %w", err), 1)
+	}
+
+	return nil
+}
+
+func setLogLevel(c *cli.Context) (err error) {
+	var level logger.LevelDecoder
+	if err = level.Decode(c.String("log-level")); err != nil {
+		return fmt.Errorf("could not set log level: %w", err)
+	}
+
+	zerolog.SetGlobalLevel(zerolog.Level(level))
+	return nil
+}
+
+func connectEnvoy(c *cli.Context) (err error) {
+	var endpoint string
+	if endpoint = c.String("envoy-endpoint"); endpoint == "" {
+		return errors.New("missing endpoint")
+	}
+
+	log.Trace().Str("endpoint", endpoint).Msg("connecting to envoy")
+	if envoyClient, err = api.New(endpoint); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	creds := &api.APIAuthentication{
+		ClientID:     c.String("envoy-client-id"),
+		ClientSecret: c.String("envoy-secret"),
+	}
+
+	if creds.ClientID == "" || creds.ClientSecret == "" {
+		return errors.New("missing client id or client secret")
+	}
+
+	if _, err = envoyClient.Authenticate(context.Background(), creds); err != nil {
+		return cli.Exit(fmt.Errorf("could not authenticate: %w", err), 1)
+	}
+
+	log.Debug().Str("endpoint", endpoint).Msg("connected to envoy")
+	return nil
+}
+
+func connectCounterparty(c *cli.Context) (err error) {
+	var endpoint string
+	if endpoint = c.String("counterparty-endpoint"); endpoint == "" {
+		return errors.New("missing endpoint")
+	}
+
+	log.Trace().Str("endpoint", endpoint).Msg("connecting to counterparty")
+	if counterpartyClient, err = api.New(endpoint); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	creds := &api.APIAuthentication{
+		ClientID:     c.String("counterparty-client-id"),
+		ClientSecret: c.String("counterparty-secret"),
+	}
+
+	if creds.ClientID == "" || creds.ClientSecret == "" {
+		return errors.New("missing client id or client secret")
+	}
+
+	if _, err = counterpartyClient.Authenticate(context.Background(), creds); err != nil {
+		return cli.Exit(fmt.Errorf("could not authenticate with counterparty: %w", err), 1)
+	}
+
+	log.Debug().Str("endpoint", endpoint).Msg("connected to counterparty")
+	return nil
+}
+
+//===========================================================================
+// Helper Functions
+//===========================================================================
+
+func unmarshalPBFixture(name string, obj proto.Message) (err error) {
+	if !strings.HasPrefix(name, "fixtures") {
+		name = "fixtures/" + name
+	}
+
+	var data []byte
+	if data, err = fixtures.ReadFile(name); err != nil {
+		return err
+	}
+
+	json := protojson.UnmarshalOptions{
+		AllowPartial:   true,
+		DiscardUnknown: false,
+	}
+
+	return json.Unmarshal(data, obj)
+}
+
+func unmarshalJSONFixture(name string, obj any) (err error) {
+	if !strings.HasPrefix(name, "fixtures") {
+		name = "fixtures/" + name
+	}
+
+	var data []byte
+	if data, err = fixtures.ReadFile(name); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, obj)
 }

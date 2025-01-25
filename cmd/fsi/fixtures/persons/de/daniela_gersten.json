@@ -1,0 +1,18 @@
+{
+  "first_name": "Daniela",
+  "last_name": "Gersten",
+  "customer_id": "",
+  "identification": {
+    "type_code": "",
+    "number": "",
+    "country": "",
+    "dob": "",
+    "birth_place": "Paris, FR"
+  },
+  "addr_line_1": "Rudower Strasse 31",
+  "addr_line_2": "",
+  "city": "Hallschlag",
+  "state": "",
+  "post_code": "54611",
+  "country": "DE"
+}

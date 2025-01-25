@@ -1,0 +1,64 @@
+{
+  "registered_directory": "trisatest.dev",
+  "entity": {
+    "name": {
+      "name_identifiers": [{
+        "legal_person_name": "Localhost Development",
+        "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+      }]
+    },
+    "geographic_addresses": [{
+      "address_type": "ADDRESS_TYPE_CODE_BIZZ",
+      "address_line": [
+        "1803 Welsh Bush Rd",
+        "Utica, MN 55104"
+      ],
+      "country": "US"
+    }],
+    "customer_number": "376128278645689",
+    "national_identification": {
+      "national_identifier": "0FOH00SEASDBQDSGOI84",
+      "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_LEIX"
+    },
+    "country_of_registration": "US"
+  },
+  "contacts": {
+    "administrative": {
+      "name": "Lillian W. Robertson",
+      "email": "lillian@envoy.local",
+      "phone": "+1 859-322-9025"
+    },
+    "legal": {
+      "name": "Gloria C. Coombs",
+      "email": "gloria@envoy.local",
+      "phone": "+1 757-558-3634"
+    },
+    "billing": {
+      "name": "Kyle S. Steller",
+      "email": "kyle@envoy.local",
+      "phone": ""
+    },
+    "technical": {
+      "name": "Cortez B. Adams",
+      "email": "cortez@envoy.local",
+      "phone": ""
+    }
+  },
+  "identity_certificate": null,
+  "signing_certificates": null,
+  "common_name": "envoy.local",
+  "trisa_endpoint": "envoy.local:8100",
+  "website": "http://envoy.local:8000",
+  "business_category": "BUSINESS_ENTITY",
+  "vasp_categories": ["DEX", "Exchange"],
+  "established_on": "2024-06-05",
+  "trixo": {},
+  "verification_status": "VERIFIED",
+  "verified_on": "2025-01-24T11:49:38-06:00",
+  "first_listed": "2025-01-24T11:49:38-06:00",
+  "last_updated": "2025-01-24T11:49:38-06:00",
+  "signature": null,
+  "version": null,
+  "certificate_webhook": "",
+  "no_email_delivery": true
+}

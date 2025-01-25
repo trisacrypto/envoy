@@ -298,10 +298,8 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		in         *api.Envelope
 		out        *api.Envelope
 		envelopeID uuid.UUID
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
-
-	ctx := c.Request.Context()
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
 	if envelopeID, err = uuid.Parse(c.Param("id")); err != nil {
@@ -323,13 +321,10 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 		return
 	}
 
-	// Create the log with the envelope ID for debugging
-	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
 	// Create the outgoing packet
 	if in.Error != nil {
 		// Create a secure envelope with an error
-		if packet, err = postman.SendReject(in.Error, envelopeID, log); err != nil {
+		if packet, err = postman.SendTRISAReject(envelopeID, in.Error); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer"))
 			return
@@ -343,12 +338,16 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 			return
 		}
 
-		if packet, err = postman.Send(payload, envelopeID, in.ParseTransferState(), log); err != nil {
+		if packet, err = postman.SendTRISA(envelopeID, payload, in.ParseTransferState()); err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer"))
 			return
 		}
 	}
+
+	// Ensure the logger is set!
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
 	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {
@@ -527,7 +526,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		in         *api.Envelope
 		payload    *trisa.Payload
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -558,9 +557,6 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
 	// Create a secure envelope with a Payload
 	if payload, err = in.Payload(); err != nil {
 		c.Error(err)
@@ -569,11 +565,15 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 	}
 
 	// Send the payload with the accept transfer state
-	if packet, err = postman.Send(payload, envelopeID, trisa.TransferAccepted, log); err != nil {
+	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferAccepted); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer accept"))
 		return
 	}
+
+	// Ensure the logger is set!
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
 	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {
@@ -658,7 +658,7 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		envelopeID uuid.UUID
 		in         *api.Rejection
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -681,14 +681,15 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
-	if packet, err = postman.SendReject(in.Proto(), envelopeID, log); err != nil {
+	if packet, err = postman.SendTRISAReject(envelopeID, in.Proto()); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process reject transaction request"))
 		return
 	}
+
+	// Ensure the logger is set!
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
 	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {
@@ -847,7 +848,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		in         *api.Envelope
 		payload    *trisa.Payload
 		out        *api.Envelope
-		packet     *postman.Packet
+		packet     *postman.TRISAPacket
 	)
 
 	// Parse the envelopeID (also the transactionID) passed in from the URL
@@ -875,9 +876,6 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
 	// Create a secure envelope with a Payload
 	if payload, err = in.Payload(); err != nil {
 		c.Error(err)
@@ -886,11 +884,15 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	}
 
 	// Send the payload with the accept transfer state
-	if packet, err = postman.Send(payload, envelopeID, trisa.TransferReview, log); err != nil {
+	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferReview); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not create outgoing packet for transfer repair"))
 		return
 	}
+
+	// Ensure the logger is set!
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
 	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, envelopeID); err != nil {

@@ -1,0 +1,18 @@
+{
+  "first_name": "Vicky",
+  "last_name": "Scott",
+  "customer_id": "01JJD94PC25W4B6SQJ5HZ5SPFE",
+  "identification": {
+    "type_code": "SOCS",
+    "number": "350-84-5555",
+    "country": "US",
+    "dob": "",
+    "birth_place": ""
+  },
+  "addr_line_1": "3469 Park Boulevard",
+  "addr_line_2": "",
+  "city": "Marshalltown",
+  "state": "IA",
+  "post_code": "50158",
+  "country": "US"
+}

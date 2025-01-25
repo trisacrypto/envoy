@@ -1,0 +1,65 @@
+{
+  "registered_directory": "trisatest.dev",
+  "entity": {
+    "name": {
+      "name_identifiers": [{
+        "legal_person_name": "Localhost Counterparty",
+        "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+      }]
+    },
+    "geographic_addresses": [{
+      "address_type": "ADDRESS_TYPE_CODE_BIZZ",
+      "address_line": [
+        "Markische Strasse 75",
+        "Dortmund 44141",
+        "North Rhine-Westphalia"
+      ],
+      "country": "DE"
+    }],
+    "customer_number": "2149535420055041",
+    "national_identification": {
+      "national_identifier": "2T3800PLME5FJEPUKZ74",
+      "national_identifier_type": "NATIONAL_IDENTIFIER_TYPE_CODE_LEIX"
+    },
+    "country_of_registration": "DE"
+  },
+  "contacts": {
+    "administrative": {
+      "name": "Ralph Ritter",
+      "email": "ralph@counterparty.local",
+      "phone": "+49 02243 80 59 03"
+    },
+    "legal": {
+      "name": "Michael Beyer",
+      "email": "michael@counterparty.local",
+      "phone": "+49 04269 46 01 63"
+    },
+    "billing": {
+      "name": "Michelle Probst",
+      "email": "michelle@counterparty.local",
+      "phone": "+49 09771 12 49 34"
+    },
+    "technical": {
+      "name": "Katja Jager",
+      "email": "katja@counterparty.local",
+      "phone": "+49 073 29 73 45"
+    }
+  },
+  "identity_certificate": null,
+  "signing_certificates": null,
+  "common_name": "counterparty.local",
+  "trisa_endpoint": "counterparty.local:9100",
+  "website": "http://counterparty.local:9000",
+  "business_category": "BUSINESS_ENTITY",
+  "vasp_categories": ["DEX", "Exchange"],
+  "established_on": "2022-12-15",
+  "trixo": {},
+  "verification_status": "VERIFIED",
+  "verified_on": "2025-01-24T11:52:49-06:00",
+  "first_listed": "2025-01-24T11:52:49-06:00",
+  "last_updated": "2025-01-24T11:52:49-06:00",
+  "signature": null,
+  "version": null,
+  "certificate_webhook": "",
+  "no_email_delivery": true
+}

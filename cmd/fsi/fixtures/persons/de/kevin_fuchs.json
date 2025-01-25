@@ -1,0 +1,18 @@
+{
+  "first_name": "Kevin",
+  "last_name": "Fuchs",
+  "customer_id": "",
+  "identification": {
+    "type_code": "",
+    "number": "",
+    "country": "",
+    "dob": "1988-11-04",
+    "birth_place": ""
+  },
+  "addr_line_1": "Invalidenstrasse 77",
+  "addr_line_2": "",
+  "city": "Dierbach",
+  "state": "",
+  "post_code": "76889",
+  "country": "DE"
+}

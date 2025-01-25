@@ -1,0 +1,18 @@
+{
+  "first_name": "Alice",
+  "last_name": "Murray",
+  "customer_id": "01JJD8ZF038VNT98MQANMKW0AC",
+  "identification": {
+    "type_code": "SOCS",
+    "number": "325-15-5555",
+    "country": "US",
+    "dob": "1973-01-15",
+    "birth_place": "Harrisburg, IL"
+  },
+  "addr_line_1": "4469 Horizon Circle",
+  "addr_line_2": "",
+  "city": "Tacoma",
+  "state": "WA",
+  "post_code": "98402",
+  "country": "US"
+}

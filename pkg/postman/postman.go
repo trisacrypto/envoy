@@ -22,25 +22,20 @@ transaction or an update to an old transaction the following things must happen:
 package postman
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
-
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/trisa/peers"
-
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 )
 
-type Direction uint8
-
-const (
-	Unknown Direction = iota
-	DirectionIncoming
-	DirectionOutgoing
-)
+type ResolveRemote interface {
+	Remote() sql.NullString
+	ResolveCounterparty() error
+}
 
 // Packets contain both an incoming and an outgoing message and are used to ensure that
 // an entire tranfer packet can be correctly constructed for both envelopes.
@@ -51,46 +46,42 @@ type Packet struct {
 	Log          zerolog.Logger             // The log context for more effective logging
 	Counterparty *models.Counterparty       // The remote identified counterparty
 	Transaction  *models.Transaction        // The associated transaction with the packet
-	Peer         peers.Peer                 // The remote peer the transfer is being conducted with
-	PeerInfo     *peers.Info                // The peer info for finding the counterparty
-	User         *models.User               // The user that created the request, if any
-	APIKey       *models.APIKey             // The api key that created the request, if any
-	Request      Direction                  // Determines if the initial message was incoming or outgoing
-	Reply        Direction                  // Determines if the reply was incoming or outgoing
+	request      Direction                  // Determines if the initial message was incoming or outgoing
+	reply        Direction                  // Determines if the reply was incoming or outgoing
+	resolver     ResolveRemote              // Helper for resolving remote information from TRISA and TRP
 }
 
-func Send(payload *api.Payload, envelopeID uuid.UUID, transferState api.TransferState, log zerolog.Logger) (packet *Packet, err error) {
+func Send(envelopeID uuid.UUID, payload *api.Payload, transferState api.TransferState) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
-		Log:     log,
-		Request: DirectionOutgoing,
-		Reply:   DirectionIncoming,
+		request: DirectionOutgoing,
+		reply:   DirectionIncoming,
 	}
 
 	// Add parent to submessages
 	packet.In.packet = packet
 	packet.Out.packet = packet
 
-	opts := []envelope.Option{
+	// Create outgoing envelope
+	env := []envelope.Option{
 		envelope.WithEnvelopeID(envelopeID.String()),
 		envelope.WithTransferState(transferState),
 	}
 
-	if packet.Out.Envelope, err = envelope.New(payload, opts...); err != nil {
+	if packet.Out.Envelope, err = envelope.New(payload, env...); err != nil {
 		return nil, fmt.Errorf("could not create envelope for payload: %w", err)
 	}
 
 	return packet, nil
 }
 
-func SendReject(reject *api.Error, envelopeID uuid.UUID, log zerolog.Logger) (packet *Packet, err error) {
+func SendReject(envelopeID uuid.UUID, reject *api.Error) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
-		Log:     log,
-		Request: DirectionOutgoing,
-		Reply:   DirectionIncoming,
+		request: DirectionOutgoing,
+		reply:   DirectionIncoming,
 	}
 
 	// Add parent to submessages
@@ -105,14 +96,12 @@ func SendReject(reject *api.Error, envelopeID uuid.UUID, log zerolog.Logger) (pa
 	return packet, nil
 }
 
-func Receive(in *api.SecureEnvelope, log zerolog.Logger, peer peers.Peer) (packet *Packet, err error) {
+func Receive(in *api.SecureEnvelope) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{original: in},
 		Out:     &Outgoing{},
-		Log:     log,
-		Peer:    peer,
-		Request: DirectionIncoming,
-		Reply:   DirectionOutgoing,
+		request: DirectionIncoming,
+		reply:   DirectionOutgoing,
 	}
 
 	// Add parent to submessages
@@ -123,17 +112,19 @@ func Receive(in *api.SecureEnvelope, log zerolog.Logger, peer peers.Peer) (packe
 		return nil, fmt.Errorf("could not wrap incoming secure envelope: %w", err)
 	}
 
-	if packet.PeerInfo, err = peer.Info(); err != nil {
-		return nil, fmt.Errorf("could not identify counterparty in transaction: %w", err)
-	}
-
-	packet.Counterparty = packet.PeerInfo.Model()
 	return packet, nil
+}
+
+func (p *Packet) RefreshTransaction() (err error) {
+	if p.Transaction, err = p.DB.Fetch(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Returns the envelopeID from the request envelope (e.g. the first envelope in the packet)
 func (p *Packet) EnvelopeID() string {
-	switch p.Request {
+	switch p.request {
 	case DirectionIncoming:
 		return p.In.Envelope.ID()
 	case DirectionOutgoing:
@@ -143,71 +134,30 @@ func (p *Packet) EnvelopeID() string {
 	}
 }
 
-// Receive updates the incoming message with the specified secure envelope, e.g. in the
-// case where the outgoing message has been sent and this is the reply that was received
-// from the remote server.
-func (p *Packet) Receive(in *api.SecureEnvelope) (err error) {
-	p.In = &Incoming{
-		original: in,
-		packet:   p,
-	}
-
-	if p.In.Envelope, err = envelope.Wrap(in); err != nil {
-		return fmt.Errorf("could not wrap incoming secure envelope: %w", err)
-	}
-
-	return nil
-}
-
-// Reject creates an outgoing message with a TRISA error that contains the specified
-// TRISA rejection error, e.g. in the case where an incoming message is being handled.
-func (p *Packet) Reject(code api.Error_Code, message string, retry bool) error {
-	reject := &api.Error{
-		Code: code, Message: message, Retry: retry,
-	}
-	return p.Error(reject)
-}
-
-// Creates a TRISA error envelope from the TRISA error message and sets it as the
-// outgoing message (e.g. in the case where an incoming message is being handled).
-func (p *Packet) Error(reject *api.Error, opts ...envelope.Option) (err error) {
-	if p.Out.Envelope, err = p.In.Envelope.Reject(reject, opts...); err != nil {
-		p.Log.Debug().Err(err).Msg("could not prepare rejection envelope")
-		return fmt.Errorf("could not create rejection envelope: %w", err)
-	}
-	return nil
-}
-
-// Creates a TRISA payload envelope to as the outgoing message in order to send a
-// response back to the remote that initiated the transfer.
-func (p *Packet) Send(payload *api.Payload, state api.TransferState) (err error) {
-	if p.Out.Envelope, err = p.In.Envelope.Update(payload, envelope.WithTransferState(state)); err != nil {
-		p.Log.Debug().Err(err).Msg("could not prepare outgoing payload")
-		return fmt.Errorf("could not create outgoing payload: %w", err)
-	}
-	return nil
-}
-
+// If a resolver is set, then we can resolve the remote information from the Peer,
+// otherwise this method is a no-op and returns no error.
 func (p *Packet) ResolveCounterparty() (err error) {
-	if p.Counterparty == nil {
-		if p.PeerInfo == nil {
-			if p.Peer == nil {
-				return ErrNoCounterpartyInfo
-			}
-
-			if p.PeerInfo, err = p.Peer.Info(); err != nil {
-				return err
-			}
-		}
-
-		p.Counterparty = p.PeerInfo.Model()
+	if p.resolver != nil {
+		return p.resolver.ResolveCounterparty()
 	}
 	return nil
 }
 
-func (p *Packet) RefreshTransaction() (err error) {
-	if p.Transaction, err = p.DB.Fetch(); err != nil {
-		return err
+// Returns the remote information for storage in the database using the underlying
+// resolver if available, otherwise a NULL string is returned.
+func (p *Packet) Remote() sql.NullString {
+	if p.resolver != nil {
+		return p.resolver.Remote()
 	}
-	return nil
+	return sql.NullString{Valid: false, String: ""}
+}
+
+// Returns the direction of the request.
+func (p *Packet) Request() Direction {
+	return p.request
+}
+
+// Returns the direction of the reply.
+func (p *Packet) Reply() Direction {
+	return p.reply
 }

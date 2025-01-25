@@ -78,7 +78,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 		se := o.Proto()
 		o.model = &models.SecureEnvelope{
 			Direction:     models.DirectionOutgoing,
-			Remote:        sql.NullString{Valid: o.packet.PeerInfo.CommonName != "", String: o.packet.PeerInfo.CommonName},
+			Remote:        o.packet.Remote(),
 			ReplyTo:       ulids.NullULID{},
 			IsError:       o.Envelope.IsError(),
 			EncryptionKey: nil,
@@ -113,7 +113,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 		o.model.Timestamp, _ = o.Envelope.Timestamp()
 
 		// This assumes that the incoming model has already been created!
-		if o.packet.Reply == DirectionOutgoing {
+		if o.packet.reply == DirectionOutgoing {
 			o.model.ReplyTo = ulids.NullULID{
 				Valid: true, ULID: o.packet.In.Model().ID,
 			}
@@ -137,7 +137,7 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 	// If the transaction is new and being created by the local node add the
 	// counterparty and source; otherwise make sure the same counterparty is involved.
 	// TODO: make sure it's the same counterparty or return an error.
-	if o.packet.DB.Created() && o.packet.Request == DirectionOutgoing {
+	if o.packet.DB.Created() && o.packet.request == DirectionOutgoing {
 		// Add the transaction details from the payload of the outgoing message
 		if payload := o.Envelope.FindPayload(); payload != nil {
 			o.packet.Transaction = TransactionFromPayload(payload)
@@ -208,10 +208,10 @@ func (o *Outgoing) reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err err
 }
 
 // StatusFromTransferState determines what the status should be based on the outgoing
-// message transfer state. For example, if the outgiong transfer state is pending, then
+// message transfer state. For example, if the outgoing transfer state is pending, then
 // the Transfer should be marked as needing review.
 func (o *Outgoing) StatusFromTransferState() string {
-	if o.packet.Reply == DirectionOutgoing {
+	if o.packet.reply == DirectionOutgoing {
 		// If this is a reply to an incoming packet and the response is Pending, then
 		// we need to determine what state the incoming message was in to determine
 		// what pending action needs to be completed.
@@ -255,7 +255,7 @@ func (o *Outgoing) StatusFromTransferState() string {
 	}
 
 	// These states will likely be temporarily set on the transaction as a request, but
-	// then will be overrided depending on the state of the incoming reply to our message.
+	// then will be overridden depending on the state of the incoming reply to our message.
 	switch ts := o.Envelope.TransferState(); ts {
 	case api.TransferStateUnspecified:
 		return models.StatusUnspecified

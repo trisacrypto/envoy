@@ -82,7 +82,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		// Create the incoming secure envelope model
 		i.model = &models.SecureEnvelope{
 			Direction:     models.DirectionIncoming,
-			Remote:        sql.NullString{Valid: i.packet.PeerInfo.CommonName != "", String: i.packet.PeerInfo.CommonName},
+			Remote:        i.packet.Remote(),
 			ReplyTo:       ulids.NullULID{},
 			IsError:       i.Envelope.IsError(),
 			EncryptionKey: i.original.EncryptionKey,
@@ -103,7 +103,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		i.model.Timestamp, _ = i.Envelope.Timestamp()
 
 		// This assumes that the outgoing model has already been created!
-		if i.packet.Reply == DirectionIncoming {
+		if i.packet.reply == DirectionIncoming {
 			i.model.ReplyTo = ulids.NullULID{
 				Valid: true, ULID: i.packet.Out.Model().ID,
 			}
@@ -127,7 +127,7 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	// If the transaction is new and being created by the remote, add the counterparty.
 	// Otherwise make sure it's the same counterparty or return an error.
 	// TODO: Make sure it's the same counterparty or return an error
-	if i.packet.DB.Created() && i.packet.Request == DirectionIncoming {
+	if i.packet.DB.Created() && i.packet.request == DirectionIncoming {
 		if err = i.packet.DB.AddCounterparty(i.packet.Counterparty); err != nil {
 			return fmt.Errorf("could not associate counterparty with transaction: %w", err)
 		}
