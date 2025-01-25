@@ -5,8 +5,8 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -131,6 +131,27 @@ func main() {
 			Before:   connectClients,
 			Category: "tests",
 		},
+		{
+			Name:     "tests:sunrise",
+			Usage:    "initiate a sunrise transaction with the envoy node and an email",
+			Action:   sendSunrise,
+			Before:   connectEnvoy,
+			Category: "tests",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "email",
+					Aliases:  []string{"e"},
+					Usage:    "the email address to send the sunrise message to",
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:    "counterparty",
+					Aliases: []string{"c"},
+					Usage:   "the counterparty of the person with the email address",
+					Value:   "Sunrise VASP",
+				},
+			},
+		},
 	}
 
 	app.Run(os.Args)
@@ -236,6 +257,29 @@ func integrationTests(c *cli.Context) (err error) {
 	return nil
 }
 
+func sendSunrise(c *cli.Context) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+
+	network := networks[rand.Intn(len(networks))]
+
+	sunrise := &api.Sunrise{
+		Email:        c.String("email"),
+		Counterparty: c.String("counterparty"),
+		Originator:   makePerson("US", network),
+		Beneficiary:  makePerson("DE", network),
+		Transfer:     makeTransfer(network),
+	}
+
+	var txn *api.Transaction
+	if txn, err = envoyClient.SendSunrise(ctx, sunrise); err != nil {
+		return cli.Exit(fmt.Errorf("could not send sunrise transaction: %w", err), 1)
+	}
+
+	fmt.Printf("sunrise transaction %s created\n", txn.ID)
+	return nil
+}
+
 //===========================================================================
 // Before and After
 //===========================================================================
@@ -304,7 +348,7 @@ func setLogLevel(c *cli.Context) (err error) {
 func connectEnvoy(c *cli.Context) (err error) {
 	var endpoint string
 	if endpoint = c.String("envoy-endpoint"); endpoint == "" {
-		return errors.New("missing endpoint")
+		return cli.Exit("missing endpoint", 1)
 	}
 
 	log.Trace().Str("endpoint", endpoint).Msg("connecting to envoy")
@@ -318,7 +362,7 @@ func connectEnvoy(c *cli.Context) (err error) {
 	}
 
 	if creds.ClientID == "" || creds.ClientSecret == "" {
-		return errors.New("missing client id or client secret")
+		return cli.Exit("missing client id or client secret", 1)
 	}
 
 	if _, err = envoyClient.Authenticate(context.Background(), creds); err != nil {
@@ -332,7 +376,7 @@ func connectEnvoy(c *cli.Context) (err error) {
 func connectCounterparty(c *cli.Context) (err error) {
 	var endpoint string
 	if endpoint = c.String("counterparty-endpoint"); endpoint == "" {
-		return errors.New("missing endpoint")
+		return cli.Exit("missing endpoint", 1)
 	}
 
 	log.Trace().Str("endpoint", endpoint).Msg("connecting to counterparty")
@@ -346,7 +390,7 @@ func connectCounterparty(c *cli.Context) (err error) {
 	}
 
 	if creds.ClientID == "" || creds.ClientSecret == "" {
-		return errors.New("missing client id or client secret")
+		return cli.Exit("missing client id or client secret", 1)
 	}
 
 	if _, err = counterpartyClient.Authenticate(context.Background(), creds); err != nil {
