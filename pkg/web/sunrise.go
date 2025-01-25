@@ -1,9 +1,9 @@
 package web
 
 import (
-	"database/sql"
+	"errors"
+	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -12,13 +12,10 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/sunrise"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 )
-
-const defaultSunriseExpiration = 14 * 24 * time.Hour
 
 func (s *Server) SendMessageForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "send_message.html", scene.New(c))
@@ -40,7 +37,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		beneficiaryVASP *models.Counterparty
 		originatorVASP  *models.Counterparty
 		payload         *trisa.Payload
-		packet          *postman.TRISAPacket
+		packet          *postman.SunrisePacket
 	)
 
 	in = &api.Sunrise{}
@@ -78,7 +75,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 
 	// Create a packet to begin the sending process
 	envelopeID := uuid.New()
-	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferStarted); err != nil {
+	if packet, err = postman.SendSunrise(envelopeID, payload); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 		return
@@ -104,19 +101,15 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		c.Error(err)
 	}
 
-	// TODO: this sequence should be part of the packet refactor
 	// Fetch the contacts from the counterparty and check that at least one exists.
 	var contacts []*models.Contact
 	if contacts, err = packet.Counterparty.Contacts(); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-
-		return
-	}
-
-	if len(contacts) == 0 {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("no contacts are associated with counterparty, cannot send sunrise messages"))
+		if errors.Is(err, postman.ErrNoContacts) {
+			c.JSON(http.StatusBadRequest, api.Error(err))
+		} else {
+			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		}
 		return
 	}
 
@@ -129,49 +122,8 @@ func (s *Server) SendSunrise(c *gin.Context) {
 
 	// Create the sunrise tokens for all counterparty contacts and send emails
 	for _, contact := range contacts {
-		// Create a sunrise record for dataabase storage
-		record := &models.Sunrise{
-			EnvelopeID: envelopeID,
-			Email:      contact.Email,
-			Expiration: time.Now().Add(defaultSunriseExpiration),
-			Status:     models.StatusDraft,
-		}
-
-		// This method will create the ID on the sunrise record
-		if err = packet.DB.CreateSunrise(record); err != nil {
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-			return
-		}
-
-		// Create the HMAC verification token for the contact
-		verification := sunrise.NewToken(record.ID, record.Expiration)
-
-		// Sign the verification token
-		if invite.Token, record.Signature, err = verification.Sign(); err != nil {
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-			return
-		}
-
-		// Send the email to the user
-		var email *emails.Email
-		if email, err = emails.NewSunriseInvite(contact.Address().String(), invite); err != nil {
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-			return
-		}
-
-		if err = email.Send(); err != nil {
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-			return
-		}
-
-		// Update the sunrise record in the database with the token and sent on timestamp
-		record.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
-		if err = packet.DB.UpdateSunrise(record); err != nil {
-			c.Error(err)
+		if err = packet.SendEmail(contact, invite); err != nil {
+			c.Error(fmt.Errorf("could not send sunrise message to %s: %w", contact.Email, err))
 			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 			return
 		}
