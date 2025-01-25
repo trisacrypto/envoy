@@ -31,7 +31,7 @@ func (s *Server) NotFound(c *gin.Context) {
 
 // Renders the "invalid action page"
 func (s *Server) NotAllowed(c *gin.Context) {
-	c.Negotiate(http.StatusNotFound, gin.Negotiate{
+	c.Negotiate(http.StatusMethodNotAllowed, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "405.html",
 		HTMLData: scene.New(c),
