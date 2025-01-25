@@ -129,6 +129,9 @@ func (s *Server) setupRoutes() (err error) {
 		// NOTE: uncomment this for debugging only
 		// v1.POST("/debug", s.Debug)
 
+		// Database Statistics
+		v1.GET("/dbinfo", authenticate, authorize(permiss.ConfigView), s.DBInfo)
+
 		// Authentication endpoints
 		v1.POST("/login", s.Login)
 		v1.POST("/authenticate", s.Authenticate)

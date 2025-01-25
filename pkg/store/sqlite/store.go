@@ -82,3 +82,7 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, e
 func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
 	s.mkta = f
 }
+
+func (s *Store) Stats() sql.DBStats {
+	return s.conn.Stats()
+}

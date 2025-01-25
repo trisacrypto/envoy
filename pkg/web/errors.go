@@ -4,9 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 var (
@@ -19,10 +21,20 @@ var (
 
 // Renders the "not found page"
 func (s *Server) NotFound(c *gin.Context) {
-	c.HTML(http.StatusNotFound, "404.html", scene.New(c))
+	c.Negotiate(http.StatusNotFound, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLName: "404.html",
+		HTMLData: scene.New(c),
+		JSONData: api.NotFound,
+	})
 }
 
 // Renders the "invalid action page"
 func (s *Server) NotAllowed(c *gin.Context) {
-	c.HTML(http.StatusMethodNotAllowed, "405.html", scene.New(c))
+	c.Negotiate(http.StatusNotFound, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLName: "405.html",
+		HTMLData: scene.New(c),
+		JSONData: api.NotAllowed,
+	})
 }
