@@ -117,7 +117,7 @@ func (s *Server) setupRoutes() (err error) {
 	{
 		sunrise.GET("/verify", s.VerifySunriseUser)
 		sunrise.GET("/accept", s.SunriseMessagePreview)
-		sunrise.GET("/message", authenticate, s.SendMessageForm)
+		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
 	}
 
 	// API Routes (Including Content Negotiated Partials)
@@ -194,7 +194,7 @@ func (s *Server) setupRoutes() (err error) {
 		// Sunrise Resource
 		sunrise := v1.Group("/sunrise", s.SunriseEnabled(), authenticate)
 		{
-			sunrise.POST("/send", authenticate, s.SendSunrise)
+			sunrise.POST("/send", authorize(permiss.TravelRuleManage), s.SendSunrise)
 		}
 
 		// Counterparties Resource
