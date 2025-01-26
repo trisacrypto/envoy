@@ -21,10 +21,14 @@ func NewSunriseInvite(recipient string, data SunriseInviteData) (*Email, error) 
 
 // SunriseInviteData is used to complete the sunrise_invite template.
 type SunriseInviteData struct {
+	ContactName     string
+	ComplianceName  string
 	OriginatorName  string
 	BeneficiaryName string
 	BaseURL         *url.URL
 	Token           sunrise.VerificationToken
+	SupportEmail    string
+	ComplianceEmail string
 }
 
 func (s SunriseInviteData) VerifyURL() string {
@@ -54,5 +58,7 @@ func NewVerifyEmail(recipient string, data VerifyEmailData) (*Email, error) {
 
 // VerifyEmailData is used to send a one-time code to the original email for verification.
 type VerifyEmailData struct {
-	Code string
+	Code           string
+	SupportEmail   string
+	ComplianceName string
 }
