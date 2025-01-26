@@ -39,6 +39,7 @@ type Payload struct {
 	Identity    *ivms101.IdentityPayload `json:"identity"`
 	Pending     *generic.Pending         `json:"pending,omitempty"`
 	Transaction *generic.Transaction     `json:"transaction,omitempty"`
+	Sunrise     *generic.Sunrise         `json:"sunrise,omitempty"`
 	SentAt      string                   `json:"sent_at"`
 	ReceivedAt  string                   `json:"received_at,omitempty"`
 }
@@ -56,6 +57,7 @@ type Reply struct {
 const (
 	transactionPBType = "type.googleapis.com/trisa.data.generic.v1beta1.Transaction"
 	pendingPBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Pending"
+	sunrisePBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Sunrise"
 )
 
 // Add a TRISA protocol buffer payload to the webhook request, unmarshaling it into its
@@ -88,6 +90,11 @@ func (r *Request) AddPayload(payload *trisa.Payload) (err error) {
 		r.Payload.Pending = &generic.Pending{}
 		if err = payload.Transaction.UnmarshalTo(r.Payload.Pending); err != nil {
 			return fmt.Errorf("could not unmarshal pending payload: %s", err)
+		}
+	case sunrisePBType:
+		r.Payload.Sunrise = &generic.Sunrise{}
+		if err = payload.Transaction.UnmarshalTo(r.Payload.Sunrise); err != nil {
+			return fmt.Errorf("could not unmarshal sunrise payload: %s", err)
 		}
 	default:
 		return fmt.Errorf("unknown transaction type %q", payload.Transaction.TypeUrl)

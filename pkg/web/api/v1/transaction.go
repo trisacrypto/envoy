@@ -84,6 +84,7 @@ type Envelope struct {
 	Identity           *ivms101.IdentityPayload `json:"identity,omitempty"`
 	Transaction        *generic.Transaction     `json:"transaction,omitempty"`
 	Pending            *generic.Pending         `json:"pending,omitempty"`
+	Sunrise            *generic.Sunrise         `json:"sunrise,omitempty"`
 	SentAt             *time.Time               `json:"sent_at"`
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
 	Timestamp          time.Time                `json:"timestamp,omitempty"`
@@ -438,6 +439,11 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 	case "type.googleapis.com/trisa.data.generic.v1beta1.Pending":
 		out.Pending = &generic.Pending{}
 		if err = payload.Transaction.UnmarshalTo(out.Pending); err != nil {
+			return nil, err
+		}
+	case "type.googleapis.com/trisa.data.generic.v1beta1.Sunrise":
+		out.Sunrise = &generic.Sunrise{}
+		if err = payload.Transaction.UnmarshalTo(out.Sunrise); err != nil {
 			return nil, err
 		}
 	default:

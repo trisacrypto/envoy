@@ -15,6 +15,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 func (s *Server) SendMessageForm(c *gin.Context) {
@@ -96,11 +97,6 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 	defer packet.DB.Rollback()
 
-	// Add the counterparty to the database associated with the transaction
-	if err = packet.Out.UpdateTransaction(); err != nil {
-		c.Error(err)
-	}
-
 	// Fetch the contacts from the counterparty and check that at least one exists.
 	var contacts []*models.Contact
 	if contacts, err = packet.Counterparty.Contacts(); err != nil {
@@ -114,6 +110,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 
 	// Prepare to send email
+	// TODO: add ender compliance officer info and recipient info
 	invite := emails.SunriseInviteData{
 		OriginatorName:  in.Originator.FullName(),
 		BeneficiaryName: in.Beneficiary.FullName(),
@@ -129,10 +126,16 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		}
 	}
 
-	// TODO: Update the transaction with the "response" from the user; e.g. the sunrise record
+	// Fetch the storage key for the envelopes
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey("", "sunrise"); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
 
-	// Read the record from the database to return to the user
-	if err = packet.RefreshTransaction(); err != nil {
+	// Save the secure envelopes and the transaction, and refresh the transaction.
+	if err = packet.Save(storageKey); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 		return

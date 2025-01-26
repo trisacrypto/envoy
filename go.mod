@@ -22,7 +22,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/stretchr/testify v1.9.0
 	github.com/trisacrypto/directory v1.8.1
-	github.com/trisacrypto/trisa v1.4.1
+	github.com/trisacrypto/trisa v1.5.0
 	github.com/urfave/cli/v2 v2.27.5
 	golang.org/x/crypto v0.29.0
 	golang.org/x/text v0.20.0
