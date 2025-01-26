@@ -18,6 +18,8 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
+const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"
+
 func (s *Server) SendMessageForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "send_message.html", scene.New(c))
 }
@@ -111,7 +113,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 
 	// Prepare to send email
 	invite := emails.SunriseInviteData{
-		ComplianceName:  s.conf.Email.GetSenderName(),
+		ComplianceName:  s.GetComplianceName(),
 		OriginatorName:  in.Originator.FullName(),
 		BeneficiaryName: in.Beneficiary.FullName(),
 		BaseURL:         s.conf.Sunrise.InviteURL(),
@@ -170,4 +172,16 @@ func (s *Server) SendSunrise(c *gin.Context) {
 		Data:     out,
 		HTMLName: "transaction_sent.html",
 	})
+}
+
+func (s *Server) GetComplianceName() string {
+	if name := s.conf.Email.GetSenderName(); name != "" {
+		return name
+	}
+
+	if name := s.conf.Organization; name != "Envoy" && name != "" {
+		return name
+	}
+
+	return GenericComplianceName
 }
