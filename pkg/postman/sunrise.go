@@ -164,7 +164,8 @@ func (s *SunrisePacket) Seal(storageKey keys.PublicKey) (err error) {
 
 	// Ensure the outgoing message has the same encryption key as the incoming!
 	s.Out.StorageKey = storageKey
-	if s.Out.Envelope, _, err = s.Out.Envelope.Encrypt(); err != nil {
+	s.Out.SealingKey = storageKey
+	if _, err = s.Out.Seal(); err != nil {
 		return fmt.Errorf("could not encrypt outgoing envelope: %w", err)
 	}
 
@@ -180,7 +181,7 @@ func (s *SunrisePacket) Seal(storageKey keys.PublicKey) (err error) {
 		}
 
 		// Store the encrypted and sealed envelope as the "original" message, which will
-		// be saved in the databaser when s.In.Model() is called.
+		// be saved in the database when s.In.Model() is called.
 		s.In.original = s.In.Envelope.Proto()
 	}
 

@@ -391,7 +391,6 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		Remote:             model.Remote.String,
 		Timestamp:          model.Timestamp,
 		PublicKeySignature: model.PublicKey.String,
-		TransferState:      env.TransferState().String(),
 	}
 
 	if model.ReplyTo.Valid {
@@ -409,6 +408,7 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 	}
 
 	// Use the decrypted envelope to populate the payload.
+	out.TransferState = env.TransferState().String()
 	switch state := env.State(); state {
 	case envelope.Error:
 		out.IsError = true
@@ -468,6 +468,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 
 	out = &EnvelopesList{
 		Page:               &PageQuery{},
+		IsDecrypted:        true,
 		DecryptedEnvelopes: make([]*Envelope, 0, len(page.Envelopes)),
 	}
 
@@ -482,6 +483,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 		env.Identity = nil
 		env.Transaction = nil
 		env.Pending = nil
+		env.Sunrise = nil
 		env.SecureEnvelope = nil
 
 		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)
