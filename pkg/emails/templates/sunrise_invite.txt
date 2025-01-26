@@ -1,10 +1,22 @@
-Hello {{ .BeneficiaryName }},
+{{ if .ContactName }}Hello {{ .ContactName }},{{ else }}To Whom It May Concern:{{ end }}
 
-{{ .OriginatorName }} has sent a secure Travel Rule Data Message that is pending your approval. To review the message click or copy the following link into your browser:
+{{ .ComplianceName }} has sent a secure Travel Rule Data Message that is pending your approval.
+
+One of our account holders, {{ .OriginatorName }}, is requesting to send virtual assets to one of your account holders, {{ .BeneficiaryName }} and this transaction requires Travel Rule compliance review.
+
+To review the transaction, click or copy the following link into your browser:
 
 {{ .VerifyURL }}
 
-If you have trouble visiting the link, please contact us at support@rotational.io.
+{{ if .SupportEmail }}
+If you have trouble visiting the link, please contact us at {{ .SupportEmail }}.
+{{ end }}
+
+{{ if .ComplianceEmail }}
+If you have any compliance questions about this transaction, please contact us at {{ .ComplianceEmail }}.
+{{ end }}
 
 Thank you,
-The Envoy Team
+{{ .ComplianceName }}
+Powered by TRISA Envoy
+https://trisa.io

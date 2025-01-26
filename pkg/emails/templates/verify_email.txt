@@ -1,4 +1,4 @@
-Verify your email to view your Travel Rule Data Message.
+Verify your email to view your Travel Rule transaction message.
 
 Your one time code is:
 
@@ -6,4 +6,7 @@ Your one time code is:
 
 If you did not request this email, please ignore it. For security reasons, this code will expire in 15 minutes.
 
-If you have trouble verifying your email address, please contact us at support@rotational.io.
+If you have trouble verifying your email address, please contact us at {{ .SupportEmail }}.
+
+This email was sent by TRISA Envoy{{ if .ComplianceName }} on behalf of {{ .ComplianceName }}{{ end }}.
+https://trisa.io

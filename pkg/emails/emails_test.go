@@ -33,10 +33,14 @@ func TestLiveEmails(t *testing.T) {
 
 	t.Run("Invite", func(t *testing.T) {
 		data := SunriseInviteData{
+			ContactName:     "Charlie Brown",
+			ComplianceName:  "Testing Compliance",
 			OriginatorName:  "Alice Duncan",
 			BeneficiaryName: "Benedict Smith",
 			BaseURL:         &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/sunrise/verify"},
 			Token:           sunrise.VerificationToken("abc123"),
+			SupportEmail:    "support@example.com",
+			ComplianceEmail: "compliance@example.com",
 		}
 
 		email, err := NewSunriseInvite(recipient, data)
@@ -48,7 +52,9 @@ func TestLiveEmails(t *testing.T) {
 
 	t.Run("Verify", func(t *testing.T) {
 		data := VerifyEmailData{
-			Code: "ABC123",
+			Code:           "ABC123",
+			ComplianceName: "Testing Compliance",
+			SupportEmail:   "support@example.com",
 		}
 
 		email, err := NewVerifyEmail(recipient, data)

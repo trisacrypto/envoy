@@ -11,10 +11,13 @@ import (
 
 // The emails config allows users to either send messages via SendGrid or via SMTP.
 type Config struct {
-	Sender   string         `split_words:"true" desc:"the email address that messages are sent from"`
-	Testing  bool           `split_words:"true" default:"false" desc:"set the emailer to testing mode to ensure no live emails are sent"`
-	SMTP     SMTPConfig     `split_words:"true"`
-	SendGrid SendGridConfig `split_words:"false"`
+	Sender          string         `split_words:"true" desc:"the email address that messages are sent from"`
+	SenderName      string         `split_words:"true" desc:"the name of the sender, usually the name of the VASP or compliance team"`
+	SupportEmail    string         `split_words:"true" desc:"the email address to refer support requests to"`
+	ComplianceEmail string         `split_words:"true" desc:"the email address to refer compliance requests to"`
+	Testing         bool           `split_words:"true" default:"false" desc:"set the emailer to testing mode to ensure no live emails are sent"`
+	SMTP            SMTPConfig     `split_words:"true"`
+	SendGrid        SendGridConfig `split_words:"false"`
 }
 
 // Configuration for sending emails via SMTP.
@@ -52,6 +55,18 @@ func (c Config) Validate() (err error) {
 
 	if _, perr := mail.ParseAddress(c.Sender); perr != nil {
 		return ErrConfigInvalidSender
+	}
+
+	if c.SupportEmail != "" {
+		if _, perr := mail.ParseAddress(c.SupportEmail); perr != nil {
+			return ErrConfigInvalidSupport
+		}
+	}
+
+	if c.ComplianceEmail != "" {
+		if _, perr := mail.ParseAddress(c.ComplianceEmail); perr != nil {
+			return ErrConfigInvalidCompliance
+		}
 	}
 
 	// Cannot specify both email mechanisms
@@ -132,4 +147,18 @@ func (c SendGridConfig) Validate() (err error) {
 
 func (c SendGridConfig) Client() *sendgrid.Client {
 	return sendgrid.NewSendClient(c.APIKey)
+}
+
+func (c Config) GetSenderName() string {
+	if c.SenderName != "" {
+		return c.SenderName
+	}
+
+	if c.Sender != "" {
+		if addr, err := mail.ParseAddress(c.Sender); err == nil {
+			return addr.Name
+		}
+	}
+
+	return ""
 }
