@@ -1,4 +1,4 @@
-Hello {{ .ContactName }},
+{{ if .ContactName }}Hello {{ .ContactName }},{{ else }}To Whom It May Concern:{{ end }}
 
 {{ .ComplianceName }} has sent a secure Travel Rule Data Message that is pending your approval.
 

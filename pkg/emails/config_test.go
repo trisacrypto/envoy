@@ -11,6 +11,9 @@ import (
 
 var testEnv = map[string]string{
 	"EMAIL_SENDER":            "Jane Szack <jane@example.com>",
+	"EMAIL_SENDER_NAME":       "Jane Szack",
+	"EMAIL_SUPPORT_EMAIL":     "support@example.com",
+	"EMAIL_COMPLIANCE_EMAIL":  "compliance@example.com",
 	"EMAIL_TESTING":           "true",
 	"EMAIL_SMTP_HOST":         "smtp.example.com",
 	"EMAIL_SMTP_PORT":         "25",
@@ -29,6 +32,9 @@ func TestConfig(t *testing.T) {
 	// NOTE: no validation is run while creating the config from the environment
 	conf, err := config()
 	require.Equal(t, testEnv["EMAIL_SENDER"], conf.Sender)
+	require.Equal(t, testEnv["EMAIL_SENDER_NAME"], conf.SenderName)
+	require.Equal(t, testEnv["EMAIL_SUPPORT_EMAIL"], conf.SupportEmail)
+	require.Equal(t, testEnv["EMAIL_COMPLIANCE_EMAIL"], conf.ComplianceEmail)
 	require.True(t, conf.Testing)
 	require.Equal(t, testEnv["EMAIL_SMTP_HOST"], conf.SMTP.Host)
 	require.Equal(t, uint16(25), conf.SMTP.Port)
@@ -96,6 +102,45 @@ func TestConfigValidation(t *testing.T) {
 			{
 				Testing: true,
 			},
+			{
+				Sender:  "Compliance Peony <peony@example.com>",
+				Testing: false,
+				SendGrid: emails.SendGridConfig{
+					APIKey: "sg:fakeapikey",
+				},
+			},
+			{
+				Sender:       "peony@example.com",
+				SupportEmail: "support@example.com",
+				Testing:      false,
+				SendGrid: emails.SendGridConfig{
+					APIKey: "sg:fakeapikey",
+				},
+			},
+			{
+				Sender:       "peony@example.com",
+				SupportEmail: "Support Peony <support@example.com>",
+				Testing:      false,
+				SendGrid: emails.SendGridConfig{
+					APIKey: "sg:fakeapikey",
+				},
+			},
+			{
+				Sender:          "peony@example.com",
+				ComplianceEmail: "compliance@example.com",
+				Testing:         false,
+				SendGrid: emails.SendGridConfig{
+					APIKey: "sg:fakeapikey",
+				},
+			},
+			{
+				Sender:          "peony@example.com",
+				ComplianceEmail: "Compliance Peony <compliance@example.com>",
+				Testing:         false,
+				SendGrid: emails.SendGridConfig{
+					APIKey: "sg:fakeapikey",
+				},
+			},
 		}
 
 		for i, conf := range testCases {
@@ -130,6 +175,24 @@ func TestConfigValidation(t *testing.T) {
 					SMTP:    emails.SMTPConfig{Host: "smtp.example.com"},
 				},
 				emails.ErrConfigInvalidSender,
+			},
+			{
+				emails.Config{
+					Sender:       "orchid@example.com",
+					SupportEmail: "foo",
+					Testing:      false,
+					SMTP:         emails.SMTPConfig{Host: "smtp.example.com"},
+				},
+				emails.ErrConfigInvalidSupport,
+			},
+			{
+				emails.Config{
+					Sender:          "orchid@example.com",
+					ComplianceEmail: "foo",
+					Testing:         false,
+					SMTP:            emails.SMTPConfig{Host: "smtp.example.com"},
+				},
+				emails.ErrConfigInvalidCompliance,
 			},
 			{
 				emails.Config{
@@ -195,6 +258,65 @@ func TestSMTPConfig(t *testing.T) {
 		}
 		require.Equal(t, "smtp.example.com:527", conf.Addr())
 	})
+}
+
+func TestGetSenderName(t *testing.T) {
+	testCases := []struct {
+		conf     emails.Config
+		expected string
+	}{
+		{
+			emails.Config{
+				Sender: "Jane Szack <jane@example.com>",
+			},
+			"Jane Szack",
+		},
+		{
+			emails.Config{
+				Sender: "jane@example.com",
+			},
+			"",
+		},
+		{
+			emails.Config{
+				Sender:     "",
+				SenderName: "Jane Szack",
+			},
+			"Jane Szack",
+		},
+		{
+			emails.Config{
+				Sender:     "",
+				SenderName: "",
+			},
+			"",
+		},
+		{
+			emails.Config{
+				Sender:     "foo",
+				SenderName: "",
+			},
+			"",
+		},
+		{
+			emails.Config{
+				Sender:     "John Doe <john.doe@example.com>",
+				SenderName: "Jane Szack",
+			},
+			"Jane Szack",
+		},
+		{
+			emails.Config{
+				Sender:     "john.doe@example.com",
+				SenderName: "John Doe",
+			},
+			"John Doe",
+		},
+	}
+
+	for i, tc := range testCases {
+		require.Equal(t, tc.expected, tc.conf.GetSenderName(), "test case %d failed", i)
+	}
 }
 
 // Creates a new email config from the current environment.

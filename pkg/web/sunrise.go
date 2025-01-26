@@ -110,11 +110,13 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 
 	// Prepare to send email
-	// TODO: add ender compliance officer info and recipient info
 	invite := emails.SunriseInviteData{
+		ComplianceName:  s.conf.Email.GetSenderName(),
 		OriginatorName:  in.Originator.FullName(),
 		BeneficiaryName: in.Beneficiary.FullName(),
 		BaseURL:         s.conf.Sunrise.InviteURL(),
+		SupportEmail:    s.conf.Email.SupportEmail,
+		ComplianceEmail: s.conf.Email.ComplianceEmail,
 	}
 
 	// Create the sunrise tokens for all counterparty contacts and send emails

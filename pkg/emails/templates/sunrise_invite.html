@@ -10,7 +10,7 @@
       <tr>
         <td style="padding: 20px; font-family: sans-serif; font-size: 16px; line-height: 20px; color: #000000;">
 
-          <p style="margin: 0 0 16px;">Hello {{ .ContactName }},</p>
+          <p style="margin: 0 0 16px;">{{ if .ContactName }}Hello {{ .ContactName }},{{ else }}To Whom It May Concern:{{ end }}</p>
           <p style="padding: 12px 0; margin: 0;">
             {{ .ComplianceName }} has sent a secure Travel Rule Data Message that is pending your approval.
           </p>

@@ -85,6 +85,7 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 
 	// Send the email to the contact
 	var email *emails.Email
+	invite.ContactName = contact.Name
 	if email, err = emails.NewSunriseInvite(contact.Address().String(), invite); err != nil {
 		return err
 	}
