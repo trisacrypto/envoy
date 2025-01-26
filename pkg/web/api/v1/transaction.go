@@ -84,6 +84,7 @@ type Envelope struct {
 	Identity           *ivms101.IdentityPayload `json:"identity,omitempty"`
 	Transaction        *generic.Transaction     `json:"transaction,omitempty"`
 	Pending            *generic.Pending         `json:"pending,omitempty"`
+	Sunrise            *generic.Sunrise         `json:"sunrise,omitempty"`
 	SentAt             *time.Time               `json:"sent_at"`
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
 	Timestamp          time.Time                `json:"timestamp,omitempty"`
@@ -390,7 +391,6 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		Remote:             model.Remote.String,
 		Timestamp:          model.Timestamp,
 		PublicKeySignature: model.PublicKey.String,
-		TransferState:      env.TransferState().String(),
 	}
 
 	if model.ReplyTo.Valid {
@@ -408,6 +408,7 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 	}
 
 	// Use the decrypted envelope to populate the payload.
+	out.TransferState = env.TransferState().String()
 	switch state := env.State(); state {
 	case envelope.Error:
 		out.IsError = true
@@ -440,6 +441,11 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		if err = payload.Transaction.UnmarshalTo(out.Pending); err != nil {
 			return nil, err
 		}
+	case "type.googleapis.com/trisa.data.generic.v1beta1.Sunrise":
+		out.Sunrise = &generic.Sunrise{}
+		if err = payload.Transaction.UnmarshalTo(out.Sunrise); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unknown transaction protobuf type: %q", payload.Transaction.TypeUrl)
 	}
@@ -462,6 +468,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 
 	out = &EnvelopesList{
 		Page:               &PageQuery{},
+		IsDecrypted:        true,
 		DecryptedEnvelopes: make([]*Envelope, 0, len(page.Envelopes)),
 	}
 
@@ -476,6 +483,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 		env.Identity = nil
 		env.Transaction = nil
 		env.Pending = nil
+		env.Sunrise = nil
 		env.SecureEnvelope = nil
 
 		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)

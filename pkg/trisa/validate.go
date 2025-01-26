@@ -40,6 +40,7 @@ var validIdentityTypes = map[string]struct{}{
 var validTransactionTypes = map[string]struct{}{
 	"type.googleapis.com/trisa.data.generic.v1beta1.Transaction": {},
 	"type.googleapis.com/trisa.data.generic.v1beta1.Pending":     {},
+	"type.googleapis.com/trisa.data.generic.v1beta1.Sunrise":     {},
 }
 
 // Validates an incoming TRISA payload, ensuring that it has all required fields and

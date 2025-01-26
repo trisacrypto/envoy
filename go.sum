@@ -260,8 +260,8 @@ github.com/trisacrypto/directory v1.8.1 h1:DzBNkgF2imT5oB5lSUF9aFTt7FDBywVSS82mM
 github.com/trisacrypto/directory v1.8.1/go.mod h1:/Np2wV158WgATrvTv8KCTNoZ13SRHLbiDds1Dl+Mo04=
 github.com/trisacrypto/lei v1.0.0 h1:LKrwOgYjW+ljzBmN6hGgBbGFAktoRmovyY7ZYZB5/uI=
 github.com/trisacrypto/lei v1.0.0/go.mod h1:OsJZIYPShoSETOphRXAIlHwwesIsvo5PPpEemp/wGZI=
-github.com/trisacrypto/trisa v1.4.1 h1:n28FfqNklHvHpGT00NSqNyMHklWBRJD8QV9PbBWYRQY=
-github.com/trisacrypto/trisa v1.4.1/go.mod h1:zZCYwaoipb7nvSbKiJDjDf9gPNJKYWMk1WoPXcVkERY=
+github.com/trisacrypto/trisa v1.5.0 h1:uf3IRfNzHFjLEJnKlIHqxM8Mylmd2spmDUoY/E2BySc=
+github.com/trisacrypto/trisa v1.5.0/go.mod h1:zZCYwaoipb7nvSbKiJDjDf9gPNJKYWMk1WoPXcVkERY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
