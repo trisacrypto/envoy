@@ -62,3 +62,11 @@ func (s *Sunrise) Params() []any {
 		sql.Named("modified", s.Modified),
 	}
 }
+
+// IsExpired returns true if the message expiration is before the current time and if
+// the status is not in a final state (e.g. completed or rejected). If the status is
+// in a final state, then the message is not considered expired no matter the exiration
+// timestamp.
+func (s *Sunrise) IsExpired() bool {
+	return time.Now().After(s.Expiration) && s.Status != StatusCompleted && s.Status != StatusRejected
+}

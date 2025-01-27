@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -35,13 +36,13 @@ func makePrepare(travelAddress string) *api.Prepare {
 	network := networks[rand.Intn(len(networks))]
 	return &api.Prepare{
 		TravelAddress: travelAddress,
-		Originator:    makePerson("US", network),
-		Beneficiary:   makePerson("DE", network),
+		Originator:    makeRandPerson("US", network),
+		Beneficiary:   makeRandPerson("DE", network),
 		Transfer:      makeTransfer(network),
 	}
 }
 
-func makePerson(country, network string) *api.Person {
+func makeRandPerson(country, network string) *api.Person {
 	loadPeople()
 	loadAddresses()
 
@@ -51,9 +52,24 @@ func makePerson(country, network string) *api.Person {
 	}
 
 	path := paths[rand.Intn(len(paths))]
-	key := strings.TrimSuffix(filepath.Base(path), ".json")
+	return makePerson(path, country, network)
+}
+
+func makePerson(path, country, network string) *api.Person {
+	loadPeople()
+	loadAddresses()
+
+	paths, ok := people[strings.ToUpper(country)]
+	if !ok || len(paths) == 0 {
+		panic(fmt.Errorf("no people for country %s", country))
+	}
+
+	if !slices.Contains(paths, path) {
+		panic(fmt.Errorf("person %s not found in country %s", path, country))
+	}
 
 	person := &api.Person{}
+	key := strings.TrimSuffix(filepath.Base(path), ".json")
 	if err := unmarshalJSONFixture(path, person); err != nil {
 		panic(fmt.Errorf("cannot load person: %w", err))
 	}

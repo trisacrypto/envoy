@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -125,6 +126,34 @@ func main() {
 			Category: "localhost",
 		},
 		{
+			Name:     "db:reset",
+			Usage:    "delete database rows except for authentication and api keys",
+			Action:   dbReset,
+			Category: "localhost",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "dsn",
+					Aliases:  []string{"d"},
+					Usage:    "the DSN to the database file, e.g. sqlite3:///tmp/envoy/trisa.db",
+					Required: true,
+					EnvVars:  []string{"TRISA_DATABASE_URL"},
+				},
+				&cli.StringSliceFlag{
+					Name:    "exclude",
+					Aliases: []string{"e"},
+					Usage:   "tables to exclude from truncations (must specify all)",
+					Value:   cli.NewStringSlice("migrations", "roles", "permissions", "role_permissions", "users", "api_keys", "api_key_permissions"),
+				},
+			},
+		},
+		{
+			Name:     "fixtures:contacts",
+			Usage:    "create the contacts fixtures using the envoy and counterparty APIs",
+			Before:   connectClients,
+			Action:   fixturesContacts,
+			Category: "localhost",
+		},
+		{
 			Name:     "tests:run",
 			Usage:    "run all integration tests with specified configuration",
 			Action:   integrationTests,
@@ -229,6 +258,41 @@ func inspectGDS(c *cli.Context) (err error) {
 	return nil
 }
 
+func dbReset(c *cli.Context) (err error) {
+	var db *sql.DB
+	if db, err = openDB(c.String("dsn")); err != nil {
+		return cli.Exit(err, 1)
+	}
+	defer db.Close()
+
+	var tx *sql.Tx
+	if tx, err = db.Begin(); err != nil {
+		return cli.Exit(fmt.Errorf("could not start transaction: %w", err), 1)
+	}
+	defer tx.Rollback()
+
+	if err = resetDB(tx, c.StringSlice("exclude")); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return cli.Exit(fmt.Errorf("could not commit transaction: %w", err), 1)
+	}
+	return nil
+}
+
+func fixturesContacts(c *cli.Context) (err error) {
+	if err = createContacts(envoyClient, "US"); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	if err = createContacts(counterpartyClient, "DE"); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	return nil
+}
+
 //===========================================================================
 // Integration Tests
 //===========================================================================
@@ -266,8 +330,8 @@ func sendSunrise(c *cli.Context) (err error) {
 	sunrise := &api.Sunrise{
 		Email:        c.String("email"),
 		Counterparty: c.String("counterparty"),
-		Originator:   makePerson("US", network),
-		Beneficiary:  makePerson("DE", network),
+		Originator:   makeRandPerson("US", network),
+		Beneficiary:  makeRandPerson("DE", network),
 		Transfer:     makeTransfer(network),
 	}
 

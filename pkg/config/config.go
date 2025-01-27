@@ -114,6 +114,7 @@ type SunriseConfig struct {
 	Enabled        bool   `default:"true" desc:"if false, it will not be possible to send sunrise emails and sunrise endpoints will return a 404"`
 	BaseURL        string `split_words:"true" env:"TRISA_WEB_ORIGIN" desc:"the base url for handling sunrise requests, to put into outgoing emails"`
 	InviteEndpoint string `split_words:"true" default:"/sunrise/verify" desc:"the path of the endpoint for sunrise token verification"`
+	RequireOTP     bool   `split_words:"true" default:"true" desc:"if true, the sunrise verification process will require an OTP to be entered by the user even on successful verification token validation"`
 	inviteURL      *url.URL
 }
 
