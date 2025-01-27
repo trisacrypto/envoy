@@ -340,6 +340,6 @@ func contactFromEmail(email string) (_ *models.Contact, err error) {
 
 	return &models.Contact{
 		Name:  addr.Name,
-		Email: addr.Address,
+		Email: strings.ToLower(addr.Address),
 	}, nil
 }
