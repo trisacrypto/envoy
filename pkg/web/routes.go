@@ -116,7 +116,7 @@ func (s *Server) setupRoutes() (err error) {
 	sunrise := s.router.Group("/sunrise", s.SunriseEnabled())
 	{
 		sunrise.GET("/verify", s.VerifySunriseUser)
-		sunrise.GET("/review", authenticate, authorize(permiss.TravelRuleView), s.SunriseMessagePreview)
+		sunrise.GET("/review", authenticate, authorize(permiss.TravelRuleView), s.SunriseMessageReview)
 		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
 	}
 
