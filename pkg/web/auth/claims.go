@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -26,8 +27,9 @@ type Claims struct {
 type SubjectType rune
 
 const (
-	SubjectUser   = SubjectType('u')
-	SubjectAPIKey = SubjectType('k')
+	SubjectUser    = SubjectType('u')
+	SubjectAPIKey  = SubjectType('k')
+	SubjectSunrise = SubjectType('s')
 )
 
 var organization string
@@ -38,6 +40,8 @@ func NewClaims(ctx context.Context, model any) (*Claims, error) {
 		return NewClaimsForUser(ctx, t)
 	case *models.APIKey:
 		return NewClaimsForAPIClient(ctx, t)
+	case *models.Sunrise:
+		return NewClaimsForSunrise(ctx, t)
 	default:
 		return nil, fmt.Errorf("unknown model type %T: cannot create claims", t)
 	}
@@ -69,6 +73,16 @@ func NewClaimsForAPIClient(ctx context.Context, key *models.APIKey) (claims *Cla
 	}
 
 	claims.SetSubjectID(SubjectAPIKey, key.ID)
+	return claims, nil
+}
+
+func NewClaimsForSunrise(ctx context.Context, model *models.Sunrise) (claims *Claims, err error) {
+	claims = &Claims{
+		Email:       model.Email,
+		Permissions: []string{permissions.TravelRuleView.String()},
+	}
+
+	claims.SetSubjectID(SubjectSunrise, model.ID)
 	return claims, nil
 }
 

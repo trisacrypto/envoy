@@ -16,6 +16,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/sunrise"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
@@ -117,7 +118,11 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// If an OTP is not required, set the validation cookie and redirect the user to
 	// the sunrise message preview.
 	if !s.conf.Sunrise.RequireOTP {
-		// TODO: set authentication cookie
+		if err = s.SetSunriseAuthCookies(c, model); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+			return
+		}
 
 		c.Redirect(http.StatusTemporaryRedirect, "/sunrise/review")
 		return
@@ -285,4 +290,26 @@ func (s *Server) GetComplianceName() string {
 	}
 
 	return GenericComplianceName
+}
+
+func (s *Server) SetSunriseAuthCookies(c *gin.Context, model *models.Sunrise) (err error) {
+	var (
+		claims       *auth.Claims
+		accessToken  string
+		refreshToken string
+	)
+
+	if claims, err = auth.NewClaims(c.Request.Context(), model); err != nil {
+		return err
+	}
+
+	if accessToken, refreshToken, err = s.issuer.CreateTokens(claims); err != nil {
+		return err
+	}
+
+	if err = auth.SetAuthCookies(c, accessToken, refreshToken, s.conf.Web.Auth.CookieDomain); err != nil {
+		return err
+	}
+
+	return nil
 }
