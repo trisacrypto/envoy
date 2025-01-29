@@ -9,8 +9,11 @@
   </section>
 </section>
 <input type="hidden" id="transaction-id" value="{{ .ID }}" />
+
 <!-- Reject transaction modal -->
-{{ template "transaction_rejection.html" . }}
+{{ with $action := printf "/v1/transactions/%s/reject" .ID }}
+{{ template "transaction_rejection" . }}
+{{ end }}
 
 <dialog id="transaction_complete_modal" class="modal"></dialog>
 
