@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -79,7 +78,7 @@ func NewClaimsForAPIClient(ctx context.Context, key *models.APIKey) (claims *Cla
 func NewClaimsForSunrise(ctx context.Context, model *models.Sunrise) (claims *Claims, err error) {
 	claims = &Claims{
 		Email:       model.Email,
-		Permissions: []string{permissions.TravelRuleView.String()},
+		Permissions: nil,
 	}
 
 	claims.SetSubjectID(SubjectSunrise, model.ID)
@@ -94,6 +93,10 @@ func (c Claims) SubjectID() (SubjectType, ulid.ULID, error) {
 	sub := SubjectType(c.Subject[0])
 	id, err := ulid.Parse(c.Subject[1:])
 	return sub, id, err
+}
+
+func (c Claims) SubjectType() SubjectType {
+	return SubjectType(c.Subject[0])
 }
 
 func (c Claims) HasPermission(required string) bool {
