@@ -49,11 +49,13 @@ type NationalIdentifier struct {
 }
 
 type AddressComponents struct {
-	AddressLine1 string
-	AddressLine2 string
-	City         string
-	Region       string
-	PostCode     string
+	AddressType    string
+	AddressLine1   string
+	AddressLine2   string
+	City           string
+	Region         string
+	PostCode       string
+	AddressCountry string
 }
 
 // Return the simplified/flattened IVMS101 identity representation if an Envelope has
@@ -165,6 +167,8 @@ func makeAddressComponents(addr *ivms101.Address) (a AddressComponents) {
 	a.City = addr.TownName
 	a.Region = addr.CountrySubDivision
 	a.PostCode = addr.PostCode
+	a.AddressType = strings.TrimPrefix(addr.AddressType.String(), "ADDRESS_TYPE_CODE_")
+	a.AddressCountry = addr.Country
 
 	if len(addr.AddressLine) > 0 {
 		a.AddressLine1 = addr.AddressLine[0]

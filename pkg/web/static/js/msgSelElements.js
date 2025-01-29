@@ -20,7 +20,6 @@ envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.opt
 
 function setSlimSelect(sel, options) {
   const element = document.querySelector(sel)
-  const value = element?.getAttribute('value');
 
    // Initialize SlimSelect only for select elements that exist in the DOM.
   if (!element) {
@@ -44,10 +43,5 @@ function setSlimSelect(sel, options) {
   if (options === nationalIdType) {
     naturalPersonNtlIdTypeArray.unshift({ 'placeholder': true, 'text': 'Select national identifier type', 'value': '' });
     newDropdown.setData(naturalPersonNtlIdTypeArray);
-  };
-
-  // Set the default value on the dropdown if present.
-  if (value) {
-    newDropdown.setSelected(value);
   };
 };

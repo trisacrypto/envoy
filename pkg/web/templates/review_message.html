@@ -263,7 +263,7 @@
               </div>
               <div>
                 <label for="benf_countries" class="label-style">Country</label>
-                <select id="benf_countries" name="benf_country" value="{{ .PrimaryAddress.Country }}"></select>
+                <select id="benf_countries" name="benf_country" data-select-type="country" value="{{ .PrimaryAddress.Country }}"></select>
               </div>
             </div>
             <div class="grid gap-6 my-6 md:grid-cols-2">
@@ -277,12 +277,12 @@
               </div>
               <div>
                 <label for="bf_id_type_code" class="label-style">National Identification Type</label>
-                <select id="bf_id_type_code" name="bf_id_type_code" value="{{ .NationalIdentifier.TypeCode }}"></select>
+                <select id="bf_id_type_code" name="bf_id_type_code"  data-select-type="natnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
               </div>
             </div>
             <div class="my-6">
               <label for="bf_id_country" class="label-style">Country of Issue</label>
-              <select id="bf_id_country" name="bf_id_country" value="{{ .NationalIdentifier.CountryOfIssue }}"></select>
+              <select id="bf_id_country" name="bf_id_country" data-select-type="country" value="{{ .NationalIdentifier.CountryOfIssue }}"></select>
             </div>
             {{- end }}
           </section>
@@ -290,19 +290,49 @@
             <h2 class="my-4 font-bold">5. BENEFICIARY VASP DETAILS </h2>
             <div class="my-5">
               {{ with $ivms.BeneficiaryVASP -}}
-              <div class="grid gap-6 my-4">
+              <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
-                  <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
+                  <label for="benf_vasp_legal_person_name" class="label-style">Legal Entity Name</label>
                   <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName"
                     value="{{ .LegalName }}" class="input-style" />
+                </div>
+                <div>
+                  <label for="benf_vasp_legal_person_name" class="label-style">Country of Registration</label>
+                  <select id="benf_vasp_country_of_registration" name="id_benf_countryOfRegistration" data-select-type="country" value="{{ .CountryOfRegistration }}"></select>
                 </div>
               </div>
 
               <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
-                  <label for="benf_vasp_street_name" class="label-style">Address Line 1</label>
-                  <input type="text" id="benf_vasp_street_name" name="address_benf_address_line_1"
+                  <label for="benf_vasp_address_line_1" class="label-style">Address Line 1</label>
+                  <input type="text" id="benf_vasp_address_line_1" name="address_benf_address_line_1"
                     value="{{ .AddressLine1 }}" class="input-style" />
+                </div>
+                <div>
+                  <label for="benf_vasp_address_line_2" class="label-style">Address Line 2</label>
+                  <input type="text" id="benf_vasp_address_line_2" name="address_benf_address_line_2"
+                    value="{{ .AddressLine2 }}" class="input-style" />
+                </div>
+              </div>
+              <div class="grid gap-6 my-4 md:grid-cols-2">
+                <div>
+                  <label for="benf_vasp_address_country" class="label-style">Address Country</label>
+                  <select id="benf_vasp_address_country" name="benf_vasp_address_country" data-select-type="country" value="{{ .AddressCountry }}"></select>
+                </div>
+                <div>
+                  <label for="benf_vasp_address_type" class="label-style">Address Type</label>
+                  <select id="benf_vasp_address_type" name="benf_vasp_address_type" data-select-type="address" value="{{ .AddressType }}"></select>
+                </div>
+              </div>
+              <div class="grid gap-6 my-4 md:grid-cols-2">
+                <div>
+                  <label for="benf_vasp_national_identifier" class="label-style">National Identifier</label>
+                  <input type="text" id="benf_vasp_national_identifier" name="benf_vasp_national_identifier"
+                    value="{{ .NationalIdentifier.Identifier }}" class="input-style" />
+                </div>
+                <div>
+                  <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
+                  <select id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type" data-select-type="legnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
                 </div>
               </div>
               {{- end }}
@@ -337,5 +367,5 @@
 {{ end }}
 
 {{ define "appcode" }}
-<script type="module" src="/static/js/msgSelElements.js"></script>
+<script type="module" src="/static/js/sunriseReviewForm.js"></script>
 {{ end }}
