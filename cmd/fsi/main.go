@@ -181,6 +181,14 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:     "tests:trisa",
+			Usage:    "start a new trisa transaction with the counterparty",
+			Action:   sendTRISA,
+			Before:   connectEnvoy,
+			Category: "tests",
+			Flags:    []cli.Flag{},
+		},
 	}
 
 	app.Run(os.Args)
@@ -341,6 +349,27 @@ func sendSunrise(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("sunrise transaction %s created\n", txn.ID)
+	return nil
+}
+
+func sendTRISA(c *cli.Context) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+
+	// TODO: get travel address from command line
+	prepare := makePrepare("ta2fFeKgcLirnGbYFL9YnkqWr8kQu1gW7PWhxHqqcDErjSZLTeeqYWGKwbNT")
+
+	var prepared *api.Prepared
+	if prepared, err = envoyClient.Prepare(ctx, prepare); err != nil {
+		return cli.Exit(fmt.Errorf("could not prepare transaction: %w", err), 1)
+	}
+
+	var transaction *api.Transaction
+	if transaction, err = envoyClient.SendPrepared(ctx, prepared); err != nil {
+		return cli.Exit(fmt.Errorf("could not send prepared transaction: %w", err), 1)
+	}
+
+	fmt.Printf("started transaction %s\n", transaction.ID)
 	return nil
 }
 

@@ -2802,6 +2802,14 @@ details.collapse summary::-webkit-details-marker {
   z-index: 1;
 }
 
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
 .m-auto {
   margin: auto;
 }
@@ -2934,6 +2942,10 @@ details.collapse summary::-webkit-details-marker {
 
 .mt-auto {
   margin-top: auto;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 
 .block {
@@ -3109,8 +3121,24 @@ details.collapse summary::-webkit-details-marker {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.auto-cols-max {
+  grid-auto-columns: max-content;
+}
+
+.grid-flow-col {
+  grid-auto-flow: column;
+}
+
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .flex-row {
@@ -3201,6 +3229,10 @@ details.collapse summary::-webkit-details-marker {
 
 .overflow-y-scroll {
   overflow-y: scroll;
+}
+
+.text-ellipsis {
+  text-overflow: ellipsis;
 }
 
 .text-balance {
@@ -3522,6 +3554,10 @@ details.collapse summary::-webkit-details-marker {
   padding-top: 1rem;
 }
 
+.pr-3 {
+  padding-right: 0.75rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -3597,6 +3633,10 @@ details.collapse summary::-webkit-details-marker {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.uppercase {
+  text-transform: uppercase;
 }
 
 .\!text-gray-900 {
@@ -4219,6 +4259,10 @@ body main {
 
   .lg\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .lg\:gap-x-8 {

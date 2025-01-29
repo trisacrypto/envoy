@@ -17,6 +17,7 @@ var (
 	ErrNoLocalparty      = errors.New("could not lookup local vasp counterparty from database, please try again later")
 	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 	ErrNoPublicKey       = errors.New("no public key associated with secure envelope")
+	ErrSunriseSubject    = errors.New("invalid subject type for sunrise review")
 )
 
 // Renders the "not found page"
