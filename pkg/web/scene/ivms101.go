@@ -129,7 +129,7 @@ func makeNationalID(id *ivms101.NationalIdentification) (n NationalIdentifier) {
 	}
 
 	n.Identifier = id.NationalIdentifier
-	n.TypeCode = id.NationalIdentifierType.String()
+	n.TypeCode = strings.TrimPrefix(id.NationalIdentifierType.String(), "NATIONAL_IDENTIFIER_TYPE_CODE_")
 	n.CountryOfIssue = id.CountryOfIssue
 	n.RegistrationAuthority = id.RegistrationAuthority
 

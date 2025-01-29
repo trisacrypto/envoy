@@ -263,7 +263,7 @@
               </div>
               <div>
                 <label for="benf_countries" class="label-style">Country</label>
-                <select id="benf_countries" name="benf_country" selected="{{ .PrimaryAddress.Country }}"></select>
+                <select id="benf_countries" name="benf_country" value="{{ .PrimaryAddress.Country }}"></select>
               </div>
             </div>
             <div class="grid gap-6 my-6 md:grid-cols-2">
@@ -277,14 +277,36 @@
               </div>
               <div>
                 <label for="bf_id_type_code" class="label-style">National Identification Type</label>
-                <select id="bf_id_type_code" name="bf_id_type_code" selected="{{ .NationalIdentifier.TypeCode }}"></select>
+                <select id="bf_id_type_code" name="bf_id_type_code" value="{{ .NationalIdentifier.TypeCode }}"></select>
               </div>
             </div>
             <div class="my-6">
               <label for="bf_id_country" class="label-style">Country of Issue</label>
-              <select id="bf_id_country" name="bf_id_country" selected="{{ .NationalIdentifier.CountryOfIssue }}"></select>
+              <select id="bf_id_country" name="bf_id_country" value="{{ .NationalIdentifier.CountryOfIssue }}"></select>
             </div>
             {{- end }}
+          </section>
+          <section class="py-2 border-t border-t-black">
+            <h2 class="my-4 font-bold">5. BENEFICIARY VASP DETAILS </h2>
+            <div class="my-5">
+              {{ with $ivms.BeneficiaryVASP -}}
+              <div class="grid gap-6 my-4">
+                <div>
+                  <label for="benf_vasp_legal_person_name" class="label-style">Name Identifier</label>
+                  <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName"
+                    value="{{ .LegalName }}" class="input-style" />
+                </div>
+              </div>
+
+              <div class="grid gap-6 my-4 md:grid-cols-2">
+                <div>
+                  <label for="benf_vasp_street_name" class="label-style">Address Line 1</label>
+                  <input type="text" id="benf_vasp_street_name" name="address_benf_address_line_1"
+                    value="{{ .AddressLine1 }}" class="input-style" />
+                </div>
+              </div>
+              {{- end }}
+            </div>
           </section>
 
           <div class="py-4 flex justify-center items-center gap-x-2">
