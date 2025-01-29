@@ -83,6 +83,7 @@ func (s *Server) setupRoutes() (err error) {
 
 	// Authentication Middleware
 	authenticate := auth.Authenticate(s.issuer)
+	sunriseAuth := s.SunriseAuthenticate(s.issuer)
 
 	// Authorization Helper
 	authorize := func(permissions ...permiss.Permission) gin.HandlerFunc {
@@ -115,8 +116,13 @@ func (s *Server) setupRoutes() (err error) {
 	// Sunrise Routes (can be disabled by the middleware)
 	sunrise := s.router.Group("/sunrise", s.SunriseEnabled())
 	{
+		// Logs in a sunrise user to allow the external user to be sunrise authenticated.
 		sunrise.GET("/verify", s.VerifySunriseUser)
-		sunrise.GET("/review", authenticate, authorize(permiss.TravelRuleView), s.SunriseMessageReview)
+
+		// The review form for external sunrise users.
+		sunrise.GET("/review", sunriseAuth, s.SunriseMessageReview)
+
+		// The send sunrise message form for authenticated envoy users.
 		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
 	}
 

@@ -6,6 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/trp/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
 
 // If the API is disabled, this middleware factory function returns a middleware that
@@ -57,6 +60,7 @@ func IsAPIRequest(c *gin.Context) bool {
 	return false
 }
 
+// Aborts the request with a 404 error if sunrise is not enabled.
 func (s *Server) SunriseEnabled() gin.HandlerFunc {
 	enabled := s.conf.Sunrise.Enabled
 	return func(c *gin.Context) {
@@ -66,6 +70,67 @@ func (s *Server) SunriseEnabled() gin.HandlerFunc {
 		}
 
 		// Handle the request if the route is enabled
+		c.Next()
+	}
+}
+
+// Authenticates sunrise users verifying the access token in the request. Does not allow
+// API or JSON requests to be authenticated and the claims must have a sunrise subject.
+// If the user is not authenticated they are redirected to the sunrise_404.html page.
+//
+// This middleware should only be on routes intended for use by sunrise users.
+func (s *Server) SunriseAuthenticate(issuer *auth.ClaimsIssuer) gin.HandlerFunc {
+	authenticate := func(c *gin.Context) (claims *auth.Claims, err error) {
+		// Fetch the access token from the request
+		var accessToken string
+		if accessToken, err = auth.GetAccessToken(c); err != nil {
+			log.Debug().Err(err).Msg("no access token in sunrise request")
+			return nil, auth.ErrAuthRequired
+		}
+
+		if claims, err = issuer.Verify(accessToken); err != nil {
+			log.Debug().Err(err).Msg("invalid access token in sunrise request")
+			return nil, auth.ErrAuthRequired
+		}
+
+		return claims, nil
+	}
+
+	return func(c *gin.Context) {
+		var (
+			err    error
+			claims *auth.Claims
+		)
+
+		// If this is an API request, do not authenticate
+		if IsAPIRequest(c) {
+			c.AbortWithStatusJSON(http.StatusNotFound, api.NotFound)
+			return
+		}
+
+		// Authenticate the user
+		if claims, err = authenticate(c); err != nil {
+			log.Debug().Err(err).Msg("unauthorized sunrise request")
+
+			// Redirect the user to the 404 page
+			c.Abort()
+			c.HTML(http.StatusNotFound, "sunrise_404.html", nil)
+			return
+		}
+
+		// Check that the subject is a sunrise user and that the subject is valid.
+		var subjectType auth.SubjectType
+		if subjectType, _, err = claims.SubjectID(); err != nil || subjectType != auth.SubjectSunrise {
+			log.Debug().Err(err).Str("subject_type", subjectType.String()).Msg("invalid subject in sunrise request")
+
+			// Redirect the user to the 404 page
+			c.Abort()
+			c.HTML(http.StatusNotFound, "sunrise_404.html", nil)
+			return
+		}
+
+		// Add claims to context for use in downstream processing
+		c.Set(auth.ContextUserClaims, claims)
 		c.Next()
 	}
 }

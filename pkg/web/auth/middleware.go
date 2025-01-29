@@ -46,6 +46,12 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 			return nil, ErrAuthRequired
 		}
 
+		// Do not allow sunrise subjects to be authenticated
+		if claims.SubjectType() == SubjectSunrise {
+			log.Debug().Msg("forbidding sunrise subject")
+			return nil, ErrAuthRequired
+		}
+
 		return claims, nil
 	}
 
