@@ -19,11 +19,11 @@ const envelopeDropdowns = [
 envelopeDropdowns.forEach((dropdown) => setSlimSelect(dropdown.sel, dropdown.options));
 
 function setSlimSelect(sel, options) {
-  const element = document.querySelector(sel) 
+  const element = document.querySelector(sel)
 
    // Initialize SlimSelect only for select elements that exist in the DOM.
   if (!element) {
-    return 
+    return
   };
 
   const newDropdown = new SlimSelect({

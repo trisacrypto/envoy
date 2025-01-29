@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
@@ -19,6 +20,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
@@ -60,12 +62,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		// If the token is invalid or missing, return a 404.
 		// NOTE: do not log an error as this is very verbose, instead just a debug message
 		log.Debug().Err(err).Msg("sunrise request with invalid token")
-		c.Negotiate(http.StatusNotFound, gin.Negotiate{
-			Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-			JSONData: api.NotFound,
-			HTMLName: "404.html",
-			HTMLData: scene.New(c),
-		})
+		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 		return
 	}
 
@@ -74,22 +71,12 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// Get the sunrise record from the database
 	if model, err = s.store.RetrieveSunrise(ctx, token.SunriseID()); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.Negotiate(http.StatusNotFound, gin.Negotiate{
-				Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-				JSONData: api.NotFound,
-				HTMLName: "404.html",
-				HTMLData: scene.New(c),
-			})
+			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 			return
 		}
 
 		c.Error(err)
-		c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
-			Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-			JSONData: api.Error("could not complete request"),
-			HTMLName: "500.html",
-			HTMLData: scene.New(c),
-		})
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
 		return
 	}
 
@@ -97,13 +84,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	if secure, err := model.Signature.Verify(token); err != nil || !secure {
 		// If the token is not secure or verifiable, return a 404 but be freaked out
 		log.Warn().Err(err).Bool("secure", secure).Msg("a sunrise verification request was made to an existing message but hmac verification failed")
-
-		c.Negotiate(http.StatusNotFound, gin.Negotiate{
-			Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-			JSONData: api.NotFound,
-			HTMLName: "404.html",
-			HTMLData: scene.New(c),
-		})
+		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 		return
 	}
 
@@ -120,7 +101,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	if !s.conf.Sunrise.RequireOTP {
 		if err = s.SetSunriseAuthCookies(c, model); err != nil {
 			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+			c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
 			return
 		}
 
@@ -134,8 +115,79 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	c.HTML(http.StatusOK, "verify.html", scene.New(c))
 }
 
-func (s *Server) SunriseMessagePreview(c *gin.Context) {
-	c.HTML(http.StatusOK, "view_message.html", scene.New(c))
+func (s *Server) SunriseMessageReview(c *gin.Context) {
+	var (
+		err         error
+		claims      *auth.Claims
+		subjectType auth.SubjectType
+		sunriseID   ulid.ULID
+		sunriseMsg  *models.Sunrise
+		env         *models.SecureEnvelope
+		decrypted   *envelope.Envelope
+		out         *api.Envelope
+	)
+
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx)
+
+	if claims, err = auth.GetClaims(c); err != nil {
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	// Get the sunrise record ID from the subject of the claims
+	if subjectType, sunriseID, err = claims.SubjectID(); err != nil {
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	// Validate the subject type
+	if subjectType != auth.SubjectSunrise {
+		log.Debug().Str("subject_type", subjectType.String()).Msg("invalid subject type for sunrise review")
+		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+		return
+	}
+
+	// Retrieve the sunrise record from the database
+	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+			return
+		}
+
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	// Retrieve the latest secure envelope from the database
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+			return
+		}
+
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		return
+	}
+
+	c.HTML(http.StatusOK, "review_message.html", scene.New(c).WithAPIData(out))
 }
 
 func (s *Server) SendSunrise(c *gin.Context) {

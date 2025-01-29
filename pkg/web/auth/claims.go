@@ -154,3 +154,16 @@ func SetOrganization(o string) {
 func GetOrganization() string {
 	return organization
 }
+
+func (s SubjectType) String() string {
+	switch s {
+	case SubjectUser:
+		return "user"
+	case SubjectAPIKey:
+		return "apikey"
+	case SubjectSunrise:
+		return "sunrise"
+	default:
+		return "unknown"
+	}
+}
