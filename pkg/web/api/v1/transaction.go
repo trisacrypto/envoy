@@ -599,7 +599,7 @@ func (e *Envelope) FirstOriginator() *ivms101.NaturalPerson {
 				// Search for the first natural person to have a legal name.
 				for _, originator := range e.Identity.Originator.OriginatorPersons {
 					if person := originator.GetNaturalPerson(); person != nil {
-						if name := FindLegalName(person); name != "" {
+						if nameIdx := FindLegalName(person); nameIdx >= 0 {
 							return person
 						}
 					}
@@ -625,7 +625,7 @@ func (e *Envelope) FirstBeneficiary() *ivms101.NaturalPerson {
 				// Search for the first natural person to have a legal name.
 				for _, beneficiary := range e.Identity.Beneficiary.BeneficiaryPersons {
 					if person := beneficiary.GetNaturalPerson(); person != nil {
-						if name := FindLegalName(person); name != "" {
+						if nameIdx := FindLegalName(person); nameIdx >= 0 {
 							return person
 						}
 					}
@@ -753,8 +753,8 @@ func filterSpaces(arr []string) []string {
 	return arr[:i]
 }
 
-// Find the legal name of either a legal person or the full name of a natural person.
-func FindLegalName(person interface{}) string {
+// Find the index in the name identifiers of the legal name of either a legal or natural person.
+func FindLegalName(person interface{}) int {
 	switch p := person.(type) {
 	case *ivms101.Person:
 		if np := p.GetNaturalPerson(); np != nil {
@@ -766,38 +766,38 @@ func FindLegalName(person interface{}) string {
 		}
 
 		log.Debug().Str("person", p.String()).Msg("unhandled person identifier type")
-		return ""
+		return -1
 	case *ivms101.LegalPerson:
 		if p.Name != nil {
-			for _, name := range p.Name.NameIdentifiers {
+			for i, name := range p.Name.NameIdentifiers {
 				if name.LegalPersonNameIdentifierType == ivms101.LegalPersonLegal {
-					return name.LegalPersonName
+					return i
 				}
 			}
 		}
 
 		log.Debug().Msg("could not find legal name on legal person")
-		return ""
+		return -1
 	case *ivms101.NaturalPerson:
 		if p.Name != nil {
-			for _, name := range p.Name.NameIdentifiers {
+			for i, name := range p.Name.NameIdentifiers {
 				if name.NameIdentifierType == ivms101.NaturalPersonLegal {
-					return strings.TrimSpace(name.SecondaryIdentifier + " " + name.PrimaryIdentifier)
+					return i
 				}
 			}
 		}
 
 		log.Debug().Msg("could not find legal name on natural person")
-		return ""
+		return -1
 	default:
 		log.Debug().Type("person", person).Msg("unhandled type to find person name")
-		return ""
+		return -1
 	}
 }
 
 // Find primary geographic address of a person in the IVMS101 dataset; the address is
 // returned as a series of address lines to simplify the representation.
-func FindPrimaryAddress(person interface{}) []string {
+func FindPrimaryAddress(person interface{}) *ivms101.Address {
 	switch p := person.(type) {
 	case *ivms101.Person:
 		if np := p.GetNaturalPerson(); np != nil {
@@ -815,12 +815,12 @@ func FindPrimaryAddress(person interface{}) []string {
 		if len(p.GeographicAddresses) > 0 {
 			for _, addr := range p.GeographicAddresses {
 				if addr.AddressType == ivms101.AddressTypeBusiness {
-					return MakeAddressLines(addr)
+					return addr
 				}
 			}
 
 			// Otherwise just return the first address in the list
-			return MakeAddressLines(p.GeographicAddresses[0])
+			return p.GeographicAddresses[0]
 		}
 		return nil
 
@@ -828,12 +828,12 @@ func FindPrimaryAddress(person interface{}) []string {
 		if len(p.GeographicAddresses) > 0 {
 			for _, addr := range p.GeographicAddresses {
 				if addr.AddressType == ivms101.AddressTypeHome {
-					return MakeAddressLines(addr)
+					return addr
 				}
 			}
 
 			// Otherwise just return the first address in the list
-			return MakeAddressLines(p.GeographicAddresses[0])
+			return p.GeographicAddresses[0]
 		}
 		return nil
 	default:
@@ -843,6 +843,10 @@ func FindPrimaryAddress(person interface{}) []string {
 }
 
 func MakeAddressLines(addr *ivms101.Address) (address []string) {
+	if addr == nil {
+		return nil
+	}
+
 	// Handle the simple case where there are address lines.
 	if len(addr.AddressLine) > 0 {
 		address = make([]string, 0, len(addr.AddressLine)+2)

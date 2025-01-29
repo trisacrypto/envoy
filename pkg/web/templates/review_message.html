@@ -21,7 +21,7 @@
         </h2>
         <span class="md:text-md">Transaction ID: {{ .EnvelopeID }}</span>
       </div>
-      <div class="grid lg:grid-cols-2 mt-2 py-2 border-t border-t-black">
+      <div class="grid lg:grid-cols-3 mt-2 py-2 border-t border-t-black">
         <section>
           <h3 class="my-4 font-bold uppercase">TRANSACTION DETAILS</h3>
           <dl>
@@ -67,103 +67,101 @@
           {{- end }}
           </dl>
         </section>
-        <section class="grid md:grid-cols-2">
-          <div>
-            <h3 class="my-4 font-bold uppercase">ORIGINATOR VASP</h3>
-            {{ with $ivms.OriginatorVASP }}
-            <dl>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Name</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .LegalName }}</dd>
-              </div>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Registered In</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .CountryOfRegistration }}</dd>
-              </div>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Address</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ range .PrimaryAddress }}{{ . }}<br />{{ end }}</dd>
-              </div>
-              {{ if eq .NationalIdentifier.TypeCode "LEI" }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">LEI</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
-              </div>
-              {{ else }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">ID Type</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.TypeCode }}</dd>
-              </div>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">ID Number</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
-              </div>
-              {{ if .NationalIdentifier.CountryOfIssue }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Issuing Country</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.CountryOfIssue }}</dd>
-              </div>
-              {{ end }}
-              {{ end }}
-            </dl>
+        <section>
+          <h3 class="my-4 font-bold uppercase">ORIGINATOR VASP</h3>
+          {{ with $ivms.OriginatorVASP }}
+          <dl>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Name</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .LegalName }}</dd>
+            </div>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Registered In</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .CountryOfRegistration }}</dd>
+            </div>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Address</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ range .PrimaryAddressLines }}{{ . }}<br />{{ end }}</dd>
+            </div>
+            {{ if eq .NationalIdentifier.TypeRepr "LEI" }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">LEI</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
+            </div>
+            {{ else }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">ID Type</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.TypeRepr }}</dd>
+            </div>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">ID Number</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
+            </div>
+            {{ if .NationalIdentifier.CountryOfIssue }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Issuing Country</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.CountryOfIssue }}</dd>
+            </div>
             {{ end }}
-          </div>
+            {{ end }}
+          </dl>
+          {{ end }}
+        </section>
 
-          <div>
-            {{ with $ivms.Originator }}
-            <h3 class="my-4 font-bold uppercase">ORIGINATOR PERSON</h3>
-            <dl>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Name</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .FullLegalName }}</dd>
-              </div>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Address</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ range .PrimaryAddress }}{{ . }}<br />{{ end }}</dd>
-              </div>
-              {{ if .DateOfBirth }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Date of Birth</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .DateOfBirth }}</dd>
-              </div>
-              {{ end }}
-              {{ if .PlaceOfBirth }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Place of Birth</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .PlaceOfBirth }}</dd>
-              </div>
-              {{ end }}
-              {{ if .CountryOfResidence }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Place of Birth</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .CountryOfResidence }}</dd>
-              </div>
-              {{ end }}
-              {{ if .CustomerNumber }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Customer Number</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .CustomerNumber }}</dd>
-              </div>
-              {{ end }}
-              {{ if .NationalIdentifier.Identifier }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">ID Type</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.TypeCode }}</dd>
-              </div>
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">ID Number</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
-              </div>
-              {{ if .NationalIdentifier.CountryOfIssue }}
-              <div class="grid grid-cols-4 mb-2">
-                <dt class="font-semibold">Issuing Country</dt>
-                <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.CountryOfIssue }}</dd>
-              </div>
-              {{ end }}
-              {{ end }}
-            </dl>
+        <section>
+          {{ with $ivms.Originator }}
+          <h3 class="my-4 font-bold uppercase">ORIGINATOR PERSON</h3>
+          <dl>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Name</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .FullLegalName }}</dd>
+            </div>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Address</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ range .PrimaryAddressLines }}{{ . }}<br />{{ end }}</dd>
+            </div>
+            {{ if .DateOfBirth }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Date of Birth</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .DateOfBirth }}</dd>
+            </div>
             {{ end }}
-          </div>
+            {{ if .PlaceOfBirth }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Place of Birth</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .PlaceOfBirth }}</dd>
+            </div>
+            {{ end }}
+            {{ if .CountryOfResidence }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Place of Birth</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .CountryOfResidence }}</dd>
+            </div>
+            {{ end }}
+            {{ if .CustomerNumber }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Customer Number</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .CustomerNumber }}</dd>
+            </div>
+            {{ end }}
+            {{ if .NationalIdentifier.Identifier }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">ID Type</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.TypeRepr }}</dd>
+            </div>
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">ID Number</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.Identifier }}</dd>
+            </div>
+            {{ if .NationalIdentifier.CountryOfIssue }}
+            <div class="grid grid-cols-4 mb-2">
+              <dt class="font-semibold">Issuing Country</dt>
+              <dd class="text-sm col-span-3 text-ellipsis">{{ .NationalIdentifier.CountryOfIssue }}</dd>
+            </div>
+            {{ end }}
+            {{ end }}
+          </dl>
+          {{ end }}
         </section>
       </div>
 
@@ -172,89 +170,121 @@
           <div class="mt-4"></div>
           <section class="py-2 border-t border-t-black">
             <h3 class="my-4 font-bold uppercase">BENEFICIARY DETAILS</h3>
+            {{ with .TransactionPayload -}}
             <div class="my-5">
               <label for="benf_crypto_address" class="label-style">Crypto Address</label>
               <input type="text" id="benf_crypto_address" name="benf_crypto_address"
-                placeholder="Enter beneficiary's crypto address" class="input-style" />
+                placeholder="Enter beneficiary's crypto address" class="input-style"
+                value="{{ .Beneficiary }}" />
             </div>
+            {{- end }}
+            {{ with $ivms.Beneficiary -}}
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="benf_first_name" class="label-style">Legal First or Given Name</label>
                 <input type="text" id="benf_first_name" name="benf_first_name"
-                  placeholder="Enter beneficiary's first or given name" class="input-style" />
+                  placeholder="Enter beneficiary's first or given name" class="input-style"
+                  value="{{ .SecondaryName }}" />
               </div>
               <div>
                 <label for="benf_last_name" class="label-style">Legal Last or Family Name</label>
                 <input type="text" id="benf_last_name" name="benf_last_name"
-                  placeholder="Enter beneficiary's last or family name" class="input-style" />
+                  placeholder="Enter beneficiary's last or family name" class="input-style"
+                  value="{{ .PrimaryName }}"/>
               </div>
             </div>
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="bf_id_dob" class="label-style">Date of Birth</label>
-                <input type="date" id="bf_id_dob" name="bf_id_dob" placeholder="Enter beneficiary's date of birth"
-                  class="input-style" />
+                <input type="date" id="bf_id_dob" name="bf_id_dob"
+                  placeholder="Enter beneficiary's date of birth"
+                  class="input-style"
+                  value="{{ .DateOfBirth }}"
+                  />
               </div>
               <div>
                 <label for="bf_id_birth_place" class="label-style">Place of Birth</label>
                 <input type="text" id="bf_id_birth_place" name="bf_id_birth_place"
-                  placeholder="Enter the beneficiary's place of birth" class="input-style" />
+                  placeholder="Enter the beneficiary's place of birth"
+                  class="input-style"
+                  value="{{ .PlaceOfBirth }}"
+                  />
               </div>
             </div>
             <div class="my-4">
               <label for="benf_customer_id" class="label-style">Internal Customer Identifier</label>
               <input type="text" id="benf_customer_id" name="benf_customer_id"
-                placeholder="Enter customer's internal identification number" class="input-style" />
+                placeholder="Enter customer's internal identification number"
+                class="input-style"
+                value="{{ .CustomerNumber }}"
+                />
             </div>
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="benf_addr_line_1" class="label-style">Street Address - Line 1</label>
                 <input type="text" id="benf_addr_line_1" name="benf_addr_line_1"
-                  placeholder="Enter beneficiary's street address" class="input-style" />
+                  placeholder="Enter beneficiary's street address"
+                  class="input-style"
+                  value="{{ .AddressLine1 }}"
+                  />
               </div>
               <div>
                 <label for="benf_addr_line_2" class="label-style">Street Address - Line 2 (optional) eg. apartment or
                   suite number</label>
                 <input type="text" id="benf_addr_line_2" name="benf_addr_line_2"
-                  placeholder="Enter beneficiary's unit or building number" class="input-style" />
+                  placeholder="Enter beneficiary's unit or building number"
+                  class="input-style"
+                  value="{{ .AddressLine2 }}"
+                  />
               </div>
               <div>
                 <label for="benf_city" class="label-style">City/Municipality</label>
-                <input type="text" id="benf_city" name="benf_city" placeholder="Enter beneficiary's city or municipality"
-                  class="input-style" />
+                <input type="text" id="benf_city" name="benf_city"
+                  placeholder="Enter beneficiary's city or municipality"
+                  class="input-style"
+                  value="{{ .City }}"
+                  />
               </div>
               <div>
                 <label for="benf_state" class="label-style">Region/Province/State</label>
                 <input type="text" id="benf_state" name="benf_state"
-                  placeholder="Enter beneficiary's region, province, or state" class="input-style" />
+                  placeholder="Enter beneficiary's region, province, or state"
+                  class="input-style"
+                  value="{{ .Region }}"
+                  />
               </div>
               <div>
                 <label for="benf_post_code" class="label-style">Postal Code</label>
-                <input type="text" id="benf_post_code" name="benf_post_code" placeholder="Enter beneficiary's postal code"
-                  class="input-style" />
+                <input type="text" id="benf_post_code" name="benf_post_code"
+                  placeholder="Enter beneficiary's postal code"
+                  class="input-style"
+                  value="{{ .PostCode }}"
+                  />
               </div>
               <div>
                 <label for="benf_countries" class="label-style">Country</label>
-                <select id="benf_countries" name="benf_country"></select>
+                <select id="benf_countries" name="benf_country" selected="{{ .PrimaryAddress.Country }}"></select>
               </div>
             </div>
             <div class="grid gap-6 my-6 md:grid-cols-2">
               <div>
                 <label for="bf_id_number" class="label-style">National Identification Number</label>
                 <input type="text" id="bf_id_number" name="bf_id_number"
-                  placeholder="Enter beneficiary's national identification number" class="input-style"
-                  value=""
+                  placeholder="Enter beneficiary's national identification number"
+                  class="input-style"
+                  value="{{ .NationalIdentifier.Identifier }}"
                   />
               </div>
               <div>
                 <label for="bf_id_type_code" class="label-style">National Identification Type</label>
-                <select id="bf_id_type_code" name="bf_id_type_code"></select>
+                <select id="bf_id_type_code" name="bf_id_type_code" selected="{{ .NationalIdentifier.TypeCode }}"></select>
               </div>
             </div>
             <div class="my-6">
               <label for="bf_id_country" class="label-style">Country of Issue</label>
-              <select id="bf_id_country" name="bf_id_country"></select>
+              <select id="bf_id_country" name="bf_id_country" selected="{{ .NationalIdentifier.CountryOfIssue }}"></select>
             </div>
+            {{- end }}
           </section>
 
           <div class="py-4 flex justify-center items-center gap-x-2">
