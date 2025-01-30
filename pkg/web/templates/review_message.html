@@ -362,7 +362,9 @@
 </section>
 
 <!-- Reject modal -->
+{{ with $action := "/sunrise/reject" }}
 {{ template "transaction_rejection" . }}
+{{ end }}
 
 {{ end }}
 

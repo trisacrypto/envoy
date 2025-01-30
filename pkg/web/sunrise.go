@@ -190,6 +190,114 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 	c.HTML(http.StatusOK, "review_message.html", scene.New(c).WithAPIData(out))
 }
 
+func (s *Server) SunriseMessageReject(c *gin.Context) {
+	var (
+		err        error
+		in         *api.Rejection
+		claims     *auth.Claims
+		sunriseID  ulid.ULID
+		sunriseMsg *models.Sunrise
+		packet     *postman.SunrisePacket
+	)
+
+	in = &api.Rejection{}
+	if err = c.BindJSON(&in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse request"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	if claims, err = auth.GetClaims(c); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if _, sunriseID, err = claims.SubjectID(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Retrieve the sunrise record from the database
+	ctx := c.Request.Context()
+	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Create the reject packet
+	if packet, err = postman.ReceiveSunriseReject(sunriseMsg.EnvelopeID, in.Proto()); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Ensure logger is set!
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", sunriseMsg.EnvelopeID.String()).Logger()
+
+	// Fetch the transaction from the database
+	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, sunriseMsg.EnvelopeID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// If the transaction state is not in pending, return an error (prevent multiple rejects)
+	if packet.Transaction.Status != models.StatusPending {
+		c.Error(err)
+		c.JSON(http.StatusConflict, api.Error("could not complete request"))
+		return
+	}
+
+	// Get the counterparty from the database
+	if packet.Counterparty, err = s.store.RetrieveCounterparty(ctx, packet.Transaction.CounterpartyID.ULID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Create a prepared transaction to create secure envelopes
+	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+	defer packet.DB.Rollback()
+
+	// Fetch the storage keys for the envelopes
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey("", "sunrise"); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Save the secure envelopes and the transaction, and refresh the transaction.
+	if err = packet.Save(storageKey); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Finalize the work on the transaction
+	if err = packet.DB.Commit(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// This is currently an HTMX response so simply respond with a 200 so that the
+	// success toast message pops up in the front end.
+	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
 func (s *Server) SendSunrise(c *gin.Context) {
 	var (
 		err             error
@@ -297,7 +405,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 
 	// Save the secure envelopes and the transaction, and refresh the transaction.
-	if err = packet.Save(storageKey); err != nil {
+	if err = packet.Create(storageKey); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
 		return

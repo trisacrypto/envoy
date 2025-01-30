@@ -10,7 +10,7 @@
       </button>
     </div>
     <div class="my-4">
-      <form id="transaction-reject-form" method="dialog" hx-post="/v1/transactions/{{ .ID }}/reject" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader">
+      <form id="transaction-reject-form" method="dialog" hx-post="{{ . }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader">
         <div class="my-4">
           <label for="transaction-rejection" class="label-style">Select a reason for rejecting the transaction:</label>
             <select id="transaction-rejection" name="code"
@@ -57,7 +57,7 @@
     <div class="flex justify-center">
       <button type="submit" id="reject-btn" class="submit-btn btn w-44 font-semibold bg-warning text-lg text-white hover:bg-warning/80">
         <span class="submit-btn-text">Reject</span>
-        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>     
+        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
       </button>
     </div>
     </form>

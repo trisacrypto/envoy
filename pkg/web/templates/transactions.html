@@ -32,12 +32,12 @@
         <div class="tooltip tooltip-top md:tooltip-right" data-tip="Messages are sent as Secure Envelopes. Secure Envelopes are encrypted messages designed to securely exchange compliance data. Secure Envelopes ensure privacy, non-repudiation, and long-term storage.">
           <button class="pt-2">
             <img src="/static/infoicon.svg" alt="" />
-          </button> 
+          </button>
         </div>
       </div>
       <a href="/v1/transactions/export" download class="max-w-fit btn btn-sm bg-black text-white hover:bg-black/80">Export Transactions</a>
     </div>
-    {{ end }}  
+    {{ end }}
   </section>
   <section id="transactions" hx-get="/v1/transactions" hx-ext="json-enc" hx-trigger="load">
     <div class="text-center">
@@ -50,9 +50,6 @@
 
   <!-- Transaction preview modal -->
   <dialog id="transaction_modal" class="modal"></dialog>
-
-  <!-- Reject transaction modal -->
-  {{ template "transaction_rejection.html" . }}
 
 </section>
 {{ end }}

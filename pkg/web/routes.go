@@ -119,8 +119,9 @@ func (s *Server) setupRoutes() (err error) {
 		// Logs in a sunrise user to allow the external user to be sunrise authenticated.
 		sunrise.GET("/verify", s.VerifySunriseUser)
 
-		// The review form for external sunrise users.
+		// The review form and handlers for external sunrise users.
 		sunrise.GET("/review", sunriseAuth, s.SunriseMessageReview)
+		sunrise.POST("/reject", sunriseAuth, s.SunriseMessageReject)
 
 		// The send sunrise message form for authenticated envoy users.
 		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
