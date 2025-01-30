@@ -47,6 +47,49 @@ func SendSunrise(envelopeID uuid.UUID, payload *trisa.Payload) (packet *SunriseP
 	return packet, nil
 }
 
+func ReceiveSunriseReject(envelopeID uuid.UUID, reject *trisa.Error) (packet *SunrisePacket, err error) {
+	packet = &SunrisePacket{
+		Packet: Packet{
+			In:      &Incoming{},
+			Out:     &Outgoing{},
+			request: DirectionIncoming,
+			reply:   DirectionOutgoing,
+		},
+	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	opts := make([]envelope.Option, 0, 2)
+	opts = append(opts, envelope.WithEnvelopeID(envelopeID.String()))
+
+	// Create the incoming envelope
+	if packet.In.original, err = envelope.Reject(reject, opts...); err != nil {
+		return nil, fmt.Errorf("could not create incoming rejection: %w", err)
+	}
+
+	if packet.In.Envelope, err = envelope.Wrap(packet.In.original); err != nil {
+		return nil, fmt.Errorf("could not wrap incoming rejection: %w", err)
+	}
+
+	// Create the outgoing envelope
+	// Determine the outgoing transfer state based on the incoming request.
+	var transferState trisa.TransferState
+	if reject.Retry {
+		transferState = trisa.TransferPending
+	} else {
+		transferState = trisa.TransferRejected
+	}
+
+	opts = append(opts, envelope.WithTransferState(transferState))
+	if packet.Out.Envelope, err = envelope.WrapError(reject, opts...); err != nil {
+		return nil, fmt.Errorf("could not wrap incoming rejection: %w", err)
+	}
+
+	return packet, nil
+}
+
 // Returns the email contacts of the compliance officers associated with the counterparty.
 func (s *SunrisePacket) Contacts() (contacts []*models.Contact, err error) {
 	if contacts, err = s.Counterparty.Contacts(); err != nil {
@@ -163,11 +206,14 @@ func (s *SunrisePacket) Seal(storageKey keys.PublicKey) (err error) {
 		return ErrNoSealingKey
 	}
 
-	// Ensure the outgoing message has the same encryption key as the incoming!
-	s.Out.StorageKey = storageKey
-	s.Out.SealingKey = storageKey
-	if _, err = s.Out.Seal(); err != nil {
-		return fmt.Errorf("could not encrypt outgoing envelope: %w", err)
+	if !s.Out.Envelope.IsError() {
+		// Ensure the outgoing message has the same encryption key as the incoming!
+		s.Out.StorageKey = storageKey
+		s.Out.SealingKey = storageKey
+
+		if _, err = s.Out.Seal(); err != nil {
+			return fmt.Errorf("could not encrypt outgoing envelope: %w", err)
+		}
 	}
 
 	// The sunrise incoming message must be encrypted for local storage in the database
@@ -194,7 +240,7 @@ func (s *SunrisePacket) Seal(storageKey keys.PublicKey) (err error) {
 // incoming messages using the storage key before saving the envelopes in the database.
 // Finally, this method updates the transaction state and refreshes the local
 // transaction so that the information is visible to the API.
-func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
+func (s *SunrisePacket) Create(storageKey keys.PublicKey) (err error) {
 	// Ensure that we have a counterparty
 	if err = s.ResolveCounterparty(); err != nil {
 		return err
@@ -232,20 +278,102 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 
 	// Seal the incoming and outgoing messages with the storage key
 	if err = s.Seal(storageKey); err != nil {
+		s.Log.Debug().Err(err).Msg("could not seal sunrise envelopes")
 		return err
 	}
 
 	// Add envelopes to the database
 	if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+		s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
 		return fmt.Errorf("could not store outgoing sunrise message: %w", err)
 	}
 
 	if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+		s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
 		return fmt.Errorf("could not store incoming sunrise message: %w", err)
 	}
 
 	// Refresh to respond with the latest transaction info to the API request.
 	if err = s.RefreshTransaction(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Saves an already created sunrise message. Unlike create, this method does not add
+// the counterparty and does not default to sending an outgoing message. It expects that
+// both the incoming and the outgoing messages have already been created.
+func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
+	// Ensure that we have a counterparty
+	if err = s.ResolveCounterparty(); err != nil {
+		return err
+	}
+
+	// Set transaction values
+	s.Transaction.LastUpdate = sql.NullTime{Valid: true, Time: time.Now()}
+
+	switch s.request {
+	case DirectionIncoming:
+		s.Transaction.Status = s.Out.StatusFromTransferState()
+	case DirectionOutgoing:
+		s.Transaction.Status = s.In.StatusFromTransferState()
+	default:
+		panic(fmt.Errorf("unhandled request direction: %s", s.request))
+	}
+
+	// Update the transaction in the database
+	if err = s.DB.Update(s.Transaction); err != nil {
+		return fmt.Errorf("could not update transaction in database: %w", err)
+	}
+
+	// Refresh to respond with the latest transaction info to the API request.
+	if err = s.RefreshTransaction(); err != nil {
+		return err
+	}
+
+	// Seal the incoming and outgoing messages with the storage key
+	if err = s.Seal(storageKey); err != nil {
+		s.Log.Debug().Err(err).Msg("could not seal sunrise envelopes")
+		return err
+	}
+
+	// Add envelopes to the database in the reply to order
+	if s.reply == DirectionIncoming {
+		if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+			s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
+			return fmt.Errorf("could not store outgoing sunrise message: %w", err)
+		}
+
+		if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+			s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
+			return fmt.Errorf("could not store incoming sunrise message: %w", err)
+		}
+
+	} else {
+		if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+			s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
+			return fmt.Errorf("could not store incoming sunrise message: %w", err)
+		}
+
+		if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+			s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
+			return fmt.Errorf("could not store outgoing sunrise message: %w", err)
+		}
+	}
+
+	// Refresh to respond with the latest transaction info to the API request.
+	if err = s.RefreshTransaction(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SunrisePacket) UpdateCounterparty() (err error) {
+	// Updates counterparty from the accept payload
+	// TODO: implement this functionality
+	if err = s.ResolveCounterparty(); err != nil {
 		return err
 	}
 

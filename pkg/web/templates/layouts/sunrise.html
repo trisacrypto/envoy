@@ -5,9 +5,17 @@
 <body>
 
   {{ template "sunrise_header" . }}
-  
+
   <main>
     {{ block "content" . }}{{ end }}
+    <div id="toast" class="toast toast-top toast-end min-w-0 max-w-sm text-balance"></div>
+
+    <div id="success-toast" class="hidden toast toast-top toast-end">
+      <div class="alert alert-success flex items-center">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="success-toast-msg"></span>
+      </div>
+    </div>
   </main>
 
   {{ template "scripts" . }}
