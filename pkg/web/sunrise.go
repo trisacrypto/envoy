@@ -366,12 +366,14 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		return
 	}
 
+	now := time.Now()
 	in.ID = orig.ID
 	in.EnvelopeID = orig.EnvelopeID
 	in.Transaction = orig.Transaction
 	in.Pending = orig.Pending
 	in.Sunrise = orig.Sunrise
 	in.SentAt = orig.SentAt
+	in.ReceivedAt = &now
 	in.Identity.OriginatingVasp = orig.Identity.OriginatingVasp
 	in.Identity.Originator = orig.Identity.Originator
 	in.Identity.TransferPath = orig.Identity.TransferPath
@@ -383,9 +385,6 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, api.Error("could not process request"))
 		return
 	}
-
-	// Ensure the received at timestamp is set!
-	payload.ReceivedAt = time.Now().Format(time.RFC3339)
 
 	if packet, err = postman.ReceiveSunriseAccept(sunriseMsg.EnvelopeID, payload); err != nil {
 		c.Error(err)
