@@ -47,6 +47,37 @@ func SendSunrise(envelopeID uuid.UUID, payload *trisa.Payload) (packet *SunriseP
 	return packet, nil
 }
 
+func ReceiveSunriseAccept(envelopeID uuid.UUID, payload *trisa.Payload) (packet *SunrisePacket, err error) {
+	packet = &SunrisePacket{
+		Packet: Packet{
+			In:      &Incoming{},
+			Out:     &Outgoing{},
+			request: DirectionIncoming,
+			reply:   DirectionOutgoing,
+		},
+	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	opts := make([]envelope.Option, 0, 2)
+	opts = append(opts, envelope.WithEnvelopeID(envelopeID.String()))
+	opts = append(opts, envelope.WithTransferState(trisa.TransferAccepted))
+
+	// Create the incoming envelope
+	if packet.In.Envelope, err = envelope.New(payload, opts...); err != nil {
+		return nil, fmt.Errorf("could not create incoming accept envelope: %w", err)
+	}
+	packet.In.original = packet.In.Envelope.Proto()
+
+	if packet.Out.Envelope, err = envelope.New(payload, opts...); err != nil {
+		return nil, fmt.Errorf("could not create outgoing accept envelope: %w", err)
+	}
+
+	return packet, nil
+}
+
 func ReceiveSunriseReject(envelopeID uuid.UUID, reject *trisa.Error) (packet *SunrisePacket, err error) {
 	packet = &SunrisePacket{
 		Packet: Packet{
@@ -372,7 +403,6 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 
 func (s *SunrisePacket) UpdateCounterparty() (err error) {
 	// Updates counterparty from the accept payload
-	// TODO: implement this functionality
 	if err = s.ResolveCounterparty(); err != nil {
 		return err
 	}

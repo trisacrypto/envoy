@@ -534,7 +534,7 @@ func (e *Envelope) Payload() (payload *trisa.Payload, err error) {
 	case e.Sunrise != nil:
 		data = e.Sunrise
 	default:
-		return nil, OneOfMissing("transaction", "pending")
+		return nil, OneOfMissing("transaction", "pending", "sunrise")
 	}
 
 	if payload.Transaction, err = anypb.New(data); err != nil {
