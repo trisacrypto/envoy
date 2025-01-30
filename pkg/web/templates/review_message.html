@@ -166,14 +166,14 @@
       </div>
 
       <section>
-        <form hx-post="" hx-target="#sunrise-response" hx-ext="json-enc" hx-indicator="#loader">
+        <form hx-post="/sunrise/accept" hx-target="#sunrise-response" hx-ext="json-enc" hx-indicator="#loader">
           <div class="mt-4"></div>
           <section class="py-2 border-t border-t-black">
             <h3 class="my-4 font-bold uppercase">BENEFICIARY DETAILS</h3>
             {{ with .TransactionPayload -}}
             <div class="my-5">
               <label for="benf_crypto_address" class="label-style">Crypto Address</label>
-              <input type="text" id="benf_crypto_address" name="benf_crypto_address"
+              <input type="text" id="benf_crypto_address" name="benf_crypto_address_0"
                 placeholder="Enter beneficiary's crypto address" class="input-style"
                 value="{{ .Beneficiary }}" />
             </div>
@@ -182,21 +182,22 @@
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="benf_first_name" class="label-style">Legal First or Given Name</label>
-                <input type="text" id="benf_first_name" name="benf_first_name"
+                <input type="text" id="benf_first_name" name="id_bf_secondaryIdentifier"
                   placeholder="Enter beneficiary's first or given name" class="input-style"
                   value="{{ .SecondaryName }}" />
               </div>
               <div>
                 <label for="benf_last_name" class="label-style">Legal Last or Family Name</label>
-                <input type="text" id="benf_last_name" name="benf_last_name"
+                <input type="text" id="benf_last_name" name="id_bf_primaryIdentifier"
                   placeholder="Enter beneficiary's last or family name" class="input-style"
                   value="{{ .PrimaryName }}"/>
               </div>
+              <input type="hidden" name="benf_name_identifier_type" value="LEGL" />
             </div>
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="bf_id_dob" class="label-style">Date of Birth</label>
-                <input type="date" id="bf_id_dob" name="bf_id_dob"
+                <input type="date" id="bf_id_dob" name="beneficiary_birth_dateOfBirth"
                   placeholder="Enter beneficiary's date of birth"
                   class="input-style"
                   value="{{ .DateOfBirth }}"
@@ -204,7 +205,7 @@
               </div>
               <div>
                 <label for="bf_id_birth_place" class="label-style">Place of Birth</label>
-                <input type="text" id="bf_id_birth_place" name="bf_id_birth_place"
+                <input type="text" id="bf_id_birth_place" name="beneficiary_birth_placeOfBirth"
                   placeholder="Enter the beneficiary's place of birth"
                   class="input-style"
                   value="{{ .PlaceOfBirth }}"
@@ -213,7 +214,7 @@
             </div>
             <div class="my-4">
               <label for="benf_customer_id" class="label-style">Internal Customer Identifier</label>
-              <input type="text" id="benf_customer_id" name="benf_customer_id"
+              <input type="text" id="benf_customer_id" name="np_bf_customerIdentification"
                 placeholder="Enter customer's internal identification number"
                 class="input-style"
                 value="{{ .CustomerNumber }}"
@@ -222,7 +223,7 @@
             <div class="grid gap-6 my-4 md:grid-cols-2">
               <div>
                 <label for="benf_addr_line_1" class="label-style">Street Address - Line 1</label>
-                <input type="text" id="benf_addr_line_1" name="benf_addr_line_1"
+                <input type="text" id="benf_addr_line_1" name="address_bf_street_name_0"
                   placeholder="Enter beneficiary's street address"
                   class="input-style"
                   value="{{ .AddressLine1 }}"
@@ -231,7 +232,7 @@
               <div>
                 <label for="benf_addr_line_2" class="label-style">Street Address - Line 2 (optional) eg. apartment or
                   suite number</label>
-                <input type="text" id="benf_addr_line_2" name="benf_addr_line_2"
+                <input type="text" id="benf_addr_line_2" name="address_bf_street_name_1"
                   placeholder="Enter beneficiary's unit or building number"
                   class="input-style"
                   value="{{ .AddressLine2 }}"
@@ -239,7 +240,7 @@
               </div>
               <div>
                 <label for="benf_city" class="label-style">City/Municipality</label>
-                <input type="text" id="benf_city" name="benf_city"
+                <input type="text" id="benf_city" name="addr_bf_city"
                   placeholder="Enter beneficiary's city or municipality"
                   class="input-style"
                   value="{{ .City }}"
@@ -247,7 +248,7 @@
               </div>
               <div>
                 <label for="benf_state" class="label-style">Region/Province/State</label>
-                <input type="text" id="benf_state" name="benf_state"
+                <input type="text" id="benf_state" name="addr_bf_state"
                   placeholder="Enter beneficiary's region, province, or state"
                   class="input-style"
                   value="{{ .Region }}"
@@ -255,7 +256,7 @@
               </div>
               <div>
                 <label for="benf_post_code" class="label-style">Postal Code</label>
-                <input type="text" id="benf_post_code" name="benf_post_code"
+                <input type="text" id="benf_post_code" name="addr_bf_post_code"
                   placeholder="Enter beneficiary's postal code"
                   class="input-style"
                   value="{{ .PostCode }}"
@@ -263,13 +264,14 @@
               </div>
               <div>
                 <label for="benf_countries" class="label-style">Country</label>
-                <select id="benf_countries" name="benf_country" data-select-type="country" value="{{ .PrimaryAddress.Country }}"></select>
+                <select id="benf_countries" name="addr_bf_country" data-select-type="country" value="{{ .PrimaryAddress.Country }}"></select>
               </div>
+              <input type="hidden" class="addr_bf_address_type" value="HOME" data-id="address-identifier-type" />
             </div>
             <div class="grid gap-6 my-6 md:grid-cols-2">
               <div>
                 <label for="bf_id_number" class="label-style">National Identification Number</label>
-                <input type="text" id="bf_id_number" name="bf_id_number"
+                <input type="text" id="bf_id_number" name="beneficiary_id_nationalIdentifier"
                   placeholder="Enter beneficiary's national identification number"
                   class="input-style"
                   value="{{ .NationalIdentifier.Identifier }}"
@@ -277,12 +279,12 @@
               </div>
               <div>
                 <label for="bf_id_type_code" class="label-style">National Identification Type</label>
-                <select id="bf_id_type_code" name="bf_id_type_code"  data-select-type="natnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
+                <select id="bf_id_type_code" name="beneficiary_id_nationalIdentifierType"  data-select-type="natnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
               </div>
             </div>
             <div class="my-6">
               <label for="bf_id_country" class="label-style">Country of Issue</label>
-              <select id="bf_id_country" name="bf_id_country" data-select-type="country" value="{{ .NationalIdentifier.CountryOfIssue }}"></select>
+              <select id="bf_id_country" name="beneficiary_id_countryOfIssue" data-select-type="country" value="{{ .NationalIdentifier.CountryOfIssue }}"></select>
             </div>
             {{- end }}
           </section>
@@ -293,46 +295,47 @@
               <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
                   <label for="benf_vasp_legal_person_name" class="label-style">Legal Entity Name</label>
-                  <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName"
+                  <input type="text" id="benf_vasp_legal_person_name" name="id_benf_legalPersonName_0"
                     value="{{ .LegalName }}" class="input-style" />
+                  <input type="hidden" id="benf_vasp_legal_person_name_type" name="id_benf_legalPersonNameIdentifierType_0" value="LEGL" />
                 </div>
                 <div>
                   <label for="benf_vasp_legal_person_name" class="label-style">Country of Registration</label>
-                  <select id="benf_vasp_country_of_registration" name="id_benf_countryOfRegistration" data-select-type="country" value="{{ .CountryOfRegistration }}"></select>
+                  <select id="benf_vasp_country_of_registration" name="ctry_benf_countryOfRegistration" data-select-type="country" value="{{ .CountryOfRegistration }}"></select>
                 </div>
               </div>
 
               <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
                   <label for="benf_vasp_address_line_1" class="label-style">Address Line 1</label>
-                  <input type="text" id="benf_vasp_address_line_1" name="address_benf_address_line_1"
+                  <input type="text" id="benf_vasp_address_line_1" name="address_benf_address_line_0"
                     value="{{ .AddressLine1 }}" class="input-style" />
                 </div>
                 <div>
                   <label for="benf_vasp_address_line_2" class="label-style">Address Line 2</label>
-                  <input type="text" id="benf_vasp_address_line_2" name="address_benf_address_line_2"
+                  <input type="text" id="benf_vasp_address_line_2" name="address_benf_address_line_1"
                     value="{{ .AddressLine2 }}" class="input-style" />
                 </div>
               </div>
               <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
                   <label for="benf_vasp_address_country" class="label-style">Address Country</label>
-                  <select id="benf_vasp_address_country" name="benf_vasp_address_country" data-select-type="country" value="{{ .AddressCountry }}"></select>
+                  <select id="benf_vasp_address_country" name="addr_benf_country" data-select-type="country" value="{{ .AddressCountry }}"></select>
                 </div>
                 <div>
                   <label for="benf_vasp_address_type" class="label-style">Address Type</label>
-                  <select id="benf_vasp_address_type" name="benf_vasp_address_type" data-select-type="address" value="{{ .AddressType }}"></select>
+                  <select id="benf_vasp_address_type" name="addr_benf_addressType" data-select-type="address" value="{{ .AddressType }}"></select>
                 </div>
               </div>
               <div class="grid gap-6 my-4 md:grid-cols-2">
                 <div>
                   <label for="benf_vasp_national_identifier" class="label-style">National Identifier</label>
-                  <input type="text" id="benf_vasp_national_identifier" name="benf_vasp_national_identifier"
+                  <input type="text" id="benf_vasp_national_identifier" name="nat_benf_nationalIdentifier"
                     value="{{ .NationalIdentifier.Identifier }}" class="input-style" />
                 </div>
                 <div>
                   <label for="benf_vasp_national_identifier_type" class="label-style">National Identifier Type</label>
-                  <select id="benf_vasp_national_identifier_type" name="benf_vasp_national_identifier_type" data-select-type="legnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
+                  <select id="benf_vasp_national_identifier_type" name="nat_benf_nationalIdentifierType" data-select-type="legnitc" value="{{ .NationalIdentifier.TypeCode }}"></select>
                 </div>
               </div>
               {{- end }}

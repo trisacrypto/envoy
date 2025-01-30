@@ -587,6 +587,10 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 	return nil
 }
 
+func (p *PreparedTransaction) UpdateCounterparty(in *models.Counterparty) (err error) {
+	return updateCounterparty(p.tx, in)
+}
+
 func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error) {
 	if in.EnvelopeID != uuid.Nil && in.EnvelopeID != p.envelopeID {
 		return dberr.ErrIDMismatch

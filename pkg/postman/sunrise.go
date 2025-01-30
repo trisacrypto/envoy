@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -44,6 +45,37 @@ func SendSunrise(envelopeID uuid.UUID, payload *trisa.Payload) (packet *SunriseP
 
 	// Keep track of the original payload
 	packet.payload = payload
+	return packet, nil
+}
+
+func ReceiveSunriseAccept(envelopeID uuid.UUID, payload *trisa.Payload) (packet *SunrisePacket, err error) {
+	packet = &SunrisePacket{
+		Packet: Packet{
+			In:      &Incoming{},
+			Out:     &Outgoing{},
+			request: DirectionIncoming,
+			reply:   DirectionOutgoing,
+		},
+	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	opts := make([]envelope.Option, 0, 2)
+	opts = append(opts, envelope.WithEnvelopeID(envelopeID.String()))
+	opts = append(opts, envelope.WithTransferState(trisa.TransferAccepted))
+
+	// Create the incoming envelope
+	if packet.In.Envelope, err = envelope.New(payload, opts...); err != nil {
+		return nil, fmt.Errorf("could not create incoming accept envelope: %w", err)
+	}
+	packet.In.original = packet.In.Envelope.Proto()
+
+	if packet.Out.Envelope, err = envelope.New(payload, opts...); err != nil {
+		return nil, fmt.Errorf("could not create outgoing accept envelope: %w", err)
+	}
+
 	return packet, nil
 }
 
@@ -370,12 +402,48 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 	return nil
 }
 
-func (s *SunrisePacket) UpdateCounterparty() (err error) {
-	// Updates counterparty from the accept payload
-	// TODO: implement this functionality
+// Updates counterparty from the accept payload modifying the model with the data that
+// is in the BeneficiaryVASP information.
+func (s *SunrisePacket) UpdateCounterparty(vasp *ivms101.LegalPerson) (err error) {
+	if vasp == nil {
+		return
+	}
+
 	if err = s.ResolveCounterparty(); err != nil {
 		return err
 	}
 
+	var updated bool
+	if err = vasp.Validate(); err == nil {
+		// TODO: merge data instead of overwriting
+		s.Counterparty.IVMSRecord = vasp
+		updated = true
+	}
+
+	if vasp.Name != nil {
+		// Find the first legal name supplied
+		for _, name := range vasp.Name.NameIdentifiers {
+			if name.LegalPersonNameIdentifierType == ivms101.LegalPersonLegal && name.LegalPersonName != "" {
+				s.Counterparty.Name = name.LegalPersonName
+				updated = true
+				break
+			}
+		}
+
+		// If we can't find a legal person name, then simply use the first name
+		if s.Counterparty.Name == "" && len(vasp.Name.NameIdentifiers) > 0 {
+			s.Counterparty.Name = vasp.Name.NameIdentifiers[0].LegalPersonName
+			updated = true
+		}
+	}
+
+	if vasp.CountryOfRegistration != "" {
+		s.Counterparty.Country = sql.NullString{Valid: true, String: vasp.CountryOfRegistration}
+		updated = true
+	}
+
+	if updated {
+		return s.DB.UpdateCounterparty(s.Counterparty)
+	}
 	return nil
 }

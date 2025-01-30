@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -163,7 +164,7 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 	}
 
 	// Retrieve the latest secure envelope from the database
-	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionAny); err != nil {
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionOut); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 			return
@@ -296,6 +297,164 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 	// This is currently an HTMX response so simply respond with a 200 so that the
 	// success toast message pops up in the front end.
 	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
+func (s *Server) SunriseMessageAccept(c *gin.Context) {
+	var (
+		err        error
+		in         *api.Envelope
+		claims     *auth.Claims
+		sunriseID  ulid.ULID
+		sunriseMsg *models.Sunrise
+		env        *models.SecureEnvelope
+		decrypted  *envelope.Envelope
+		payload    *trisa.Payload
+		packet     *postman.SunrisePacket
+	)
+
+	in = &api.Envelope{}
+	if err = c.BindJSON(&in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse request"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	if claims, err = auth.GetClaims(c); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if _, sunriseID, err = claims.SubjectID(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Retrieve the sunrise record from the database
+	ctx := c.Request.Context()
+	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Load the latest secure envelope from the database to populate the complete
+	// details since the incoming envelope will only have beneficiary info.
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionOut); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	var orig *api.Envelope
+	if orig, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	now := time.Now()
+	in.ID = orig.ID
+	in.EnvelopeID = orig.EnvelopeID
+	in.Transaction = orig.Transaction
+	in.Pending = orig.Pending
+	in.Sunrise = orig.Sunrise
+	in.SentAt = orig.SentAt
+	in.ReceivedAt = &now
+	in.Identity.OriginatingVasp = orig.Identity.OriginatingVasp
+	in.Identity.Originator = orig.Identity.Originator
+	in.Identity.TransferPath = orig.Identity.TransferPath
+	in.Identity.PayloadMetadata = orig.Identity.PayloadMetadata
+
+	// Create a secure envelope with a Payload
+	if payload, err = in.Payload(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not process request"))
+		return
+	}
+
+	if packet, err = postman.ReceiveSunriseAccept(sunriseMsg.EnvelopeID, payload); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process request"))
+		return
+	}
+
+	// Ensure logger is set!
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", sunriseMsg.EnvelopeID.String()).Logger()
+
+	// Fetch the transaction from the database
+	if packet.Transaction, err = s.store.RetrieveTransaction(ctx, sunriseMsg.EnvelopeID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// If the transaction state is not in pending, return an error (prevent multiple rejects)
+	if packet.Transaction.Status != models.StatusPending {
+		c.Error(err)
+		c.JSON(http.StatusConflict, api.Error("could not complete request"))
+		return
+	}
+
+	// Get the counterparty from the database
+	if packet.Counterparty, err = s.store.RetrieveCounterparty(ctx, packet.Transaction.CounterpartyID.ULID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Create a prepared transaction to create secure envelopes
+	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+	defer packet.DB.Rollback()
+
+	// Update the counterparty information from the beneficiary VASP information.
+	if err = packet.UpdateCounterparty(in.BeneficiaryVASP()); err != nil {
+		// Do not stop processing here: the counterparty information is not critical
+		packet.Log.Warn().Err(err).Msg("could not update counterparty information")
+	}
+
+	// Fetch the storage keys for the envelopes
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey("", "sunrise"); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Save the secure envelopes and the transaction, and refresh the transaction.
+	if err = packet.Save(storageKey); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Finalize the work on the transaction
+	if err = packet.DB.Commit(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// This is currently an HTMX response so simply respond with a 200 so that the
+	// success toast message pops up in the front end.
+	c.HTML(http.StatusOK, "sunrise_accept.html", scene.New(c))
 }
 
 func (s *Server) SendSunrise(c *gin.Context) {

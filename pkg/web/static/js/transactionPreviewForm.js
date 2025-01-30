@@ -264,7 +264,7 @@ document.body.addEventListener('htmx:configRequest', (e) => {
           originatingVASP[newKey] = params[key];
           break;
         // Set the beneficiary VASP name identifiers and name identifier type.
-        case key.startsWith('id_benf_legalPersonNameIdentifierType_'):          
+        case key.startsWith('id_benf_legalPersonNameIdentifierType_'):
           beneficiaryVASP.name.nameIdentifier.push({ legalPersonName: params[`id_benf_legalPersonName_${nameIndx}`], legalPersonNameIdentifierType: params[`id_benf_legalPersonNameIdentifierType_${nameIndx}`] });
           break;
         // Set the beneficiary VASP address line.
