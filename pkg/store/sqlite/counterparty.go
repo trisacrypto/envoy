@@ -186,7 +186,7 @@ func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (coun
 const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
-	// Basic validation
+	// Basic validation before starting a transaction
 	if ulids.IsZero(counterparty.ID) {
 		return dberr.ErrMissingID
 	}
@@ -196,6 +196,18 @@ func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Cou
 		return err
 	}
 	defer tx.Rollback()
+
+	if err = updateCounterparty(tx, counterparty); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func updateCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+	if ulids.IsZero(counterparty.ID) {
+		return dberr.ErrMissingID
+	}
 
 	// Update modified timestamp (in place).
 	counterparty.Modified = time.Now()
@@ -209,7 +221,7 @@ func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Cou
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const deleteCounterpartySQL = "DELETE FROM counterparties WHERE id=:id"

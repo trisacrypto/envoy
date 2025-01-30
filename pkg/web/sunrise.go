@@ -426,7 +426,7 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 	defer packet.DB.Rollback()
 
 	// Update the counterparty information from the beneficiary VASP information.
-	if err = packet.UpdateCounterparty(); err != nil {
+	if err = packet.UpdateCounterparty(in.BeneficiaryVASP()); err != nil {
 		// Do not stop processing here: the counterparty information is not critical
 		packet.Log.Warn().Err(err).Msg("could not update counterparty information")
 	}
