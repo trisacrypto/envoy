@@ -257,6 +257,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			utils.POST("/travel-address/encode", s.EncodeTravelAddress)
 			utils.POST("/travel-address/decode", s.DecodeTravelAddress)
+			utils.POST("ivms101-validator", s.ValidateIVMS101)
 		}
 	}
 

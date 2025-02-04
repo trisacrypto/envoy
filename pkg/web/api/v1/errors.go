@@ -218,3 +218,15 @@ func fieldList(fields ...string) string {
 		return fmt.Sprintf("%s, or %s", strings.Join(fields[0:last], ", "), fields[last])
 	}
 }
+
+//===========================================================================
+// Convert IVMS101 Validation Errors to API Errors
+//===========================================================================
+
+func ConvertIVMS101Errors(err ivms101.ValidationErrors) ValidationErrors {
+	verr := make(ValidationErrors, 0, len(err))
+	for _, ferr := range err {
+		verr = append(verr, InvalidIVMS101(ferr))
+	}
+	return verr
+}

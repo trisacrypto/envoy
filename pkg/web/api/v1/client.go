@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1/credentials"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/google/go-querystring/query"
@@ -673,10 +674,16 @@ func (s *APIv1) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
 // Utilities Resource
 //===========================================================================
 
-const utilitiesEndpoint = "/v1/utilities"
+const (
+	utilitiesEndpoint  = "/v1/utilities"
+	ivms101ValidatorEP = "ivms101-validator"
+	travelAddressEP    = "travel-address"
+	taEncodeEP         = "encode"
+	taDecodeEP         = "decode"
+)
 
 func (s *APIv1) EncodeTravelAddress(ctx context.Context, in *TravelAddress) (out *TravelAddress, err error) {
-	endpoint, _ := url.JoinPath(utilitiesEndpoint, "encode")
+	endpoint, _ := url.JoinPath(utilitiesEndpoint, travelAddressEP, taEncodeEP)
 	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}
@@ -684,7 +691,15 @@ func (s *APIv1) EncodeTravelAddress(ctx context.Context, in *TravelAddress) (out
 }
 
 func (s *APIv1) DecodeTravelAddress(ctx context.Context, in *TravelAddress) (out *TravelAddress, err error) {
-	endpoint, _ := url.JoinPath(utilitiesEndpoint, "decode")
+	endpoint, _ := url.JoinPath(utilitiesEndpoint, travelAddressEP, taDecodeEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) ValidateIVMS101(ctx context.Context, in []byte) (out *ivms101.IdentityPayload, err error) {
+	endpoint, _ := url.JoinPath(utilitiesEndpoint, ivms101ValidatorEP)
 	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}

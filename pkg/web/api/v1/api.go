@@ -105,6 +105,7 @@ type Client interface {
 	// Utilities
 	EncodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
 	DecodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
+	ValidateIVMS101(context.Context, []byte) (*ivms101.IdentityPayload, error)
 }
 
 //===========================================================================
