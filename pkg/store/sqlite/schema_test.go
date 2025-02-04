@@ -47,7 +47,7 @@ func TestMigrations(t *testing.T) {
 		},
 		{
 			ID:   6,
-			Name: "Sunrise Tokens",
+			Name: "Archive Transactions",
 			Path: "0006_archive_transactions.sql",
 		},
 	}
