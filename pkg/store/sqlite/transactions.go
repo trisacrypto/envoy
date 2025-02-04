@@ -168,6 +168,10 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 	return tx.Commit()
 }
 
+func (s *Store) ArchiveTransaction(context.Context, uuid.UUID) error {
+	return dberr.ErrNotImplemented
+}
+
 //===========================================================================
 // Secure Envelopes CRUD Interface
 //===========================================================================

@@ -52,6 +52,7 @@ type Client interface {
 	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)
 	RepairPreview(ctx context.Context, transactionID uuid.UUID) (*Repair, error)
 	Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
+	ArchiveTransaction(context.Context, uuid.UUID) error
 
 	// SecureEnvelopes Resource
 	ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (*EnvelopesList, error)

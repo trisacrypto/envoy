@@ -971,6 +971,37 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+func (s *Server) ArchiveTransaction(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if err = s.store.ArchiveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: scene.Scene{"TransactionID": transactionID},
+		JSONData: api.Reply{Success: true},
+		HTMLName: "transaction_archive.html",
+	})
+}
+
 //===========================================================================
 // Secure Envelopes REST Resource
 //===========================================================================
