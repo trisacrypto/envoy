@@ -1,0 +1,28 @@
+{{ define "transaction_archive" }}
+
+<dialog id="transaction_archive_modal" class="modal">
+  <div class="modal-box">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-xl">Archive Transaction</h3>
+      <button onclick="transaction_archive_modal.close()" class="btn btn-sm btn-circle btn-ghost">
+        <i class="fa-solid fa-x"></i>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <form id="transaction-archive-form" method="dialog" hx-post="{{ . }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader">
+    <div class="my-5">
+      <p class="mb-4 font-semibold">Are you sure you want to archive this transaction?<p>
+      <p class="mb-6 text-sm">Archiving this transaction will omit it from the list of transactions, however, the transaction will still be accessible using the transaction ID or by searching for all transactions including archives.</p>
+    </div>
+    <div class="flex justify-center">
+      <button type="submit" id="archive-btn" class="submit-btn btn w-32 font-semibold bg-gray-700 text-white hover:bg-gray-700/80">
+        <span class="submit-btn-text">Archive</span>
+        <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+      </button>
+    </div>
+    </form>
+  </div>
+  </div>
+</dialog>
+
+{{ end }}

@@ -971,6 +971,42 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+func (s *Server) ArchiveTransaction(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if err = s.store.ArchiveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Respond with a 204 no content response; use the HTMX trigger in the front-end
+	// to handle the success message in the toast. Otherwise, just send the status.
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "transactionArchived")
+	case binding.MIMEJSON:
+		c.Status(http.StatusNoContent)
+	default:
+		// NOTE: not returning a 406 error since the transaction has been archived.
+		c.Status(http.StatusNoContent)
+	}
+}
+
 //===========================================================================
 // Secure Envelopes REST Resource
 //===========================================================================

@@ -43,6 +43,10 @@ func (s *Store) DeleteTransaction(context.Context, uuid.UUID) error {
 	return nil
 }
 
+func (s *Store) ArchiveTransaction(context.Context, uuid.UUID) error {
+	return nil
+}
+
 func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error) {
 	return nil, nil
 }

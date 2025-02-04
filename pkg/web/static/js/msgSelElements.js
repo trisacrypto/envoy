@@ -6,7 +6,7 @@ const network = 'network';
 const country = 'country';
 const nationalIdType = 'idType';
 
-const envelopeDropdowns = [
+export const envelopeDropdowns = [
   { sel: '#networks', options: network },
   { sel: '#orig_countries', options: country },
   { sel: '#benf_countries', options: country },

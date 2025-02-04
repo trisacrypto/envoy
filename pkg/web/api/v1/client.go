@@ -318,6 +318,23 @@ func (s *APIv1) Repair(ctx context.Context, transactionID uuid.UUID, in *Envelop
 	return out, nil
 }
 
+const archiveEP = "archive"
+
+func (s *APIv1) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), archiveEP)
+
+	// Perform a POST request but expect a 204 No Content response
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, nil, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return err
+	}
+	return nil
+}
+
 //===========================================================================
 // Temporary Sunrise Action
 //===========================================================================

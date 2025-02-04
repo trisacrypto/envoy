@@ -58,7 +58,10 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
 
 // Add code to amend the request parameters before the request is sent.
 const rejectEP = `/v1/transactions/${transactionID}/reject`
+const archiveEP = `/v1/transactions/${transactionID}/archive`
 const transactionSendEP = `/v1/transactions/${transactionID}/send`
+
+
 document.body.addEventListener('htmx:configRequest', (e) => {
   // Determine if the request repair checkbox is checked and add to the request parameters.
   const isRetryChecked = document.getElementById('retry')
@@ -93,6 +96,14 @@ document.body.addEventListener('htmx:afterRequest', (e) => {
     transactionRejectionModal.close()
     transactionRejectForm.reset()
     setSuccessToast('Success! The secure envelope has been rejected.')
+  }
+
+  if (e.detail.requestConfig.path === archiveEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
+    const transactionArchiveForm = document.getElementById('transaction-archive-form')
+    const transactionArchiveModal = document.getElementById('transaction_archive_modal')
+    transactionArchiveModal.close()
+    transactionArchiveForm.reset()
+    setSuccessToast('Success! The transaction has been archived.')
   }
 
   if (e.detail.requestConfig.path === transactionSendEP && e.detail.requestConfig.verb === 'post' && e.detail.successful) {

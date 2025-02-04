@@ -1,4 +1,6 @@
 import { setSuccessToast } from './utils.js';
+import { envelopeDropdowns } from './msgSelElements.js';
+
 
 document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === '/v1/transactions/prepare' && e.detail.verb === 'post') {
@@ -62,9 +64,9 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     const previewEnvModal = document.getElementById('preview_envelope');
     const secureEnvForm = document.getElementById('secure-envelope-form');
     secureEnvForm.reset();
-    
+
     // Reset the SlimSelect dropdowns after form submission.
-    envelopeDropdowns.forEach((dropdown) => {
+    envelopeDropdowns?.forEach((dropdown) => {
       const slimSelect = new SlimSelect({
         select: dropdown.sel
       });

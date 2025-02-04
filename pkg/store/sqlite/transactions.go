@@ -19,7 +19,7 @@ import (
 // Transaction CRUD interface
 //==========================================================================
 
-const listTransactionsSQL = "SELECT t.*, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id GROUP BY t.id ORDER BY t.created DESC"
+const listTransactionsSQL = "SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id WHERE t.archived=0 GROUP BY t.id ORDER BY t.created DESC"
 
 func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (out *models.TransactionPage, err error) {
 	var tx *sql.Tx
@@ -53,7 +53,7 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (ou
 	return out, nil
 }
 
-const createTransactionSQL = "INSERT INTO transactions (id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, last_update, created, modified) VALUES (:id, :source, :status, :counterparty, :counterpartyID, :originator, :originatorAddress, :beneficiary, :beneficiaryAddress, :virtualAsset, :amount, :lastUpdate, :created, :modified)"
+const createTransactionSQL = "INSERT INTO transactions (id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, archived, archived_on, last_update, created, modified) VALUES (:id, :source, :status, :counterparty, :counterpartyID, :originator, :originatorAddress, :beneficiary, :beneficiaryAddress, :virtualAsset, :amount, :archived, :archivedOn, :lastUpdate, :created, :modified)"
 
 func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Transaction) (err error) {
 	// Basic validation
@@ -81,7 +81,7 @@ func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Trans
 	return tx.Commit()
 }
 
-const retrieveTransactionSQL = "SELECT * FROM transactions WHERE id=:id"
+const retrieveTransactionSQL = "SELECT id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, archived, archived_on, last_update, modified, created FROM transactions WHERE id=:id"
 
 func (s *Store) RetrieveTransaction(ctx context.Context, id uuid.UUID) (transaction *models.Transaction, err error) {
 	var tx *sql.Tx
@@ -114,7 +114,7 @@ func (s *Store) retrieveTransaction(tx *sql.Tx, transactionID uuid.UUID) (transa
 	return transaction, nil
 }
 
-const updateTransactionSQL = "UPDATE transactions SET source=:source, status=:status, counterparty=:counterparty, counterparty_id=:counterpartyID, originator=:originator, originator_address=:originatorAddress, beneficiary=:beneficiary, beneficiary_address=:beneficiaryAddress, virtual_asset=:virtualAsset, amount=:amount, last_update=:lastUpdate, modified=:modified WHERE id=:id"
+const updateTransactionSQL = "UPDATE transactions SET source=:source, status=:status, counterparty=:counterparty, counterparty_id=:counterpartyID, originator=:originator, originator_address=:originatorAddress, beneficiary=:beneficiary, beneficiary_address=:beneficiaryAddress, virtual_asset=:virtualAsset, amount=:amount, archived=:archived, archived_on=:archivedOn, last_update=:lastUpdate, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (err error) {
 	// Basic validation
@@ -166,6 +166,43 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 	}
 
 	return tx.Commit()
+}
+
+const archiveTransactionSQL = "UPDATE transactions SET archived=1, archived_on=:archivedOn, modified=:modified WHERE id=:id"
+
+func (s *Store) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = s.archiveTransaction(tx, transactionID); err != nil {
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (s *Store) archiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err error) {
+	timestamp := time.Now()
+	params := []any{
+		sql.Named("id", transactionID),
+		sql.Named("archivedOn", timestamp),
+		sql.Named("modified", timestamp),
+	}
+
+	var result sql.Result
+	if result, err = tx.Exec(archiveTransactionSQL, params...); err != nil {
+		return err
+	}
+
+	if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return nil
 }
 
 //===========================================================================

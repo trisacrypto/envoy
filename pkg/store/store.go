@@ -84,6 +84,7 @@ type TransactionStore interface {
 	RetrieveTransaction(context.Context, uuid.UUID) (*models.Transaction, error)
 	UpdateTransaction(context.Context, *models.Transaction) error
 	DeleteTransaction(context.Context, uuid.UUID) error
+	ArchiveTransaction(context.Context, uuid.UUID) error
 	PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error)
 }
 
