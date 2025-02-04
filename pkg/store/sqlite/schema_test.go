@@ -45,6 +45,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Sunrise Tokens",
 			Path: "0005_sunrise_tokens.sql",
 		},
+		{
+			ID:   6,
+			Name: "Sunrise Tokens",
+			Path: "0006_archive_transactions.sql",
+		},
 	}
 
 	for i, migration := range migrations {

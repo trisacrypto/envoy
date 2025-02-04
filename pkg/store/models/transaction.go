@@ -56,6 +56,8 @@ type Transaction struct {
 	BeneficiaryAddress sql.NullString    // The crypto address of the beneficiary
 	VirtualAsset       string            // A representation of the network/asset type
 	Amount             float64           // The amount of the transaction
+	Archived           bool              // If the transaction is archived or not
+	ArchivedOn         sql.NullTime      // The timestamp the transaction was archived
 	LastUpdate         sql.NullTime      // The last time a TRISA RPC occurred for this transaction
 	Created            time.Time         // Timestamp the transaction was created
 	Modified           time.Time         // Timestamp the transaction was last modified, including when a new secure envelope was received
@@ -117,6 +119,8 @@ func (t *Transaction) Scan(scanner Scanner) error {
 		&t.BeneficiaryAddress,
 		&t.VirtualAsset,
 		&t.Amount,
+		&t.Archived,
+		&t.ArchivedOn,
 		&t.LastUpdate,
 		&t.Created,
 		&t.Modified,
@@ -136,6 +140,8 @@ func (t *Transaction) ScanWithCount(scanner Scanner) error {
 		&t.BeneficiaryAddress,
 		&t.VirtualAsset,
 		&t.Amount,
+		&t.Archived,
+		&t.ArchivedOn,
 		&t.LastUpdate,
 		&t.Created,
 		&t.Modified,
@@ -156,6 +162,8 @@ func (t *Transaction) Params() []any {
 		sql.Named("beneficiaryAddress", t.BeneficiaryAddress),
 		sql.Named("virtualAsset", t.VirtualAsset),
 		sql.Named("amount", t.Amount),
+		sql.Named("archived", t.Archived),
+		sql.Named("archivedOn", t.ArchivedOn),
 		sql.Named("lastUpdate", t.LastUpdate),
 		sql.Named("created", t.Created),
 		sql.Named("modified", t.Modified),
