@@ -15,7 +15,7 @@ func (s *Server) ValidateIVMS101(c *gin.Context) {
 	)
 
 	payload = &ivms101.IdentityPayload{}
-	if err = c.BindJSON(payload); err != nil {
+	if err = c.ShouldBindJSON(payload); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
