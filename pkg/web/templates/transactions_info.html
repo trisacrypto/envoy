@@ -15,6 +15,11 @@
 {{ template "transaction_rejection" . }}
 {{ end }}
 
+<!-- Archive transaction modal -->
+{{ with $action := printf "/v1/transactions/%s/archive" .ID }}
+{{ template "transaction_archive" . }}
+{{ end }}
+
 <dialog id="transaction_complete_modal" class="modal"></dialog>
 
 {{ end }}

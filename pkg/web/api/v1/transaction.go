@@ -47,6 +47,8 @@ type Transaction struct {
 	BeneficiaryAddress string     `json:"beneficiary_address,omitempty"`
 	VirtualAsset       string     `json:"virtual_asset"`
 	Amount             float64    `json:"amount"`
+	Archived           bool       `json:"archived,omitempty"`
+	ArchivedOn         *time.Time `json:"archived_on,omitempty"`
 	LastUpdate         *time.Time `json:"last_update,omitempty"`
 	EnvelopeCount      int64      `json:"envelope_count,omitempty"`
 	Created            time.Time  `json:"created"`
@@ -149,9 +151,15 @@ func NewTransaction(model *models.Transaction) (*Transaction, error) {
 		BeneficiaryAddress: model.BeneficiaryAddress.String,
 		VirtualAsset:       model.VirtualAsset,
 		Amount:             model.Amount,
+		Archived:           model.Archived,
 		EnvelopeCount:      model.NumEnvelopes(),
 		Created:            model.Created,
 		Modified:           model.Modified,
+	}
+
+	// If archivedOn is not NULL in the database, then add it to the response.
+	if model.ArchivedOn.Valid {
+		tx.ArchivedOn = &model.ArchivedOn.Time
 	}
 
 	// If last update is not NULL in the database, then add it to the response.

@@ -21,12 +21,13 @@
         class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Repair</a>
       {{ end }}
       {{ if and (eq .Source "local") (eq .Status "accepted") }}
-      <button onclick="transaction_complete_modal.showModal()" 
+      <button onclick="transaction_complete_modal.showModal()"
         hx-get="/v1/transactions/{{ .ID }}/payload" hx-target="#transaction_complete_modal" hx-swap="innerHTML"
         class="p-1 rounded w-32 bg-success font-semibold text-white text-center md:p-2 hover:bg-success/80">Complete</button>
       {{ end }}
-      {{ if ne .Status "archived" }}
-        <button class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
+      {{ if not .Archived }}
+        <button onclick="transaction_archive_modal.showModal()"
+          class="p-1 rounded w-32 bg-gray-700 font-semibold text-white md:p-2 hover:bg-gray-700/80">Archive</button>
       {{ end }}
       {{ end }}
       <a href="/transactions"
