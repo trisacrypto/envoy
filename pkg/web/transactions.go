@@ -994,12 +994,17 @@ func (s *Server) ArchiveTransaction(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"TransactionID": transactionID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "transaction_archive.html",
-	})
+	// Respond with a 204 no content response; use the HTMX trigger in the front-end
+	// to handle the success message in the toast. Otherwise, just send the status.
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "transactionArchived")
+	case binding.MIMEJSON:
+		c.Status(http.StatusNoContent)
+	default:
+		// NOTE: not returning a 406 error since the transaction has been archived.
+		c.Status(http.StatusNoContent)
+	}
 }
 
 //===========================================================================
