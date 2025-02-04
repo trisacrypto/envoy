@@ -5,10 +5,10 @@ import "fmt"
 // Version component constants for the current build.
 const (
 	VersionMajor         = 0
-	VersionMinor         = 28
+	VersionMinor         = 29
 	VersionPatch         = 0
 	VersionReleaseLevel  = "beta"
-	VersionReleaseNumber = 34
+	VersionReleaseNumber = 35
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=$(git rev-parse --short HEAD)'"
