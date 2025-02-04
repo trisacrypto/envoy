@@ -12800,6 +12800,87 @@
           }
         }
       }
+    },
+    "/v1/utilities/ivms101-validator": {
+      "post": {
+        "summary": "Validate an IVMS101 Payload",
+        "description": "Validates an arbitrary JSON payload as IVMS101 and returns the cross-protocol compatible JSON formatted IVMS101.",
+        "operationId": "validateIVMS101",
+        "tags": [
+          "Utilities"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The JSON payload to validate as IVMS101.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid IVMS101",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityPayload"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Could not parse IVMS101",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "could not parse json payload"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Validate IVMS101",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid IVMS101",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldErrors"
+                },
+                "example": {
+                  "success": false,
+                  "error": "1 validation errors occurred",
+                  "errors": [
+                    {
+                      "field": "name_identifiers",
+                      "error": "missing name_identifiers: this field is required"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {
