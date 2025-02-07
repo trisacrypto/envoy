@@ -10,9 +10,9 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/interceptors"
 	"github.com/trisacrypto/envoy/pkg/trisa/mock"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	"go.rtnl.ai/ulid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"

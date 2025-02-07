@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"go.rtnl.ai/ulid"
 )
 
 func init() {

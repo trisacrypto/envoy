@@ -12,8 +12,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oklog/ulid/v2"
-	"github.com/trisacrypto/envoy/pkg/ulids"
+	"go.rtnl.ai/ulid"
 )
 
 const (
@@ -175,7 +174,7 @@ func (t *Token) readFrom(data []byte) (int, error) {
 }
 
 func (t *Token) Validate() (err error) {
-	if ulids.IsZero(t.SunriseID) {
+	if t.SunriseID.IsZero() {
 		err = errors.Join(err, ErrInvalidSunriseID)
 	}
 

@@ -3,8 +3,8 @@ package api_test
 import (
 	"testing"
 
-	"github.com/oklog/ulid/v2"
 	. "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"go.rtnl.ai/ulid"
 
 	"github.com/stretchr/testify/require"
 )

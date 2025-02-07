@@ -6,13 +6,12 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 const defaultSearchLimit = 10
@@ -138,7 +137,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	}
 
 	// Validate the counterparty input
-	if !ulids.IsZero(in.ID) {
+	if !in.ID.IsZero() {
 		c.JSON(http.StatusBadRequest, api.Error("cannot specify an id when creating a counterparty"))
 		return
 	}
@@ -321,7 +320,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	}
 
 	// Sanity check
-	if err = ulids.CheckIDMatch(in.ID, counterpartyID); err != nil {
+	if err = CheckIDMatch(in.ID, counterpartyID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -629,7 +628,7 @@ func (s *Server) UpdateContact(c *gin.Context) {
 	}
 
 	// Sanity check the IDs of the update request
-	if err = ulids.CheckIDMatch(in.ID, contactID); err != nil {
+	if err = CheckIDMatch(in.ID, contactID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return

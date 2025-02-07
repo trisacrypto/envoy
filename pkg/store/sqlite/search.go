@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/store/models"

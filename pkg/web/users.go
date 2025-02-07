@@ -7,10 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
+
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
@@ -76,7 +76,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 		return
 	}
 
-	if !ulids.IsZero(in.ID) {
+	if !in.ID.IsZero() {
 		c.JSON(http.StatusBadRequest, api.Error("cannot specify an id when creating a user"))
 		return
 	}
@@ -228,7 +228,7 @@ func (s *Server) UpdateUser(c *gin.Context) {
 	}
 
 	// Sanity check
-	if err = ulids.CheckIDMatch(in.ID, userID); err != nil {
+	if err = CheckIDMatch(in.ID, userID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return

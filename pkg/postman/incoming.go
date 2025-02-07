@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/webhook"
+	"go.rtnl.ai/ulid"
 
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -83,7 +83,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		i.model = &models.SecureEnvelope{
 			Direction:     models.DirectionIncoming,
 			Remote:        i.packet.Remote(),
-			ReplyTo:       ulids.NullULID{},
+			ReplyTo:       ulid.NullULID{},
 			IsError:       i.Envelope.IsError(),
 			EncryptionKey: i.original.EncryptionKey,
 			HMACSecret:    i.original.HmacSecret,
@@ -104,7 +104,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 
 		// This assumes that the outgoing model has already been created!
 		if i.packet.reply == DirectionIncoming {
-			i.model.ReplyTo = ulids.NullULID{
+			i.model.ReplyTo = ulid.NullULID{
 				Valid: true, ULID: i.packet.Out.Model().ID,
 			}
 		}

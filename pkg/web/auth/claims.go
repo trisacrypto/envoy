@@ -9,7 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 type Claims struct {

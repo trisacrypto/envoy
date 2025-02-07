@@ -7,18 +7,16 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/metrics"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/ulid"
 )
 
 // GinLogger returns a new Gin middleware that performs logging for our JSON APIs using
 // zerolog rather than the default Gin logger which is a standard HTTP logger.
 // NOTE: we previously used github.com/dn365/gin-zerolog but wanted more customization.
 func GinLogger(server string) gin.HandlerFunc {
-	entropy := ulids.NewPool()
 	version := pkg.Version()
 
 	// Initialize prometheus collectors (safe to call multiple times)
@@ -35,7 +33,7 @@ func GinLogger(server string) gin.HandlerFunc {
 
 		// Create a request ID for tracing purposes and add to context
 		// HACK: this creates a shallow copy of the request, which might cause issues?
-		requestID := ulid.MustNew(ulid.Now(), entropy).String()
+		requestID := ulid.Make().String()
 		c.Request = c.Request.WithContext(WithRequestID(c.Request.Context(), requestID))
 
 		// Handle the request

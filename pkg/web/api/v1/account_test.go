@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	. "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"go.rtnl.ai/ulid"
 )
 
 const naturalPersonEncoded = "CtwBCi8KFAoGTWlsbGVyEghDeXJpbCBFLhgEGhcKCMuIbcmqbMmZEgnLiHPJqnLJmWwYBBI4CAEiD0RlbGF3YXJlIEF2ZW51ZSoENDIwNFIFOTQxMTVaDVNhbiBGcmFuY2lzY29yAkNBggECVVMaEwoLNDExLTQxLTQxMTQQBxoCVVMiIm1pOWY0NkFCUmZKTHZTbmpBcThFVXFlZTloMTF2Q1BXTHAqMgoKMTk4OS0wNC0zMBIkQmFrZXJzZmllbGQsIFZpcmdpbmlhLCBVbml0ZWQgU3RhdGVzMgJVUw=="
@@ -14,7 +14,7 @@ const naturalPersonEncoded = "CtwBCi8KFAoGTWlsbGVyEghDeXJpbCBFLhgEGhcKCMuIbcmqbM
 func TestAccountValidate(t *testing.T) {
 	t.Run("ID", func(t *testing.T) {
 		account := &Account{
-			ID:         ulids.New(),
+			ID:         ulid.MakeSecure(),
 			CustomerID: "6661182",
 			FirstName:  "James",
 			LastName:   "Bond",
@@ -56,7 +56,7 @@ func TestAccountValidate(t *testing.T) {
 
 		require.NoError(t, account.Validate(true), "expected account to be valid with no IVMS101 record on create")
 
-		account.ID = ulids.New()
+		account.ID = ulid.MakeSecure()
 		require.NoError(t, account.Validate(false), "expected account to be valid with no IVMS101 record on update")
 	})
 
@@ -71,7 +71,7 @@ func TestAccountValidate(t *testing.T) {
 		account.SetEncoding(&EncodingQuery{Format: "pb"})
 		require.NoError(t, account.Validate(true), "expected account to be valid with IVMS101 record on create")
 
-		account.ID = ulids.New()
+		account.ID = ulid.MakeSecure()
 		require.NoError(t, account.Validate(false), "expected account to be valid with IVMS101 record on update")
 	})
 
@@ -89,7 +89,7 @@ func TestAccountValidate(t *testing.T) {
 		account.SetEncoding(&EncodingQuery{Format: "pb"})
 		require.Error(t, account.Validate(true), "expected account to be invalid with invalid IVMS101 record on create")
 
-		account.ID = ulids.New()
+		account.ID = ulid.MakeSecure()
 		require.Error(t, account.Validate(false), "expected account to be invalid valid with invalid IVMS101 record on update")
 	})
 
@@ -114,25 +114,25 @@ func TestAccountValidate(t *testing.T) {
 		require.NoError(t, err, "could not load testdata/invalid_person.json fixture")
 
 		account := &Account{
-			ID:            ulids.New(),
+			ID:            ulid.MakeSecure(),
 			IVMSRecord:    record,
 			TravelAddress: "taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv",
 			CryptoAddresses: []*CryptoAddress{
 				{
-					ID:            ulids.New(),
+					ID:            ulid.MakeSecure(),
 					TravelAddress: "taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv",
 				},
 				{
-					ID:            ulids.New(),
+					ID:            ulid.MakeSecure(),
 					Network:       "FOOOOO",
 					TravelAddress: "taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv",
 				},
 				{
-					ID:            ulids.New(),
+					ID:            ulid.MakeSecure(),
 					TravelAddress: "taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv",
 				},
 				{
-					ID:            ulids.New(),
+					ID:            ulid.MakeSecure(),
 					TravelAddress: "taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv",
 				},
 			},

@@ -18,8 +18,8 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/google/go-querystring/query"
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/ulid"
 )
 
 // New creates a new APIv1 client that implements the Client interface.

@@ -19,7 +19,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
@@ -28,9 +27,9 @@ import (
 	"github.com/trisacrypto/envoy/pkg"
 
 	"github.com/joho/godotenv"
-	"github.com/oklog/ulid/v2"
 	confire "github.com/rotationalio/confire/usage"
 	"github.com/urfave/cli/v2"
+	"go.rtnl.ai/ulid"
 )
 
 var (
@@ -675,7 +674,7 @@ func valueForColumn(table, column string) interface{} {
 			var s string
 			return &s
 		case "counterparty_id":
-			return &ulids.NullULID{}
+			return &ulid.NullULID{}
 		case "originator", "originator_address", "beneficiary", "beneficiary_address":
 			return &sql.NullString{}
 		case "amount":

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"go.rtnl.ai/ulid"
 )
 
 const (

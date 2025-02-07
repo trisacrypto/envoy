@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 // New creates a new APIv1 client that implements the Client interface.

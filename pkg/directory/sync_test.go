@@ -9,7 +9,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 	mockgds "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"testing"
 	"time"
@@ -122,7 +121,7 @@ func TestSync(t *testing.T) {
 		vasp, err := sync.Counterparty("b5b20dc2-dc0c-4acf-9861-5b73f1ccc170")
 		require.NoError(t, err, "expected no error fetching counterparty")
 
-		require.True(t, ulids.IsZero(vasp.ID))
+		require.True(t, vasp.ID.IsZero())
 		require.Equal(t, models.SourceDirectorySync, vasp.Source)
 		require.Equal(t, "b5b20dc2-dc0c-4acf-9861-5b73f1ccc170", vasp.DirectoryID.String)
 		require.Equal(t, "trisatest.dev", vasp.RegisteredDirectory.String)

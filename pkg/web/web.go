@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
+	"go.rtnl.ai/ulid"
 )
 
 // Create a new web server that serves the compliance and admin web user interface.
@@ -78,4 +79,17 @@ func Debug(conf config.Config, store store.Store, network network.Network, srv *
 	s.srv = srv
 	s.srv.Handler = s.router
 	return s, nil
+}
+
+// CheckIDMatch returns an error if the id is Null or it does not match the target.
+func CheckIDMatch(id, target ulid.ULID) error {
+	if id.Compare(ulid.Null) == 0 {
+		return ErrMissingID
+	}
+
+	if id.Compare(target) != 0 {
+		return ErrIDMismatch
+	}
+
+	return nil
 }
