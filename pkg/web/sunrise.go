@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
@@ -23,6 +22,7 @@ import (
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
+	"go.rtnl.ai/ulid"
 )
 
 const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"

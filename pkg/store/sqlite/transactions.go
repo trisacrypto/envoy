@@ -9,10 +9,9 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 //===========================================================================
@@ -278,7 +277,7 @@ func (s *Store) listSecureEnvelopes(tx *sql.Tx, transaction *models.Transaction)
 const createSecureEnvelopeSQL = "INSERT INTO secure_envelopes (id, envelope_id, direction, remote, reply_to, is_error, encryption_key, hmac_secret, valid_hmac, timestamp, public_key, transfer_state, envelope, created, modified) VALUES (:id, :envelopeID, :direction, :remote, :replyTo, :isError, :encryptionKey, :hmacSecret, :validHMAC, :timestamp, :publicKey, :transferState, :envelope, :created, :modified)"
 
 func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
-	if !ulids.IsZero(env.ID) {
+	if !env.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -287,7 +286,7 @@ func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnve
 	}
 
 	// Create IDs and model metadata updating the secure envelope in place.
-	env.ID = ulids.New()
+	env.ID = ulid.MakeSecure()
 	env.Created = time.Now()
 	env.Modified = env.Created
 
@@ -334,7 +333,7 @@ const updateSecureEnvelopeSQL = "UPDATE secure_envelopes SET direction=:directio
 
 func (s *Store) UpdateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
 	// Basic validation
-	if ulids.IsZero(env.ID) {
+	if env.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -562,7 +561,7 @@ const (
 func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err error) {
 	// Lookup counterparty information in the database
 	switch {
-	case !ulids.IsZero(in.ID):
+	case !in.ID.IsZero():
 		// Populate the counterparty record from the database
 		if err = in.Scan(p.tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", in.ID))); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -577,7 +576,7 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 				// NOTE: if a valid TRISA peer sends a message before directory sync,
 				// then this record will not be found; create the temporary TRISA record
 				// prior to sync just in case.
-				in.ID = ulids.New()
+				in.ID = ulid.MakeSecure()
 				in.Created = time.Now()
 				in.Modified = in.Created
 
@@ -600,7 +599,7 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 	default:
 		// In this case, we're pretty sure the counterparty is not in the database
 		// so we should try to add the counterparty and hope for the best ...
-		in.ID = ulids.New()
+		in.ID = ulid.MakeSecure()
 		in.Created = time.Now()
 		in.Modified = in.Created
 
@@ -633,11 +632,11 @@ func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error)
 		return dberr.ErrIDMismatch
 	}
 
-	if !ulids.IsZero(in.ID) {
+	if !in.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
-	in.ID = ulids.New()
+	in.ID = ulid.MakeSecure()
 	in.EnvelopeID = p.envelopeID
 	in.Created = time.Now()
 	in.Modified = in.Created

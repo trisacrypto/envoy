@@ -9,12 +9,11 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"github.com/trisacrypto/trisa/pkg/slip0044"
+	"go.rtnl.ai/ulid"
 )
 
 //===========================================================================
@@ -177,7 +176,7 @@ func (a *Account) IVMS101() (p *ivms101.Person, err error) {
 
 func (a *Account) Validate(create bool) (err error) {
 	if create {
-		if !ulids.IsZero(a.ID) {
+		if !a.ID.IsZero() {
 			err = ValidationError(err, ReadOnlyField("id"))
 		}
 	}
@@ -287,7 +286,7 @@ func (c *CryptoAddress) Model(acct *models.Account) (*models.CryptoAddress, erro
 
 func (c *CryptoAddress) Validate(create bool) (err error) {
 	if create {
-		if !ulids.IsZero(c.ID) {
+		if !c.ID.IsZero() {
 			err = ValidationError(err, ReadOnlyField("id"))
 		}
 	}

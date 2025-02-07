@@ -9,11 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 )
 
 const listSunriseSQL = "SELECT id, envelope_id, expiration, status, sent_on, verified_on FROM sunrise"
@@ -61,7 +60,7 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	// Basic validation
 	// Note: this is duplicated in updateSunrise but better to check before starting a
 	// transaction that will take up system resources.
-	if !ulids.IsZero(msg.ID) {
+	if !msg.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -83,12 +82,12 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 
 func createSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 	// Basic validation
-	if !ulids.IsZero(msg.ID) {
+	if !msg.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
 	// Create IDs and model metadata, updating the sunrise message in place.
-	msg.ID = ulids.New()
+	msg.ID = ulid.MakeSecure()
 	msg.Created = time.Now()
 	msg.Modified = msg.Created
 
@@ -136,7 +135,7 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	// Basic validation
 	// Note: this is duplicated in updateSunrise but better to check before starting a
 	// transaction that will take up system resources.
-	if ulids.IsZero(msg.ID) {
+	if msg.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -158,7 +157,7 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 
 func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 	// Basic validation
-	if ulids.IsZero(msg.ID) {
+	if msg.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -230,7 +229,7 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 		}
 	}
 
-	if ulids.IsZero(counterpartyID) {
+	if counterpartyID.IsZero() {
 		// Create the counterparty
 		out = &models.Counterparty{
 			Source:     models.SourceUserEntry,

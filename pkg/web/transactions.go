@@ -11,7 +11,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
@@ -22,7 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 //===========================================================================
@@ -1163,11 +1162,11 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 
 func CheckUUIDMatch(id, target uuid.UUID) error {
 	if id == uuid.Nil {
-		return ulids.ErrMissingID
+		return ErrMissingID
 	}
 
 	if id != target {
-		return ulids.ErrIDMismatch
+		return ErrIDMismatch
 	}
 
 	return nil

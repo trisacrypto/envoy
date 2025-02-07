@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/auth/permissions"
+
+	"go.rtnl.ai/ulid"
 )
 
 type APIKey struct {
@@ -76,7 +76,7 @@ func (k *APIKey) Validate(create bool) (err error) {
 
 	// Permissions should be zero on update, but non-zero on create
 	if create {
-		if !ulids.IsZero(k.ID) {
+		if !k.ID.IsZero() {
 			err = ValidationError(err, ReadOnlyField("id"))
 		}
 

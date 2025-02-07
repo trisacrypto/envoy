@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/errors"
-	"github.com/trisacrypto/envoy/pkg/ulids"
+	"go.rtnl.ai/ulid"
 
 	"github.com/google/uuid"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
@@ -49,7 +49,7 @@ type Transaction struct {
 	Source             string            // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
 	Status             string            // Can be "unspecified", "started", "pending", "review", "repair", "accepted", "completed", or "rejected"
 	Counterparty       string            // The name of the counterparty in the transaction
-	CounterpartyID     ulids.NullULID    // A reference to the counterparty in the database, if any
+	CounterpartyID     ulid.NullULID     // A reference to the counterparty in the database, if any
 	Originator         sql.NullString    // Full name of the originator natural person or account
 	OriginatorAddress  sql.NullString    // The crypto address of the originator
 	Beneficiary        sql.NullString    // Full name of the beneficiary natural person or account
@@ -70,7 +70,7 @@ type SecureEnvelope struct {
 	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
 	Direction     string              // Either "out" outgoing or "in" incoming
 	Remote        sql.NullString      // The common name of the remote peer this message was going to or coming from
-	ReplyTo       ulids.NullULID      // If this envelope is a response, a reference to the original request envelope
+	ReplyTo       ulid.NullULID       // If this envelope is a response, a reference to the original request envelope
 	IsError       bool                // If the envelope contains an error/rejection rather than a payload
 	EncryptionKey []byte              // The encryption key, encrypted with the public key of the local node. Note this may differ from the value in the envelope for outgoing messages
 	HMACSecret    []byte              // The hmac secret, encrypted with the public key of the local node. Note that this may differ from the value in the envelope for outgoing messages
@@ -252,7 +252,7 @@ func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	model := &SecureEnvelope{
 		Direction: "",
 		Remote:    sql.NullString{},
-		ReplyTo:   ulids.NullULID{},
+		ReplyTo:   ulid.NullULID{},
 		IsError:   env.IsError(),
 		Envelope:  env.Proto(),
 	}

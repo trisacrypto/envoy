@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/mail"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"go.rtnl.ai/ulid"
 )
 
 const (

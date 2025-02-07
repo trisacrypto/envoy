@@ -7,13 +7,12 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 func (s *Server) ListAccounts(c *gin.Context) {
@@ -274,7 +273,7 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	}
 
 	// Sanity check the account IDs of the update request
-	if err = ulids.CheckIDMatch(in.ID, accountID); err != nil {
+	if err = CheckIDMatch(in.ID, accountID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
@@ -553,7 +552,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	}
 
 	// Sanity check the IDs of the update request
-	if err = ulids.CheckIDMatch(in.ID, cryptoAddressID); err != nil {
+	if err = CheckIDMatch(in.ID, cryptoAddressID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return

@@ -13,10 +13,10 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	members "github.com/trisacrypto/directory/pkg/gds/members/v1alpha1"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
+	"go.rtnl.ai/ulid"
 )
 
 // Syncs the VASPs stored in the Global TRISA Directory (GDS) to local storage for

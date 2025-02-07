@@ -8,10 +8,9 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/ulid"
 )
 
 const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created, modified FROM accounts"
@@ -61,7 +60,7 @@ const createAccountSQL = "INSERT INTO accounts (id, customer_id, first_name, las
 // Create an account and any crypto addresses associated with the account.
 func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err error) {
 	// Basic validation
-	if !ulids.IsZero(account.ID) {
+	if !account.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -72,7 +71,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 	defer tx.Rollback()
 
 	// Create IDs and model metadata, updating the account in place.
-	account.ID = ulids.New()
+	account.ID = ulid.MakeSecure()
 	account.Created = time.Now()
 	account.Modified = account.Created
 
@@ -143,7 +142,7 @@ const updateAccountSQL = "UPDATE accounts SET customer_id=:customerID, first_nam
 // Update account information; ignores any associated crypto addresses.
 func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error) {
 	// Basic validation
-	if ulids.IsZero(a.ID) {
+	if a.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -278,16 +277,16 @@ func (s *Store) CreateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 }
 
 func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err error) {
-	if !ulids.IsZero(addr.ID) {
+	if !addr.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
-	if ulids.IsZero(addr.AccountID) {
+	if addr.AccountID.IsZero() {
 		return dberr.ErrMissingReference
 	}
 
 	// Create IDs and model metadata, updating the crypto address in place.
-	addr.ID = ulids.New()
+	addr.ID = ulid.MakeSecure()
 	addr.Created = time.Now()
 	addr.Modified = addr.Created
 
@@ -339,11 +338,11 @@ const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryp
 
 func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
 	// Basic validation
-	if ulids.IsZero(addr.ID) {
+	if addr.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
-	if ulids.IsZero(addr.AccountID) {
+	if addr.AccountID.IsZero() {
 		return dberr.ErrMissingReference
 	}
 

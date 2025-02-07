@@ -12,8 +12,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/config"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/ulid"
 )
 
 const (

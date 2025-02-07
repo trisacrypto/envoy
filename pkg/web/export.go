@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
+	"go.rtnl.ai/ulid"
 )
 
 const (
@@ -51,7 +51,7 @@ func (s *Server) ExportTransactions(c *gin.Context) {
 	}
 
 	// Fetch 50 records per page from the database
-	info = &models.PageInfo{PageSize: 50, NextPageID: ulids.Null}
+	info = &models.PageInfo{PageSize: 50, NextPageID: ulid.Null}
 
 	// TODO: we'll probably want to load more information from the secure envelope
 	// besides what's in the transaction and if we do that, we'll want a transaction
@@ -88,7 +88,7 @@ transactionsIterator:
 
 		// If there is no next page ID, then stop iterating
 		info.NextPageID = page.Page.NextPageID
-		if ulids.IsZero(info.NextPageID) {
+		if info.NextPageID.IsZero() {
 			break transactionsIterator
 		}
 	}

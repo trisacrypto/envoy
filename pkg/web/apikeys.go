@@ -6,13 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/oklog/ulid/v2"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"go.rtnl.ai/ulid"
 )
 
 func (s *Server) ListAPIKeys(c *gin.Context) {
@@ -230,7 +229,7 @@ func (s *Server) UpdateAPIKey(c *gin.Context) {
 	}
 
 	// Sanity check
-	if err = ulids.CheckIDMatch(in.ID, keyID); err != nil {
+	if err = CheckIDMatch(in.ID, keyID); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return

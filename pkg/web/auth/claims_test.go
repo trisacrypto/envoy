@@ -10,8 +10,8 @@ import (
 	. "github.com/trisacrypto/envoy/pkg/web/auth"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
+	"go.rtnl.ai/ulid"
 )
 
 const (

@@ -14,7 +14,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 // Open a directory storage provider with the specified URI. Database URLs should either

@@ -5,8 +5,8 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"go.rtnl.ai/ulid"
 )
 
 // Account holds information about a user account for the local VASP including

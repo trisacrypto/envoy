@@ -8,7 +8,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 // Store implements the store.Store interface implemented as an in-memory mock

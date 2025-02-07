@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 // Model is the base model for all models stored in the database.

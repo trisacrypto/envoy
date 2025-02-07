@@ -18,6 +18,8 @@ var (
 	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 	ErrNoPublicKey       = errors.New("no public key associated with secure envelope")
 	ErrSunriseSubject    = errors.New("invalid subject type for sunrise review")
+	ErrMissingID         = errors.New("id required for this resource")
+	ErrIDMismatch        = errors.New("resource id does not match target")
 )
 
 // Renders the "not found page"

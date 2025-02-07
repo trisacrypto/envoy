@@ -8,9 +8,8 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 const listCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties"
@@ -89,7 +88,7 @@ const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
 	// Basic validation
-	if !ulids.IsZero(counterparty.ID) {
+	if !counterparty.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -108,7 +107,7 @@ func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Cou
 
 func (s *Store) createCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
 	// Update the model metadata in place and create a new ID
-	counterparty.ID = ulids.New()
+	counterparty.ID = ulid.MakeSecure()
 	counterparty.Created = time.Now()
 	counterparty.Modified = counterparty.Created
 
@@ -187,7 +186,7 @@ const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directo
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
 	// Basic validation before starting a transaction
-	if ulids.IsZero(counterparty.ID) {
+	if counterparty.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -205,7 +204,7 @@ func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Cou
 }
 
 func updateCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
-	if ulids.IsZero(counterparty.ID) {
+	if counterparty.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
@@ -328,16 +327,16 @@ func (s *Store) CreateContact(ctx context.Context, contact *models.Contact) (err
 }
 
 func (s *Store) createContact(tx *sql.Tx, contact *models.Contact) (err error) {
-	if !ulids.IsZero(contact.ID) {
+	if !contact.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
-	if ulids.IsZero(contact.CounterpartyID) {
+	if contact.CounterpartyID.IsZero() {
 		return dberr.ErrMissingReference
 	}
 
 	// Update the model metadata in place and create a new ID
-	contact.ID = ulids.New()
+	contact.ID = ulid.MakeSecure()
 	contact.Created = time.Now()
 	contact.Modified = contact.Created
 
@@ -380,11 +379,11 @@ const updateContactSQL = "UPDATE contacts SET name=:name, email=:email, role=:ro
 
 func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err error) {
 	// Basic validation
-	if ulids.IsZero(contact.ID) {
+	if contact.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
-	if ulids.IsZero(contact.CounterpartyID) {
+	if contact.CounterpartyID.IsZero() {
 		return dberr.ErrMissingReference
 	}
 

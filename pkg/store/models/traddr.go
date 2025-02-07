@@ -8,8 +8,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
+	"go.rtnl.ai/ulid"
 )
 
 // Factory function that can create travel addresses from models or IDs. This function

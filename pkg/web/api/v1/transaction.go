@@ -10,17 +10,17 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/trisacrypto/trisa/pkg/iso3166"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
+
+	"github.com/google/uuid"
+	"go.rtnl.ai/ulid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -223,7 +223,7 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 		Source:             c.Source,
 		Status:             c.Status,
 		Counterparty:       c.Counterparty,
-		CounterpartyID:     ulids.NullULID{ULID: c.CounterpartyID, Valid: !ulids.IsZero(c.CounterpartyID)},
+		CounterpartyID:     ulid.NullULID{ULID: c.CounterpartyID, Valid: !c.CounterpartyID.IsZero()},
 		Originator:         sql.NullString{String: c.Originator, Valid: c.Originator != ""},
 		OriginatorAddress:  sql.NullString{String: c.OriginatorAddress, Valid: c.OriginatorAddress != ""},
 		Beneficiary:        sql.NullString{String: c.Beneficiary, Valid: c.Beneficiary != ""},

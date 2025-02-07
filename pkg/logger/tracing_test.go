@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/trisacrypto/envoy/pkg/logger"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
 	"github.com/stretchr/testify/require"
+	"go.rtnl.ai/ulid"
 )
 
 func TestRequestIDContext(t *testing.T) {
-	requestID := ulids.New().String()
+	requestID := ulid.Make().String()
 	parent, cancel := context.WithCancel(context.Background())
 	ctx := logger.WithRequestID(parent, requestID)
 

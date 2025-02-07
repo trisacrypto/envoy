@@ -10,9 +10,8 @@ import (
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/oklog/ulid/v2"
+	"go.rtnl.ai/ulid"
 )
 
 //===========================================================================
@@ -73,7 +72,7 @@ const (
 )
 
 func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
-	if !ulids.IsZero(user.ID) {
+	if !user.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -83,7 +82,7 @@ func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
 	}
 	defer tx.Rollback()
 
-	user.ID = ulids.New()
+	user.ID = ulid.MakeSecure()
 	user.Created = time.Now()
 	user.Modified = user.Created
 
@@ -371,7 +370,7 @@ const (
 )
 
 func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
-	if !ulids.IsZero(key.ID) {
+	if !key.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
@@ -381,7 +380,7 @@ func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error
 	}
 	defer tx.Rollback()
 
-	key.ID = ulids.New()
+	key.ID = ulid.MakeSecure()
 	key.Created = time.Now()
 	key.Modified = key.Created
 

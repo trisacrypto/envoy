@@ -7,8 +7,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
+	"go.rtnl.ai/ulid"
 )
 
 func TestTravelAddressFactory(t *testing.T) {

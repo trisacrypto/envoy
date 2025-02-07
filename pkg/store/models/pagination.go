@@ -1,6 +1,6 @@
 package models
 
-import "github.com/oklog/ulid/v2"
+import "go.rtnl.ai/ulid"
 
 const DefaultPageSize = uint32(50)
 

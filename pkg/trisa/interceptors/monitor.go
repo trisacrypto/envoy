@@ -3,6 +3,7 @@ package interceptors
 import (
 	"context"
 	"io"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -10,13 +11,13 @@ import (
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/metrics"
-	"github.com/trisacrypto/envoy/pkg/ulids"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"go.rtnl.ai/ulid"
 )
 
 var (
@@ -24,15 +25,21 @@ var (
 	mkentropy sync.Once
 )
 
+func initEntropy() {
+	mkentropy.Do(func() {
+		entropy = ulid.Pool(func() io.Reader {
+			return ulid.Monotonic(rand.New(rand.NewSource(time.Now().UnixNano())), 0)
+		})
+	})
+}
+
 // Monitoring handles both logging and outputing Prometheus metrics (if enabled). These
 // are embedded into the same interceptor so that the monitoring uses the same logging,
 // tracing, and latency -- allowing this to be the outermost interceptor.
 // TODO: add prometheus metrics
 func UnaryMonitoring() grpc.UnaryServerInterceptor {
 	// Initialize entropy if it hasn't already been initialized.
-	mkentropy.Do(func() {
-		entropy = ulids.NewPool()
-	})
+	initEntropy()
 
 	version := pkg.Version()
 	metrics.Setup()
@@ -92,9 +99,7 @@ func UnaryMonitoring() grpc.UnaryServerInterceptor {
 // TODO: add prometheus metrics
 func StreamMonitoring() grpc.StreamServerInterceptor {
 	// Initialize entropy if it hasn't already been initialized.
-	mkentropy.Do(func() {
-		entropy = ulids.NewPool()
-	})
+	initEntropy()
 
 	version := pkg.Version()
 	metrics.Setup()
