@@ -23,7 +23,7 @@ require (
 	github.com/trisacrypto/directory v1.8.1
 	github.com/trisacrypto/trisa v1.5.0
 	github.com/urfave/cli/v2 v2.27.5
-	go.rtnl.ai/ulid v1.1.0
+	go.rtnl.ai/ulid v1.1.1
 	golang.org/x/crypto v0.29.0
 	golang.org/x/text v0.20.0
 	google.golang.org/api v0.206.0
