@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/trp/api/v1"
 	"github.com/trisacrypto/trisa/pkg/openvasp"
 	"github.com/trisacrypto/trisa/pkg/trust"
@@ -63,55 +64,13 @@ func (s *Server) VerifyTRPHeaders(c *gin.Context) {
 
 	// Set the request identifier in the outgoing response
 	c.Header(openvasp.RequestIdentifierHeader, requestIdentifier)
-
-	// If we're getting discovery requests, initialize the discovery static structs
-	static.Do(func() {
-		version = &api.TRPVersion{
-			Version: openvasp.APIVersion,
-			Vendor:  vendor,
-		}
-
-		extensions = &api.TRPExtensions{
-			Required: []string{},
-			Supported: []string{
-				extExtendedIVMS,
-				extMessageSigning,
-				extSealedEnvelope,
-				extUnsealedEnvelope,
-			},
-		}
-
-		identity = &api.Identity{
-			Name: s.conf.TRP.Identity.VASPName,
-			LEI:  s.conf.TRP.Identity.LEI,
-		}
-
-		if identity.Name == "" {
-			identity.Name = s.conf.Organization
-		}
-
-		if s.conf.TRP.UseMTLS {
-			// NOTE: ignoring errors assuming that mTLS has already been configured.
-			var certs *trust.Provider
-			switch {
-			case s.conf.TRP.Certs != "":
-				certs, _ = s.conf.TRP.LoadCerts()
-			case s.conf.Node.Certs != "":
-				certs, _ = s.conf.Node.LoadCerts()
-			}
-
-			x509, _ := certs.GetLeafCertificate()
-			block := &pem.Block{Type: "CERTIFICATE", Bytes: x509.Raw}
-			identity.Certs = string(pem.EncodeToMemory(block))
-		}
-
-	})
 }
 
 // Implementation of the Discoverability Extension: returns the version and vendor.
 // See: https://gitlab.com/OpenVASP/travel-rule-protocol/-/blob/master/extensions/discoverability.md
 func (s *Server) TRPVersion(c *gin.Context) {
 	log.Debug().Msg("trp version discoverability request received")
+	InitializeIdentity(s.conf)
 	c.JSON(http.StatusOK, version)
 }
 
@@ -119,6 +78,7 @@ func (s *Server) TRPVersion(c *gin.Context) {
 // See: https://gitlab.com/OpenVASP/travel-rule-protocol/-/blob/master/extensions/discoverability.md
 func (s *Server) TRPExtensions(c *gin.Context) {
 	log.Debug().Msg("extensions discoverability request received")
+	InitializeIdentity(s.conf)
 	c.JSON(http.StatusOK, extensions)
 }
 
@@ -140,5 +100,52 @@ func (s *Server) Uptime(c *gin.Context) {
 }
 
 func (s *Server) Identity(c *gin.Context) {
+	InitializeIdentity(s.conf)
 	c.JSON(http.StatusOK, identity)
+}
+
+// InitializeIdentity creates the TRP discoverability objects version, extensions,
+// and identity. These objects are static and do not change during the lifetime of the
+// server and can only be set once with an internal mutex.
+func InitializeIdentity(conf config.Config) {
+	static.Do(func() {
+		version = &api.TRPVersion{
+			Version: openvasp.APIVersion,
+			Vendor:  vendor,
+		}
+
+		extensions = &api.TRPExtensions{
+			Required: []string{},
+			Supported: []string{
+				extExtendedIVMS,
+				extMessageSigning,
+				extSealedEnvelope,
+				extUnsealedEnvelope,
+			},
+		}
+
+		identity = &api.Identity{
+			Name: conf.TRP.Identity.VASPName,
+			LEI:  conf.TRP.Identity.LEI,
+		}
+
+		if identity.Name == "" {
+			identity.Name = conf.Organization
+		}
+
+		if conf.TRP.UseMTLS {
+			// NOTE: ignoring errors assuming that mTLS has already been configured.
+			var certs *trust.Provider
+			switch {
+			case conf.TRP.Certs != "":
+				certs, _ = conf.TRP.LoadCerts()
+			case conf.Node.Certs != "":
+				certs, _ = conf.Node.LoadCerts()
+			}
+
+			x509, _ := certs.GetLeafCertificate()
+			block := &pem.Block{Type: "CERTIFICATE", Bytes: x509.Raw}
+			identity.Certs = string(pem.EncodeToMemory(block))
+		}
+	})
 }

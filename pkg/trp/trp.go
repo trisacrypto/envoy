@@ -21,6 +21,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
+	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
+	"github.com/trisacrypto/trisa/pkg/trust"
 )
 
 type Server struct {
@@ -71,7 +73,6 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 	}
 
 	// Create the http server if enabled
-	// TODO: set up TLS or mTLS as required
 	s.srv = &http.Server{
 		Addr:              s.conf.TRP.BindAddr,
 		Handler:           s.router,
@@ -79,6 +80,23 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 		ReadHeaderTimeout: 20 * time.Second,
 		WriteTimeout:      20 * time.Second,
 		IdleTimeout:       120 * time.Second,
+	}
+
+	// Configure mTLS if enabled
+	if s.conf.TRP.UseMTLS {
+		var identity *trust.Provider
+		if identity, err = conf.TRP.LoadCerts(); err != nil {
+			return nil, fmt.Errorf("could not load mtls certs: %w", err)
+		}
+
+		var pool trust.ProviderPool
+		if pool, err = conf.TRP.LoadPool(); err != nil {
+			return nil, fmt.Errorf("could not load mtls pool: %w", err)
+		}
+
+		if s.srv.TLSConfig, err = mtls.Config(identity, pool); err != nil {
+			return nil, fmt.Errorf("could not configure mtls: %w", err)
+		}
 	}
 
 	return s, nil
