@@ -13,6 +13,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/trp/api/v1"
 	"github.com/trisacrypto/trisa/pkg/openvasp"
+	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
 	"github.com/trisacrypto/trisa/pkg/trust"
 )
 
@@ -33,14 +34,14 @@ const (
 
 // OnInquiry implements the openvasp.InquiryHandler interface for handling incoming TRP
 // requests and creating transactions in the database.
-func (s *Server) OnInquiry(*openvasp.Inquiry) (*openvasp.InquiryResolution, error) {
+func (s *Server) OnInquiry(*trp.Inquiry) (*trp.Resolution, error) {
 	log.Info().Msg("TRP inquiry received")
 	return nil, errors.New("endpoint not implemented")
 }
 
 // OnConfirmation implements the openvasp.ConfirmationHandler interface for finalizing
 // TRP transfer requests with details about the completed on-chain transaction.
-func (s *Server) OnConfirmation(*openvasp.Confirmation) error {
+func (s *Server) OnConfirmation(*trp.Confirmation) error {
 	log.Info().Msg("TRP confirmation received")
 	return errors.New("endpoint not implemented")
 }
