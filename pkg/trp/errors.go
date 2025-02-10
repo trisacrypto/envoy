@@ -1,10 +1,20 @@
 package trp
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trisacrypto/envoy/pkg/trp/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+)
+
+var (
+	ErrMethodNotAllowed         = errors.New(http.StatusText(http.StatusMethodNotAllowed))
+	ErrMissingRequestIdentifier = errors.New("missing request identifier in header")
+	ErrSupportedVersions        = fmt.Errorf("unsupported API version; this server supports %s", SupportedAPIVersions)
+	ErrMalformedContentType     = errors.New("malformed content-type header")
+	ErrUnsupportedContentType   = errors.New("content-type header must be application/json")
 )
 
 // Returns a not found JSON response

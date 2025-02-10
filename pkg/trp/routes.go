@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/metrics"
-	"github.com/trisacrypto/trisa/pkg/openvasp"
 )
 
 func (s *Server) setupRoutes() error {
@@ -20,12 +19,16 @@ func (s *Server) setupRoutes() error {
 
 		// Maintenance mode middleware to return unavailable
 		s.Maintenance(),
+
+		// TRP API version check is required for all routes
+		APICheck,
 	}
 
 	// Kubernetes liveness probes added before middleware.
 	s.router.GET("/healthz", s.Healthz)
 	s.router.GET("/livez", s.Healthz)
 	s.router.GET("/readyz", s.Readyz)
+	s.router.GET("/status", s.Status)
 
 	// Prometheus metrics handler added before middleware.
 	// Note metrics will be served at /metrics
@@ -43,27 +46,18 @@ func (s *Server) setupRoutes() error {
 	s.router.NoMethod(s.NotAllowed)
 
 	// TRP Discoverability
-	s.router.GET("/version", s.VerifyTRPHeaders, s.TRPVersion)
-	s.router.GET("/uptime", s.VerifyTRPHeaders, s.Uptime)
-	s.router.GET("/extensions", s.VerifyTRPHeaders, s.TRPExtensions)
-	s.router.GET("/identity", s.VerifyTRPHeaders, s.Identity)
+	s.router.GET("/version", s.TRPVersion)
+	s.router.GET("/uptime", s.Uptime)
+	s.router.GET("/extensions", s.TRPExtensions)
+	s.router.GET("/identity", s.Identity)
 
 	// TRP Inquiry Routes
-	inquiry := gin.WrapH(openvasp.TransferInquiry(s))
-	s.router.POST("/transfers", inquiry)
-	s.router.POST("/transfers/a/:accountID", inquiry)
-	s.router.POST("/transfers/w/:walletID", inquiry)
+	s.router.POST("/transfers", VerifyTRPCore, s.Inquiry)
+	s.router.POST("/transfers/a/:accountID", VerifyTRPCore, s.Inquiry)
+	s.router.POST("/transfers/w/:walletID", VerifyTRPCore, s.Inquiry)
 
 	// TRP Confirmation Routes
-	confirm := gin.WrapH(openvasp.TransferConfirmation(s))
-	s.router.POST("/transfers/:envelopeID/confirm", confirm)
-
-	// API Routes
-	v1 := s.router.Group("/v1")
-	{
-		// Status/Heartbeat endpoint
-		v1.GET("/status", s.Status)
-	}
+	s.router.POST("/transfers/:envelopeID/confirm", VerifyTRPCore, s.Confirmation)
 
 	return nil
 }
