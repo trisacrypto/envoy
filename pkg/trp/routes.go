@@ -56,7 +56,8 @@ func (s *Server) setupRoutes() error {
 	s.router.POST("/transfers/a/:accountID", VerifyTRPCore, s.Inquiry)
 	s.router.POST("/transfers/w/:walletID", VerifyTRPCore, s.Inquiry)
 
-	// TRP Confirmation Routes
+	// TRP Callback Routes
+	s.router.POST("/transfers/:envelopeID/resolve", VerifyTRPCore, s.Resolve)
 	s.router.POST("/transfers/:envelopeID/confirm", VerifyTRPCore, s.Confirmation)
 
 	return nil
