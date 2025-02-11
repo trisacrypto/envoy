@@ -123,6 +123,7 @@ func (s *Server) setupRoutes() (err error) {
 		sunrise.GET("/review", sunriseAuth, s.SunriseMessageReview)
 		sunrise.POST("/reject", sunriseAuth, s.SunriseMessageReject)
 		sunrise.POST("/accept", sunriseAuth, s.SunriseMessageAccept)
+		sunrise.GET("/download", sunriseAuth, s.SunriseMessageDownload)
 
 		// The send sunrise message page for authenticated envoy users.
 		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)

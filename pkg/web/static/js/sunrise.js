@@ -1,3 +1,5 @@
+import { setSuccessToast } from "./utils.js";
+
 document.body.addEventListener('htmx:configRequest', (e) => {
   if (e.detail.path === '/v1/sunrise/send' && e.detail.verb === 'post') {
     const params = e.detail.parameters;
@@ -40,6 +42,6 @@ document.body.addEventListener('htmx:configRequest', (e) => {
 
 document.body.addEventListener('htmx:afterRequest', (e) => {
   if (e.detail.requestConfig.path === '/v1/sunrise/send' && e.detail.requestConfig.verb === 'post' && e.detail.successful) {
-    setSuccessToast('Success! A new customer account has been created.');
+    setSuccessToast('Success! The sunrise message has been sent.');
   }
 });
