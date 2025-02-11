@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -300,6 +301,11 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 }
 
 func (s *Server) SunriseMessageAccept(c *gin.Context) {
+	c.HTML(http.StatusOK, "sunrise_accept.html", scene.New(c))
+	if true {
+		return
+	}
+
 	var (
 		err        error
 		in         *api.Envelope
@@ -455,6 +461,75 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 	// This is currently an HTMX response so simply respond with a 200 so that the
 	// success toast message pops up in the front end.
 	c.HTML(http.StatusOK, "sunrise_accept.html", scene.New(c))
+}
+
+func (s *Server) SunriseMessageDownload(c *gin.Context) {
+	var (
+		err        error
+		claims     *auth.Claims
+		sunriseID  ulid.ULID
+		sunriseMsg *models.Sunrise
+		env        *models.SecureEnvelope
+		decrypted  *envelope.Envelope
+		out        *api.Envelope
+	)
+
+	if claims, err = auth.GetClaims(c); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if _, sunriseID, err = claims.SubjectID(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Retrieve the sunrise record from the database
+	ctx := c.Request.Context()
+	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Load the latest secure envelope from the database to populate the complete
+	// details since the incoming envelope will only have beneficiary info.
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionAny); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Remove the secure envelope since it cannot be decrypted by the user
+	out.SecureEnvelope = nil
+
+	// Marshal the envelope to JSON
+	var data []byte
+	if data, err = json.MarshalIndent(out, "", "  "); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
+	// Download the JSON data of the envelope
+	fileName := fmt.Sprintf("travel-rule-message-%s.json", sunriseMsg.EnvelopeID.String())
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("ACcept-Length", fmt.Sprintf("%d", len(data)))
+	c.Data(http.StatusOK, binding.MIMEJSON, data)
 }
 
 func (s *Server) SendSunrise(c *gin.Context) {
