@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
 var (
@@ -39,6 +40,89 @@ func makePrepare(travelAddress string) *api.Prepare {
 		Originator:    makeRandPerson("US", network),
 		Beneficiary:   makeRandPerson("DE", network),
 		Transfer:      makeTransfer(network),
+	}
+}
+
+func makeIdentity(network string) *ivms101.IdentityPayload {
+	loadPeople()
+	loadAddresses()
+
+	originator := makeRandPerson("US", network)
+	beneficiary := makeRandPerson("DE", network)
+
+	return &ivms101.IdentityPayload{
+		Originator: &ivms101.Originator{
+			OriginatorPersons: []*ivms101.Person{
+				originator.NaturalPerson(),
+			},
+			AccountNumbers: []string{
+				originator.CryptoAddress,
+			},
+		},
+		Beneficiary: &ivms101.Beneficiary{
+			BeneficiaryPersons: []*ivms101.Person{
+				beneficiary.NaturalPerson(),
+			},
+			AccountNumbers: []string{
+				beneficiary.CryptoAddress,
+			},
+		},
+		OriginatingVasp: &ivms101.OriginatingVasp{
+			OriginatingVasp: &ivms101.Person{
+				Person: &ivms101.Person_LegalPerson{
+					LegalPerson: &ivms101.LegalPerson{
+						Name: &ivms101.LegalPersonName{
+							NameIdentifiers: []*ivms101.LegalPersonNameId{
+								{
+									LegalPersonName:               "FSI Testing",
+									LegalPersonNameIdentifierType: ivms101.LegalPersonNameTypeCode_LEGAL_PERSON_NAME_TYPE_CODE_LEGL,
+								},
+							},
+						},
+						GeographicAddresses: []*ivms101.Address{
+							{
+								AddressType: ivms101.AddressTypeCode_ADDRESS_TYPE_CODE_BIZZ,
+								AddressLine: []string{"1234 Testing Lane", "Columbia, MD 21044"},
+								Country:     "US",
+							},
+						},
+						NationalIdentification: &ivms101.NationalIdentification{
+							NationalIdentifier:     "G9OT00BBLDXWIPEIVS87",
+							NationalIdentifierType: ivms101.NationalIdentifierLEIX,
+						},
+						CountryOfRegistration: "US",
+					},
+				},
+			},
+		},
+		BeneficiaryVasp: &ivms101.BeneficiaryVasp{
+			BeneficiaryVasp: &ivms101.Person{
+				Person: &ivms101.Person_LegalPerson{
+					LegalPerson: &ivms101.LegalPerson{
+						Name: &ivms101.LegalPersonName{
+							NameIdentifiers: []*ivms101.LegalPersonNameId{
+								{
+									LegalPersonName:               "Localhost Development",
+									LegalPersonNameIdentifierType: ivms101.LegalPersonNameTypeCode_LEGAL_PERSON_NAME_TYPE_CODE_LEGL,
+								},
+							},
+						},
+						GeographicAddresses: []*ivms101.Address{
+							{
+								AddressType: ivms101.AddressTypeCode_ADDRESS_TYPE_CODE_BIZZ,
+								AddressLine: []string{"1803 Welsh Bush Rd", "Utica, MN 55104"},
+								Country:     "US",
+							},
+						},
+						NationalIdentification: &ivms101.NationalIdentification{
+							NationalIdentifier:     "0FOH00SEASDBQDSGOI84",
+							NationalIdentifierType: ivms101.NationalIdentifierLEIX,
+						},
+						CountryOfRegistration: "US",
+					},
+				},
+			},
+		},
 	}
 }
 

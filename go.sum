@@ -260,8 +260,8 @@ github.com/trisacrypto/directory v1.8.1 h1:DzBNkgF2imT5oB5lSUF9aFTt7FDBywVSS82mM
 github.com/trisacrypto/directory v1.8.1/go.mod h1:/Np2wV158WgATrvTv8KCTNoZ13SRHLbiDds1Dl+Mo04=
 github.com/trisacrypto/lei v1.0.0 h1:LKrwOgYjW+ljzBmN6hGgBbGFAktoRmovyY7ZYZB5/uI=
 github.com/trisacrypto/lei v1.0.0/go.mod h1:OsJZIYPShoSETOphRXAIlHwwesIsvo5PPpEemp/wGZI=
-github.com/trisacrypto/trisa v1.5.0 h1:uf3IRfNzHFjLEJnKlIHqxM8Mylmd2spmDUoY/E2BySc=
-github.com/trisacrypto/trisa v1.5.0/go.mod h1:zZCYwaoipb7nvSbKiJDjDf9gPNJKYWMk1WoPXcVkERY=
+github.com/trisacrypto/trisa v1.6.0 h1:+HCci/9uKjBsAfT5pIdJVZYF6kGttAzFogah8o0VLG8=
+github.com/trisacrypto/trisa v1.6.0/go.mod h1:zZCYwaoipb7nvSbKiJDjDf9gPNJKYWMk1WoPXcVkERY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
@@ -293,6 +293,8 @@ go.opentelemetry.io/otel/trace v1.32.0 h1:WIC9mYrXf8TmY/EXuULKc8hR17vE+Hjv2cssQD
 go.opentelemetry.io/otel/trace v1.32.0/go.mod h1:+i4rkvCraA+tG6AzwloGaCtkx53Fa+L+V8e9a7YvhT8=
 go.rtnl.ai/ulid v1.1.1 h1:7zDInpWEeiKFcDoJyonails5lQxwOr4wc8K4TAuOVNE=
 go.rtnl.ai/ulid v1.1.1/go.mod h1:F95yPYwEEZdz5sM4GC6buziff6xD+7XVcGZ/8n37Cn0=
+go.rtnl.ai/x v1.1.0 h1:dp+7ZptUkGOm0NBNiqe4oB0mKeWhzTIzFM5bhQHis8Y=
+go.rtnl.ai/x v1.1.0/go.mod h1:byb5sLYI3gv3FwRAu8etl167tYoRpyCUHDDxXRas1eU=
 golang.org/x/arch v0.12.0 h1:UsYJhbzPYGsT0HbEdmYcqtCv8UNGvnaL561NnIUvaKg=
 golang.org/x/arch v0.12.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

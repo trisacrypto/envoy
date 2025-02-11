@@ -101,7 +101,7 @@ type TRPConfig struct {
 	Maintenance bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the trp node to maintenance mode; inherited from parent"`
 	Enabled     bool   `default:"true" desc:"if false, the trp server will not be run"`
 	BindAddr    string `default:":8200" split_words:"true" desc:"the ip address and port to bind the trp server on"`
-	UseMTLS     bool   `default:"true" split_words:"true" desc:"if true the trp server will require mTLS authentication, otherwise it will use simple TLS"`
+	UseMTLS     bool   `default:"true" split_words:"true" desc:"if true the trp server will require mTLS authentication"`
 	Identity    TRPIdentityConfig
 }
 

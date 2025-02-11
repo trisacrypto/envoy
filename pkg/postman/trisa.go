@@ -135,6 +135,8 @@ func (p *TRISAPacket) ResolveCounterparty() (err error) {
 			}
 		}
 
+		// TRISA counterparties are guaranteed to be in the database because they
+		// come from the GDS and are synchronized.
 		p.Counterparty = p.PeerInfo.Model()
 	}
 	return nil

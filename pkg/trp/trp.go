@@ -17,23 +17,46 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/x/semver"
 
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
+	"github.com/trisacrypto/trisa/pkg/openvasp/extensions/discoverability"
+	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
+	"github.com/trisacrypto/trisa/pkg/trisa/mtls"
+	"github.com/trisacrypto/trisa/pkg/trust"
 )
+
+const (
+	SupportedAPIVersions = ">=2.1.0 <3.2.0"
+)
+
+var (
+	supportedAPIVersions semver.Specification
+)
+
+func init() {
+	var err error
+	if supportedAPIVersions, err = semver.Range(SupportedAPIVersions); err != nil {
+		panic(fmt.Errorf("could not parse supported API versions: %w", err))
+	}
+}
 
 type Server struct {
 	sync.RWMutex
-	conf    config.Config
-	store   store.Store
-	srv     *http.Server
-	router  *gin.Engine
-	url     *url.URL
-	trisa   network.Network
-	started time.Time
-	healthy bool
-	ready   bool
+	conf       config.Config
+	store      store.Store
+	srv        *http.Server
+	router     *gin.Engine
+	url        *url.URL
+	trisa      network.Network
+	version    discoverability.Version
+	extensions discoverability.Extensions
+	identity   trp.Identity
+	started    time.Time
+	healthy    bool
+	ready      bool
 }
 
 func New(conf config.Config, store store.Store, network network.Network) (s *Server, err error) {
@@ -71,7 +94,6 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 	}
 
 	// Create the http server if enabled
-	// TODO: set up TLS or mTLS as required
 	s.srv = &http.Server{
 		Addr:              s.conf.TRP.BindAddr,
 		Handler:           s.router,
@@ -79,6 +101,23 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 		ReadHeaderTimeout: 20 * time.Second,
 		WriteTimeout:      20 * time.Second,
 		IdleTimeout:       120 * time.Second,
+	}
+
+	// Configure mTLS if enabled
+	if s.conf.TRP.UseMTLS {
+		var identity *trust.Provider
+		if identity, err = conf.TRP.LoadCerts(); err != nil {
+			return nil, fmt.Errorf("could not load mtls certs: %w", err)
+		}
+
+		var pool trust.ProviderPool
+		if pool, err = conf.TRP.LoadPool(); err != nil {
+			return nil, fmt.Errorf("could not load mtls pool: %w", err)
+		}
+
+		if s.srv.TLSConfig, err = mtls.Config(identity, pool); err != nil {
+			return nil, fmt.Errorf("could not configure mtls: %w", err)
+		}
 	}
 
 	return s, nil
@@ -90,6 +129,10 @@ func (s *Server) Serve(errc chan<- error) (err error) {
 		log.Warn().Bool("enabled", s.conf.TRP.Enabled).Msg("openvasp/trp server is not enabled")
 		return nil
 	}
+
+	// Initialize the discoverability endpoints
+	s.initializeDiscoverability()
+	s.initializeIdentity()
 
 	// Create a socket to listen on and infer the final URL.
 	// NOTE: if the bindaddr is 127.0.0.1:0 for testing, a random port will be assigned,

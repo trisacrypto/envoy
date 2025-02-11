@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -84,7 +85,7 @@ func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) (
 	return out, nil
 }
 
-const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :created, :modified)"
+const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, lei, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :lei, :created, :modified)"
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
 	// Basic validation
@@ -161,20 +162,19 @@ func retrieveCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (counterparty *m
 	return counterparty, nil
 }
 
-const lookupCounterpartySQL = "SELECT * FROM counterparties WHERE common_name=:commonName"
+const (
+	countCounterpartySQL  = "SELECT count(id) FROM counterparties WHERE %s=:%s"
+	lookupCounterpartySQL = "SELECT * FROM counterparties WHERE %s=:%s LIMIT 1"
+)
 
-func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (counterparty *models.Counterparty, err error) {
+func (s *Store) LookupCounterparty(ctx context.Context, field, value string) (counterparty *models.Counterparty, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	counterparty = &models.Counterparty{}
-	if err = counterparty.Scan(tx.QueryRow(lookupCounterpartySQL, sql.Named("commonName", commonName))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
+	if counterparty, err = lookupCounterparty(tx, field, value); err != nil {
 		return nil, err
 	}
 
@@ -182,7 +182,34 @@ func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (coun
 	return counterparty, nil
 }
 
-const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, modified=:modified WHERE id=:id"
+func lookupCounterparty(tx *sql.Tx, field, value string) (counterparty *models.Counterparty, err error) {
+	// Check to make sure that the counterparty exists and there is only 1 matching counterparty
+	var count int
+	query := fmt.Sprintf(countCounterpartySQL, field, field)
+	if err = tx.QueryRow(query, sql.Named(field, value)).Scan(&count); err != nil {
+		return nil, err
+	}
+
+	switch {
+	case count == 0:
+		return nil, dberr.ErrNotFound
+	case count > 1:
+		return nil, dberr.ErrAmbiguous
+	}
+
+	counterparty = &models.Counterparty{}
+	query = fmt.Sprintf(lookupCounterpartySQL, field, field)
+	if err = counterparty.Scan(tx.QueryRow(query, sql.Named(field, value))); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return counterparty, nil
+}
+
+const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, lei=:lei, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
 	// Basic validation before starting a transaction

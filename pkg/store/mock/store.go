@@ -139,7 +139,7 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 	return nil, nil
 }
 
-func (s *Store) LookupCounterparty(ctx context.Context, commonName string) (*models.Counterparty, error) {
+func (s *Store) LookupCounterparty(ctx context.Context, field, value string) (*models.Counterparty, error) {
 	return nil, nil
 }
 

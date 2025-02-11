@@ -12,10 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/directory/pkg/gds/config"
 	"github.com/trisacrypto/directory/pkg/store"
 	dbconf "github.com/trisacrypto/directory/pkg/store/config"
 	"github.com/trisacrypto/directory/pkg/utils/logger"
+	openvasp "github.com/trisacrypto/trisa/pkg/openvasp/client"
+	"github.com/trisacrypto/trisa/pkg/openvasp/extensions/discoverability"
+	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
 	pb "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
 
 	"github.com/trisacrypto/envoy/pkg"
@@ -34,6 +38,7 @@ var (
 	conf               config.Config
 	envoyClient        api.Client
 	counterpartyClient api.Client
+	trpClient          *openvasp.Client
 )
 
 //go:embed fixtures/*
@@ -188,6 +193,36 @@ func main() {
 			Before:   connectEnvoy,
 			Category: "tests",
 			Flags:    []cli.Flag{},
+		},
+		{
+			Name:     "tests:trp",
+			Usage:    "start a new trp transaction with envoy",
+			Action:   sendTRP,
+			Before:   connectTRP,
+			Category: "tests",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "travel-address",
+					Aliases:  []string{"a"},
+					Usage:    "the travel address of the node to send the TRP transaction to",
+					Required: true,
+				},
+			},
+		},
+		{
+			Name:     "tests:trp-discovery",
+			Usage:    "send trp discovery requests",
+			Action:   sendTRPDiscovery,
+			Before:   connectTRP,
+			Category: "tests",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "endpoint",
+					Aliases:  []string{"e"},
+					Usage:    "the trp endpoint to send the discovery requests to",
+					Required: true,
+				},
+			},
 		},
 	}
 
@@ -373,6 +408,77 @@ func sendTRISA(c *cli.Context) (err error) {
 	return nil
 }
 
+func sendTRP(c *cli.Context) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	envelopeID := uuid.New().String()
+	inquiry := &trp.Inquiry{
+		Info: &trp.Info{
+			Address:           c.String("travel-address"),
+			RequestIdentifier: envelopeID,
+		},
+		Asset: &trp.Asset{
+			DTI: "4H95J0R2X",
+		},
+		Amount:     randomBTC(),
+		Callback:   fmt.Sprintf("http://counterparty.local:9200/transfers/%s", envelopeID),
+		IVMS101:    makeIdentity("BTC"),
+		Extensions: nil,
+	}
+
+	var reply *trp.Resolution
+	if reply, err = trpClient.Inquiry(ctx, inquiry); err != nil {
+		return cli.Exit(fmt.Errorf("could not send trp inquiry: %w", err), 1)
+	}
+
+	// Prepare to write response to stdout
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+
+	if err = encoder.Encode(reply); err != nil {
+		return cli.Exit(fmt.Errorf("could not print reply: %w", err), 1)
+	}
+
+	return nil
+}
+
+func sendTRPDiscovery(c *cli.Context) (err error) {
+	address := c.String("endpoint")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Prepare to write response to stdout
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+
+	var identity *trp.Identity
+	if identity, err = trpClient.Identity(ctx, address); err != nil {
+		return cli.Exit(fmt.Errorf("could not get trp identity: %w", err), 1)
+	}
+	encoder.Encode(identity)
+
+	var version *discoverability.Version
+	if version, err = trpClient.Version(ctx, address); err != nil {
+		return cli.Exit(fmt.Errorf("could not get trp version: %w", err), 1)
+	}
+	encoder.Encode(version)
+
+	var extensions *discoverability.Extensions
+	if extensions, err = trpClient.Extensions(ctx, address); err != nil {
+		return cli.Exit(fmt.Errorf("could not get trp extensions: %w", err), 1)
+	}
+	encoder.Encode(extensions)
+
+	var uptime discoverability.Uptime
+	if uptime, err = trpClient.Uptime(ctx, address); err != nil {
+		return cli.Exit(fmt.Errorf("could not get trp uptime: %w", err), 1)
+	}
+	fmt.Fprintf(os.Stdout, "uptime: %s\n", time.Duration(uptime))
+
+	return nil
+}
+
 //===========================================================================
 // Before and After
 //===========================================================================
@@ -491,6 +597,13 @@ func connectCounterparty(c *cli.Context) (err error) {
 	}
 
 	log.Debug().Str("endpoint", endpoint).Msg("connected to counterparty")
+	return nil
+}
+
+func connectTRP(c *cli.Context) (err error) {
+	if trpClient, err = openvasp.New(); err != nil {
+		return cli.Exit(fmt.Errorf("could not create trp client: %w", err), 1)
+	}
 	return nil
 }
 

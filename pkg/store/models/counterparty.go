@@ -19,6 +19,9 @@ const (
 	ProtocolTRISA       = "trisa"
 	ProtocolTRP         = "trp"
 	ProtocolSunrise     = "sunrise"
+	FieldCommonName     = "common_name"
+	FieldName           = "name"
+	FieldLEI            = "lei"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
@@ -37,6 +40,7 @@ type Counterparty struct {
 	VASPCategories      VASPCategories       // the categories of how the VASP handles crypto assets
 	VerifiedOn          sql.NullTime         // the datetime the VASP was verified in the directory (directory only)
 	IVMSRecord          *ivms101.LegalPerson // IVMS101 record for the counterparty
+	LEI                 sql.NullString       // Legal Entity Identifier for the counterparty (generally for TRP)
 	contacts            []*Contact           // Associated contacts if any
 }
 
@@ -59,6 +63,7 @@ func (c *Counterparty) Scan(scanner Scanner) error {
 		&c.IVMSRecord,
 		&c.Created,
 		&c.Modified,
+		&c.LEI,
 	)
 }
 
@@ -95,6 +100,7 @@ func (c *Counterparty) Params() []any {
 		sql.Named("ivms101", c.IVMSRecord),
 		sql.Named("created", c.Created),
 		sql.Named("modified", c.Modified),
+		sql.Named("lei", c.LEI),
 	}
 }
 

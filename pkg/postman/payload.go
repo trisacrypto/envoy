@@ -2,13 +2,17 @@ package postman
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func TransactionFromPayload(in *api.Payload) *models.Transaction {
@@ -130,4 +134,66 @@ func FindAccount(person any) (account string) {
 
 	// Return whatever non-zero account we found, or empty string if we found nothing.
 	return account
+}
+
+//===========================================================================
+// TRP Payloads
+//===========================================================================
+
+func PayloadFromInquiry(inquiry *trp.Inquiry) (payload *api.Payload, err error) {
+	payload = &api.Payload{
+		SentAt: time.Now().Format(time.RFC3339), // The TRP inquiry is the first message, so sent at is now.
+	}
+
+	if payload.Identity, err = anypb.New(inquiry.IVMS101); err != nil {
+		return nil, err
+	}
+
+	var network string
+	asset := make(map[string]string)
+	if inquiry.Asset != nil {
+		if inquiry.Asset.DTI != "" {
+			asset["dti"] = inquiry.Asset.DTI
+			network = inquiry.Asset.DTI
+		}
+		if inquiry.Asset.SLIP044 != 0 {
+			asset["slip044"] = inquiry.Asset.SLIP044.Symbol()
+			network = inquiry.Asset.SLIP044.Symbol()
+		}
+	}
+
+	transaction := &generic.TRP{
+		EnvelopeId: inquiry.Info.RequestIdentifier,
+		Headers: &generic.TRPInfo{
+			Version:           inquiry.Info.APIVersion,
+			RequestIdentifier: inquiry.Info.RequestIdentifier,
+			Extensions:        inquiry.Info.APIExtensions,
+		},
+		Message: &generic.TRP_Inquiry{
+			Inquiry: &generic.TRPInquiry{
+				Asset:    asset,
+				Amount:   inquiry.Amount,
+				Callback: inquiry.Callback,
+			},
+		},
+		Transaction: &generic.Transaction{
+			Originator:  FindAccount(inquiry.IVMS101.Originator),
+			Beneficiary: FindAccount(inquiry.IVMS101.Beneficiary),
+			Amount:      inquiry.Amount,
+			Network:     network,
+		},
+	}
+
+	if len(inquiry.Extensions) > 0 {
+		var extensions []byte
+		if extensions, err = json.Marshal(inquiry.Extensions); err == nil {
+			transaction.Extensions = string(extensions)
+		}
+	}
+
+	if payload.Transaction, err = anypb.New(transaction); err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }
