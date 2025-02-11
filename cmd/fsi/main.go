@@ -20,7 +20,6 @@ import (
 	openvasp "github.com/trisacrypto/trisa/pkg/openvasp/client"
 	"github.com/trisacrypto/trisa/pkg/openvasp/extensions/discoverability"
 	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
-	"github.com/trisacrypto/trisa/pkg/slip0044"
 	pb "github.com/trisacrypto/trisa/pkg/trisa/gds/models/v1beta1"
 
 	"github.com/trisacrypto/envoy/pkg"
@@ -420,7 +419,7 @@ func sendTRP(c *cli.Context) (err error) {
 			RequestIdentifier: envelopeID,
 		},
 		Asset: &trp.Asset{
-			SLIP044: slip0044.CoinType_BITCOIN,
+			DTI: "4H95J0R2X",
 		},
 		Amount:     randomBTC(),
 		Callback:   fmt.Sprintf("http://counterparty.local:9200/transfers/%s", envelopeID),

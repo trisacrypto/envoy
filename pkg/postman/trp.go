@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -74,6 +75,22 @@ func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet 
 }
 
 func (p *TRPPacket) Resolve(out *trp.Resolution) (err error) {
+	// TODO: handle accepted and rejected envelopes better!
+	var transferState trisa.TransferState
+	switch {
+	case out.Approved != nil:
+		return errors.New("approved resolution not yet supported")
+	case out.Rejected != "":
+		return errors.New("rejected resolution not yet supported")
+	default:
+		transferState = trisa.TransferPending
+	}
+
+	// TODO: handle accept and reject envelopes!
+	if p.Out.Envelope, err = p.In.Envelope.Update(p.payload, envelope.WithTransferState(transferState)); err != nil {
+		p.Log.Debug().Err(err).Msg("could not prepare outgoing payload")
+		return fmt.Errorf("could not create outgoing trp resolution envelope: %w", err)
+	}
 	return nil
 }
 
@@ -83,6 +100,13 @@ func (p *TRPPacket) EnvelopeID() uuid.UUID {
 
 func (p *TRPPacket) Payload() *trisa.Payload {
 	return p.payload
+}
+
+func (p *TRPPacket) CommonName() string {
+	if p.Counterparty != nil {
+		return p.Counterparty.CommonName
+	}
+	return ""
 }
 
 // Encrypts an unencrypted incoming TRP inquiry, resolution, or confirmation message
@@ -119,6 +143,13 @@ func (p *TRPPacket) Seal(storageKey keys.PublicKey) (err error) {
 	}
 
 	return nil
+}
+
+// Returns the remote information for storage in the database using the underlying
+// resolver if available, otherwise a NULL string is returned.
+func (p *TRPPacket) Remote() sql.NullString {
+	commonName := p.CommonName()
+	return sql.NullString{Valid: commonName != "", String: commonName}
 }
 
 // Resolve counterparty through the following methods:

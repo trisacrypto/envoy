@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/trisa/pkg/openvasp"
 	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 func (s *Server) Inquiry(c *gin.Context) {
@@ -47,10 +48,10 @@ func (s *Server) Inquiry(c *gin.Context) {
 		return
 	}
 
-	if err = in.IVMS101.Validate(); err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	// if err = in.IVMS101.Validate(); err != nil {
+	// 	c.AbortWithError(http.StatusUnprocessableEntity, err)
+	// 	return
+	// }
 
 	if packet, err = postman.ReceiveTRPInquiry(in, c.Request.TLS); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -97,6 +98,21 @@ func (s *Server) Inquiry(c *gin.Context) {
 	// Handle the outgoing message
 	if err = packet.Resolve(out); err != nil {
 		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not resolve outgoing trp inquiry")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Get the storage key and seal the envelope
+	// TODO: handle the secure-trisa-envelope case where encryption is required
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey("", packet.CommonName()); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not get storage key for trp inquiry")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err = packet.Seal(storageKey); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not seal trp inquiry")
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

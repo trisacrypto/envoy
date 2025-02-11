@@ -95,6 +95,34 @@ func makeIdentity(network string) *ivms101.IdentityPayload {
 				},
 			},
 		},
+		BeneficiaryVasp: &ivms101.BeneficiaryVasp{
+			BeneficiaryVasp: &ivms101.Person{
+				Person: &ivms101.Person_LegalPerson{
+					LegalPerson: &ivms101.LegalPerson{
+						Name: &ivms101.LegalPersonName{
+							NameIdentifiers: []*ivms101.LegalPersonNameId{
+								{
+									LegalPersonName:               "Localhost Development",
+									LegalPersonNameIdentifierType: ivms101.LegalPersonNameTypeCode_LEGAL_PERSON_NAME_TYPE_CODE_LEGL,
+								},
+							},
+						},
+						GeographicAddresses: []*ivms101.Address{
+							{
+								AddressType: ivms101.AddressTypeCode_ADDRESS_TYPE_CODE_BIZZ,
+								AddressLine: []string{"1803 Welsh Bush Rd", "Utica, MN 55104"},
+								Country:     "US",
+							},
+						},
+						NationalIdentification: &ivms101.NationalIdentification{
+							NationalIdentifier:     "0FOH00SEASDBQDSGOI84",
+							NationalIdentifierType: ivms101.NationalIdentifierLEIX,
+						},
+						CountryOfRegistration: "US",
+					},
+				},
+			},
+		},
 	}
 }
 
