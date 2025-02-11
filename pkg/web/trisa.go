@@ -151,12 +151,12 @@ func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (
 
 func (s *Server) findCounterparty(ctx context.Context, uri *traddr.URL) (cp *models.Counterparty, err error) {
 	// Lookup counterparty by hostname first (e.g. the common name).
-	if cp, err = s.store.LookupCounterparty(ctx, uri.Hostname()); err != nil {
+	if cp, err = s.store.LookupCounterparty(ctx, models.FieldCommonName, uri.Hostname()); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			// If we couldn't find it, try again by endpoint
 			// NOTE: this is primarily to assist with lookups for localhost where the
 			// port number is the only differentiating aspect of the node.
-			if cp, err = s.store.LookupCounterparty(ctx, uri.Host); err != nil {
+			if cp, err = s.store.LookupCounterparty(ctx, models.FieldCommonName, uri.Host); err != nil {
 				return nil, dberr.ErrNotFound
 			}
 

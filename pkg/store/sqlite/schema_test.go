@@ -50,6 +50,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Archive Transactions",
 			Path: "0006_archive_transactions.sql",
 		},
+		{
+			ID:   7,
+			Name: "Counterparty Lei",
+			Path: "0007_counterparty_lei.sql",
+		},
 	}
 
 	for i, migration := range migrations {

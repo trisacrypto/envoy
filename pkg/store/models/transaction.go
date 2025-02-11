@@ -87,16 +87,17 @@ type SecureEnvelope struct {
 // that have database transactions to perform all operations in a single transaction
 // without concurrency issues.
 type PreparedTransaction interface {
-	Created() bool                          // Returns true if the transaction was newly created, false if it already existed
-	Fetch() (*Transaction, error)           // Fetches the current transaction record from the database
-	Update(*Transaction) error              // Update the transaction with new information; e.g. data from decryption
-	AddCounterparty(*Counterparty) error    // Add counterparty by database ULID, counterparty name, or registered directory ID; if the counterparty doesn't exist, it is created
-	UpdateCounterparty(*Counterparty) error // Update the counterparty with new information
-	AddEnvelope(*SecureEnvelope) error      // Associate a secure envelope with the prepared transaction
-	CreateSunrise(*Sunrise) error           // Create a sunrise message sent to the counterparty for the transaction
-	UpdateSunrise(*Sunrise) error           // Update the sunrise message
-	Rollback() error                        // Rollback the prepared transaction and conclude it
-	Commit() error                          // Commit the prepared transaction and conclude it
+	Created() bool                                                 // Returns true if the transaction was newly created, false if it already existed
+	Fetch() (*Transaction, error)                                  // Fetches the current transaction record from the database
+	Update(*Transaction) error                                     // Update the transaction with new information; e.g. data from decryption
+	AddCounterparty(*Counterparty) error                           // Add counterparty by database ULID, counterparty name, or registered directory ID; if the counterparty doesn't exist, it is created
+	UpdateCounterparty(*Counterparty) error                        // Update the counterparty with new information
+	LookupCounterparty(field, value string) (*Counterparty, error) // Lookup a counterparty by field and value
+	AddEnvelope(*SecureEnvelope) error                             // Associate a secure envelope with the prepared transaction
+	CreateSunrise(*Sunrise) error                                  // Create a sunrise message sent to the counterparty for the transaction
+	UpdateSunrise(*Sunrise) error                                  // Update the sunrise message
+	Rollback() error                                               // Rollback the prepared transaction and conclude it
+	Commit() error                                                 // Commit the prepared transaction and conclude it
 }
 
 // EnvelopeStorage is a subset of the PreparedTransaction interface that focuses on
