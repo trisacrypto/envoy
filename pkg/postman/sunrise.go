@@ -232,7 +232,7 @@ func (s *SunrisePacket) Pending() (err error) {
 
 // Encrypts the the "incoming" sunrise message for secure storage in the database with
 // the specifrified storage key. and also passes this key to the "outgoing" secure
-// envelope for secure encryption when that envlepe is turned into a model.
+// envelope for secure encryption when that envelope is turned into a model.
 func (s *SunrisePacket) Seal(storageKey keys.PublicKey) (err error) {
 	if storageKey == nil {
 		return ErrNoSealingKey

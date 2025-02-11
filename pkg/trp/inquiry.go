@@ -1,6 +1,7 @@
 package trp
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -39,7 +40,7 @@ func (s *Server) Inquiry(c *gin.Context) {
 
 	log.Debug().
 		Str("address", in.Info.Address).
-		Msg("processing TRP inquiry")
+		Msg("processing incoming trp inquiry")
 
 	if err = in.Validate(); err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -57,19 +58,78 @@ func (s *Server) Inquiry(c *gin.Context) {
 	}
 
 	packet.Log = log
-
-	envelopeID, _ := packet.In.Envelope.UUID()
-	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), packet.EnvelopeID()); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	// TODO: handle auto approve and auto reject
-	out = &trp.Resolution{
-		Version: openvasp.APIVersion,
+	// Rollback the prepared transaction if there are any errors in processing
+	defer packet.DB.Rollback()
+
+	// Create the transaction from the payload
+	packet.Transaction = postman.TransactionFromPayload(packet.Payload())
+
+	// Update the transaction record and add counterparty information and status
+	// TODO: this may return an invalid counterparty error, which should return a different status error
+	if err = packet.In.UpdateTransaction(); err != nil {
+		log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not update transaction details and counterparty information")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
-	log.Info().Msg("TRP inquiry received")
+	// TODO: load auto approve/reject policies for counterparty to determine response
+
+	// Determine how to construct a response back to the remote counterparty; e.g. by
+	// using the webhook, using an automated policy, or making an automatic response
+	// determined by the transfer state .
+	switch {
+	case s.WebhookEnabled():
+		if out, err = s.WebhookInquiry(packet); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	default:
+		out = &trp.Resolution{
+			Version: openvasp.APIVersion,
+		}
+	}
+
+	// Handle the outgoing message
+	if err = packet.Resolve(out); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not resolve outgoing trp inquiry")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Store Incoming Message
+	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store incoming trp inquiry in database")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Store Outgoing message
+	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing trp inquiry in database")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Update the transaction with the outgoing message info
+	if err = packet.Out.UpdateTransaction(); err != nil {
+		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not update transaction with outgoing info in database")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Commit the transaction to the database (success!)
+	if err = packet.DB.Commit(); err != nil {
+		log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not commit incoming trisa transfer to database")
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	log.Info().Bool("stored_to_database", true).Msg("incoming trp inquiry handling complete")
 	c.JSON(http.StatusOK, out)
 }
 
@@ -109,4 +169,16 @@ func TRPInfo(c *gin.Context) *trp.Info {
 	}
 
 	return info
+}
+
+//===========================================================================
+// Webhook Interactions
+//===========================================================================
+
+func (s *Server) WebhookEnabled() bool {
+	return false
+}
+
+func (s *Server) WebhookInquiry(packet *postman.TRPPacket) (out *trp.Resolution, err error) {
+	return nil, errors.New("webhook inquiry not implemented")
 }

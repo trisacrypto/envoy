@@ -13,29 +13,20 @@ import (
 	"github.com/trisacrypto/trisa/pkg/openvasp/client"
 	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
-	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
-	"google.golang.org/protobuf/types/known/anypb"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 type TRPPacket struct {
 	Packet
-	info    *trp.Info
-	mtls    *tls.ConnectionState
-	payload interface{}
+	info       *trp.Info
+	mtls       *tls.ConnectionState
+	payload    *trisa.Payload
+	message    interface{}
+	envelopeID uuid.UUID
 }
 
 func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet *TRPPacket, err error) {
-	// Make sure the info has a request identifier
-	if inquiry.Info.RequestIdentifier == "" {
-		return nil, ErrNoRequestIdentifier
-	}
-
-	// Make sure the request identifier is a parseable UUID for the database
-	if _, err = uuid.Parse(inquiry.Info.RequestIdentifier); err != nil {
-		return nil, ErrInvalidUUID
-	}
-
 	packet = &TRPPacket{
 		Packet: Packet{
 			In:      &Incoming{},
@@ -45,7 +36,17 @@ func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet 
 		},
 		info:    inquiry.Info,
 		mtls:    mtls,
-		payload: inquiry,
+		message: inquiry,
+	}
+
+	// Make sure the info has a request identifier
+	if inquiry.Info.RequestIdentifier == "" {
+		return nil, ErrNoRequestIdentifier
+	}
+
+	// Make sure the request identifier is a parseable UUID for the database
+	if packet.envelopeID, err = uuid.Parse(inquiry.Info.RequestIdentifier); err != nil {
+		return nil, ErrInvalidUUID
 	}
 
 	// Add parent to submessages
@@ -53,9 +54,7 @@ func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet 
 	packet.Out.packet = &packet.Packet
 
 	// Create the payload from the inquiry
-	// TODO: push this code back into the trp package
-	var payload *trisa.Payload
-	if payload, err = payloadFromInquiry(inquiry); err != nil {
+	if packet.payload, err = PayloadFromInquiry(inquiry); err != nil {
 		return nil, err
 	}
 
@@ -65,13 +64,61 @@ func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet 
 		envelope.WithTransferState(trisa.TransferStarted),
 	}
 
-	if packet.In.Envelope, err = envelope.New(payload, opts...); err != nil {
+	if packet.In.Envelope, err = envelope.New(packet.payload, opts...); err != nil {
 		return nil, fmt.Errorf("could not create incoming trp inquiry envelope: %w", err)
 	}
 
 	packet.In.original = packet.In.Envelope.Proto()
 	packet.Packet.resolver = packet
 	return packet, nil
+}
+
+func (p *TRPPacket) Resolve(out *trp.Resolution) (err error) {
+	return nil
+}
+
+func (p *TRPPacket) EnvelopeID() uuid.UUID {
+	return p.envelopeID
+}
+
+func (p *TRPPacket) Payload() *trisa.Payload {
+	return p.payload
+}
+
+// Encrypts an unencrypted incoming TRP inquiry, resolution, or confirmation message
+// using the specified storage key to ensure secure envelopes are always encrypted in
+// the database. This handles both the incoming and outgoing messages and should not
+// be used with the secure-trisa-envelope extension is being used.
+func (p *TRPPacket) Seal(storageKey keys.PublicKey) (err error) {
+	if storageKey == nil {
+		return ErrNoSealingKey
+	}
+
+	if !p.Out.Envelope.IsError() {
+		// Ensure the outgoing message has the same encryption key as the incoming!
+		p.Out.StorageKey = storageKey
+		p.Out.SealingKey = storageKey
+
+		if _, err = p.Out.Seal(); err != nil {
+			return fmt.Errorf("could not encrypt outgoing envelope: %w", err)
+		}
+	}
+
+	if !p.In.Envelope.IsError() {
+		if p.In.Envelope, _, err = p.In.Envelope.Encrypt(); err != nil {
+			return fmt.Errorf("could not encrypt trp message: %w", err)
+		}
+
+		if p.In.Envelope, _, err = p.In.Envelope.Seal(envelope.WithSealingKey(storageKey)); err != nil {
+			return fmt.Errorf("could not seal trp message: %w", err)
+		}
+
+		// Store the encrypted and sealed envelope as the "original" message, which will
+		// be saved in the database when s.In.Model() is called.
+		p.In.original = p.In.Envelope.Proto()
+	}
+
+	return nil
 }
 
 // Resolve counterparty through the following methods:
@@ -99,7 +146,7 @@ func (p *TRPPacket) ResolveCounterparty() (err error) {
 	}
 
 	if p.payload != nil {
-		if inquiry, ok := p.payload.(*trp.Inquiry); ok {
+		if inquiry, ok := p.message.(*trp.Inquiry); ok {
 			// Attempt to resolve the counterparty from the callback hostname
 			if callback := inquiry.Callback; callback != "" {
 				if uri, err := url.Parse(callback); err == nil {
@@ -175,23 +222,4 @@ func (p *TRPPacket) resolveCounterpartyHostname(hostnames ...string) (counterpar
 	}
 
 	return nil, ErrCounterpartyNotFound
-}
-
-// TODO: push this code to the TRP package
-func payloadFromInquiry(inquiry *trp.Inquiry) (payload *trisa.Payload, err error) {
-	payload = &trisa.Payload{
-		SentAt: time.Now().Format(time.RFC3339), // The TRP inquiry is the first message, so sent at is now.
-	}
-
-	if payload.Identity, err = anypb.New(inquiry.IVMS101); err != nil {
-		return nil, err
-	}
-
-	transaction := &generic.TRP{}
-
-	if payload.Transaction, err = anypb.New(transaction); err != nil {
-		return nil, err
-	}
-
-	return payload, nil
 }
