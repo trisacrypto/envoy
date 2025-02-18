@@ -35,11 +35,11 @@ type Counterparty struct {
 	Country             string         `json:"country"`
 	BusinessCategory    string         `json:"business_category,omitempty"`
 	VASPCategories      []string       `json:"vasp_categories,omitempty"`
-	VerifiedOn          time.Time      `json:"verified_on,omitempty"`
+	VerifiedOn          *time.Time     `json:"verified_on,omitempty"`
 	IVMSRecord          string         `json:"ivms101,omitempty"`
 	Contacts            []*Contact     `json:"contacts,omitempty"`
 	Created             time.Time      `json:"created,omitempty"`
-	Modified            time.Time      `json:"modified,omitempty"`
+	Modified            *time.Time     `json:"modified,omitempty"`
 	encoding            *EncodingQuery `json:"-"`
 }
 
@@ -80,10 +80,16 @@ func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *
 		Country:             model.Country.String,
 		BusinessCategory:    model.BusinessCategory.String,
 		VASPCategories:      model.VASPCategories,
-		VerifiedOn:          model.VerifiedOn.Time,
 		Created:             model.Created,
-		Modified:            model.Modified,
 		encoding:            encoding,
+	}
+
+	if model.VerifiedOn.Valid {
+		out.VerifiedOn = &model.VerifiedOn.Time
+	}
+
+	if !model.Modified.IsZero() {
+		out.Modified = &model.Modified
 	}
 
 	// Render the IVMS101 data as as base64 encoded JSON string
@@ -234,9 +240,8 @@ func (c *Counterparty) Validate() (err error) {
 func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 	model = &models.Counterparty{
 		Model: models.Model{
-			ID:       c.ID,
-			Created:  c.Created,
-			Modified: c.Modified,
+			ID:      c.ID,
+			Created: c.Created,
 		},
 		Source:              c.Source,
 		DirectoryID:         sql.NullString{String: c.DirectoryID, Valid: c.DirectoryID != ""},
@@ -249,8 +254,15 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 		Country:             sql.NullString{String: c.Country, Valid: c.Country != ""},
 		BusinessCategory:    sql.NullString{String: c.BusinessCategory, Valid: c.BusinessCategory != ""},
 		VASPCategories:      models.VASPCategories(c.VASPCategories),
-		VerifiedOn:          sql.NullTime{Time: c.VerifiedOn, Valid: !c.VerifiedOn.IsZero()},
 		IVMSRecord:          nil,
+	}
+
+	if c.Modified != nil {
+		model.Modified = *c.Modified
+	}
+
+	if !c.VerifiedOn.IsZero() {
+		model.VerifiedOn = sql.NullTime{Time: *c.VerifiedOn, Valid: true}
 	}
 
 	if c.IVMSRecord != "" {
@@ -349,6 +361,11 @@ func (c *Contact) Validate(create bool) (err error) {
 }
 
 func EndpointTravelAddress(endpoint, protocol string) (string, error) {
+	// Cannot generate a travel address for a sunrise Counterparty
+	if protocol == models.ProtocolSunrise {
+		return "", nil
+	}
+
 	params := make(url.Values)
 	params.Set("t", "i")
 	if protocol != "" {
