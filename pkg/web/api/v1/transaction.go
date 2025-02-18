@@ -113,8 +113,9 @@ type TransactionQuery struct {
 }
 
 type EnvelopeQuery struct {
-	Decrypt  bool `json:"decrypt" url:"decrypt,omitempty" form:"decrypt"`
-	Archives bool `json:"archives" url:"archives,omitempty" form:"archives"`
+	Decrypt   bool   `json:"decrypt" url:"decrypt,omitempty" form:"decrypt"`
+	Archives  bool   `json:"archives" url:"archives,omitempty" form:"archives"`
+	Direction string `json:"direction,omitempty" url:"direction,omitempty" form:"direction"`
 }
 
 type EnvelopeListQuery struct {
@@ -682,6 +683,24 @@ func (q *TransactionQuery) Validate() (err error) {
 	if q.Detail != DetailFull && q.Detail != DetailPreview {
 		err = ValidationError(err, IncorrectField("detail", "should either be 'full' or 'preview'"))
 	}
+	return err
+}
+
+//===========================================================================
+// Envelope Query
+//===========================================================================
+
+func (q *EnvelopeQuery) Validate() (err error) {
+	// Handle parsing and default values
+	q.Direction = strings.ToLower(strings.TrimSpace(q.Direction))
+	if q.Direction == "" {
+		q.Direction = models.DirectionAny
+	}
+
+	if q.Direction != models.DirectionAny && q.Direction != models.DirectionIn && q.Direction != models.DirectionOut {
+		err = ValidationError(err, IncorrectField("direction", "should either be 'in', 'out', or 'any'"))
+	}
+
 	return err
 }
 

@@ -7239,6 +7239,19 @@ paths:
             format: UUID
             example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
           example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+        - name: direction
+          in: query
+          description: Optionally specify the direction of the latest envelope to query
+            (e.g. the latest incoming or outgoing envelope).
+          required: false
+          default: any
+          schema:
+            type: string
+            enum:
+              - in
+              - out
+              - any
+          example: in
       responses:
         "200":
           description: Latest Payload Retrieved
