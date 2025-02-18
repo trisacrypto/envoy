@@ -35,15 +35,20 @@ func (i *Info) Validate() error {
 
 // Returns a counterparty data structure for API purposes.
 func (i *Info) Counterparty() *api.Counterparty {
-	return &api.Counterparty{
+	cp := &api.Counterparty{
 		DirectoryID:         i.ID,
 		RegisteredDirectory: i.RegisteredDirectory,
 		CommonName:          i.CommonName,
 		Endpoint:            i.Endpoint,
 		Name:                i.Name,
 		Country:             i.Country,
-		VerifiedOn:          i.VerifiedOn,
 	}
+
+	if !i.VerifiedOn.IsZero() {
+		cp.VerifiedOn = &i.VerifiedOn
+	}
+
+	return cp
 }
 
 // Returns a counterparty model data structure for TRISA interactions

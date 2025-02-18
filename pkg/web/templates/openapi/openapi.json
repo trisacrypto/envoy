@@ -722,7 +722,7 @@
             "enum": [
               "trisa",
               "trp",
-              "email"
+              "sunrise"
             ],
             "description": "the travel rule protocol used to connect to the counterparty with.",
             "example": "trisa"
@@ -743,7 +743,7 @@
             "type": "string",
             "format": "TravelAddress",
             "description": "The counterparty travel address that allows the user to identify which counterparty to use in a transfer.",
-            "example": "taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz"
+            "example": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv"
           },
           "name": {
             "type": "string",
@@ -845,7 +845,7 @@
           "protocol": "trisa",
           "common_name": "api.alice.vaspbot.net",
           "endpoint": "api.alice.vaspbot.net:443",
-          "travel_address": "taYgWCfsnPN8hsqUAZWm4TW7WrHU5qZT3GiBPpfSApGSqoPMH1D6kiNRzST5Gz",
+          "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
           "name": "AliceCoin",
           "website": "https://alice.vaspbot.net",
           "country": "GB",
@@ -1017,7 +1017,7 @@
             "enum": [
               "trisa",
               "trp",
-              "email"
+              "sunrise"
             ],
             "description": "the travel rule protocol used to connect to the counterparty with, used to filter the returned list.",
             "example": "trisa"
@@ -1027,6 +1027,12 @@
             "format": "url",
             "description": "the URL endpoint to connect to using the travel rule protocol.",
             "example": "api.alice.vaspbot.net:443"
+          },
+          "travel_address": {
+            "type": "string",
+            "format": "TravelAddress",
+            "description": "the travel address to address the counterparty with using TRP/TRISA (empty for sunrise protocol)",
+            "example": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv"
           },
           "name": {
             "type": "string",
@@ -1057,6 +1063,7 @@
           "source": "gds",
           "protocol": "trisa",
           "endpoint": "api.alice.vaspbot.net:443",
+          "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
           "name": "AliceCoin",
           "website": "https://alice.vaspbot.net",
           "country": "GB",
@@ -1082,6 +1089,7 @@
                 "source": "gds",
                 "protocol": "trisa",
                 "endpoint": "api.alice.vaspbot.net:443",
+                "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
                 "name": "AliceCoin",
                 "website": "https://alice.vaspbot.net",
                 "country": "GB",
@@ -1092,6 +1100,7 @@
                 "source": "gds",
                 "protocol": "trisa",
                 "endpoint": "api.bob.vaspbot.net:443",
+                "travel_address": "ta2VBBr9q3A5rJ17Fx6b8NW82byUzGyeUMUWmNDUfmKtr",
                 "name": "BobVASP",
                 "website": "https://bob.vaspbot.net",
                 "country": "US",
@@ -1110,6 +1119,7 @@
               "source": "gds",
               "protocol": "trisa",
               "endpoint": "api.alice.vaspbot.net:443",
+              "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
               "name": "AliceCoin",
               "website": "https://alice.vaspbot.net",
               "country": "GB",
@@ -1120,6 +1130,7 @@
               "source": "gds",
               "protocol": "trisa",
               "endpoint": "api.bob.vaspbot.net:443",
+              "travel_address": "ta2VBBr9q3A5rJ17Fx6b8NW82byUzGyeUMUWmNDUfmKtr",
               "name": "BobVASP",
               "website": "https://bob.vaspbot.net",
               "country": "US",
@@ -6484,6 +6495,7 @@
                       "source": "gds",
                       "protocol": "trisa",
                       "endpoint": "api.alice.vaspbot.net:443",
+                      "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
                       "name": "AliceCoin",
                       "website": "https://alice.vaspbot.net",
                       "country": "GB",
@@ -6494,6 +6506,7 @@
                       "source": "gds",
                       "protocol": "trisa",
                       "endpoint": "api.bob.vaspbot.net:443",
+                      "travel_address": "ta2VBBr9q3A5rJ17Fx6b8NW82byUzGyeUMUWmNDUfmKtr",
                       "name": "BobVASP",
                       "website": "https://bob.vaspbot.net",
                       "country": "US",
@@ -6700,6 +6713,7 @@
                       "source": "gds",
                       "protocol": "trisa",
                       "endpoint": "api.alice.vaspbot.net:443",
+                      "travel_address": "taVwqXdsZdDVuWE2gbQgtdYECG6sGy9E1r3213WKPGyYfDv",
                       "name": "AliceCoin",
                       "website": "https://alice.vaspbot.net",
                       "country": "GB",
@@ -6710,6 +6724,7 @@
                       "source": "gds",
                       "protocol": "trisa",
                       "endpoint": "api.bob.vaspbot.net:443",
+                      "travel_address": "ta2VBBr9q3A5rJ17Fx6b8NW82byUzGyeUMUWmNDUfmKtr",
                       "name": "BobVASP",
                       "website": "https://bob.vaspbot.net",
                       "country": "US",
