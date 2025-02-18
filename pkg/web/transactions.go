@@ -425,6 +425,7 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 	var (
 		err           error
+		in            *api.EnvelopeQuery
 		transactionID uuid.UUID
 		env           *models.SecureEnvelope
 		decrypted     *envelope.Envelope
@@ -437,9 +438,22 @@ func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 		return
 	}
 
+	// Retrieve the query parameters from the request
+	in = &api.EnvelopeQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse query parameters"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
 	// Retrieve the latest secure envelope with a payload for the transaction from the database
 	ctx := c.Request.Context()
-	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, in.Direction); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
