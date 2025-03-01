@@ -1,0 +1,35 @@
+{{ template "base" . }}
+{{ define "content" -}}
+  {{ template "sidebar" . }}
+  <main class="main-content">
+    {{ block "header" . }}
+    <div class="header">
+      <div class="container-fluid">
+        <div class="header-body">
+        {{ block "header-body" . }}
+        <div class="row align-items-end">
+          <div class="col">
+            <h6 class="header-pretitle">
+              {{ block "pretitle" . }}Overview{{ end }}
+            </h6>
+
+            <h1 class="header-title">
+              {{ block "pagetitle" . }}Dashboard{{ end }}
+            </h1>
+          </div>
+          <div class="col-auto">
+            {{ block "header-actions" . }}
+            <a href="#!" class="btn btn-primary lift">
+            Create Report
+            </a>
+            {{ end }}
+          </div>
+        {{ end }}
+        </div>
+      </div>
+    </div>
+    {{ end }}
+
+    {{ block "main" . }}{{ end }}
+  </main>
+{{- end}}

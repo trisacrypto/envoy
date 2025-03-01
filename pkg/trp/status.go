@@ -32,7 +32,7 @@ func (s *Server) Status(c *gin.Context) {
 
 	c.JSON(http.StatusOK, &api.StatusReply{
 		Status:  state,
-		Version: pkg.Version(),
+		Version: pkg.Version(false),
 		Uptime:  time.Since(s.started).String(),
 	})
 }

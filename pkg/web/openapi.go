@@ -29,7 +29,7 @@ func (s *Server) OpenAPI(c *gin.Context) {
 
 	initialize.Do(func() {
 		data = gin.H{
-			keyVersion:     pkg.Version(),
+			keyVersion:     pkg.Version(false),
 			keyOrigin:      s.conf.Web.Origin,
 			keyDescription: s.conf.Web.DocsName,
 		}

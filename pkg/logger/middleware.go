@@ -17,7 +17,7 @@ import (
 // zerolog rather than the default Gin logger which is a standard HTTP logger.
 // NOTE: we previously used github.com/dn365/gin-zerolog but wanted more customization.
 func GinLogger(server string) gin.HandlerFunc {
-	version := pkg.Version()
+	version := pkg.Version(false)
 
 	// Initialize prometheus collectors (safe to call multiple times)
 	metrics.Setup()

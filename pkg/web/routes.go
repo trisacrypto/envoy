@@ -18,13 +18,9 @@ import (
 func (s *Server) setupRoutes() (err error) {
 	// Setup HTML template renderer
 	templateFiles, _ := fs.Sub(content, "templates")
-	includes := []string{"layouts/*.html", "components/*.html"}
-	if s.router.HTMLRender, err = NewRender(templateFiles, "*.html", includes...); err != nil {
+	if s.router.HTMLRender, err = NewRender(templateFiles); err != nil {
 		return err
 	}
-
-	// NOTE: partials can't have the same names as top-level pages
-	s.router.HTMLRender.(*Render).AddPattern(templateFiles, "partials/*/*.html")
 
 	// Create CORS configuration
 	corsConf := cors.Config{
@@ -76,6 +72,11 @@ func (s *Server) setupRoutes() (err error) {
 	// NotFound and NotAllowed routes
 	s.router.NoRoute(s.NotFound)
 	s.router.NoMethod(s.NotAllowed)
+
+	// Error routes
+	s.router.GET("/not-found", s.NotFound)
+	s.router.GET("/not-allowed", s.NotAllowed)
+	s.router.GET("/error", s.InternalError)
 
 	// Static Files
 	staticFiles, _ := fs.Sub(content, "static")

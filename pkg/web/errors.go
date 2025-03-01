@@ -22,11 +22,25 @@ var (
 	ErrIDMismatch        = errors.New("resource id does not match target")
 )
 
+// Logs the error with c.Error and negotiates the response. If HTML is requested by the
+// Accept header, then a 500 error page is displayed. If JSON is requested, then the
+// error is rendered as a JSON response. If a non error is passed as err then no error
+// is logged to the context and it is treated as a message to the user.
+func (s *Server) Error(c *gin.Context, err error) {
+	c.Error(err)
+	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLName: "errors/status/500.html",
+		HTMLData: scene.New(c).Error(err).WithEmail(s.conf.Email.SupportEmail),
+		JSONData: api.Error(err),
+	})
+}
+
 // Renders the "not found page"
 func (s *Server) NotFound(c *gin.Context) {
 	c.Negotiate(http.StatusNotFound, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLName: "404.html",
+		HTMLName: "errors/status/404.html",
 		HTMLData: scene.New(c),
 		JSONData: api.NotFound,
 	})
@@ -36,8 +50,19 @@ func (s *Server) NotFound(c *gin.Context) {
 func (s *Server) NotAllowed(c *gin.Context) {
 	c.Negotiate(http.StatusMethodNotAllowed, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLName: "405.html",
+		HTMLName: "errors/status/405.html",
 		HTMLData: scene.New(c),
 		JSONData: api.NotAllowed,
+	})
+}
+
+// Renders the "internal server error page"
+// TODO: handle htmx error redirects with error message in the context.
+func (s *Server) InternalError(c *gin.Context) {
+	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLName: "errors/status/500.html",
+		HTMLData: scene.New(c).Error(nil).WithEmail(s.conf.Email.SupportEmail),
+		JSONData: api.InternalError,
 	})
 }

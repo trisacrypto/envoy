@@ -15,7 +15,8 @@ import (
 
 var (
 	// Compute the version of the package at runtime so it is static for all contexts.
-	version = pkg.Version()
+	version      = pkg.Version(false)
+	shortVersion = pkg.Version(true)
 
 	// Configuration values set from the global configuration to be included in context.
 	// SunriseEnabled is true iff sunrise is enabled and email messaging is available
@@ -25,6 +26,7 @@ var (
 // Keys for default Scene context items
 const (
 	Version         = "Version"
+	ShortVersion    = "ShortVersion"
 	Page            = "Page"
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
@@ -37,14 +39,16 @@ type Scene map[string]interface{}
 func New(c *gin.Context) Scene {
 	if c == nil {
 		return Scene{
-			Version: version,
+			Version:      version,
+			ShortVersion: shortVersion,
 		}
 	}
 
 	// Create the basic context
 	context := Scene{
-		Version: version,
-		Page:    c.Request.URL.Path,
+		Version:      version,
+		ShortVersion: shortVersion,
+		Page:         c.Request.URL.Path,
 	}
 
 	// Does the user exist in the gin context?
