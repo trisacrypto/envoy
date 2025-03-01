@@ -1,0 +1,6 @@
+{{ template "base" . }}
+{{ define "content" -}}
+  <main class="container">
+    {{ block "main" . }}{{ end }}
+  </main>
+{{- end}}

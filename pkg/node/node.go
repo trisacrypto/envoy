@@ -18,6 +18,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/trp"
 	"github.com/trisacrypto/envoy/pkg/web"
+	web2 "github.com/trisacrypto/envoy/pkg/web2"
 	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	"github.com/gin-gonic/gin"
@@ -117,6 +118,12 @@ func New(conf config.Config) (node *Node, err error) {
 		return nil, err
 	}
 
+	// TODO: remove this!!!
+	// Create the template debugging server
+	if node.debug, err = web2.New(conf, node.store, node.network); err != nil {
+		return nil, err
+	}
+
 	return node, nil
 }
 
@@ -126,6 +133,7 @@ func New(conf config.Config) (node *Node, err error) {
 type Node struct {
 	conf    config.Config
 	admin   *web.Server
+	debug   *web2.Server
 	trisa   *trisa.Server
 	trp     *trp.Server
 	syncd   *directory.Sync
@@ -166,6 +174,12 @@ func (s *Node) Serve() (err error) {
 
 	// Start the TRP server if it is enabled
 	if err = s.trp.Serve(s.errc); err != nil {
+		return err
+	}
+
+	// TODO: remove this!!!
+	// Start the template debugging server if it is enabled
+	if err = s.debug.Serve(s.errc); err != nil {
 		return err
 	}
 

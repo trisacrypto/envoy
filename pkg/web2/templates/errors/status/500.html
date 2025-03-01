@@ -1,0 +1,11 @@
+{{ template "error.html" . }}
+{{ define "title" }}Internal Error | TRISA Envoy{{ end }}
+{{ define "errorimage" }}<img src="/static/img/illustrations/crush.svg" alt="You're Lost!" class="img-fluid">{{ end }}
+{{ define "preheading" }}500 error{{ end }}
+{{ define "heading" }}Something went very wrong on our end ... ⛓️‍💥{{ end }}
+{{ define "subheading" }}Contact support to help fix this issue.{{ end }}
+{{ define "action" }}
+  <a href="/" class="btn btn-lg btn-primary">
+    Return to Envoy
+  </a>
+{{ end }}

@@ -1,0 +1,14 @@
+{{ define "body" }}
+<body class="{{- block "bodyclass" . -}}{{ end }}">
+  {{ block "content" . -}}{{- end }}
+
+  {{ block "scripts" . -}}
+  <!-- Scripts -->
+  <script src="/static/js/vendor.bundle.js"></script>
+  <script src="/static/js/theme.bundle.js"></script>
+  {{- end }}
+
+  <!-- Page Specific Scripts -->
+  {{ block "appcode" . -}}{{- end }}
+</body>
+{{ end }}
