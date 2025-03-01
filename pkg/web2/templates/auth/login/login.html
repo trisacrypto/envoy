@@ -1,0 +1,75 @@
+{{ template "auth.html" . }}
+{{ define "title" }}Please Login | TRISA Envoy{{ end }}
+{{ define "auth" }}
+<h1 class="display-4 text-center mb-3">Log into TRISA Envoy</h1>
+<p class="text-muted text-center mb-5">Access your travel rule compliance dashboard.</p>
+<form id="loginForm" hx-post="/v1/login" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+  <div class="form-group">
+    <label class="form-label" for="email">Email Address</label>
+    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required>
+  </div>
+
+  <div class="form-group">
+    <div class="row">
+      <div class="col">
+        <label for="password" class="form-label">Password</label>
+      </div>
+      <div class="col-auto">
+        <!-- Help text -->
+        <a href="/not-allowed" class="form-text small text-muted">
+          Forgot password?
+        </a>
+      </div>
+    </div> <!-- / .row -->
+
+    <!-- Input group -->
+    <div class="input-group input-group-merge">
+      <!-- Input -->
+      <input class="form-control" id="password" name="password" type="password" placeholder="Enter your password" required>
+      <!-- Icon -->
+      <span class="input-group-text">
+        <i class="fe fe-eye"></i>
+      </span>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <input type="hidden" id="next" name="next" value="" />
+  <button type="submit" class="btn btn-lg w-100 btn-primary mb-3">
+    Sign in
+  </button>
+
+  <!-- Link -->
+  <div class="text-center">
+    <small class="text-muted text-center">
+      Contact your compliance administrator for assistance.
+    </small>
+  </div>
+</form>
+{{ end }}
+
+{{ define "appcode" }}
+<script>
+  // Add the next query param in the URL to the hidden input for the login.
+  const params = new URL(document.location.toString()).searchParams;
+  const nextInput = document.getElementById("next");
+  nextInput.value = params.get("next");
+
+  // Handle errors from the backend.
+  document.body.addEventListener("htmx:responseError", (e) => {
+    const error = JSON.parse(e.detail.xhr.response);
+    const alerts = document.getElementById("alerts");
+
+    alerts.insertAdjacentHTML('beforeend', `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>Login Error</strong>: <span>${error.error}</span>.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `);
+
+    setTimeout(() => {
+      document.querySelector('.alert').remove()
+    }, 5000);
+  });
+</script>
+{{ end }}

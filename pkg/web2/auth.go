@@ -114,6 +114,14 @@ func (s *Server) Login(c *gin.Context) {
 	}
 }
 
+func (s *Server) Logout(c *gin.Context) {
+	// Clear the client cookies
+	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
+
+	// Send the user to the login page
+	htmx.Redirect(c, http.StatusFound, "/login")
+}
+
 func (s *Server) Authenticate(c *gin.Context) {
 	var (
 		err    error

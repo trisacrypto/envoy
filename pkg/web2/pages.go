@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/trisacrypto/envoy/pkg"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
@@ -18,15 +17,7 @@ func (s *Server) Home(c *gin.Context) {
 }
 
 func (s *Server) LoginPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", scene.New(c))
-}
-
-func (s *Server) Logout(c *gin.Context) {
-	// Clear the client cookies
-	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
-
-	// Send the user to the login page
-	htmx.Redirect(c, http.StatusFound, "/login")
+	c.HTML(http.StatusOK, "auth/login/login.html", scene.New(c))
 }
 
 func (s *Server) About(c *gin.Context) {
