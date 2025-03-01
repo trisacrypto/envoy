@@ -27,12 +27,12 @@ var (
 // error is rendered as a JSON response. If a non error is passed as err then no error
 // is logged to the context and it is treated as a message to the user.
 // TODO: add the error to the scene and the support email if any.
-func Error(c *gin.Context, err error) {
+func (s *Server) Error(c *gin.Context, err error) {
 	c.Error(err)
 	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/500.html",
-		HTMLData: scene.New(c),
+		HTMLData: scene.New(c).Error(err).WithEmail(s.conf.Email.SupportEmail),
 		JSONData: api.Error(err),
 	})
 }
@@ -42,7 +42,7 @@ func (s *Server) NotFound(c *gin.Context) {
 	c.Negotiate(http.StatusNotFound, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/404.html",
-		HTMLData: scene.New(c),
+		HTMLData: nil,
 		JSONData: api.NotFound,
 	})
 }
@@ -52,7 +52,7 @@ func (s *Server) NotAllowed(c *gin.Context) {
 	c.Negotiate(http.StatusMethodNotAllowed, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/405.html",
-		HTMLData: scene.New(c),
+		HTMLData: nil,
 		JSONData: api.NotAllowed,
 	})
 }
@@ -62,7 +62,7 @@ func (s *Server) InternalError(c *gin.Context) {
 	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/500.html",
-		HTMLData: scene.New(c),
+		HTMLData: scene.New(c).Error(nil).WithEmail(s.conf.Email.SupportEmail),
 		JSONData: api.InternalError,
 	})
 }
