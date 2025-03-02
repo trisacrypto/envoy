@@ -19,7 +19,14 @@ const (
 	keyDescription = "Description"
 )
 
-func (s *Server) OpenAPI(c *gin.Context) {
+// If this is an HTML request it renders the OpenAPI documentation page; otherwise if
+// this is an API request, then it returns a list of the available endpoints in JSON.
+func (s *Server) APIDocs(c *gin.Context) {
+	c.HTML(http.StatusOK, "docs/openapi/openapi.html", gin.H{})
+}
+
+// Prepares and returns the OpenAPI spec in the requested format (JSON or YAML).
+func (s *Server) OpenAPI() gin.HandlerFunc {
 	var (
 		err        error
 		data       gin.H
@@ -27,6 +34,9 @@ func (s *Server) OpenAPI(c *gin.Context) {
 		initialize sync.Once
 	)
 
+	// While we're not worried about concurrency issues here, we still use a sync.Once
+	// to ensure that if there are any errors in the data and template initialization
+	// processing stops and the error causes an abort handler to be returned.
 	initialize.Do(func() {
 		data = gin.H{
 			keyVersion:     pkg.Version(false),
@@ -39,7 +49,7 @@ func (s *Server) OpenAPI(c *gin.Context) {
 		}
 
 		var files fs.FS
-		if files, err = fs.Sub(content, "templates/openapi"); err != nil {
+		if files, err = fs.Sub(content, "templates/docs/openapi"); err != nil {
 			log.Error().Err(err).Msg("could not load openapi templates from content embed")
 			return
 		}
@@ -51,20 +61,20 @@ func (s *Server) OpenAPI(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.AbortWithError(http.StatusServiceUnavailable, err)
-		return
+		// If we could not process the template files, then we return an error handler.
+		return func(c *gin.Context) {
+			c.AbortWithError(http.StatusServiceUnavailable, err)
+		}
 	}
 
-	switch strings.ToLower(c.Param("ext")) {
-	case "json":
-		templates.ExecuteTemplate(c.Writer, "openapi.json", data)
-	case "yaml":
-		templates.ExecuteTemplate(c.Writer, "openapi.yaml", data)
-	default:
-		c.JSON(http.StatusNotFound, api.Error("no openapi resource with the specified extension exists"))
+	return func(c *gin.Context) {
+		switch strings.ToLower(c.Param("ext")) {
+		case "json":
+			templates.ExecuteTemplate(c.Writer, "openapi.json", data)
+		case "yaml":
+			templates.ExecuteTemplate(c.Writer, "openapi.yaml", data)
+		default:
+			c.JSON(http.StatusNotFound, api.Error("no openapi resource with the specified extension exists"))
+		}
 	}
-}
-
-func (s *Server) APIDocs(c *gin.Context) {
-	c.HTML(http.StatusOK, "apidocs.html", gin.H{})
 }

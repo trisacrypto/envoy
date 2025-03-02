@@ -1,0 +1,10 @@
+{{ template "base" . }}
+{{ define "content" -}}
+  {{ template "sidebar" . }}
+  <main class="main-content">
+    {{ block "header" . }}
+    {{ end }}
+
+    {{ block "main" . }}{{ end }}
+  </main>
+{{- end}}
