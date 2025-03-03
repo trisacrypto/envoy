@@ -257,3 +257,37 @@ func TestContactValidate(t *testing.T) {
 		}
 	})
 }
+
+func TestCounterpartyQueryValidate(t *testing.T) {
+	t.Run("ValidSource", func(t *testing.T) {
+		testCases := []struct {
+			source string
+		}{
+			{"gds"},
+			{"user"},
+			{""},
+		}
+
+		for i, tc := range testCases {
+			query := &CounterpartyQuery{Source: tc.source}
+			err := query.Validate()
+			require.NoError(t, err, "test case %d failed", i)
+		}
+	})
+
+	t.Run("InvalidSource", func(t *testing.T) {
+		testCases := []struct {
+			source string
+			err    string
+		}{
+			{"foo", "invalid field source: source must be either gds or user"},
+			{"-1", "invalid field source: source must be either gds or user"},
+		}
+
+		for i, tc := range testCases {
+			query := &CounterpartyQuery{Source: tc.source}
+			err := query.Validate()
+			require.EqualError(t, err, tc.err, "test case %d failed", i)
+		}
+	})
+}

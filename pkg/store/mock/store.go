@@ -123,7 +123,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	return out, nil
 }
 
-func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (*models.CounterpartyPage, error) {
+func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error) {
 	return nil, nil
 }
 

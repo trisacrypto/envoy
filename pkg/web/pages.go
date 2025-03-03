@@ -3,20 +3,29 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 // Home is the root landing page of the server. If the request is for the HTML UI -
 // then it redirects to the transactions inbox page. If the request is an API request,
 // it redirects to the API documentation.
 func (s *Server) Home(c *gin.Context) {
-
-	htmx.Redirect(c, http.StatusFound, "/transactions")
+	switch c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) {
+	case binding.MIMEHTML:
+		htmx.Redirect(c, http.StatusFound, "/transactions")
+	case binding.MIMEJSON:
+		c.JSON(http.StatusNotFound, api.NotFound)
+	default:
+		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
+	}
 }
 
 // LoginPage displays the login form for the UI so that the user can enter their
@@ -74,7 +83,9 @@ func (s *Server) AccountsListPage(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) CounterpartiesListPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/counterparties/list.html", scene.New(c))
+	ctx := scene.New(c)
+	ctx["Source"] = strings.ToLower(c.Query("source"))
+	c.HTML(http.StatusOK, "dashboard/counterparties/list.html", ctx)
 }
 
 //===========================================================================

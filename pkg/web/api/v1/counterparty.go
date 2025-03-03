@@ -21,6 +21,11 @@ import (
 // Counterparty Resource
 //===========================================================================
 
+type CounterpartyQuery struct {
+	PageQuery
+	Source string `json:"source,omitempty" url:"source,omitempty" form:"source"`
+}
+
 type Counterparty struct {
 	ID                  ulid.ULID      `json:"id,omitempty"`
 	Source              string         `json:"source,omitempty"`
@@ -53,8 +58,8 @@ type Contact struct {
 }
 
 type CounterpartyList struct {
-	Page           *PageQuery      `json:"page"`
-	Counterparties []*Counterparty `json:"counterparties"`
+	Page           *CounterpartyQuery `json:"page"`
+	Counterparties []*Counterparty    `json:"counterparties"`
 }
 
 type ContactList struct {
@@ -127,8 +132,11 @@ func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *
 
 func NewCounterpartyList(page *models.CounterpartyPage) (out *CounterpartyList, err error) {
 	out = &CounterpartyList{
-		Page: &PageQuery{
-			PageSize: int(page.Page.PageSize),
+		Page: &CounterpartyQuery{
+			PageQuery: PageQuery{
+				PageSize: int(page.Page.PageSize),
+			},
+			Source: page.Page.Source,
 		},
 		Counterparties: make([]*Counterparty, 0, len(page.Counterparties)),
 	}
@@ -359,6 +367,34 @@ func (c *Contact) Validate(create bool) (err error) {
 
 	return err
 }
+
+//===========================================================================
+// Counterparty Query Methods
+//===========================================================================
+
+func (c *CounterpartyQuery) Validate() (err error) {
+	if c.Source != "" {
+		c.Source = strings.ToLower(c.Source)
+		if c.Source != models.SourceDirectorySync && c.Source != models.SourceUserEntry {
+			err = ValidationError(err, IncorrectField("source", "source must be either gds or user"))
+		}
+	}
+	return err
+}
+
+func (c *CounterpartyQuery) Query() (query *models.CounterpartyPageInfo) {
+	query = &models.CounterpartyPageInfo{
+		PageInfo: models.PageInfo{
+			PageSize: uint32(c.PageSize),
+		},
+		Source: c.Source,
+	}
+	return query
+}
+
+//===========================================================================
+// Helper Functions
+//===========================================================================
 
 func EndpointTravelAddress(endpoint, protocol string) (string, error) {
 	// Cannot generate a travel address for a sunrise Counterparty

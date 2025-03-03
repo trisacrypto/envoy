@@ -3,11 +3,13 @@ package web
 import (
 	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -22,7 +24,17 @@ const (
 // If this is an HTML request it renders the OpenAPI documentation page; otherwise if
 // this is an API request, then it returns a list of the available endpoints in JSON.
 func (s *Server) APIDocs(c *gin.Context) {
-	c.HTML(http.StatusOK, "docs/openapi/openapi.html", gin.H{})
+	switch c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) {
+	case binding.MIMEHTML:
+		c.HTML(http.StatusOK, "docs/openapi/openapi.html", gin.H{})
+	case binding.MIMEJSON:
+		data := make(gin.H, 2)
+		data["openapi.json"] = c.Request.URL.ResolveReference(&url.URL{Path: "/v1/docs/openapi.json"}).String()
+		data["openapi.yaml"] = c.Request.URL.ResolveReference(&url.URL{Path: "/v1/docs/openapi.yaml"}).String()
+		c.JSON(http.StatusOK, data)
+	default:
+		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
+	}
 }
 
 // Prepares and returns the OpenAPI spec in the requested format (JSON or YAML).

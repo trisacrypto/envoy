@@ -5172,6 +5172,17 @@ paths:
         - $ref: "#/components/parameters/page_size"
         - $ref: "#/components/parameters/next_page_token"
         - $ref: "#/components/parameters/prev_page_token"
+        - name: source
+          in: query
+          description: The source of the counterparty (e.g. from the GDS or user defined).
+          required: false
+          schema:
+            type: string
+            enum:
+              - gds
+              - user
+            example: gds
+          example: gds
       responses:
         "200":
           description: Successful Counterparty Page Response
