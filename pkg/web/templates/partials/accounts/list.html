@@ -1,0 +1,100 @@
+{{- $canEditAccounts := not .IsViewOnly -}}
+{{- with .AccountsList -}}
+{{ if .Accounts }}
+<div class="card" id="accountList" data-list='{"valueNames": ["item-customer-id", "item-first-name", "item-last-name", "item-date-updated"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        {{ template "tableSearch" . }}
+      </div>
+      <div class="col-auto me-n3">
+        {{ template "tablePageSize" . }}
+      </div>
+      <div class="col-auto">
+        <!-- Filter Form -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+          </button>
+          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+            <div class="card-header">
+              <h4 class="card-header-title">Filters</h4>
+              <button class="btn btn-sm btn-link text-reset" type="reset">
+                <small>Clear filters</small>
+              </button>
+            </div>
+            <div class="card-body">
+              <p><small>Filtering account fields coming soon!</small></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover table-nowrap card-table">
+      <thead>
+        <tr>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-customer-id" href="#">Internal ID</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-first-name" href="#">First Name</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-last-name" href="#">Last Name</a>
+          </th>
+          <th colspan="2">
+            <a class="list-sort text-muted" data-sort="item-date-updated" href="#">Last Update</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="list fs-base">
+        {{ range .Accounts }}
+        <tr>
+          <td><span class="item-customer-id">{{ .CustomerID }}</span></td>
+          <td><span class="item-first-name">{{ .FirstName }}</span></td>
+          <td><span class="item-last-name">{{ .LastName }}</span></td>
+          <td><time class="item-date-added" datetime="2020-01-14">{{ .Modified.Format "Jan 02, 2006" }}</time></td>
+          <td class="text-end">
+            <!-- Dropdown -->
+            <div class="dropdown">
+              <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fe fe-more-vertical"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end">
+                <a href="#!" class="dropdown-item">
+                  View
+                </a>
+                {{ if $canEditAccounts }}
+                <a href="#!" class="dropdown-item">
+                  Edit
+                </a>
+                {{ end }}
+                <a href="#!" class="dropdown-item">
+                  Copy Travel Address
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </body>
+    </table>
+  </div>
+  {{ template "tablePagination" . }}
+</div>
+{{- else }}
+<div class="card card-inactive">
+  <div class="card-body text-center">
+    <div class="py-6">
+      <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
+      <h1>No customer accounts yet.</h1>
+      <p class="text-muted">
+        You have not added any customer accounts or wallet addresses yet.
+      </p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

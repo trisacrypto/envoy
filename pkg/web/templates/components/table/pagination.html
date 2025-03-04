@@ -1,0 +1,24 @@
+{{ define "tablePagination" -}}
+<div class="card-footer d-flex justify-content-between">
+  <!-- Pagination (prev) -->
+  <ul class="list-pagination-prev pagination pagination-tabs card-pagination">
+    <li class="page-item">
+      <a class="page-link ps-0 pe-4 border-end" href="#">
+        <i class="fe fe-arrow-left me-1"></i> Prev
+      </a>
+    </li>
+  </ul>
+
+  <!-- Pagination -->
+  <ul class="list-pagination pagination pagination-tabs card-pagination"></ul>
+
+  <!-- Pagination (next) -->
+  <ul class="list-pagination-next pagination pagination-tabs card-pagination">
+    <li class="page-item">
+      <a class="page-link ps-4 pe-0 border-start" href="#">
+        Next <i class="fe fe-arrow-right ms-1"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+{{- end }}

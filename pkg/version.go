@@ -1,6 +1,10 @@
 package pkg
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.rtnl.ai/x/semver"
+)
 
 // Version component constants for the current build.
 const (
@@ -15,20 +19,23 @@ const (
 var GitVersion string
 
 // Version returns the semantic version for the current build.
-func Version() string {
-	versionCore := fmt.Sprintf("%d.%d.%d", VersionMajor, VersionMinor, VersionPatch)
+func Version(short bool) string {
+	vers := semver.Version{
+		Major: VersionMajor,
+		Minor: VersionMinor,
+		Patch: VersionPatch,
+	}
 
-	if VersionReleaseLevel != "" {
+	if VersionReleaseLevel != "" && VersionReleaseLevel != "final" {
 		if VersionReleaseNumber > 0 {
-			versionCore = fmt.Sprintf("%s-%s.%d", versionCore, VersionReleaseLevel, VersionReleaseNumber)
+			vers.PreRelease = fmt.Sprintf("%s.%d", VersionReleaseLevel, VersionReleaseNumber)
 		} else {
-			versionCore = fmt.Sprintf("%s-%s", versionCore, VersionReleaseLevel)
+			vers.PreRelease = VersionReleaseLevel
 		}
 	}
 
-	if GitVersion != "" {
-		versionCore = fmt.Sprintf("%s (%s)", versionCore, GitVersion)
+	if short {
+		return vers.Short()
 	}
-
-	return versionCore
+	return vers.String()
 }

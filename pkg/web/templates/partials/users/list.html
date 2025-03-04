@@ -1,0 +1,104 @@
+{{- $canEditUsers := not .IsViewOnly -}}
+{{- with .UserList -}}
+{{ if .Users }}
+<div class="card" id="userList" data-list='{"valueNames": ["item-name", "item-email", "item-role", "item-date-joined", "item-last-login"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        {{ template "tableSearch" . }}
+      </div>
+      <div class="col-auto me-n3">
+        {{ template "tablePageSize" . }}
+      </div>
+      <div class="col-auto">
+        <!-- Filter Form -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+          </button>
+          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+            <div class="card-header">
+              <h4 class="card-header-title">Filters</h4>
+              <button class="btn btn-sm btn-link text-reset" type="reset">
+                <small>Clear filters</small>
+              </button>
+            </div>
+            <div class="card-body">
+              <p><small>Filtering by user fields coming soon!</small></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover table-nowrap card-table">
+      <thead>
+        <tr>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-name" href="#">Name</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-email" href="#">Email</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-role" href="#">Role</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-date-joined" href="#">Date Joined</a>
+          </th>
+          <th colspan="2">
+            <a class="list-sort text-muted" data-sort="item-last-login" href="#">Last Login</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="list fs-base">
+        {{ range .Users }}
+        <tr>
+          <td><span class="item-name">{{ .Name }}</span></td>
+          <td><span class="item-email">{{ .Email }}</span></a></td>
+          <td><span class="item-role">{{ .Role }}</span></td>
+          <td><time class="item-date-joined" datetime="2020-01-14">{{ .Created.Format "Jan 02, 2006" }}</time></td>
+          <td><time class="item-last-login" datetime="2020-01-14">{{ .LastLogin.Format "Jan 02, 2006 at 15:16:17" }}</time></td>
+          <td class="text-end">
+            <!-- Dropdown -->
+            <div class="dropdown">
+              <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fe fe-more-vertical"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end">
+                {{ if $canEditUsers }}
+                <a href="#!" class="dropdown-item">
+                  Edit
+                </a>
+                <a href="#!" class="dropdown-item">
+                  Change Password
+                </a>
+                <a href="#!" class="dropdown-item">
+                  Remove
+                </a>
+                {{ end }}
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ template "tablePagination" . }}
+</div>
+{{ else }}
+<div class="card card-inactive">
+  <div class="card-body text-center">
+    <div class="py-6">
+      <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
+      <h1>No users to display</h1>
+      <p class="text-muted">
+        No compliance users match the selected query.
+      </p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

@@ -52,7 +52,7 @@ func (s *Store) InitializeSchema(empty bool) (err error) {
 				return fmt.Errorf("could not apply schema %d: %s", migration.ID, err)
 			}
 
-			if _, err = s.conn.Exec(insertMigrationSQL, migration.ID, migration.Name, pkg.Version()); err != nil {
+			if _, err = s.conn.Exec(insertMigrationSQL, migration.ID, migration.Name, pkg.Version(true)); err != nil {
 				return fmt.Errorf("could not insert migration record for %d: %s", migration.ID, err)
 			}
 		}

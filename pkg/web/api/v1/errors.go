@@ -15,9 +15,10 @@ import (
 //===========================================================================
 
 var (
-	Unsuccessful = Reply{Success: false}
-	NotFound     = Reply{Success: false, Error: "resource not found"}
-	NotAllowed   = Reply{Success: false, Error: "method not allowed"}
+	Unsuccessful  = Reply{Success: false}
+	NotFound      = Reply{Success: false, Error: "resource not found"}
+	NotAllowed    = Reply{Success: false, Error: "method not allowed"}
+	InternalError = Reply{Success: false, Error: "an internal error occurred"}
 )
 
 var (

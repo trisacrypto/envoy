@@ -1,0 +1,26 @@
+{{ define "ocsearch" -}}
+<!-- Offcanvas: Search -->
+<div class="offcanvas offcanvas-start" id="sidebarOffcanvasSearch" tabindex="-1">
+  {{/* <div class="offcanvas-body" data-list='{"valueNames": ["name"]}'> */}}
+  <div class="offcanvas-body">
+
+    <!-- Form -->
+    <form class="mb-4">
+      <div class="input-group input-group-merge input-group-rounded input-group-reverse">
+        <input class="form-control list-search" type="search" placeholder="Search">
+        <div class="input-group-text">
+          <span class="fe fe-search"></span>
+        </div>
+      </div>
+    </form>
+
+    <!-- List group -->
+    <div class="my-n3">
+      {{/* <div class="list-group list-group-flush list-group-focus list">
+        <!-- TODO: populate with search results -->
+      </div> */}}
+    </div>
+
+  </div>
+</div>
+{{- end }}

@@ -60,7 +60,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "fsi"
 	app.Usage = "initialize the local development environment for testing purposes"
-	app.Version = pkg.Version()
+	app.Version = pkg.Version(false)
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
 			Name:    "log-level",

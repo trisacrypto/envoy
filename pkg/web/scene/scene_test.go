@@ -79,26 +79,28 @@ func TestUpdate(t *testing.T) {
 	alpha["Age"] = 42
 
 	bravo := scene.Scene{
-		scene.Version: "v0.0.1",
-		"Fruit":       "Orange",
-		"Name":        "Roger",
+		scene.Version:      "0.0.1-alpha.4",
+		scene.ShortVersion: "0.0.1",
+		"Fruit":            "Orange",
+		"Name":             "Roger",
 	}
 
 	// Assert original
-	require.Len(t, alpha, 3)
-	require.Len(t, bravo, 3)
+	require.Len(t, alpha, 4)
+	require.Len(t, bravo, 4)
 
 	// Update alpha from bravo
 	alpha.Update(bravo)
-	require.Len(t, alpha, 4)
-	require.Len(t, bravo, 3)
+	require.Len(t, alpha, 5)
+	require.Len(t, bravo, 4)
 
 	// Check the update happened correctly
 	expected := scene.Scene{
-		scene.Version: "v0.0.1",
-		"Fruit":       "Orange",
-		"Name":        "Roger",
-		"Age":         42,
+		scene.Version:      "0.0.1-alpha.4",
+		scene.ShortVersion: "0.0.1",
+		"Fruit":            "Orange",
+		"Name":             "Roger",
+		"Age":              42,
 	}
 	require.Equal(t, expected, alpha)
 }
@@ -165,7 +167,10 @@ func TestAPIData(t *testing.T) {
 
 func CheckVersion(t *testing.T, data scene.Scene) {
 	require.Contains(t, data, scene.Version, "scene did not contain version")
-	require.Equal(t, pkg.Version(), data[scene.Version], "unexpected version mismatch")
+	require.Equal(t, pkg.Version(false), data[scene.Version], "unexpected version mismatch")
+
+	require.Contains(t, data, scene.ShortVersion, "scene did not contain short version")
+	require.Equal(t, pkg.Version(true), data[scene.ShortVersion], "unexpected short version mismatch")
 }
 
 func CreateContext() *gin.Context {

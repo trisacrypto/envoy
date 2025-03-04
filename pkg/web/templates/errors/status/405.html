@@ -1,0 +1,11 @@
+{{ template "error.html" . }}
+{{ define "title" }}Not Allowed | TRISA Envoy{{ end }}
+{{ define "errorimage" }}<img src="/static/img/illustrations/twisted.svg" alt="Method Not Allowed" class="img-fluid">{{ end }}
+{{ define "preheading" }}405 error{{ end }}
+{{ define "heading" }}That action is not allowed or implemented! 🤐{{ end }}
+{{ define "subheading" }}Looks like you ended up here by accident?{{ end }}
+{{ define "action" }}
+  <a href="/" class="btn btn-lg btn-primary">
+    Return to Envoy
+  </a>
+{{ end }}

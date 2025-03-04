@@ -87,7 +87,7 @@ func (s *Server) Maintenance() gin.HandlerFunc {
 		return func(c *gin.Context) {
 			c.JSON(http.StatusServiceUnavailable, &api.StatusReply{
 				Status:  serverStatusMaintenance,
-				Version: pkg.Version(),
+				Version: pkg.Version(false),
 				Uptime:  time.Since(s.started).String(),
 			})
 			c.Abort()

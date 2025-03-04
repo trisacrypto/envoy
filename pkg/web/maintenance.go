@@ -20,7 +20,7 @@ func (s *Server) Maintenance() gin.HandlerFunc {
 				Offered: []string{binding.MIMEJSON, binding.MIMEHTML},
 				Data: &api.StatusReply{
 					Status:  "maintenance",
-					Version: pkg.Version(),
+					Version: pkg.Version(false),
 					Uptime:  time.Since(s.started).String(),
 				},
 				HTMLName: "maintenance.html",

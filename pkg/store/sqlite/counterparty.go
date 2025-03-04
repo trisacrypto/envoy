@@ -13,9 +13,12 @@ import (
 	"go.rtnl.ai/ulid"
 )
 
-const listCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties"
+const (
+	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties ORDER BY name ASC"
+	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE source=:source ORDER BY name ASC"
+)
 
-func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (out *models.CounterpartyPage, err error) {
+func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
@@ -25,13 +28,20 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.PageInfo) (
 	// TODO: handle pagination
 	out = &models.CounterpartyPage{
 		Counterparties: make([]*models.Counterparty, 0),
-		Page:           models.PageInfoFrom(page),
+		Page:           &models.CounterpartyPageInfo{PageInfo: *models.PageInfoFrom(&page.PageInfo), Source: page.Source},
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listCounterpartiesSQL); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+	if page.Source != "" {
+		if rows, err = tx.Query(filterCounterpartiesSQL, sql.Named("source", page.Source)); err != nil {
+			// TODO: handle database specific errors
+			return nil, err
+		}
+	} else {
+		if rows, err = tx.Query(listCounterpartiesSQL); err != nil {
+			// TODO: handle database specific errors
+			return nil, err
+		}
 	}
 	defer rows.Close()
 

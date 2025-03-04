@@ -1,0 +1,21 @@
+{{ template "base" . }}
+{{ define "bodyclass" }}d-flex align-items-center bg-auth border-top border-top-2 border-primary{{ end }}
+{{ define "content" -}}
+  <div id="alerts" class="position-fixed top-0 end-0 p-3 w-25"></div>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-5 col-xl-4 my-5">
+        {{ block "auth" . }}{{ end}}
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+{{ define "scripts" -}}
+<!-- exclude any application scripts from auth -->
+<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/json-enc.js"></script>
+<script src="/static/js/vendor.bundle.js"></script>
+<script src="/static/js/theme.bundle.js"></script>
+{{- end}}

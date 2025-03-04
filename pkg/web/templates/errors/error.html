@@ -1,0 +1,47 @@
+{{ template "base" . }}
+{{ define "bodyclass" }}d-flex align-items-center bg-auth border-top border-top-2 border-primary{{ end }}
+{{ define "title" }}Not Found | TRISA Envoy{{ end }}
+{{ define "content" -}}
+  <main class="container">
+    <div class="row align-items-center">
+      <div class="col-12 col-md-6 offset-xl-2 offset-md-1 order-md-2 mb-5 mb-md-0">
+        <!-- Image -->
+        <div class="text-center">
+          {{ block "errorimage" . }}<img src="/static/img/illustrations/lost.svg" alt="You're Lost!" class="img-fluid">{{ end }}
+        </div>
+      </div>
+      <div class="col-12 col-md-5 col-xl-4 order-md-1 my-5">
+          <div class="text-center">
+            <!-- Preheading -->
+            <h6 class="text-uppercase text-muted mb-4">
+              {{ block "preheading" . }}404 error{{ end }}
+            </h6>
+
+            <!-- Heading -->
+            <h1 class="display-4 mb-3">
+              {{ block "heading" . }}There’s no page here 😭{{ end }}
+            </h1>
+
+            <!-- Info -->
+            {{- block "info" . }}{{ end -}}
+
+            <!-- Subheading -->
+            <p class="text-muted mb-4">
+              {{ block "subheading" . }}Looks like you ended up here by accident?{{ end }}
+            </p>
+
+            <!-- Button -->
+            {{ block "action" . }}
+            <a href="/" class="btn btn-lg btn-primary">
+              Return to Envoy
+            </a>
+            {{ end }}
+          </div>
+        </div>
+    </div><!-- / .row -->
+  </main><!-- / .container -->
+{{- end}}
+
+{{ define "scripts" -}}
+<!-- no scripts included on error template -->
+{{- end}}

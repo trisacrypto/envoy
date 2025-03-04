@@ -1,0 +1,40 @@
+{{ define "ocactivity" -}}
+<!-- Offcanvas: Activity -->
+<div class="offcanvas offcanvas-start" id="sidebarOffcanvasActivity" tabindex="-1">
+  <div class="offcanvas-header">
+    <!-- Title -->
+    <h4 class="offcanvas-title">
+      Notifications
+    </h4>
+
+    <!-- Navs -->
+    <ul class="nav nav-tabs nav-tabs-sm modal-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#modalActivityAction">Action</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#modalActivityUser">User</a>
+      </li>
+    </ul>
+  </div>
+  <div class="offcanvas-body">
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="modalActivityAction">
+
+        <!-- List group -->
+        <div class="list-group list-group-flush list-group-activity my-n3">
+          <!-- TODO: populate with audit log -->
+        </div>
+
+      </div>
+      <div class="tab-pane fade" id="modalActivityUser">
+
+        <!-- List group -->
+        <div class="list-group list-group-flush list-group-activity my-n3">
+          <!-- TODO: populate with user activity -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}

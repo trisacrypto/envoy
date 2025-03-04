@@ -1,0 +1,26 @@
+{{ template "error.html" . }}
+{{ define "title" }}Internal Error | TRISA Envoy{{ end }}
+{{ define "errorimage" }}<img src="/static/img/illustrations/crush.svg" alt="You're Lost!" class="img-fluid">{{ end }}
+{{ define "preheading" }}500 error{{ end }}
+{{ define "heading" }}Something went very wrong on our end ... ⛓️‍💥{{ end }}
+{{ define "subheading" }}Contact {{ if .SupportEmail }}<a href="mailto:{{ .SupportEmail }}">{{ .Support }}</a>{{ else }}support{{ end }} to help fix this issue.{{ end }}
+{{ define "info" }}
+  {{ if .Error }}
+  <p class="text-danger mb-2">
+    Error: {{ .Error }}.
+  </p>
+  {{ end }}
+{{ end }}
+{{ define "action" }}
+  <div class="d-flex flex-row align-items-center justify-content-center">
+    <a href="/" class="btn btn-lg btn-primary">
+      Return to Envoy
+    </a>
+
+    {{ if .SupportEmail }}
+    <a href="mailto:{{ .SupportEmail }}" class="btn btn-lg btn-warning ms-2">
+      Email Support
+    </a>
+    {{ end }}
+  </div>
+{{ end }}

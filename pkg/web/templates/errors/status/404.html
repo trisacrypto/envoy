@@ -1,0 +1,11 @@
+{{ template "error.html" . }}
+{{ define "title" }}Not Found | TRISA Envoy{{ end }}
+{{ define "errorimage" }}<img src="/static/img/illustrations/solar.svg" alt="You're Lost!" class="img-fluid">{{ end }}
+{{ define "preheading" }}404 error{{ end }}
+{{ define "heading" }}There’s no page here 🙈{{ end }}
+{{ define "subheading" }}Looks like you ended up here by accident?{{ end }}
+{{ define "action" }}
+  <a href="/" class="btn btn-lg btn-primary">
+    Return to Envoy
+  </a>
+{{ end }}
