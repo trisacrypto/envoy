@@ -31,8 +31,8 @@ type CryptoAddressPage struct {
 }
 
 type CounterpartyPage struct {
-	Counterparties []*Counterparty `json:"counterparties"`
-	Page           *PageInfo       `json:"page"`
+	Counterparties []*Counterparty       `json:"counterparties"`
+	Page           *CounterpartyPageInfo `json:"page"`
 }
 
 type ContactsPage struct {

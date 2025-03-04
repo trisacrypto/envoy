@@ -43,7 +43,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "envoy"
 	app.Usage = "serve and manage the TRISA Envoy self-hosted node"
-	app.Version = pkg.Version()
+	app.Version = pkg.Version(false)
 	app.Flags = []cli.Flag{}
 	app.Commands = []*cli.Command{
 		{

@@ -53,7 +53,7 @@ func (s *Server) ListUsers(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "user_list.html",
+		HTMLName: "partials/users/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

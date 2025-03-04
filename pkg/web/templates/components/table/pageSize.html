@@ -1,0 +1,10 @@
+{{ define "tablePageSize" -}}
+<!-- Select Page Size -->
+<form>
+  <select class="form-select form-select-sm form-control-flush" id="pageSizeSelect" data-choices='{"searchEnabled": false}'>
+    <option value="10">10 per page</option>
+    <option value="25" selected>25 per page</option>
+    <option value="50">50 per page</option>
+  </select>
+</form>
+{{- end }}

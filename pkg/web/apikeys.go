@@ -51,7 +51,7 @@ func (s *Server) ListAPIKeys(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "apikey_list.html",
+		HTMLName: "partials/apikeys/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -118,7 +118,7 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "apikey_create.html",
+		HTMLName: "apikeys_create.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

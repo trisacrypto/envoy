@@ -1,0 +1,114 @@
+{{- $canEditCounterparties := not .IsViewOnly -}}
+{{- with .CounterpartyList -}}
+{{ if .Counterparties }}
+<div class="card" id="counterpartyList" data-list='{"valueNames": ["item-name", "item-website", "item-country", "item-protocol", "item-date-added"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        {{ template "tableSearch" . }}
+      </div>
+      <div class="col-auto me-n3">
+        {{ template "tablePageSize" . }}
+      </div>
+      <div class="col-auto">
+        <!-- Filter Form -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+          </button>
+          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+            <div class="card-header">
+              <h4 class="card-header-title">Filters</h4>
+              <button class="btn btn-sm btn-link text-reset" type="reset">
+                <small>Clear filters</small>
+              </button>
+            </div>
+            <div class="card-body">
+              <p><small>Filtering by protocol and country is coming soon!</small></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover table-nowrap card-table">
+      <thead>
+        <tr>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-name" href="#">Name</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-website" href="#">Website</a>
+          </th>
+          <th class="text-center">
+            <a class="list-sort text-muted" data-sort="item-country" href="#">Country</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-protocol" href="#">Protocol</a>
+          </th>
+          <th colspan="2">
+            <a class="list-sort text-muted" data-sort="item-date-added" href="#">Added</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="list fs-base">
+        {{ range .Counterparties }}
+        <tr>
+          <td><span class="item-name">{{ .Name }}</span></td>
+          <td><a href="{{ .Website }}" target="_blank"><span class="item-website">{{ .Website }}</span></a></td>
+          <td class="text-center"><span class="item-country">{{ .Country }}</span></td>
+          <td><span class="item-protocol">{{ .Protocol }}</span></td>
+          {{ $created := "" }}
+          {{ if and .VerifiedOn (not .VerifiedOn.IsZero) }}
+          {{ $created = .VerifiedOn.Format "Jan 02, 2006" }}
+          {{ else }}
+          {{ $created = .Created.Format "Jan 02, 2006" }}
+          {{ end }}
+          <td><time class="item-date-added" datetime="2020-01-14">{{ $created }}</time></td>
+          <td class="text-end">
+            <!-- Dropdown -->
+            <div class="dropdown">
+              <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fe fe-more-vertical"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end">
+                <a href="#!" class="dropdown-item">
+                  View
+                </a>
+                {{ if $canEditCounterparties }}
+                <a href="#!" class="dropdown-item">
+                  Edit
+                </a>
+                {{ end }}
+                <a href="#!" class="dropdown-item">
+                  Copy Travel Address
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ template "tablePagination" . }}
+</div>
+{{- else }}
+<div class="card card-inactive">
+  <div class="card-body text-center">
+    <div class="py-6">
+      <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
+      <h1>No counterparties yet.</h1>
+      <p class="text-muted">
+        {{ if eq .Page.Source "user" }}
+        You have not added any counterparties yet.
+        {{ else }}
+        Counterparties will be added when a sync with the TRISA GDS is performed.
+        {{ end }}
+      </p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

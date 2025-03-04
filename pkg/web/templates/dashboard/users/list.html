@@ -1,0 +1,67 @@
+{{ template "dashboard.html" . }}
+{{ define "title" }}User Management | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Access Management{{ end }}
+{{ define "pagetitle" }}Manage Envoy Users{{ end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<a href="#!" class="btn btn-primary ms-2">
+  Add User
+</a>
+{{- end }}
+{{- end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/users" class="nav-link{{ if not .Role }} active{{ end }}">
+          All Users
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/users?role=admin" class='nav-link{{ if eq .Role "admin" }} active{{ end }}'>
+          Administrators
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/users?role=compliance" class='nav-link{{ if eq .Role "compliance" }} active{{ end }}'>
+          Compliance Users
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/users?role=observer" class='nav-link{{ if eq .Role "observer" }} active{{ end }}'>
+          Observers
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="counterparties" hx-get="/v1/users?role={{ .Role }}" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script>
+  document.addEventListener("htmx:afterSettle", function(e) {
+    // Initialize List.js
+    const cpList = document.getElementById('userList');
+    const list = createList(cpList);
+
+    // Initialize Page Size Select
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    createPageSizeSelect(pageSizeSelect, list);
+  });
+</script>
+{{- end }}

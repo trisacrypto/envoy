@@ -44,6 +44,11 @@ type Counterparty struct {
 	contacts            []*Contact           // Associated contacts if any
 }
 
+type CounterpartyPageInfo struct {
+	PageInfo
+	Source string `json:"source,omitempty"`
+}
+
 // Scan a complete SELECT into the counterparty model
 func (c *Counterparty) Scan(scanner Scanner) error {
 	return scanner.Scan(
@@ -77,6 +82,7 @@ func (c *Counterparty) ScanSummary(scanner Scanner) error {
 		&c.Name,
 		&c.Website,
 		&c.Country,
+		&c.VerifiedOn,
 		&c.Created,
 	)
 }

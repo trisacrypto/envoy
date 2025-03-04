@@ -1,0 +1,41 @@
+{{- template "base" . -}}
+{{- define "content" -}}
+  {{- template "sidebar" . }}
+  <main class="main-content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+          {{- block "header" . }}
+          <div class="header mt-md-5">
+            <div class="header-body">
+              <div class="row align-items-center">
+                <div class="col">
+
+                  <!-- Pretitle -->
+                  <h6 class="header-pretitle">
+                    {{ block "pretitle" . }}Overview{{ end }}
+                  </h6>
+
+                  <!-- Title -->
+                  <h1 class="header-title">
+                    {{ block "pagetitle" . }}Dashboard{{ end }}
+                  </h1>
+
+                </div>
+              </div> <!-- / .row -->
+              {{- block "tabs" . }}
+              <div class="row align-items-center">
+                <div class="col">
+                </div>
+              </div>
+              {{- end }}
+            </div>
+          </div>
+          {{- end }}
+          {{- block "main" . }}
+          {{- end }}
+        </div><!-- / center .col12 -->
+      </div><!-- / center .row -->
+    </div> <!-- / .container-fluid -->
+  </main>
+{{- end}}

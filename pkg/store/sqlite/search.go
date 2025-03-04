@@ -79,7 +79,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 
 	// Now fetch the values for the entire search results list
 	out = &models.CounterpartyPage{
-		Page:           &models.PageInfo{PageSize: uint32(query.Limit)},
+		Page:           &models.CounterpartyPageInfo{PageInfo: models.PageInfo{PageSize: uint32(query.Limit)}},
 		Counterparties: make([]*models.Counterparty, 0, len(stubs)),
 	}
 

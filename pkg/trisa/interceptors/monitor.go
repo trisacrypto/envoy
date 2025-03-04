@@ -41,7 +41,7 @@ func UnaryMonitoring() grpc.UnaryServerInterceptor {
 	// Initialize entropy if it hasn't already been initialized.
 	initEntropy()
 
-	version := pkg.Version()
+	version := pkg.Version(false)
 	metrics.Setup()
 
 	return func(ctx context.Context, in interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (out interface{}, err error) {
@@ -101,7 +101,7 @@ func StreamMonitoring() grpc.StreamServerInterceptor {
 	// Initialize entropy if it hasn't already been initialized.
 	initEntropy()
 
-	version := pkg.Version()
+	version := pkg.Version(false)
 	metrics.Setup()
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
