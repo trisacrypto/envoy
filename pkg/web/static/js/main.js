@@ -51,6 +51,7 @@ function createList(elem) {
 
       if (nextItem <= list.size()) {
         list.show(nextItem, list.page);
+        list.update()
       }
     });
   }
@@ -64,6 +65,7 @@ function createList(elem) {
 
       if (prevItem > 0) {
         list.show(prevItem, list.page);
+        list.update()
       }
     });
   }
@@ -118,4 +120,16 @@ function createChoices(elem) {
   };
 
   new Choices(elem, options);
+}
+
+function createPageSizeSelect(elem, list) {
+  // Initialize Choices.
+  createChoices(elem);
+
+  // Change the page when page size is selected.
+  elem.addEventListener('change', function(e) {
+    list.page = parseInt(e.target.value);
+    list.show(1, list.page);
+    list.update()
+  });
 }

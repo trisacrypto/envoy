@@ -44,15 +44,9 @@
     const cpList = document.getElementById('apikeyList');
     const list = createList(cpList);
 
-    // Initialize Choices.js
+    // Initialize Page Size Select
     const pageSizeSelect = document.getElementById('pageSizeSelect');
-    createChoices(pageSizeSelect);
-
-    // Change the page size when selected
-    pageSizeSelect.addEventListener('change', function(e) {
-      list.page = parseInt(e.target.value.split(' ')[0]);
-      list.update();
-    });
+    createPageSizeSelect(pageSizeSelect, list);
   });
 </script>
 {{- end }}
