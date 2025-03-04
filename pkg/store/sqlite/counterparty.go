@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties ORDER BY name ASC"
-	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties WHERE source=:source ORDER BY name ASC"
+	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties ORDER BY name ASC"
+	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE source=:source ORDER BY name ASC"
 )
 
 func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {

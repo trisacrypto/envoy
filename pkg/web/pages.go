@@ -101,7 +101,9 @@ func (s *Server) TravelAddressUtility(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) UsersListPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/users/list.html", scene.New(c))
+	ctx := scene.New(c)
+	ctx["Role"] = strings.ToLower(c.Query("role"))
+	c.HTML(http.StatusOK, "dashboard/users/list.html", ctx)
 }
 
 //===========================================================================

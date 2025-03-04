@@ -82,6 +82,7 @@ func (c *Counterparty) ScanSummary(scanner Scanner) error {
 		&c.Name,
 		&c.Website,
 		&c.Country,
+		&c.VerifiedOn,
 		&c.Created,
 	)
 }

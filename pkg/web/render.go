@@ -70,7 +70,7 @@ func NewRender(fsys fs.FS) (render *Render, err error) {
 
 	// Add the partials to the templates.
 	// Partials are independently rendered with other templates included.
-	if err = render.AddPattern(fsys, partials); err != nil {
+	if err = render.AddPattern(fsys, partials, "components/**/*.html"); err != nil {
 		return nil, err
 	}
 

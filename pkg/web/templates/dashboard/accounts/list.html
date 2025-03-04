@@ -1,4 +1,58 @@
 {{ template "dashboard.html" . }}
 {{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Customer Accounts{{ end }}
-{{ define "pagetitle" }}Customer Accounts &amp; Wallet Addresses{{ end }}
+{{ define "pagetitle" }}Manage Wallet Accounts{{ end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<a href="#!" class="btn btn-primary ms-2">
+  Register Wallet
+</a>
+{{- end }}
+{{- end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/accounts" class="nav-link active">
+          All Accounts
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="accounts" hx-get="/v1/accounts" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script>
+  document.addEventListener("htmx:afterSettle", function(e) {
+    // Initialize List.js
+    const cpList = document.getElementById('accountList');
+    const list = createList(cpList);
+
+    // Initialize Choices.js
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    createChoices(pageSizeSelect);
+
+    // Change the page size when selected
+    pageSizeSelect.addEventListener('change', function(e) {
+      list.page = parseInt(e.target.value.split(' ')[0]);
+      list.update();
+    });
+  });
+</script>
+{{- end }}

@@ -1,4 +1,58 @@
 {{ template "dashboard.html" . }}
 {{ define "title" }}API Key Management | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Access Management{{ end }}
-{{ define "pagetitle" }}All API Keys{{ end }}
+{{ define "pagetitle" }}Manage Envoy API Keys{{ end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<a href="#!" class="btn btn-primary ms-2">
+  Create API Key
+</a>
+{{- end }}
+{{- end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/apikeys" class="nav-link active">
+          All API Keys
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="apikeys" hx-get="/v1/apikeys" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script>
+  document.addEventListener("htmx:afterSettle", function(e) {
+    // Initialize List.js
+    const cpList = document.getElementById('apikeyList');
+    const list = createList(cpList);
+
+    // Initialize Choices.js
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    createChoices(pageSizeSelect);
+
+    // Change the page size when selected
+    pageSizeSelect.addEventListener('change', function(e) {
+      list.page = parseInt(e.target.value.split(' ')[0]);
+      list.update();
+    });
+  });
+</script>
+{{- end }}

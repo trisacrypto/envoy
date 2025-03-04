@@ -908,6 +908,12 @@ components:
             registered in or primarily operates in to assist in counterparty
             identification.
           example: JP
+        verified_on:
+          type: string
+          format: date-time
+          description: The date and time when the counterparty record was verified as being
+            a TRISA member on the network your node is connected to.
+          example: 2024-08-28T10:14:43-05:00
         created:
           type: string
           format: date-time
@@ -923,6 +929,7 @@ components:
         name: AliceCoin
         website: https://alice.vaspbot.net
         country: GB
+        verified_on: 2024-02-06T13:51:43-05:00
         created: 2024-08-28T10:14:43-05:00
     CounterpartyList:
       title: CounterpartyList
@@ -944,6 +951,7 @@ components:
               name: AliceCoin
               website: https://alice.vaspbot.net
               country: GB
+              verified_on: 2023-11-19T08:27:12-05:00
               created: 2024-08-28T10:14:43-05:00
             - id: 01J6G3BE4QRY6355ZJ998SATXA
               source: gds
@@ -953,6 +961,7 @@ components:
               name: BobVASP
               website: https://bob.vaspbot.net
               country: US
+              verified_on: 2024-02-06T13:51:43-05:00
               created: 2024-08-29T17:15:54-05:00
       example:
         page:
@@ -966,6 +975,7 @@ components:
             name: AliceCoin
             website: https://alice.vaspbot.net
             country: GB
+            verified_on: 2023-11-19T08:27:12-05:00
             created: 2024-08-28T10:14:43-05:00
           - id: 01J6G3BE4QRY6355ZJ998SATXA
             source: gds
@@ -975,6 +985,7 @@ components:
             name: BobVASP
             website: https://bob.vaspbot.net
             country: US
+            verified_on: 2024-02-06T13:51:43-05:00
             created: 2024-08-29T17:15:54-05:00
     Transaction:
       title: Transaction
