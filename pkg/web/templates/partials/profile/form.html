@@ -1,0 +1,52 @@
+<form hx-put="/v1/profile" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}' hx-target="#profileForm">
+  <div class="row">
+    <div class="col-12 col-md-6">
+      <div class="form-group">
+        <label for="uid" class="mb-1">User ID</label>
+        <small class="form-text text-body-secondary">
+          Your Envoy user ID (not editable).
+        </small>
+        <input type="text" class="form-control" id="uid" value="{{ .ID }}" readonly>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-group">
+        <label for="uid" class="mb-1">Role</label>
+        <small class="form-text text-body-secondary">
+          Your Envoy role (change on user management page).
+        </small>
+        <input type="text" class="form-control" id="role" value="{{ .Role }}" readonly>
+        <input type="hidden" class="form-control" id="role" name="role" value="{{ .Role }}">
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="form-group">
+        <label for="name" class="mb-1">Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ .Name }}" required>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="form-group">
+        <label for="email" class="mb-1">Email</label>
+        <small class="form-text text-body-secondary">
+          Your email address is used for login and notifications.
+        </small>
+        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary" type="submit">
+    Save Changes
+  </button>
+</form>
+
+
+<!-- Divider -->
+<hr class="my-5">
+
+<dl class="row">
+  <dt class="col-sm-3">Account Created On</dt>
+  <dd class="col-sm-9">{{ .Created.Format "Jan 02, 2006 at 15:16 MST" }}</dd>
+  <dt class="col-sm-3">Last Modidified On</dt>
+  <dd class="col-sm-9">{{ .Modified.Format "Jan 02, 2006 at 15:16 MST" }}</dd>
+</div>

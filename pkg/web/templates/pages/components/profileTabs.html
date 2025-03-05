@@ -1,0 +1,18 @@
+{{ define "profileTabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/profile" class='nav-link{{ if eq . "profile" }} active{{ end }}'>
+          General
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/profile/account" class='nav-link{{ if eq . "account" }} active{{ end }}'>
+          Account
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{ end }}

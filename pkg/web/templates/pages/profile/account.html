@@ -1,0 +1,10 @@
+{{ template "page.html" . }}
+{{ define "title" }}User Settings | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Profile{{ end }}
+{{ define "pagetitle" }}Account Management{{ end }}
+
+{{ define "tabs" }}
+  {{- with $tab := "account" }}
+    {{- template "profileTabs" $tab }}
+  {{- end -}}
+{{ end }}
