@@ -99,6 +99,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/reset-password", s.ResetPasswordPage)
 	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
 	s.router.GET("/about", authenticate, s.AboutPage)
+	s.router.GET("/settings", authenticate, s.SettingsPage)
 	s.router.GET("/profile", authenticate, s.UserProfile)
 	s.router.GET("/profile/account", authenticate, s.UserAccount)
 	s.router.GET("/transactions", authenticate, s.TransactionsListPage)

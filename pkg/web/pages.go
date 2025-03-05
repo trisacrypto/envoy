@@ -145,6 +145,10 @@ func (s *Server) AboutPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "pages/settings/about.html", ctx)
 }
 
+func (s *Server) SettingsPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "pages/settings/settings.html", scene.New(c))
+}
+
 //===========================================================================
 // User Profile Pages
 //===========================================================================

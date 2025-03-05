@@ -1,4 +1,51 @@
 {{ template "page.html" . }}
 {{ define "title" }}Node Info | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Settings{{ end }}
-{{ define "pagetitle" }}About your Node{{ end }}
+{{ define "pagetitle" }}About your Envoy Node{{ end }}
+
+{{ define "tabs" }}
+  {{- with $tab := "about" }}
+    {{- template "settingsTabs" $tab }}
+  {{- end -}}
+{{ end }}
+
+{{ define "main"  }}
+<div class="row justify-content-between align-items-center mb-5">
+  <div class="col-12 col-md-6">
+    <div class="card" style="min-height: 248px;">
+      <div class="card-header">
+        <h3 class="card-title">Application Info</h3>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-6">Version</dt>
+          <dd class="col-6">{{ if .Version }}{{ .Version }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6">Revision</dt>
+          <dd class="col-6">{{ if .Revision }}{{ .Revision }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6">Release</dt>
+          <dd class="col-6">{{ if .Release }}{{ .Release }}{{ else }}&mdash;{{ end }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Deployment Details</h3>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-6">Region</dt>
+          <dd class="col-6">{{ if .Region.Name }}{{ .Region }}{{ if .Region.ID }}({{ .Region.ID }}){{ end }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6">Country</dt>
+          <dd class="col-6">{{ if .Country }}{{ .Country }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6">Cloud</dt>
+          <dd class="col-6">{{ if .Cloud }}{{ .Cloud }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6">Cluster</dt>
+          <dd class="col-6">{{ if .Cluster }}{{ .Cluster }}{{ else }}&mdash;{{ end }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
