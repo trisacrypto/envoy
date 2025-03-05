@@ -26,6 +26,10 @@ type ReauthenticateRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type ResetPasswordRequest struct {
+	Email string `json:"email"`
+}
+
 func (r *LoginRequest) Validate() (err error) {
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Email == "" {

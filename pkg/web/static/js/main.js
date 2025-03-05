@@ -5,8 +5,13 @@ document.body.addEventListener('htmx:configRequest', (e) => {
 
 // Ensure that all 500 errors redirect to the error page.
 document.body.addEventListener('htmx:responseError', (e) => {
-  if (e.detail.xhr.status === 500) {
-    window.location.href = '/error';
+  switch (e.detail.xhr.status) {
+    case 500:
+      window.location.href = '/error';
+      break;
+    case 501:
+      window.location.href = '/not-allowed';
+      break;
   }
 });
 

@@ -96,6 +96,8 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/", authenticate, s.Home)
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
+	s.router.GET("/reset-password", s.ResetPasswordPage)
+	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
 	s.router.GET("/about", authenticate, s.AboutPage)
 	s.router.GET("/profile", authenticate, s.UserProfile)
 	s.router.GET("/profile/account", authenticate, s.UserAccount)
@@ -147,6 +149,7 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/login", s.Login)
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
+		v1.POST("/reset-password", s.ResetPassword)
 
 		// User Profile Management
 		v1.POST("/change-password", authenticate, s.ChangePassword)
@@ -252,6 +255,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			profile.GET("", s.ProfileDetail)
 			profile.PUT("", s.UpdateProfile)
+			profile.DELETE("", s.DeleteProfile)
 			profile.POST("/password", s.ChangeProfilePassword)
 		}
 

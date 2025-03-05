@@ -3,8 +3,150 @@
 {{ define "pretitle" }}Profile{{ end }}
 {{ define "pagetitle" }}Account Management{{ end }}
 
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"422", "swap": true},
+      {"code":"400", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "modals" }}
+  <div id="confirmDeleteModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Account?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light">
+            Deleting your account will not delete any audit records associated with this email address.
+            If a new account is created with the same email address, those records will be linked to it.
+          </div>
+          <p class="px-3 text-danger"><strong>Are you sure you want to delete your account?</strong></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" hx-delete="/v1/profile">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+{{ define "header" }}
+{{- end -}}
+
 {{ define "tabs" }}
   {{- with $tab := "account" }}
     {{- template "profileTabs" $tab }}
   {{- end -}}
+{{ end }}
+
+{{ define "main"  }}
+<div class="row justify-content-between align-items-center mb-5">
+  <div class="col-12 col-md-6">
+    <h2 class="mb-2">
+      Change your password
+    </h2>
+    <p class="text-body-secondary mb-xl-0">
+      Once your password has been successfully changed, you will have to log in again. Expect to be redirected to the login page.
+    </p>
+  </div>
+  <div class="col-12 col-md-auto">
+    <form hx-post="/v1/reset-password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+      <input type="hidden" id="email" name="email" value="{{ .User.Email }}">
+      <button class="btn btn-white" type="submit">
+        Forgot your password?
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="row">
+  <!-- password requirements card -->
+  <div class="col-12 col-md-6 order-md-2">
+    <div class="card bg-light border ms-md-4">
+      <div class="card-body">
+        <p class="mb-2">
+          Password requirements
+        </p>
+        <p class="small text-body-secondary mb-2">
+          To create a new password, you have to meet all of the following requirements:
+        </p>
+        <ul class="small text-body-secondary ps-4 mb-0">
+          <li>
+            Minimum 8 characters
+          </li>
+          <li>
+            Both upper and lower case letters
+          </li>
+          <li>
+            At least one number
+          </li>
+          <li>
+            Can’t be the same as previous password
+          </li>
+          <li>
+            Special characters recommended
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- change password form -->
+  <div class="col-12 col-md-6">
+    <!-- Note: this form is duplicated in the partials/profile/changePassword.html template and must be updated if this form is. -->
+    <form hx-post="/v1/profile/password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}' hx-swap="outerHTML">
+      <div class="form-group">
+        <label class="form-label" for="current">Current password</label>
+        <input type="password" class="form-control" id="current" name="current" autocomplete="current-password">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">New password</label>
+        <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm">Confirm new password</label>
+        <input type="password" class="form-control" id="confirm" name="confirm" autocomplete="">
+      </div>
+
+      <button class="btn w-100 btn-primary lift" type="submit">
+        Update password
+      </button>
+    </form>
+  </div>
+</div> <!-- / .row -->
+
+<!-- Divider -->
+<hr class="my-5">
+
+<!-- delete your account -->
+<div class="row justify-content-between">
+  <div class="col-12 col-md-6">
+    <h4>Delete your account</h4>
+    <p class="small text-body-secondary mb-md-0">
+      Please note, deleting your account will not delete any audit records associated with your email address. If a new account is created with the same email address, those records will be linked to it.
+    </p>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-danger lift" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+      Delete
+    </button>
+  </div>
+</div>
+{{ end }}
+
+{{ define "appcode" }}
 {{ end }}

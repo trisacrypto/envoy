@@ -3,20 +3,20 @@
     <div class="col-12 col-md-6">
       <div class="form-group">
         <label for="uid" class="mb-1">User ID</label>
-        <small class="form-text text-body-secondary">
+        <input type="text" class="form-control" id="uid" value="{{ .ID }}" readonly>
+        <small class="form-text text-body-secondary mt-1">
           Your Envoy user ID (not editable).
         </small>
-        <input type="text" class="form-control" id="uid" value="{{ .ID }}" readonly>
       </div>
     </div>
     <div class="col-12 col-md-6">
       <div class="form-group">
         <label for="uid" class="mb-1">Role</label>
-        <small class="form-text text-body-secondary">
-          Your Envoy role (change on user management page).
-        </small>
         <input type="text" class="form-control" id="role" value="{{ .Role }}" readonly>
         <input type="hidden" class="form-control" id="role" name="role" value="{{ .Role }}">
+        <small class="form-text text-body-secondary mt-1">
+          Your Envoy role (change on user management page).
+        </small>
       </div>
     </div>
     <div class="col-12">
@@ -28,14 +28,14 @@
     <div class="col-12">
       <div class="form-group">
         <label for="email" class="mb-1">Email</label>
-        <small class="form-text text-body-secondary">
+        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required>
+        <small class="form-text text-body-secondary mt-1">
           Your email address is used for login and notifications.
         </small>
-        <input type="email" class="form-control" id="email" name="email" value="{{ .Email }}" required>
       </div>
     </div>
   </div>
-  <button class="btn btn-primary" type="submit">
+  <button class="btn btn-primary lift" type="submit">
     Save Changes
   </button>
 </form>

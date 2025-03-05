@@ -1,6 +1,9 @@
 {{- template "base" . -}}
 {{- define "content" -}}
+
   {{- template "sidebar" . }}
+  {{- block "modals" . }}{{ end }}
+
   <main class="main-content">
     <div class="container-fluid">
       <div class="row justify-content-center">

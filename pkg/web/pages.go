@@ -34,6 +34,18 @@ func (s *Server) LoginPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "auth/login/login.html", scene.New(c))
 }
 
+// ResetPasswordPage displays the reset password form for the UI so that the user can
+// enter their email address and receive a password reset link.
+func (s *Server) ResetPasswordPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "auth/reset/password.html", scene.New(c))
+}
+
+// ResetPasswordSuccessPage displays the confirmation message after a user has
+// requested a password reset link. This page is displayed no matter the outcome.
+func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "auth/reset/success.html", scene.New(c))
+}
+
 //===========================================================================
 // Transactions Pages
 //===========================================================================
