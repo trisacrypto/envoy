@@ -424,3 +424,33 @@ func (s *Server) ChangePassword(c *gin.Context) {
 		HTMLName: "password_changed.html",
 	})
 }
+
+func (s *Server) ResetPassword(c *gin.Context) {
+	var (
+		err error
+		in  *api.ResetPasswordRequest
+	)
+
+	// We do not allow JSON API requests to this endpoint.
+	// Technically someone could automate requests with an Accept: text/html header
+	// so it's also important to rate limit reset password requests. But returning a
+	// 406 error here is for the legitimate API users.
+	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEJSON {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("this is a UI only endpoint"))
+		return
+	}
+
+	in = &api.ResetPasswordRequest{}
+	if err = c.BindJSON(in); err != nil {
+		c.JSON(http.StatusBadRequest, api.Error("could not parse reset password request"))
+		return
+	}
+
+	// TODO: lookup user and send reset email with rate limiting.
+
+	// Make sure the user is logged out to prevent session hijacking
+	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
+
+	// Redirect to reset-password success page
+	htmx.Redirect(c, http.StatusFound, "/reset-password/success")
+}

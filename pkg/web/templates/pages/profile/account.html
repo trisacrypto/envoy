@@ -63,10 +63,12 @@
     </p>
   </div>
   <div class="col-12 col-md-auto">
-    <!-- TODO: Implement! -->
-    <button class="btn btn-white">
-      Forgot your password?
-    </button>
+    <form hx-post="/v1/reset-password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+      <input type="hidden" id="email" name="email" value="{{ .User.Email }}">
+      <button class="btn btn-white" type="submit">
+        Forgot your password?
+      </button>
+    </form>
   </div>
 </div>
 
