@@ -252,6 +252,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			profile.GET("", s.ProfileDetail)
 			profile.PUT("", s.UpdateProfile)
+			profile.DELETE("", s.DeleteProfile)
 			profile.POST("/password", s.ChangeProfilePassword)
 		}
 

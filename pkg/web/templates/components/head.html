@@ -7,6 +7,22 @@
   <meta name="description" content="An open source TRISA node for use in Travel Rule information transfers." />
   <meta name="author" content="Rotational Labs and Open Source Contributors on behalf of TRISA" />
 
+  <!-- HTMX Configuration -->
+  {{ block "htmxConfig" . -}}
+  <meta
+    name="htmx-config"
+    content='{
+      "responseHandling":[
+        {"code":"204", "swap": false},
+        {"code":"[23]..", "swap": true},
+        {"code":"422", "swap": true},
+        {"code":"[45]..", "swap": false, "error":true},
+        {"code":"...", "swap": true}
+      ]
+    }'
+  />
+  {{ end }}
+
   <!-- Favicon -->
   <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
 

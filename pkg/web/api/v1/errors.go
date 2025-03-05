@@ -206,6 +206,14 @@ func (e ValidationErrors) Error() string {
 	return fmt.Sprintf("%d validation errors occurred:\n  %s", len(e), strings.Join(errs, "\n  "))
 }
 
+func (e ValidationErrors) Map() map[string]string {
+	errs := make(map[string]string, len(e))
+	for _, err := range e {
+		errs[err.field] = err.Error()
+	}
+	return errs
+}
+
 func fieldList(fields ...string) string {
 	switch len(fields) {
 	case 0:
