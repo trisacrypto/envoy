@@ -15,7 +15,10 @@ import (
 //go:embed all:templates
 var content embed.FS
 
-const partials = "partials/*/*.html"
+const (
+	partials           = "partials/*/*.html"
+	partialsComponents = "partials/components/**/*.html"
+)
 
 var (
 	includes = []string{"*.html", "components/*.html", "modals/*.html"}
@@ -58,11 +61,19 @@ func NewRender(fsys fs.FS) (render *Render, err error) {
 			continue
 		}
 
+		// Create the includes patterns for the layout
 		pattern := fmt.Sprintf("%s/**/*.html", name)
-		patternInclude := make([]string, 0, len(includes)+1)
+		patternInclude := make([]string, 0, len(includes)+2)
 		patternInclude = append(patternInclude, includes...)
+
+		if components := fmt.Sprintf("%s/components/*.html", name); globExists(fsys, components) {
+			patternInclude = append(patternInclude, components)
+		}
+
+		// Ensure the current layout template is last in the list of templates
 		patternInclude = append(patternInclude, fmt.Sprintf("%s/*.html", name))
 
+		// Add the templates to the renderer.
 		if err = render.AddPattern(fsys, pattern, patternInclude...); err != nil {
 			return nil, err
 		}
@@ -70,7 +81,7 @@ func NewRender(fsys fs.FS) (render *Render, err error) {
 
 	// Add the partials to the templates.
 	// Partials are independently rendered with other templates included.
-	if err = render.AddPattern(fsys, partials, "components/**/*.html"); err != nil {
+	if err = render.AddPattern(fsys, partials, partialsComponents); err != nil {
 		return nil, err
 	}
 
@@ -110,4 +121,9 @@ func (r *Render) AddPattern(fsys fs.FS, pattern string, includes ...string) (err
 		log.Trace().Str("template", name).Strs("patterns", patterns).Msg("parsed template")
 	}
 	return nil
+}
+
+func globExists(fsys fs.FS, pattern string) (exists bool) {
+	names, _ := fs.Glob(fsys, pattern)
+	return len(names) > 0
 }

@@ -141,6 +141,6 @@ func (s *Server) UserProfile(c *gin.Context) {
 	c.HTML(http.StatusOK, "pages/profile/detail.html", scene.New(c))
 }
 
-func (s *Server) UserSettings(c *gin.Context) {
-	c.HTML(http.StatusOK, "pages/profile/settings.html", scene.New(c))
+func (s *Server) UserAccount(c *gin.Context) {
+	c.HTML(http.StatusOK, "pages/profile/account.html", scene.New(c))
 }

@@ -98,7 +98,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/about", authenticate, s.AboutPage)
 	s.router.GET("/profile", authenticate, s.UserProfile)
-	s.router.GET("/profile/settings", authenticate, s.UserSettings)
+	s.router.GET("/profile/account", authenticate, s.UserAccount)
 	s.router.GET("/transactions", authenticate, s.TransactionsListPage)
 	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
 	s.router.GET("/transactions/:id/repair", authenticate, s.TransactionsRepairPreview)
@@ -243,6 +243,16 @@ func (s *Server) setupRoutes() (err error) {
 			users.PUT("/:id", authorize(permiss.UsersManage), s.UpdateUser)
 			users.DELETE("/:id", authorize(permiss.UsersManage), s.DeleteUser)
 			users.POST("/:id/password", authorize(permiss.UsersManage), s.ChangeUserPassword)
+		}
+
+		// Profile Resource: Similar to user resource but for logged in user and does
+		// not require the users:manage permission for access.
+		// NOTE: this is undocumented in the API since it is only intended for the UI.
+		profile := v1.Group("/profile", authenticate)
+		{
+			profile.GET("", s.ProfileDetail)
+			profile.PUT("", s.UpdateProfile)
+			profile.POST("/password", s.ChangeProfilePassword)
 		}
 
 		// API Keys Resource
