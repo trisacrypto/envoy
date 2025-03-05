@@ -16,16 +16,15 @@ import (
 var content embed.FS
 
 const (
-	partials           = "partials/*/*.html"
+	partials           = "partials/**/*.html"
 	partialsComponents = "partials/components/**/*.html"
 )
 
 var (
-	includes = []string{"*.html", "components/*.html", "modals/*.html"}
+	includes = []string{"*.html", "components/*.html"}
 	excludes = map[string]struct{}{
 		"partials":   {},
 		"components": {},
-		"modals":     {},
 	}
 )
 

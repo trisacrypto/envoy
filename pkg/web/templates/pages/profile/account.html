@@ -19,6 +19,33 @@
 />
 {{ end }}
 
+{{ define "modals" }}
+  <div id="confirmDeleteModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Account?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light">
+            Deleting your account will not delete any audit records associated with this email address.
+            If a new account is created with the same email address, those records will be linked to it.
+          </div>
+          <p class="px-3 text-danger"><strong>Are you sure you want to delete your account?</strong></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" hx-delete="/v1/profile">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+{{ define "header" }}
+{{- end -}}
+
 {{ define "tabs" }}
   {{- with $tab := "account" }}
     {{- template "profileTabs" $tab }}
@@ -80,17 +107,17 @@
     <form hx-post="/v1/profile/password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}' hx-swap="outerHTML">
       <div class="form-group">
         <label class="form-label" for="current">Current password</label>
-        <input type="password" class="form-control" id="current" name="current">
+        <input type="password" class="form-control" id="current" name="current" autocomplete="current-password">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="password">New password</label>
-        <input type="password" class="form-control" id="password" name="password">
+        <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="confirm">Confirm new password</label>
-        <input type="password" class="form-control" id="confirm" name="confirm">
+        <input type="password" class="form-control" id="confirm" name="confirm" autocomplete="">
       </div>
 
       <button class="btn w-100 btn-primary lift" type="submit">
@@ -112,7 +139,7 @@
     </p>
   </div>
   <div class="col-auto">
-    <button class="btn btn-danger lift">
+    <button class="btn btn-danger lift" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
       Delete
     </button>
   </div>
@@ -120,9 +147,4 @@
 {{ end }}
 
 {{ define "appcode" }}
-<script>
-  document.body.addEventListener("htmx:configRequest", (event) => {
-    console.log(event.detail);
-  });
-</script>
 {{ end }}

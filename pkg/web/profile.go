@@ -110,7 +110,35 @@ func (s *Server) UpdateProfile(c *gin.Context) {
 }
 
 func (s *Server) DeleteProfile(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, api.Error("not implemented"))
+	var (
+		err    error
+		userID ulid.ULID
+	)
+
+	// Get the user ID from the request context
+	if userID, err = s.retrieveUserID(c); err != nil {
+		c.JSON(http.StatusUnauthorized, api.Error(err))
+		return
+	}
+
+	// Delete the user from the database
+	// TODO: for audit purposes we may simply want to move the user to a revoked table.
+	if err = s.store.DeleteUser(c.Request.Context(), userID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not delete user profile"))
+		return
+	}
+
+	// Success! Log the user out and redirect to the login page.
+	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
+
+	// Send the user to the login page
+	if c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) == binding.MIMEHTML {
+		htmx.Redirect(c, http.StatusFound, "/login")
+		return
+	}
+
+	c.JSON(http.StatusOK, &api.Reply{Success: true})
 }
 
 func (s *Server) ChangeProfilePassword(c *gin.Context) {
