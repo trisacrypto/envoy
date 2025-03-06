@@ -1,0 +1,16 @@
+{{ template "page.html" . }}
+{{ define "title" }}Node Settings | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Settings{{ end }}
+{{ define "pagetitle" }}Envoy Configuration{{ end }}
+
+{{ define "tabs" }}
+  {{- with $tab := "settings" }}
+    {{- template "settingsTabs" $tab }}
+  {{- end -}}
+{{ end }}
+
+{{ define "main"  }}
+<div class="alert alert-info">
+  Coming Soon!
+</div>
+{{ end }}
