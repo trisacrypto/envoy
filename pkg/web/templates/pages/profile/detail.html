@@ -83,8 +83,7 @@
   });
 
   document.body.addEventListener("htmx:afterSettle", (e) => {
-    const config = e.detail.requestConfig
-    if (config.path == "/v1/profile" && config.verb == "put" && e.detail.xhr.status == 200) {
+    if (isRequestFor(e, "/v1/profile", "put") && checkStatus(e, 200)) {
       // Display success message -- the profile has been saved.
       const alerts = document.getElementById("alerts");
       alerts.insertAdjacentHTML('beforeend', `

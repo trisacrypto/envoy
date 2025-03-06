@@ -3,11 +3,29 @@
 {{ define "pretitle" }}Access Management{{ end }}
 {{ define "pagetitle" }}Manage Envoy API Keys{{ end }}
 
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{- define "modals" }}
+  {{ template "createAPIKeyModal" . }}
+{{- end }}
+
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
-<a href="#!" class="btn btn-primary ms-2">
+<button class="btn btn-primary ms-2 lift" data-bs-toggle="modal" data-bs-target="#createAPIKeyModal">
   Create API Key
-</a>
+</button>
 {{- end }}
 {{- end }}
 
@@ -39,14 +57,96 @@
 
 {{- define "appcode" }}
 <script>
-  document.addEventListener("htmx:afterSettle", function(e) {
-    // Initialize List.js
-    const cpList = document.getElementById('apikeyList');
-    const list = createList(cpList);
+  function alertError(id, title, message) {
+    const alerts = document.getElementById(id);
+    alerts.insertAdjacentHTML('beforeend', `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>${title}</strong> ${message}.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `);
+  }
 
-    // Initialize Page Size Select
-    const pageSizeSelect = document.getElementById('pageSizeSelect');
-    createPageSizeSelect(pageSizeSelect, list);
+  function toggleFullPermissions(on) {
+    const help = document.getElementById('fullPermissionsHelp');
+    help.innerText = on ? 'all permissions selected' : 'specify individual permissions';
+
+    const permissions = document.getElementsByName('permissions');
+    permissions.forEach(permission => {
+      permission.checked = on;
+      permission.disabled = on;
+    });
+  }
+
+  function resetPermissionsCheckboxes() {
+    // Reset full permissions checkbox and permissions checkboxes
+    const fullPermissions = document.getElementById('fullPermissions');
+    fullPermissions.checked = false;
+    toggleFullPermissions(false);
+  }
+
+  document.body.addEventListener("htmx:configRequest", function(e) {
+    // Manage create API key form submission
+    if (isRequestFor(e, "/v1/apikeys", "post")) {
+      let permissions = Array.from(document.getElementsByName('permissions'))
+        .filter(permission => permission.checked)
+        .map(permission => permission.value);
+
+      const params = new FormData();
+      params.append("description", e.detail.parameters.get("description"));
+      for (const permission of permissions) {
+        params.append("permissions", permission);
+      }
+
+      e.detail.parameters = params;
+      console.log("config request", e.detail.parameters, JSON.stringify(e.detail.parameters));
+    }
   });
+
+  document.body.addEventListener("htmx:afterSettle", function(e) {
+    if (isRequestFor(e, "/v1/apikeys", "get")) {
+      // Initialize List.js
+      const cpList = document.getElementById('apikeyList');
+      const list = createList(cpList);
+
+      // Initialize Page Size Select
+      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      createPageSizeSelect(pageSizeSelect, list);
+    }
+  });
+
+  document.body.addEventListener("htmx:responseError", function(e) {
+    // Handle errors for create API key modal
+    if (isRequestFor(e, "/v1/apikeys", "post")) {
+      const error = JSON.parse(e.detail.xhr.response);
+      switch (e.detail.xhr.status) {
+        case 400:
+          alertError("createAPIKeyAlerts", "Error:", error.error);
+          break;
+        case 422:
+          alertError("createAPIKeyAlerts", "Validation error:", error.error);
+          break;
+        default:
+          break;
+      }
+    }
+  });
+
+  const fullPermissionsToggle = document.getElementById('fullPermissions');
+  if (fullPermissionsToggle) {
+    fullPermissionsToggle.addEventListener('change', function() {
+      toggleFullPermissions(fullPermissionsToggle.checked);
+    });
+  }
+
+  const createAPIKeyForm = document.getElementById('createAPIKeyForm');
+  if (createAPIKeyForm) {
+    createAPIKeyForm.addEventListener('reset', function() {
+      const alerts = document.getElementById('createAPIKeyAlerts');
+      alerts.querySelector('.alert')?.remove();
+
+      resetPermissionsCheckboxes();
+    });
+  }
 </script>
 {{- end }}

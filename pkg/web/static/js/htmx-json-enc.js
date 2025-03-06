@@ -10,7 +10,28 @@ htmx.defineExtension('json-enc', {
     },
 
     encodeParameters : function(xhr, parameters, elt) {
+        // Ensure the MIME type is set correctly
         xhr.overrideMimeType('text/json');
+
+        // Handle serialization of FormData objects
+        // This will ensure arrays of values are serialized correctly into arrays
+        // However it cannot handle non string or []string objects (right now).
+        // If that is needed in the future, we'd have to add the JSON as a Blob to
+        // the form data and deserialize it by checking if it was a blob type (async).
+        if (parameters instanceof FormData) {
+          const obj = {};
+          for (const key of parameters.keys()) {
+            const values = parameters.getAll(key);
+            if (values.length === 1) {
+              obj[key] = values[0];
+            } else {
+              obj[key] = values;
+            }
+          }
+          return (JSON.stringify(obj));
+        }
+
+        // Otherwise this is probably a ProxyForm object from HTMX.
         return (JSON.stringify(parameters));
     }
 });

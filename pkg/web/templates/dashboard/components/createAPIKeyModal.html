@@ -1,0 +1,120 @@
+{{ define "createAPIKeyModal" }}
+<div id="createAPIKeyModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Create API Key</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="createAPIKeyAlerts" class="alerts"></div>
+        <form id="createAPIKeyForm" hx-post="/v1/apikeys" hx-ext="json-enc" hx-swap="outerHTML" hx-indicator="#loader">
+          <div class="form-group">
+            <label class="form-label" for="description">API Key Description</label>
+            <input type="text" class="form-control" id="description" name="description" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label mb-1" for="permissions">Permissions</label>
+            <small class="form-text text-body-secondary">
+              Select the permissions you want to grant this API key or choose
+              "full permissions" to grant all access privileges to the key
+              (e.g. full admin privileges to the Envoy node).
+            </small>
+            <div class="row mt-3">
+              <div class="col-auto">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="fullPermissions">
+                  <label class="form-check-label" for="fullPermissions">Full Permissions</label>
+                </div>
+              </div>
+              <div class="col ms-n2">
+                <small id="fullPermissionsHelp" class="text-body-secondary">specify individual permissions</small>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label my-1" for="permissions">Select Permissions</label>
+            <div class="row px-3 mt-2">
+              <div class="form-check col-6">
+                <input class="form-check-input" value="accounts:manage" id="accounts-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="accounts-manage">accounts:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="accounts:view" id="accounts-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="accounts-view">accounts:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="apikeys:manage" id="apikeys-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="apikeys-manage">apikeys:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="apikeys:view" id="apikeys-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="apikeys-view">apikeys:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="apikeys:revoke" id="apikeys-revoke" type="checkbox" name="permissions">
+                <label class="form-check-label" for="apikeys-revoke">apikeys:revoke</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="config:manage" id="config-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="config-manage">config:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="config:view" id="config-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="config-view">config:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="counterparties:manage" id="counterparties-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="counterparties-manage">counterparties:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="counterparties:view" id="counterparties-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="counterparties-view">counterparties:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="pki:manage" id="pki-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="pki-manage">pki:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="pki:view" id="pki-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="pki-view">pki:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="pki:delete" id="pki-delete" type="checkbox" name="permissions">
+                <label class="form-check-label" for="pki-delete">pki:delete</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="travelrule:manage" id="travelrule-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="travelrule-manage">travelrule:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="travelrule:view" id="travelrule-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="travelrule-view">travelrule:view</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="travelrule:delete" id="travelrule-delete" type="checkbox" name="permissions">
+                <label class="form-check-label" for="travelrule-delete">travelrule:delete</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="users:manage" id="users-manage" type="checkbox" name="permissions">
+                <label class="form-check-label" for="users-manage">users:manage</label>
+              </div>
+              <div class="form-check col-6">
+                <input class="form-check-input" value="users:view" id="users-view" type="checkbox" name="permissions">
+                <label class="form-check-label" for="users-view">users:view</label>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" form="createAPIKeyForm" class="btn btn-primary">
+          <span class="submit-btn-text">Create</span>
+          <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+        </button>
+        <button type="reset" form="createAPIKeyForm" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

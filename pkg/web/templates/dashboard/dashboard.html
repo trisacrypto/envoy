@@ -1,6 +1,9 @@
 {{ template "base" . }}
 {{ define "content" -}}
-  {{ template "sidebar" . }}
+
+  {{- template "sidebar" . }}
+  {{- block "modals" . }}{{ end }}
+
   <main class="main-content">
     {{ block "dashboard" . }}
     <div class="container-fluid">
