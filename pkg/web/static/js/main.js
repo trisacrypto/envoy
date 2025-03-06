@@ -15,6 +15,33 @@ document.body.addEventListener('htmx:responseError', (e) => {
   }
 });
 
+// Checks the HTMX requestConfig from the event detail (if any) and determines if the
+// path and method match what the request was for; allowing you to disambiguate between
+// different HTMX requests on the same page.
+function isRequestFor(e, path, method) {
+  // Check the request config for the path and method if it has been configured.
+  const config = e.detail?.requestConfig;
+  if (config) {
+    return config.path === path && config.verb === method;
+  }
+
+  // Check the detail directly if this is during a request config event.
+  if (e.detail?.path && e.detail?.verb) {
+    return e.detail.path === path && e.detail.verb === method;
+  }
+
+  // Otherwise return false since we can't determine the configuration.
+  return false;
+}
+
+// Check the status of an HTMX request.
+function checkStatus(e, status) {
+  return e.detail?.xhr?.status === status;
+}
+
+// Initialize a List.js component on the specified element using the DashKit default
+// options. Used after an HTMX request settles to ensure the component is loaded.
+// The list is returned so that it can be used for programmatic interaction.
 function createList(elem) {
   const listAlert = elem.querySelector('.list-alert');
   const listAlertCount = elem.querySelector('.list-alert-count');
@@ -79,6 +106,8 @@ function createList(elem) {
   return list;
 }
 
+// Initialize a Choices.js component on the specified element using the DashKit default
+// options. Used after an HTMX request settles to ensure the component is loaded.
 function createChoices(elem) {
   const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
   const defaultOptions = {
@@ -91,6 +120,7 @@ function createChoices(elem) {
       activeState: 'show',
       selectedState: 'active',
     },
+    allowHTML: false,
     shouldSort: false,
     callbackOnCreateTemplates: function (template) {
       return {
@@ -124,9 +154,10 @@ function createChoices(elem) {
     ...defaultOptions,
   };
 
-  new Choices(elem, options);
+  return new Choices(elem, options);
 }
 
+// Initializes a page size select element for a List.js component.
 function createPageSizeSelect(elem, list) {
   // Initialize Choices.
   createChoices(elem);

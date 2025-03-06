@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	"go.rtnl.ai/ulid"
 )
@@ -114,11 +115,14 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 	// Ensure the created apikey secret is returned back to the user
 	out.Secret = secret
 
+	// Add HTMX Trigger to reload the API Key List
+	c.Header(htmx.HXTriggerAfterSwap, "apikey-created")
+
 	// Content negotiation
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "apikeys_create.html",
+		HTMLName: "partials/apikeys/created.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

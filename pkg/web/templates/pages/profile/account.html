@@ -20,27 +20,7 @@
 {{ end }}
 
 {{ define "modals" }}
-  <div id="confirmDeleteModal" class="modal" tabindex="-1">
-    <div class='modal-dialog'>
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Delete Account?</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="alert alert-light">
-            Deleting your account will not delete any audit records associated with this email address.
-            If a new account is created with the same email address, those records will be linked to it.
-          </div>
-          <p class="px-3 text-danger"><strong>Are you sure you want to delete your account?</strong></p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" hx-delete="/v1/profile">Delete</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ template "confirmDeleteModal" . }}
 {{ end }}
 
 {{ define "tabs" }}

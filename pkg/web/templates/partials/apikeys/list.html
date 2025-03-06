@@ -51,7 +51,7 @@
         <tr>
           <td><span class="item-description">{{ .Description }}</span></td>
           <td><time class="item-date-created" datetime="2020-01-14">{{ .Created.Format "Jan 02, 2006" }}</time></td>
-          <td><time class="item-last-used" datetime="2020-01-14">{{ .LastSeen.Format "Jan 02, 2006 at 15:16:17" }}</time></td>
+          <td><time class="item-last-used" datetime="2020-01-14">{{ if.LastSeen }}{{ .LastSeen.Format "Jan 02, 2006 at 15:16:17" }}{{ else }}<span class="text-warning"><i class="fe fe-alert-triangle"></i> Unused</span>{{ end }}</time></td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">
