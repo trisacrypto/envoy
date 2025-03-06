@@ -36,13 +36,13 @@
       <div class="card-body">
         <dl class="row">
           <dt class="col-6">Region</dt>
-          <dd class="col-6">{{ if .Region.Name }}{{ .Region }}{{ if .Region.ID }}({{ .Region.ID }}){{ end }}{{ else }}&mdash;{{ end }}</dd>
+          <dd class="col-6">{{ if .Region.Name }}{{ .Region.Name }}{{ if .Region.ID }} ({{ .Region.ID }}){{ end }}{{ else }}&mdash;{{ end }}</dd>
           <dt class="col-6">Country</dt>
-          <dd class="col-6">{{ if .Country }}{{ .Country }}{{ else }}&mdash;{{ end }}</dd>
+          <dd class="col-6">{{ if .Region.Country }}{{ .Region.Country }}{{ else }}&mdash;{{ end }}</dd>
           <dt class="col-6">Cloud</dt>
-          <dd class="col-6">{{ if .Cloud }}{{ .Cloud }}{{ else }}&mdash;{{ end }}</dd>
+          <dd class="col-6">{{ if .Region.Cloud }}{{ .Region.Cloud }}{{ else }}&mdash;{{ end }}</dd>
           <dt class="col-6">Cluster</dt>
-          <dd class="col-6">{{ if .Cluster }}{{ .Cluster }}{{ else }}&mdash;{{ end }}</dd>
+          <dd class="col-6">{{ if .Region.Cluster }}{{ .Region.Cluster }}{{ else }}&mdash;{{ end }}</dd>
         </dl>
       </div>
     </div>
