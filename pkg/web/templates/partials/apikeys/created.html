@@ -7,23 +7,36 @@
     </div>
     <div class="modal-body">
       <div id="createAPIKeyAlerts" class="alerts">
-        <div class="alert alert-success" role="alert">
-          <strong>API Key Created</strong> Your new API key has been created.
+        <div class="alert alert-warning" role="alert">
+          <h4 class="alert-heading mb-1">API Key Created!</h4>
+          <p class="mb-0">For security purposes, this is the only time you will be able to view the client ID and secret. If misplaced, the key will have to be revoked and reissued.</p>
         </div>
       </div>
+      <p>Please copy and securely store your API key for use with the API client.</p>
       <form>
         <div class="form-group">
           <label class="form-label" for="clientID">Client ID</label>
-          <input type="text" class="form-control" id="clientID" value="{{ .ClientID }}" readonly>
+          <div class="input-group">
+            <input type="text" class="form-control" id="clientID" value="{{ .ClientID }}" readonly>
+            <button class="btn btn-outline-secondary" type="button" data-clipboard-target="#clientID" title="Copy to Clipboard">
+              <i class="fe fe-copy"></i>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="clientSecret">Client Secret</label>
-          <input type="text" class="form-control" id="clientSecret" value="{{ .Secret }}" readonly>
+          <div class="input-group">
+            <input type="text" class="form-control" id="clientSecret" value="{{ .Secret }}" readonly>
+            <button class="btn btn-outline-secondary" type="button" data-clipboard-target="#clientSecret" title="Copy to Clipboard">
+              <i class="fe fe-copy"></i>
+            </button>
+          </div>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button type="reset" form="createAPIKeyForm" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <small class="text-body-secondary"><i class="fe fe-alert-triangle text-danger"></i> API Key credentials cannot be shown again after close.</small>
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
     </div>
   </div>
 </div>

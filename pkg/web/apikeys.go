@@ -3,7 +3,6 @@ package web
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -59,7 +58,6 @@ func (s *Server) ListAPIKeys(c *gin.Context) {
 }
 
 func (s *Server) CreateAPIKey(c *gin.Context) {
-	time.Sleep(10 * time.Second)
 	var (
 		err    error
 		in     *api.APIKey
