@@ -116,7 +116,7 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 	out.Secret = secret
 
 	// Add HTMX Trigger to reload the API Key List
-	c.Header(htmx.HXTriggerAfterSwap, "apikey-created")
+	c.Header(htmx.HXTriggerAfterSwap, "apikeys-updated")
 
 	// Content negotiation
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
@@ -306,11 +306,10 @@ func (s *Server) DeleteAPIKey(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     api.Reply{Success: true},
-		HTMLName: "apikey_delete.html",
-		HTMLData: scene.Scene{"KeyID": keyID},
-	})
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, api.Reply{Success: true})
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "apikeys-updated")
+	}
 }

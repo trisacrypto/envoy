@@ -1,0 +1,33 @@
+{{ define "confirmDeleteAPIKeyModal" }}
+<div id="confirmRevokeModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Revoke API Key?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light">
+          Revoking an API key will revoke its access to the Envoy node once any existing
+          sessions have timed out. All audit records associated with this key will be retained.
+        </div>
+        <p class="px-3 text-danger"><strong>Are you sure you want to revoke the following API Key?</strong></p>
+        <form>
+          <div class="form-group">
+            <label class="form-label" for="clientID">Client ID</label>
+            <input type="text" class="form-control" id="clientID" value="" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <input type="text" class="form-control" id="description" value="" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteBtn" type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
