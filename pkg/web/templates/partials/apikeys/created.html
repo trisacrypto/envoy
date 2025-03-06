@@ -1,0 +1,30 @@
+{{- with .CreateAPIKey -}}
+<div class='modal-dialog'>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Create API Key</h4>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <div id="createAPIKeyAlerts" class="alerts">
+        <div class="alert alert-success" role="alert">
+          <strong>API Key Created</strong> Your new API key has been created.
+        </div>
+      </div>
+      <form>
+        <div class="form-group">
+          <label class="form-label" for="clientID">Client ID</label>
+          <input type="text" class="form-control" id="clientID" value="{{ .ClientID }}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="clientSecret">Client Secret</label>
+          <input type="text" class="form-control" id="clientSecret" value="{{ .Secret }}" readonly>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="reset" form="createAPIKeyForm" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+  </div>
+</div>
+{{- end -}}

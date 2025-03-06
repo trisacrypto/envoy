@@ -19,6 +19,7 @@
 
 {{- define "modals" }}
   {{ template "createAPIKeyModal" . }}
+  <div id="apiKeyCreatedModal" class="modal" tabindex="-1"></div>
 {{- end }}
 
 {{- define "header-actions" }}
@@ -44,7 +45,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="apikeys" hx-get="/v1/apikeys" hx-trigger="load">
+<section id="apikeys" hx-get="/v1/apikeys" hx-trigger="load, apikey-created from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">
@@ -99,7 +100,6 @@
       }
 
       e.detail.parameters = params;
-      console.log("config request", e.detail.parameters, JSON.stringify(e.detail.parameters));
     }
   });
 
@@ -112,6 +112,21 @@
       // Initialize Page Size Select
       const pageSizeSelect = document.getElementById('pageSizeSelect');
       createPageSizeSelect(pageSizeSelect, list);
+      return;
+    }
+
+    if(isRequestFor(e, "/v1/apikeys", "post")) {
+      // Close and reset the create API key modal, then open the created modal.
+      const createAPIKeyForm = document.getElementById("createAPIKeyForm");
+      createAPIKeyForm.reset();
+
+      const createAPIKeyModal = Modal.getInstance(document.getElementById("createAPIKeyModal"));
+      createAPIKeyModal.hide();
+
+      const apiKeyCreatedModal = new Modal("#apiKeyCreatedModal", {});
+      apiKeyCreatedModal.show();
+
+      return;
     }
   });
 

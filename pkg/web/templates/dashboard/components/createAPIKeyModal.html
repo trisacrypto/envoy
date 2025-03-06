@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <div id="createAPIKeyAlerts" class="alerts"></div>
-        <form id="createAPIKeyForm" hx-post="/v1/apikeys" hx-ext="json-enc" hx-swap="outerHTML" hx-indicator="#loader">
+        <form id="createAPIKeyForm" hx-post="/v1/apikeys" hx-ext="json-enc" hx-target="#apiKeyCreatedModal" hx-indicator="#loader" hx-disabled-elt="next button[type='submit'], next button[type='reset']">
           <div class="form-group">
             <label class="form-label" for="description">API Key Description</label>
             <input type="text" class="form-control" id="description" name="description" required>
@@ -108,11 +108,13 @@
         </form>
       </div>
       <div class="modal-footer">
+        <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         <button type="submit" form="createAPIKeyForm" class="btn btn-primary">
-          <span class="submit-btn-text">Create</span>
-          <span id="loader" class="htmx-indicator loading loading-spinner loading-md"></span>
+          Create
         </button>
-        <button type="reset" form="createAPIKeyForm" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="reset" form="createAPIKeyForm" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
       </div>
     </div>
   </div>
