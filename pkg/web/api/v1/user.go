@@ -37,6 +37,11 @@ type UserPassword struct {
 	SendEmail bool   `json:"send_email"`
 }
 
+type UserListQuery struct {
+	PageQuery
+	Role string `json:"role" url:"role,omitempty" form:"role"`
+}
+
 type UserQuery struct {
 	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
 }
@@ -154,4 +159,29 @@ func (q *UserQuery) Validate() (err error) {
 	}
 
 	return err
+}
+
+//===========================================================================
+// User Query
+//===========================================================================
+
+func (q *UserListQuery) Validate() (err error) {
+	// TODO: valiating role should be a database query
+	q.Role = strings.ToLower(strings.TrimSpace(q.Role))
+	if q.Role != "" {
+		if q.Role != "admin" && q.Role != "compliance" && q.Role != "observer" {
+			err = ValidationError(err, IncorrectField("role", "should be 'admin', 'compliance', or 'observer'"))
+		}
+	}
+	return err
+}
+
+func (q *UserListQuery) Query() (query *models.UserPageInfo) {
+	query = &models.UserPageInfo{
+		PageInfo: models.PageInfo{
+			PageSize: uint32(q.PageSize),
+		},
+		Role: q.Role,
+	}
+	return query
 }

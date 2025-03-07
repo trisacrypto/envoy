@@ -45,6 +45,11 @@ type Permission struct {
 	Modified    time.Time
 }
 
+type UserPageInfo struct {
+	PageInfo
+	Role string `json:"role,omitempty"`
+}
+
 //===========================================================================
 // Associated Fields and Models
 //===========================================================================

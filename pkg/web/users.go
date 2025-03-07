@@ -19,25 +19,29 @@ import (
 
 func (s *Server) ListUsers(c *gin.Context) {
 	var (
-		err   error
-		in    *api.PageQuery
-		query *models.PageInfo
-		page  *models.UserPage
-		out   *api.UserList
+		err  error
+		in   *api.UserListQuery
+		page *models.UserPage
+		out  *api.UserList
 	)
 
 	// Parse the URL parameters from the input request
-	in = &api.PageQuery{}
+	in = &api.UserListQuery{}
 	if err = c.BindQuery(in); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
 		return
 	}
 
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
 	// TODO: implement better pagination mechanism (with pagination tokens)
 
 	// Fetch the list of users from the database
-	if page, err = s.store.ListUsers(c.Request.Context(), query); err != nil {
+	if page, err = s.store.ListUsers(c.Request.Context(), in.Query()); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process user list request"))
 		return

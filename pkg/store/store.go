@@ -156,7 +156,7 @@ type SunriseStore interface {
 }
 
 type UserStore interface {
-	ListUsers(ctx context.Context, page *models.PageInfo) (*models.UserPage, error)
+	ListUsers(ctx context.Context, page *models.UserPageInfo) (*models.UserPage, error)
 	CreateUser(context.Context, *models.User) error
 	RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error)
 	UpdateUser(context.Context, *models.User) error

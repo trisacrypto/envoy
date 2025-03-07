@@ -8,11 +8,11 @@ import (
 
 // Version component constants for the current build.
 const (
-	VersionMajor         = 0
-	VersionMinor         = 30
-	VersionPatch         = 1
-	VersionReleaseLevel  = "beta"
-	VersionReleaseNumber = 37
+	VersionMajor         = 1
+	VersionMinor         = 0
+	VersionPatch         = 0
+	VersionReleaseLevel  = "rc"
+	VersionReleaseNumber = 1
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=$(git rev-parse --short HEAD)'"

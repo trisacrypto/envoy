@@ -18,9 +18,12 @@ import (
 // Users Store
 //===========================================================================
 
-const listUsersSQL = "SELECT id, name, email, role_id, last_login, created, modified FROM users"
+const (
+	listUsersSQL   = "SELECT id, name, email, role_id, last_login, created, modified FROM users ORDER BY created DESC"
+	filterUsersSQL = "SELECT u.id, u.name, u.email, u.role_id, u.last_login, u.created, u.modified FROM users u JOIN roles r ON role_id=r.id WHERE r.title=:role COLLATE NOCASE ORDER BY u.created DESC"
+)
 
-func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (out *models.UserPage, err error) {
+func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (out *models.UserPage, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
@@ -30,7 +33,7 @@ func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (out *mode
 	// TODO: handle pagination
 	out = &models.UserPage{
 		Users: make([]*models.User, 0),
-		Page:  models.PageInfoFrom(page),
+		Page:  &models.UserPageInfo{PageInfo: *models.PageInfoFrom(&page.PageInfo), Role: page.Role},
 	}
 
 	// Fetch roles to map onto user information
@@ -41,9 +44,16 @@ func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (out *mode
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listUsersSQL); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+	if page.Role != "" {
+		if rows, err = tx.Query(filterUsersSQL, sql.Named("role", page.Role)); err != nil {
+			// TODO: handle database specific errors
+			return nil, err
+		}
+	} else {
+		if rows, err = tx.Query(listUsersSQL); err != nil {
+			// TODO: handle database specific errors
+			return nil, err
+		}
 	}
 	defer rows.Close()
 

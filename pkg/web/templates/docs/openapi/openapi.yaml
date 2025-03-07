@@ -8634,6 +8634,18 @@ paths:
         - $ref: "#/components/parameters/page_size"
         - $ref: "#/components/parameters/next_page_token"
         - $ref: "#/components/parameters/prev_page_token"
+        - name: role
+          in: query
+          description: Filter based on the role of the user
+          required: false
+          schema:
+            type: string
+            enum:
+              - admin
+              - compliance
+              - observer
+            example: compliance
+          example: compliance
       responses:
         "200":
           description: Successful User Page Response

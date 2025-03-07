@@ -11618,6 +11618,22 @@
           },
           {
             "$ref": "#/components/parameters/prev_page_token"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "Filter based on the role of the user",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "compliance",
+                "observer"
+              ],
+              "example": "compliance"
+            },
+            "example": "compliance"
           }
         ],
         "responses": {
