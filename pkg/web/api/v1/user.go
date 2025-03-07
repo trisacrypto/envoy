@@ -7,6 +7,7 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 	"go.rtnl.ai/ulid"
 )
 
@@ -118,6 +119,10 @@ func (u *User) Model() (model *models.User, err error) {
 	}
 
 	return model, nil
+}
+
+func (u *User) Gravatar() string {
+	return gravatar.New(u.Email, nil)
 }
 
 func (u UserPassword) Validate() (err error) {

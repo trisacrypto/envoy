@@ -3,11 +3,37 @@
 {{ define "pretitle" }}Access Management{{ end }}
 {{ define "pagetitle" }}Manage Envoy Users{{ end }}
 
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{- define "modals" }}
+  {{ template "createUserModal" . }}
+  {{ template "confirmDeleteUserModal" . }}
+
+  <!-- htmx populates this modal with the user details after creation -->
+  <!-- When the modal is closed it erases its internal contents -->
+  <div id="userCreatedModal" class="modal" tabindex="-1"></div>
+
+  <!-- htmx modal targets for user edit-->
+  <div id="userEditModal" class="modal" tabindex="-1"></div>
+{{- end }}
+
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
-<a href="#!" class="btn btn-primary ms-2">
+<button class="btn btn-primary ms-2 lift" data-bs-toggle="modal" data-bs-target="#createUserModal">
   Add User
-</a>
+</button>
 {{- end }}
 {{- end }}
 
@@ -41,7 +67,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="counterparties" hx-get="/v1/users?role={{ .Role }}" hx-trigger="load">
+<section id="users" hx-get="/v1/users?role={{ .Role }}" hx-trigger="load">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

@@ -1,0 +1,43 @@
+{{ define "createUserModal" }}
+<div id="createUserModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add User</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="createUserAlerts" class="alerts"></div>
+        <form id="createUserForm" hx-post="/v1/users" hx-ext="json-enc" hx-indicator="#loader" hx-disabled-elt="next button[type='submit'], next button[type='reset']">
+          <div class="form-group">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="role" class="form-label">Role</label>
+            <select id="role" name="role" class="form-select" required>
+              <option value>Please select a role</option>
+              <option value="Admin">Administrator</option>
+              <option value="Compliance">Compliance User</option>
+              <option value="Observer">Observer</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" form="createUserForm" class="btn btn-primary">
+          Create
+        </button>
+        <button type="reset" form="createUserForm" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

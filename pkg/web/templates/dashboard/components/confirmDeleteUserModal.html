@@ -1,0 +1,34 @@
+{{ define "confirmDeleteUserModal" }}
+<div id="confirmDeleteUserModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete User?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light">
+          Deleting a user will remove their access to the Envoy node once they have
+          logged or timed out of any existing sessions. All audit records associated
+          with the user will be retained.
+        </div>
+        <p class="px-3 text-danger"><strong>Are you sure you want to remove the following user?</strong></p>
+        <form>
+          <div class="form-group">
+            <label class="form-label" for="name">Name</label>
+            <input type="text" class="form-control" id="name" value="" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input type="text" class="form-control" id="email" value="" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteBtn" type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

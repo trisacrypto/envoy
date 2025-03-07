@@ -55,11 +55,15 @@
       <tbody class="list fs-base">
         {{ range .Users }}
         <tr>
-          <td><span class="item-name">{{ .Name }}</span></td>
-          <td><span class="item-email">{{ .Email }}</span></a></td>
+          <td>
+            <div class="avatar avatar-xs align-middle me-2">
+              <img class="avatar-img rounded-circle" src="{{ .Gravatar }}" alt="Avatar">
+            </div> <a class="item-name text-reset" href="#">{{ .Name }}</a>
+          </td>
+          <td><a class="item-email text-reset" href="mailto:{{ .Email }}">{{ .Email }}</a></td>
           <td><span class="item-role">{{ .Role }}</span></td>
           <td><time class="item-date-joined" datetime="2020-01-14">{{ .Created.Format "Jan 02, 2006" }}</time></td>
-          <td><time class="item-last-login" datetime="2020-01-14">{{ .LastLogin.Format "Jan 02, 2006 at 15:04:05" }}</time></td>
+          <td>{{ if .LastLogin }}<time class="item-last-login" datetime="2020-01-14">{{ .LastLogin.Format "Jan 02, 2006 at 15:04:05" }}</time>{{ else }}<span class="item-last-login text-warning"><i class="fe fe-user-x"></i> Account Unused{{ end }}</span></td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">

@@ -1,0 +1,43 @@
+{{- with .CreateUser -}}
+<div class='modal-dialog'>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Add User</h4>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <div id="createUserAlerts" class="alerts">
+        <div class="alert alert-warning" role="alert">
+          <h4 class="alert-heading mb-1">New User Added!</h4>
+          <p class="mb-0">
+            Please copy and securely send the password to the new user.
+          </p>
+          <hr class="my-2 text-secondary" />
+          <p class="mb-0">
+            For security purposes, this is the only time you will see the password.
+          </p>
+        </div>
+      </div>
+      <p>
+        An account for <strong>{{ .Email }}</strong> with the <strong>{{ .Role }}</strong>
+        role has been created. The password below will be required for them to log in.
+      </p>
+      <form>
+        <div class="form-group">
+          <label class="form-label" for="password">User Password</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="password" value="{{ .Password }}" readonly>
+            <button class="btn btn-outline-secondary" type="button" data-clipboard-target="#password" title="Copy to Clipboard">
+              <i class="fe fe-copy"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <small class="text-body-secondary"><i class="fe fe-alert-triangle text-danger"></i> User credentials cannot be shown again after close.</small>
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+  </div>
+</div>
+{{- end -}}
