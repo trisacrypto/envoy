@@ -1,7 +1,7 @@
 {{- $canEditAPIKeys := not .IsViewOnly -}}
 {{- with .APIKeysList -}}
 {{ if .APIKeys }}
-<div class="card" id="apikeyList" data-list='{"valueNames": ["item-description", "item-date-created", "item-last-used"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+<div class="card" id="apikeyList" data-list='{"valueNames": ["item-description", "item-client-id", "item-date-created", "item-last-used"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
@@ -39,6 +39,9 @@
             <a class="list-sort text-muted" data-sort="item-description" href="#">Description</a>
           </th>
           <th>
+            <a class="list-sort text-muted" data-sort="item-client-id" href="#">Client ID</a>
+          </th>
+          <th>
             <a class="list-sort text-muted" data-sort="item-date-created" href="#">Date Created</a>
           </th>
           <th colspan="2">
@@ -50,8 +53,9 @@
         {{ range .APIKeys }}
         <tr>
           <td><span class="item-description">{{ .Description }}</span></td>
+          <td><span class="item-client-id text-muted font-monospace ">{{ .ClientID }}</span></td>
           <td><time class="item-date-created" datetime="2020-01-14">{{ .Created.Format "Jan 02, 2006" }}</time></td>
-          <td><time class="item-last-used" datetime="2020-01-14">{{ if.LastSeen }}{{ .LastSeen.Format "Jan 02, 2006 at 15:16:17" }}{{ else }}<span class="text-warning"><i class="fe fe-alert-triangle"></i> Unused</span>{{ end }}</time></td>
+          <td><time class="item-last-used" datetime="2020-01-14">{{ if.LastSeen }}{{ .LastSeen.Format "Jan 02, 2006 at 15:04:05" }}{{ else }}<span class="text-warning"><i class="fe fe-alert-triangle"></i> Unused</span>{{ end }}</time></td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">
@@ -59,12 +63,15 @@
                 <i class="fe fe-more-vertical"></i>
               </a>
               <div class="dropdown-menu dropdown-menu-end">
-                {{ if $canEditAPIKeys }}
-                <a href="#!" class="dropdown-item">
-                  Edit
+                <a href="#!" class="dropdown-item" hx-get="/v1/apikeys/{{ .ID }}" hx-trigger="click" hx-target="#apiKeyDetailModal" hx-swap="innerHTML">
+                  <i class="fe fe-eye"></i> View
                 </a>
-                <a href="#!" class="dropdown-item">
-                  Revoke
+                {{ if $canEditAPIKeys }}
+                <a href="#!" class="dropdown-item" hx-get="/v1/apikeys/{{ .ID }}/edit" hx-trigger="click" hx-target="#apiKeyEditModal" hx-swap="innerHTML">
+                  <i class="fe fe-edit"></i> Edit
+                </a>
+                <a href="#!" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#confirmRevokeModal" data-bs-key-id="{{ .ID }}" data-bs-client-id="{{ .ClientID }}" data-bs-description="{{ .Description }}">
+                  <i class="fe fe-trash"></i> Revoke
                 </a>
                 {{ end }}
               </div>

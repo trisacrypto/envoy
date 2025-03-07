@@ -3,12 +3,12 @@
   {{ block "content" . -}}{{- end }}
 
   {{ block "scripts" . -}}
-  <!-- Scripts -->
-  <script src="/static/js/vendor.bundle.js"></script>
-  <script src="/static/js/theme.bundle.js"></script>
-  <script src="/static/js/htmx.min.js"></script>
-  <script src="/static/js/htmx-json-enc.js"></script>
-  <script type="module"  src="/static/js/constants.js"></script>
+  <!-- Application Scripts -->
+  <script src="/static/js/dashkit/vendor.bundle.js"></script>
+  <script src="/static/js/dashkit/theme.bundle.js"></script>
+  <script src="/static/js/htmx/htmx.min.js"></script>
+  <script src="/static/js/htmx/htmx-json-enc.js"></script>
+  <script type="module" src="/static/js/htmx/helpers.js"></script>
   <script src="/static/js/main.js"></script>
   {{- end }}
 

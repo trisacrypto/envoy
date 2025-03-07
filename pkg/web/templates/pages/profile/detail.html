@@ -53,51 +53,5 @@
 {{ end }}
 
 {{ define "appcode" }}
-<script>
-  function alertError(title, message) {
-    const alerts = document.getElementById("alerts");
-    alerts.insertAdjacentHTML('beforeend', `
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          <strong>${title}</strong>: <span>${message}</span>.
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    `);
-
-    setTimeout(() => {
-      document.querySelector('.alert').remove()
-    }, 5000);
-  }
-
-  document.body.addEventListener("htmx:responseError", (e) => {
-    const error = JSON.parse(e.detail.xhr.response);
-    switch (e.detail.xhr.status) {
-      case 400:
-        alertError("Could not save profile", error.error);
-        break;
-      case 422:
-        alertError("Validation error", error.error);
-        break;
-      default:
-        break;
-    }
-  });
-
-  document.body.addEventListener("htmx:afterSettle", (e) => {
-    if (isRequestFor(e, "/v1/profile", "put") && checkStatus(e, 200)) {
-      // Display success message -- the profile has been saved.
-      const alerts = document.getElementById("alerts");
-      alerts.insertAdjacentHTML('beforeend', `
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <h4 class="alert-heading">Profile Saved</h4>
-            <p class="mb-1">Note that for some changes to take effect like your gravatar or full name, you must log out and log in again.</p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      `);
-
-      setTimeout(() => {
-        document.querySelector('.alert').remove()
-      }, 5000);
-    }
-  });
-</script>
+<script type="module" src="/static/js/profile/index.js"></script>
 {{ end }}

@@ -19,7 +19,15 @@
 
 {{- define "modals" }}
   {{ template "createAPIKeyModal" . }}
+  {{ template "confirmDeleteAPIKeyModal" . }}
+
+  <!-- htmx populates this modal with the API key client id and secret after creation -->
+  <!-- When the modal is closed it erases its internal contents -->
   <div id="apiKeyCreatedModal" class="modal" tabindex="-1"></div>
+
+  <!-- htmx modal targets for API key edit and detail -->
+  <div id="apiKeyEditModal" class="modal" tabindex="-1"></div>
+  <div id="apiKeyDetailModal" class="modal" tabindex="-1"></div>
 {{- end }}
 
 {{- define "header-actions" }}
@@ -45,7 +53,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="apikeys" hx-get="/v1/apikeys" hx-trigger="load, apikey-created from:body">
+<section id="apikeys" hx-get="/v1/apikeys" hx-trigger="load, apikeys-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">
@@ -57,148 +65,6 @@
 {{- end }}
 
 {{- define "appcode" }}
-<script>
-  function alertError(id, title, message) {
-    const alerts = document.getElementById(id);
-    alerts.insertAdjacentHTML('beforeend', `
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>${title}</strong> ${message}.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    `);
-  }
-
-  function toggleFullPermissions(on) {
-    const help = document.getElementById('fullPermissionsHelp');
-    help.innerText = on ? 'all permissions selected' : 'specify individual permissions';
-
-    const permissions = document.getElementsByName('permissions');
-    permissions.forEach(permission => {
-      permission.checked = on;
-      permission.disabled = on;
-    });
-  }
-
-  function resetPermissionsCheckboxes() {
-    // Reset full permissions checkbox and permissions checkboxes
-    const fullPermissions = document.getElementById('fullPermissions');
-    fullPermissions.checked = false;
-    toggleFullPermissions(false);
-  }
-
-  function activateCopyButtons() {
-    const btns = document.querySelectorAll('[data-clipboard-target]');
-    btns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const target = btn.dataset.clipboardTarget;
-        const value = document.querySelector(target).value;
-        navigator.clipboard.writeText(value)
-          .then(() => {
-            btn.classList.add('btn-success');
-            btn.classList.remove('btn-outline-secondary');
-            btn.innerHTML = '<i class="fe fe-clipboard"></i>';
-          })
-          .catch(() => {
-            btn.classList.add('btn-danger');
-            btn.classList.remove('btn-outline-secondary');
-            btn.innerHTML = '<i class="fe fe-x-octagon"></i>';
-          })
-          .finally(() => {
-            setTimeout(() => {
-              btn.classList.remove('btn-success', 'btn-danger');
-              btn.classList.add('btn-outline-secondary');
-              btn.innerHTML = '<i class="fe fe-copy"></i>';
-            }, 500);
-          });
-      });
-    });
-  }
-
-  document.body.addEventListener("htmx:configRequest", function(e) {
-    // Manage create API key form submission
-    if (isRequestFor(e, "/v1/apikeys", "post")) {
-      let permissions = Array.from(document.getElementsByName('permissions'))
-        .filter(permission => permission.checked)
-        .map(permission => permission.value);
-
-      const params = new FormData();
-      params.append("description", e.detail.parameters.get("description"));
-      for (const permission of permissions) {
-        params.append("permissions", permission);
-      }
-
-      e.detail.parameters = params;
-    }
-  });
-
-  document.body.addEventListener("htmx:afterSettle", function(e) {
-    if (isRequestFor(e, "/v1/apikeys", "get")) {
-      // Initialize List.js
-      const cpList = document.getElementById('apikeyList');
-      const list = createList(cpList);
-
-      // Initialize Page Size Select
-      const pageSizeSelect = document.getElementById('pageSizeSelect');
-      createPageSizeSelect(pageSizeSelect, list);
-      return;
-    }
-
-    if(isRequestFor(e, "/v1/apikeys", "post")) {
-      // Close and reset the create API key modal, then open the created modal.
-      const createAPIKeyForm = document.getElementById("createAPIKeyForm");
-      createAPIKeyForm.reset();
-
-      const createAPIKeyModal = Modal.getInstance(document.getElementById("createAPIKeyModal"));
-      createAPIKeyModal.hide();
-
-      activateCopyButtons();
-
-      const apiKeyCreatedModal = new Modal("#apiKeyCreatedModal", {});
-      apiKeyCreatedModal.show();
-
-      return;
-    }
-  });
-
-  document.body.addEventListener("htmx:responseError", function(e) {
-    // Handle errors for create API key modal
-    if (isRequestFor(e, "/v1/apikeys", "post")) {
-      const error = JSON.parse(e.detail.xhr.response);
-      switch (e.detail.xhr.status) {
-        case 400:
-          alertError("createAPIKeyAlerts", "Error:", error.error);
-          break;
-        case 422:
-          alertError("createAPIKeyAlerts", "Validation error:", error.error);
-          break;
-        default:
-          break;
-      }
-    }
-  });
-
-  const fullPermissionsToggle = document.getElementById('fullPermissions');
-  if (fullPermissionsToggle) {
-    fullPermissionsToggle.addEventListener('change', function() {
-      toggleFullPermissions(fullPermissionsToggle.checked);
-    });
-  }
-
-  const createAPIKeyForm = document.getElementById('createAPIKeyForm');
-  if (createAPIKeyForm) {
-    createAPIKeyForm.addEventListener('reset', function() {
-      const alerts = document.getElementById('createAPIKeyAlerts');
-      alerts.querySelector('.alert')?.remove();
-
-      resetPermissionsCheckboxes();
-    });
-  }
-
-  const apiKeyCreatedModal = document.getElementById('apiKeyCreatedModal');
-  if (apiKeyCreatedModal) {
-    apiKeyCreatedModal.addEventListener('hidden.bs.modal', function() {
-      apiKeyCreatedModal.innerHTML = '';
-    });
-  }
-</script>
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/apikeys/index.js"></script>
 {{- end }}

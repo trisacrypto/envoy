@@ -38,15 +38,6 @@
 {{- end }}
 
 {{- define "appcode" }}
-<script>
-  document.addEventListener("htmx:afterSettle", function(e) {
-    // Initialize List.js
-    const cpList = document.getElementById('accountList');
-    const list = createList(cpList);
-
-    // Initialize Page Size Select
-    const pageSizeSelect = document.getElementById('pageSizeSelect');
-    createPageSizeSelect(pageSizeSelect, list);
-  });
-</script>
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/accounts/index.js"></script>
 {{- end }}

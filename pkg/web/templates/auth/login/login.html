@@ -6,7 +6,7 @@
 <form id="loginForm" hx-post="/v1/login" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
   <div class="form-group">
     <label class="form-label" for="email">Email Address</label>
-    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required>
+    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" autocomplete="username" required>
   </div>
 
   <div class="form-group">
@@ -25,7 +25,7 @@
     <!-- Input group -->
     <div class="input-group input-group-merge">
       <!-- Input -->
-      <input class="form-control" id="password" name="password" type="password" placeholder="Enter your password" required>
+      <input class="form-control" id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
       <!-- Icon -->
       <span class="input-group-text">
         <i class="fe fe-eye-off"></i>
