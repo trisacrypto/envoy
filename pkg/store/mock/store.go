@@ -198,7 +198,7 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 	return nil, nil
 }
 
-func (s *Store) ListUsers(ctx context.Context, page *models.PageInfo) (*models.UserPage, error) {
+func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (*models.UserPage, error) {
 	return nil, nil
 }
 

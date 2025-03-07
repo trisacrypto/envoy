@@ -41,8 +41,8 @@ type ContactsPage struct {
 }
 
 type UserPage struct {
-	Users []*User   `json:"users"`
-	Page  *PageInfo `json:"page"`
+	Users []*User       `json:"users"`
+	Page  *UserPageInfo `json:"page"`
 }
 
 type APIKeyPage struct {

@@ -13,30 +13,35 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 )
 
 func (s *Server) ListUsers(c *gin.Context) {
 	var (
-		err   error
-		in    *api.PageQuery
-		query *models.PageInfo
-		page  *models.UserPage
-		out   *api.UserList
+		err  error
+		in   *api.UserListQuery
+		page *models.UserPage
+		out  *api.UserList
 	)
 
 	// Parse the URL parameters from the input request
-	in = &api.PageQuery{}
+	in = &api.UserListQuery{}
 	if err = c.BindQuery(in); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
 		return
 	}
 
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
 	// TODO: implement better pagination mechanism (with pagination tokens)
 
 	// Fetch the list of users from the database
-	if page, err = s.store.ListUsers(c.Request.Context(), query); err != nil {
+	if page, err = s.store.ListUsers(c.Request.Context(), in.Query()); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process user list request"))
 		return
@@ -135,10 +140,13 @@ func (s *Server) CreateUser(c *gin.Context) {
 	// Ensure the created password is returned back to the user
 	out.Password = password
 
+	// Add HTMX Trigger to reload the API Key List
+	c.Header(htmx.HXTriggerAfterSwap, "users-updated")
+
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "user_create.html",
+		Data:     scene.New(c).WithAPIData(out),
+		HTMLName: "partials/users/created.html",
 	})
 }
 
@@ -314,12 +322,12 @@ func (s *Server) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"UserID": userID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "user_delete.html",
-	})
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, api.Reply{Success: true})
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "users-updated")
+	}
 }
 
 func (s *Server) ChangeUserPassword(c *gin.Context) {

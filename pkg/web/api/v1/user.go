@@ -7,6 +7,7 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/gravatar"
 	"go.rtnl.ai/ulid"
 )
 
@@ -34,6 +35,11 @@ type UserList struct {
 type UserPassword struct {
 	Password  string `json:"password"`
 	SendEmail bool   `json:"send_email"`
+}
+
+type UserListQuery struct {
+	PageQuery
+	Role string `json:"role" url:"role,omitempty" form:"role"`
 }
 
 type UserQuery struct {
@@ -120,6 +126,10 @@ func (u *User) Model() (model *models.User, err error) {
 	return model, nil
 }
 
+func (u *User) Gravatar() string {
+	return gravatar.New(u.Email, nil)
+}
+
 func (u UserPassword) Validate() (err error) {
 	// Password cannot be empty
 	if u.Password == "" {
@@ -149,4 +159,29 @@ func (q *UserQuery) Validate() (err error) {
 	}
 
 	return err
+}
+
+//===========================================================================
+// User Query
+//===========================================================================
+
+func (q *UserListQuery) Validate() (err error) {
+	// TODO: valiating role should be a database query
+	q.Role = strings.ToLower(strings.TrimSpace(q.Role))
+	if q.Role != "" {
+		if q.Role != "admin" && q.Role != "compliance" && q.Role != "observer" {
+			err = ValidationError(err, IncorrectField("role", "should be 'admin', 'compliance', or 'observer'"))
+		}
+	}
+	return err
+}
+
+func (q *UserListQuery) Query() (query *models.UserPageInfo) {
+	query = &models.UserPageInfo{
+		PageInfo: models.PageInfo{
+			PageSize: uint32(q.PageSize),
+		},
+		Role: q.Role,
+	}
+	return query
 }
