@@ -65,6 +65,11 @@ type Transaction struct {
 	envelopes          []*SecureEnvelope // Associated secure envelopes
 }
 
+type TransactionCounts struct {
+	Active   map[string]int // Active transaction counts by status
+	Archived map[string]int // Archived transaction counts by status
+}
+
 type SecureEnvelope struct {
 	Model
 	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
@@ -321,4 +326,31 @@ func (e *SecureEnvelope) Transaction() (*Transaction, error) {
 
 func (e *SecureEnvelope) SetTransaction(tx *Transaction) {
 	e.transaction = tx
+}
+
+func (c *TransactionCounts) TotalActive() int {
+	var total int
+	for _, count := range c.Active {
+		total += count
+	}
+	return total
+}
+
+func (c *TransactionCounts) TotalArchived() int {
+	var total int
+	for _, count := range c.Archived {
+		total += count
+	}
+	return total
+}
+
+func (c *TransactionCounts) Total() int {
+	var total int
+	for _, count := range c.Active {
+		total += count
+	}
+	for _, count := range c.Archived {
+		total += count
+	}
+	return total
 }

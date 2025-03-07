@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
@@ -51,10 +52,25 @@ func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) TransactionsListPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/transactions/list.html", scene.New(c))
+	// Count the number of transactions in the database (ignore errors)
+	counts, _ := s.store.CountTransactions(c.Request.Context())
+	log.Warn().Str("counts", fmt.Sprintf("%+v", counts)).Msg("counts")
+
+	ctx := scene.New(c).WithAPIData(counts)
+	ctx["Status"] = strings.ToLower(c.Query("status"))
+
+	c.HTML(http.StatusOK, "dashboard/transactions/list.html", ctx)
 }
 
 func (s *Server) SendEnvelopeForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+}
+
+func (s *Server) SendTRISAForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+}
+
+func (s *Server) SendTRPForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
 }
 

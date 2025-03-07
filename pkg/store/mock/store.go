@@ -47,6 +47,10 @@ func (s *Store) ArchiveTransaction(context.Context, uuid.UUID) error {
 	return nil
 }
 
+func (s *Store) CountTransactions(context.Context) (*models.TransactionCounts, error) {
+	return nil, nil
+}
+
 func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error) {
 	return nil, nil
 }

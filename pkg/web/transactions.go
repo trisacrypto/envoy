@@ -65,7 +65,7 @@ func (s *Server) ListTransactions(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "transaction_list.html",
+		HTMLName: "partials/transactions/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

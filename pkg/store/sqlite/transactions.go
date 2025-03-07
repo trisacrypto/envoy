@@ -204,6 +204,56 @@ func (s *Store) archiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err err
 	return nil
 }
 
+const countTransactionsSQL = "SELECT count(id), status FROM transactions WHERE archived=:archived GROUP BY status"
+
+func (s *Store) CountTransactions(ctx context.Context) (counts *models.TransactionCounts, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	counts = &models.TransactionCounts{
+		Active:   make(map[string]int),
+		Archived: make(map[string]int),
+	}
+
+	if err = s.countTransactions(tx, counts, false); err != nil {
+		return nil, err
+	}
+
+	if err = s.countTransactions(tx, counts, true); err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return counts, nil
+}
+
+func (s *Store) countTransactions(tx *sql.Tx, counts *models.TransactionCounts, archived bool) (err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(countTransactionsSQL, sql.Named("archived", archived)); err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var count int
+		var status string
+		if err = rows.Scan(&count, &status); err != nil {
+			return err
+		}
+
+		if archived {
+			counts.Archived[status] = count
+		} else {
+			counts.Active[status] = count
+		}
+	}
+
+	return rows.Err()
+}
+
 //===========================================================================
 // Secure Envelopes CRUD Interface
 //===========================================================================

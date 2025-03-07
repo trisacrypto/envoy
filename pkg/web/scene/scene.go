@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
@@ -185,6 +186,15 @@ func (s Scene) TransactionsList() *api.TransactionsList {
 func (s Scene) TransactionDetail() *api.Transaction {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.Transaction); ok {
+			return out
+		}
+	}
+	return nil
+}
+
+func (s Scene) TransactionCounts() *models.TransactionCounts {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*models.TransactionCounts); ok {
 			return out
 		}
 	}

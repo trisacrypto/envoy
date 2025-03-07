@@ -1,4 +1,67 @@
 {{ template "dashboard.html" . }}
-{{ define "title" }}Travel Rule Transactions | TRISA Envoy{{ end }}
+{{ define "title" }}Travel Rule Transfers | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Travel Rule{{ end }}
-{{ define "pagetitle" }}Transactions &amp; Messages{{ end }}
+{{ define "pagetitle" }}Transfers &amp; Messages{{ end }}
+
+{{- define "modals" }}
+{{- end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<div class="btn-group">
+  <a href="/send" class="btn btn-primary ms-2">
+    <i class="fe fe-mail mt-1 me-2"></i> Send New Transfer
+  </a>
+  <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="visually-hidden">Toggle Dropdown</span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/send/trisa"><i class="fe fe-shield me-2"></i> Send TRISA Transfer</a></li>
+    <li><a class="dropdown-item" href="/send/trp"><i class="fe fe-zap me-2"></i> Send TRP Transfer</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="/send/sunrise"><i class="fe fe-sunrise me-2"></i> Send Sunrise Email</a></li>
+  </ul>
+</div>
+<a href="/v1/transactions/export" class="btn btn-dark ms-2" title="Export Transfers CSV">
+  <i class="fe fe-download"></i>
+</a>
+{{- end }}
+{{- end }}
+
+
+{{- define "tabs" }}
+{{ $counts := .TransactionCounts }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/transactions" class="text-nowrap nav-link{{ if not .Status }} active{{ end }}">
+          Active Transfers{{ if $counts.Active }} <span class="badge rounded-pill text-bg-secondary-subtle">{{ $counts.TotalActive }}</span>{{ end }}
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/transactions?status=archived" class='text-nowrap nav-link{{ if eq .Status "archived" }} active{{ end }}'>
+          Archived{{ if $counts.Archived }} <span class="badge rounded-pill text-bg-secondary-subtle">{{ $counts.TotalArchived }}</span>{{ end }}
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="transactions" hx-get="/v1/transactions{{ if .Status }}?status={{ .Status }}{{ end }}" hx-trigger="load, transactions-updated from:body">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/transactions/index.js"></script>
+{{- end }}

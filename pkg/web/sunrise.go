@@ -28,8 +28,8 @@ import (
 
 const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"
 
-func (s *Server) SendMessageForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "send_message.html", scene.New(c))
+func (s *Server) SendSunriseForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/send/sunrise.html", scene.New(c))
 }
 
 // The incoming request should be coming from a compliance officer at a VASP who has
