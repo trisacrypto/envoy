@@ -47,6 +47,19 @@ document.addEventListener("htmx:afterSettle", function(e) {
 });
 
 /*
+Post-event handling when the users-updated event is fired.
+*/
+document.body.addEventListener("users-updated", function(e) {
+  const elt = e.detail?.elt;
+  if (elt) {
+    if (elt.id === 'deleteBtn') {
+      const confirmRevokeModal = Modal.getInstance(document.getElementById("confirmDeleteUserModal"));
+      confirmRevokeModal.hide();
+    }
+  }
+});
+
+/*
 Handle any htmx errors that are not swapped by the htmx config.
 */
 document.body.addEventListener("htmx:responseError", function(e) {
@@ -65,6 +78,9 @@ document.body.addEventListener("htmx:responseError", function(e) {
     }
     return;
   }
+
+  // If the error is unhandled; throw it
+  throw new Error(`unhandled htmx error: status ${e.detail.xhr.status}`);
 });
 
 /*
@@ -76,5 +92,32 @@ const userCreatedModal = document.getElementById('userCreatedModal');
 if (userCreatedModal) {
   userCreatedModal.addEventListener('hidden.bs.modal', function() {
     userCreatedModal.innerHTML = '';
+  });
+}
+
+/*
+When the remove button is pressed in the list, show the confirmation modal and populate
+the modal contents with the data attributes from the row in the table. When the modal
+is hidden, make sure the modal is reset to its previous ready state.
+*/
+const confirmDeleteUserModal = document.getElementById('confirmDeleteUserModal');
+if (confirmDeleteUserModal) {
+  confirmDeleteUserModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    confirmDeleteUserModal.querySelector("#delUserName").value = button.dataset.bsName;
+    confirmDeleteUserModal.querySelector("#delUserEmail").value = button.dataset.bsEmail;
+
+    const deleteBtn = confirmDeleteUserModal.querySelector("#deleteBtn")
+    deleteBtn.setAttribute("hx-delete", "/v1/users/" + button.dataset.bsUserId);
+    htmx.process(deleteBtn);
+  });
+
+  confirmDeleteUserModal.addEventListener('hidden.bs.modal', function(event) {
+    confirmDeleteUserModal.querySelector("#delUserName").value = "";
+    confirmDeleteUserModal.querySelector("#delUserEmail").value = "";
+
+    const deleteBtn = confirmDeleteUserModal.querySelector("#deleteBtn")
+    deleteBtn.removeAttribute("hx-delete");
+    htmx.process(deleteBtn);
   });
 }
