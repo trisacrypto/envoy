@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <div id="createUserAlerts" class="alerts"></div>
-        <form id="createUserForm" hx-post="/v1/users" hx-ext="json-enc" hx-indicator="#loader" hx-disabled-elt="next button[type='submit'], next button[type='reset']">
+        <form id="createUserForm" hx-post="/v1/users" hx-ext="json-enc" hx-target="#userCreatedModal" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="next button[type='submit'], next button[type='reset']">
           <div class="form-group">
             <label for="name" class="form-label">Name</label>
             <input type="text" id="name" name="name" class="form-control" required>

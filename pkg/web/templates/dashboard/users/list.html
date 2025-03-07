@@ -67,7 +67,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="users" hx-get="/v1/users?role={{ .Role }}" hx-trigger="load">
+<section id="users" hx-get="/v1/users{{ if .Role }}?role={{ .Role }}{{ end }}" hx-trigger="load, users-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

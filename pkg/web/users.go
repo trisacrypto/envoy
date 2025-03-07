@@ -13,6 +13,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 )
 
@@ -135,10 +136,13 @@ func (s *Server) CreateUser(c *gin.Context) {
 	// Ensure the created password is returned back to the user
 	out.Password = password
 
+	// Add HTMX Trigger to reload the API Key List
+	c.Header(htmx.HXTriggerAfterSwap, "users-updated")
+
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "user_create.html",
+		Data:     scene.New(c).WithAPIData(out),
+		HTMLName: "partials/users/created.html",
 	})
 }
 
@@ -314,12 +318,12 @@ func (s *Server) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"UserID": userID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "user_delete.html",
-	})
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, api.Reply{Success: true})
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "users-updated")
+	}
 }
 
 func (s *Server) ChangeUserPassword(c *gin.Context) {

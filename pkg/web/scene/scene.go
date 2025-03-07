@@ -155,6 +155,15 @@ func (s Scene) UserList() *api.UserList {
 	return nil
 }
 
+func (s Scene) UserDetail() *api.User {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.User); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) CounterpartyList() *api.CounterpartyList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.CounterpartyList); ok {
