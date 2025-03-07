@@ -163,7 +163,7 @@ func (s *Server) APIKeyDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "apikey_detail.html",
+		HTMLName: "partials/apikeys/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -175,6 +175,14 @@ func (s *Server) UpdateAPIKeyPreview(c *gin.Context) {
 		apikey *models.APIKey
 		out    *api.APIKey
 	)
+
+	// Preview requests target a UI only audience and therefore only accept text/html
+	// requests (Accept: text/html). JSON requests return a 406 error. The endpoint
+	// still may return JSON errors for AJAX handling on the front-end.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
 
 	// Parse the keyID from the URL
 	if keyID, err = ulid.Parse(c.Param("id")); err != nil {
@@ -200,13 +208,8 @@ func (s *Server) UpdateAPIKeyPreview(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "apikey_preview.html",
-		HTMLData: scene.New(c).WithAPIData(out),
-	})
+	// Render the edit form for the API key
+	c.HTML(http.StatusOK, "partials/apikeys/edit.html", scene.New(c).WithAPIData(out))
 }
 
 func (s *Server) UpdateAPIKey(c *gin.Context) {
@@ -272,13 +275,13 @@ func (s *Server) UpdateAPIKey(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "apikey_update.html",
-		HTMLData: scene.New(c).WithAPIData(out),
-	})
+	// Return successful JSON response or 204 with htmx trigger depending on the content negotiation
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEJSON:
+		c.JSON(http.StatusOK, out)
+	case binding.MIMEHTML:
+		htmx.Trigger(c, "apikeys-updated")
+	}
 }
 
 func (s *Server) DeleteAPIKey(c *gin.Context) {

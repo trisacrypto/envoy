@@ -55,7 +55,7 @@ func (s *Server) UIEnabled() gin.HandlerFunc {
 // nil or json, then this function returns true.
 func IsAPIRequest(c *gin.Context) bool {
 	if strings.HasPrefix(c.Request.URL.RequestURI(), "/v1") {
-		return !(c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML)
+		return c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) == binding.MIMEJSON
 	}
 	return false
 }

@@ -24,6 +24,13 @@ func (s *Server) ProfileDetail(c *gin.Context) {
 		out  *api.User
 	)
 
+	// Profile requests are only available for logged in users and therefore are UI
+	// only requests (Accept: text/html). JSON requests return a 406 error.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
+
 	// Retreive the user from the request context
 	if user, err = s.retrieveProfile(c); err != nil {
 		switch {
@@ -58,6 +65,13 @@ func (s *Server) UpdateProfile(c *gin.Context) {
 		in   *api.User
 		out  *api.User
 	)
+
+	// Profile requests are only available for logged in users and therefore are UI
+	// only requests (Accept: text/html). JSON requests return a 406 error.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
 
 	in = &api.User{}
 	if err = c.BindJSON(in); err != nil {
@@ -115,6 +129,13 @@ func (s *Server) DeleteProfile(c *gin.Context) {
 		userID ulid.ULID
 	)
 
+	// Profile requests are only available for logged in users and therefore are UI
+	// only requests (Accept: text/html). JSON requests return a 406 error.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
+
 	// Get the user ID from the request context
 	if userID, err = s.retrieveUserID(c); err != nil {
 		c.JSON(http.StatusUnauthorized, api.Error(err))
@@ -142,35 +163,36 @@ func (s *Server) DeleteProfile(c *gin.Context) {
 }
 
 func (s *Server) ChangeProfilePassword(c *gin.Context) {
-	negotiate := gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLName: "partials/profile/changePassword.html",
-	}
-
 	var (
 		err        error
 		in         *api.ProfilePassword
 		user       *models.User
 		derivedKey string
+		template   = "partials/profile/changePassword.html"
 	)
+
+	// Profile requests are only available for logged in users and therefore are UI
+	// only requests (Accept: text/html). JSON requests return a 406 error.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
 
 	in = &api.ProfilePassword{}
 	if err = c.BindJSON(in); err != nil {
-		negotiate.JSONData = api.Error("could not parse password change request")
-		negotiate.HTMLData = gin.H{"Error": "could not parse password change request"}
-		c.Negotiate(http.StatusBadRequest, negotiate)
+		c.HTML(http.StatusBadRequest, template, gin.H{"Error": "could not parse password change request"})
 		return
 	}
 
 	if err = in.Validate(); err != nil {
-		negotiate.JSONData = api.Error(err)
+		var out interface{}
 		if verr, ok := err.(api.ValidationErrors); ok {
-			negotiate.HTMLData = gin.H{"FieldErrors": verr.Map()}
+			out = gin.H{"FieldErrors": verr.Map()}
 		} else {
-			negotiate.HTMLData = gin.H{"Error": err.Error()}
+			out = gin.H{"Error": err.Error()}
 		}
 
-		c.Negotiate(http.StatusUnprocessableEntity, negotiate)
+		c.HTML(http.StatusBadRequest, template, out)
 		return
 	}
 
@@ -178,44 +200,33 @@ func (s *Server) ChangeProfilePassword(c *gin.Context) {
 	if user, err = s.retrieveProfile(c); err != nil {
 		// By default in change password we'll return 400 to display the error alert.
 		// Only if something is really bad we will redirect to error page.
-		statusCode := http.StatusBadRequest
-
 		switch {
 		case errors.Is(err, auth.ErrNotAuthorized) || errors.Is(err, dberr.ErrNotFound):
-			negotiate.JSONData = api.Error("could not change password")
-			negotiate.HTMLData = gin.H{"Error": "could not change password"}
+			c.HTML(http.StatusBadRequest, template, gin.H{"Error": "could not change password"})
 		default:
 			c.Error(err)
-			statusCode = http.StatusInternalServerError
-			negotiate.JSONData = api.Error("could not complete change password request")
-			negotiate.HTMLData = gin.H{"Error": "could not change password"}
+			c.HTML(http.StatusInternalServerError, template, gin.H{"Error": "could not change password"})
 		}
-
-		c.Negotiate(statusCode, negotiate)
 		return
 	}
 
 	// Confirm the current password is correct
 	if verified, err := passwords.VerifyDerivedKey(user.Password, in.Current); err != nil || !verified {
-		negotiate.JSONData = api.Error("current password is incorrect")
-		negotiate.HTMLData = gin.H{"FieldErrors": map[string]string{"current": "password is incorrect"}}
-		c.Negotiate(http.StatusBadRequest, negotiate)
+		c.HTML(http.StatusBadRequest, template, gin.H{"FieldErrors": map[string]string{"current": "password is incorrect"}})
 		return
 	}
 
 	// Create derived key from requested password reset
 	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
 		c.Error(err)
-		negotiate.JSONData = api.Error("could not complete change password request")
-		c.Negotiate(http.StatusInternalServerError, negotiate)
+		c.HTML(http.StatusInternalServerError, template, gin.H{"Error": "could not change password"})
 		return
 	}
 
 	// Set the password for the specified user
 	if err = s.store.SetUserPassword(c.Request.Context(), user.ID, derivedKey); err != nil {
 		c.Error(err)
-		negotiate.JSONData = api.Error("could not complete change password request")
-		c.Negotiate(http.StatusInternalServerError, negotiate)
+		c.HTML(http.StatusInternalServerError, template, gin.H{"Error": "could not change password"})
 		return
 	}
 

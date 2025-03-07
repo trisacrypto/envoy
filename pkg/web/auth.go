@@ -435,8 +435,8 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	// Technically someone could automate requests with an Accept: text/html header
 	// so it's also important to rate limit reset password requests. But returning a
 	// 406 error here is for the legitimate API users.
-	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEJSON {
-		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("this is a UI only endpoint"))
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
 		return
 	}
 

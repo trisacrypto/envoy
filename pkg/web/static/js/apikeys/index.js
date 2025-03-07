@@ -1,3 +1,7 @@
+/*
+Application code for the /apikeys dashboard page.
+*/
+
 import { createList, createPageSizeSelect } from '../modules/components.js';
 import { isRequestFor, isRequestMatch } from '../htmx/helpers.js';
 
@@ -137,6 +141,20 @@ document.body.addEventListener("htmx:afterSettle", function(e) {
 
     return;
   }
+
+  // After fetching the preview form, display the apikeyEditModal.
+  if (isRequestMatch(e, /^\/v1\/apikeys\/[0-7][0-9A-HJKMNP-TV-Z]{25}\/edit$/gm, "get")) {
+    const apiKeyEditModal = new Modal("#apiKeyEditModal", {});
+    apiKeyEditModal.show();
+    return;
+  }
+
+  // After fetching the apikey detail, display the apiKeyDetailModal.
+  if (isRequestMatch(e, /^\/v1\/apikeys\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/gm, "get")) {
+    const apiKeyEditModal = new Modal("#apiKeyDetailModal", {});
+    apiKeyEditModal.show();
+    return;
+  }
 });
 
 /*
@@ -172,11 +190,40 @@ document.body.addEventListener("htmx:responseError", function(e) {
     return;
   }
 
+  // Handle errors for edit API key modal
+  if (isRequestMatch(e, "/v1/apikeys/[0-7][0-9A-HJKMNP-TV-Z]{25}", "put")) {
+    const error = JSON.parse(e.detail.xhr.response);
+    switch (e.detail.xhr.status) {
+      case 400:
+        alertError("editAPIKeyAlerts", "Error:", error.error);
+        break;
+      case 422:
+        alertError("editAPIKeyAlerts", "Validation error:", error.error);
+        break;
+      default:
+        break;
+    }
+    return;
+  }
+
   // Handle errors for revoke API key modal
   if (isRequestMatch(e, "/v1/apikeys/[0-7][0-9A-HJKMNP-TV-Z]{25}", "delete")) {
     window.location.href = '/error';
     return;
   }
+
+  // Handle errors for the detail and preview modals
+  if (isRequestMatch(e, /^\/v1\/apikeys\/[0-7][0-9A-HJKMNP-TV-Z]{25}(\/edit)?$/gm, "get")) {
+    if (e.detail.xhr.status === 404) {
+      window.location.href = '/not-found';
+    } else {
+      window.location.href = '/error';
+    }
+    return;
+  }
+
+  // If the error is unhandled; throw it
+  throw new Error(`unhandled htmx error: status ${e.detail.xhr.status}`);
 });
 
 /*

@@ -1,0 +1,57 @@
+{{- with .APIKeyDetail -}}
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">API Key Detail</h4>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <small class="text-muted">Description</small>
+              <p>{{ .Description }}</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <small class="text-muted">Last Used</small>
+              <p>{{ if.LastSeen }}{{ .LastSeen.Format "Jan 02, 2006 at 15:04:05 MST" }}{{ else }}<span class="text-warning"><i class="fe fe-alert-triangle"></i> Unused</span>{{ end }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted">Client ID</small>
+              <p class="font-monospace">{{ .ClientID }}</p>
+            </div>
+            <div class="col-6">
+              <small class="text-muted">Key ID</small>
+              <p class="font-monospace">{{ .ID }}</p>
+            </div>
+          </div>
+          <small class="text-muted">Permissions</small>
+          <div class="row mb-4">
+            {{ range .Permissions }}
+            <div class="col-4"><span class="badge bg-primary">{{ . }}</span></div>
+            {{ end }}
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted">Created</small>
+              <p>{{ .Created.Format "Jan 02, 2006 at 15:04 MST" }}</p>
+            </div>
+            <div class="col-6">
+              <small class="text-muted">Modified</small>
+              <p>{{ .Modified.Format "Jan 02, 2006 at 15:04 MST" }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+  </div>
+</div>
+{{- end -}}
