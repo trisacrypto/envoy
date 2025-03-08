@@ -277,6 +277,16 @@ export const networks = {
 
 export const networksArray = Object.entries(networks).map(([value, text]) => ({ text, value }));
 
+export const statuses = [
+    "draft",
+    "pending",
+    "review",
+    "repair",
+    "accepted",
+    "rejected",
+    "completed"
+]
+
 export const IDENTIFIER_TYPE = {
   ADDRESS_TYPE_CODE_HOME: 'Residential',
   ADDRESS_TYPE_CODE_BIZZ: 'Business',

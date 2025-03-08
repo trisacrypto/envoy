@@ -14,9 +14,9 @@
         <!-- Filter Form -->
         <div class="dropdown">
           <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
-            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+            <i class="fe fe-sliders me-1"></i> Filter <span id="numFiltersBadge" class="badge bg-secondary ms-1">0</span>
           </button>
-          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+          <form id="filterListForm" class="dropdown-menu dropdown-menu-end dropdown-menu-card">
             <div class="card-header">
               <h4 class="card-header-title">Filters</h4>
               <button class="btn btn-sm btn-link text-reset" type="reset">
@@ -24,7 +24,59 @@
               </button>
             </div>
             <div class="card-body">
-              <p><small>Filtering by transaction fields coming soon!</small></p>
+              <div class="list-group list-group-flush mt-n4 mb-4">
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Status</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple name="status"
+                        class="form-control form-select form-select-sm"
+                        data-choices='{"searchEnabled": true, "choices": [{"value": "draft", "label": "Draft"}, {"value": "pending", "label": "Pending"}, {"value": "review", "label": "Review"}, {"value": "repair", "label": "Repair"}, {"value": "accepted", "label": "Accepted"}, {"value": "rejected", "label": "Rejected"}, {"value": "completed", "label": "Completed"}]}'>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Virtual Asset</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple class="form-select form-select-sm" name="asset" data-choices='{"searchEnabled": true}'>
+                        <option value="BTC">Bitcoin</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="AGM">Argoneum</option>
+                        <option value="BCH">Bitcoin Cash</option>
+                        <option value="BTG">Bitcoin Gold</option>
+                        <option value="XBC">Bitcoinplus</option>
+                        <option value="BTX">BitCore</option>
+                        <option value="CHC">Chaincoin</option>
+                        <option value="DASH">Dash</option>
+                        <option value="DOGEC">DogeCash</option>
+                        <option value="DOGE">Dogecoin</option>
+                        <option value="FTC">Feathercoin</option>
+                        <option value="GRS">Groestlcoin</option>
+                        <option value="KOTO">Koto</option>
+                        <option value="LBTC">Liquid</option>
+                        <option value="LTC">Litecoin</option>
+                        <option value="MONA">Monacoin</option>
+                        <option value="POLIS">Polis</option>
+                        <option value="TRC">Terracoin</option>
+                        <option value="UFO">UFO</option>
+                        <option value="XVG">Verge Currency</option>
+                        <option value="VIA">Viacoin</option>
+                        <option value="ZCL">Zclassic</option>
+                        <option value="XZC">ZCoin</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button class="btn w-100 btn-primary" type="submit">
+                Apply filter
+              </button>
             </div>
           </form>
         </div>

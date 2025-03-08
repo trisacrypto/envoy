@@ -27,7 +27,6 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.TransactionPa
 	}
 	defer tx.Rollback()
 
-	// TODO: handle pagination
 	out = &models.TransactionPage{
 		Transactions: make([]*models.Transaction, 0),
 		Page: &models.TransactionPageInfo{

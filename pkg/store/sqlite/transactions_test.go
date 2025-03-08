@@ -13,8 +13,9 @@ import (
 func (s *storeTestSuite) TestListTransactions() {
 	require := s.Require()
 	ctx := context.Background()
+	query := &models.TransactionPageInfo{}
 
-	page, err := s.store.ListTransactions(ctx, nil)
+	page, err := s.store.ListTransactions(ctx, query)
 	require.NoError(err, "could not list transactions from database")
 	require.NotNil(page, "a nil page was returned without transactions")
 	require.Len(page.Transactions, 4, "expected transactions to be returned in list")
