@@ -53,6 +53,10 @@ type Transaction struct {
 	Modified           time.Time  `json:"modified"`
 }
 
+type TransactionQuery struct {
+	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
+}
+
 type SecureEnvelope struct {
 	ID                  ulid.ULID    `json:"id"`
 	EnvelopeID          uuid.UUID    `json:"envelope_id"`
@@ -106,24 +110,22 @@ type Repair struct {
 	Envelope *Envelope
 }
 
-type TransactionQuery struct {
-	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
-}
-
 type EnvelopeQuery struct {
 	Decrypt   bool   `json:"decrypt" url:"decrypt,omitempty" form:"decrypt"`
 	Archives  bool   `json:"archives" url:"archives,omitempty" form:"archives"`
 	Direction string `json:"direction,omitempty" url:"direction,omitempty" form:"direction"`
 }
 
-type EnvelopeListQuery struct {
-	PageQuery
-	EnvelopeQuery
+type TransactionsList struct {
+	Page         *TransactionListQuery `json:"page"`
+	Transactions []*Transaction        `json:"transactions"`
 }
 
-type TransactionsList struct {
-	Page         *PageQuery     `json:"page"`
-	Transactions []*Transaction `json:"transactions"`
+type TransactionListQuery struct {
+	PageQuery
+	Status       []string `json:"status,omitempty" url:"status,omitempty" form:"status"`
+	VirtualAsset []string `json:"asset,omitempty" url:"asset,omitempty" form:"asset"`
+	Archives     bool     `json:"archives,omitempty" url:"archives,omitempty" form:"archives"`
 }
 
 type EnvelopesList struct {
@@ -131,6 +133,11 @@ type EnvelopesList struct {
 	IsDecrypted        bool              `json:"is_decrypted"`
 	SecureEnvelopes    []*SecureEnvelope `json:"secure_envelopes,omitempty"`
 	DecryptedEnvelopes []*Envelope       `json:"decrypted_envelopes,omitempty"`
+}
+
+type EnvelopeListQuery struct {
+	PageQuery
+	EnvelopeQuery
 }
 
 //===========================================================================
@@ -170,7 +177,14 @@ func NewTransaction(model *models.Transaction) (*Transaction, error) {
 
 func NewTransactionList(page *models.TransactionPage) (out *TransactionsList, err error) {
 	out = &TransactionsList{
-		Page:         &PageQuery{},
+		Page: &TransactionListQuery{
+			PageQuery: PageQuery{
+				PageSize: int(page.Page.PageSize),
+			},
+			Status:       page.Page.Status,
+			VirtualAsset: page.Page.VirtualAsset,
+			Archives:     page.Page.Archives,
+		},
 		Transactions: make([]*Transaction, 0, len(page.Transactions)),
 	}
 
@@ -236,15 +250,6 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	}
 
 	return model, nil
-}
-
-func (e *Envelope) Dump() string {
-	data, err := json.Marshal(e)
-	if err != nil {
-		log.Warn().Err(err).Msg("could not marshal envelope data")
-		return ""
-	}
-	return string(data)
 }
 
 //===========================================================================
@@ -419,6 +424,15 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 	}
 
 	return out, nil
+}
+
+func (e *Envelope) Dump() string {
+	data, err := json.Marshal(e)
+	if err != nil {
+		log.Warn().Err(err).Msg("could not marshal envelope data")
+		return ""
+	}
+	return string(data)
 }
 
 func (e *Envelope) Validate() (err error) {
@@ -602,6 +616,38 @@ func (q *TransactionQuery) Validate() (err error) {
 		err = ValidationError(err, IncorrectField("detail", "should either be 'full' or 'preview'"))
 	}
 	return err
+}
+
+func (q *TransactionListQuery) Validate() (err error) {
+	if len(q.Status) > 0 {
+		for i, status := range q.Status {
+			q.Status[i] = strings.ToLower(strings.TrimSpace(status))
+			if !models.ValidStatus(q.Status[i]) {
+				err = ValidationError(err, IncorrectField("status", "invalid status enum"))
+				break
+			}
+		}
+	}
+
+	if len(q.VirtualAsset) > 0 {
+		for i, asset := range q.VirtualAsset {
+			q.VirtualAsset[i] = strings.ToUpper(strings.TrimSpace(asset))
+		}
+	}
+
+	return err
+}
+
+func (q *TransactionListQuery) Query() (query *models.TransactionPageInfo) {
+	query = &models.TransactionPageInfo{
+		PageInfo: models.PageInfo{
+			PageSize: uint32(q.PageSize),
+		},
+		Status:       q.Status,
+		VirtualAsset: q.VirtualAsset,
+		Archives:     q.Archives,
+	}
+	return query
 }
 
 //===========================================================================

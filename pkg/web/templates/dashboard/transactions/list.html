@@ -51,12 +51,12 @@
   <div class="col">
     <ul class="nav nav-tabs nav-overflow header-tabs">
       <li class="nav-item">
-        <a href="/transactions" class="text-nowrap nav-link{{ if not .Status }} active{{ end }}">
+        <a href="/transactions" class="text-nowrap nav-link{{ if not .Archives }} active{{ end }}">
           Active Transfers{{ if $counts.Active }} <span class="badge rounded-pill text-bg-secondary-subtle">{{ $counts.TotalActive }}</span>{{ end }}
         </a>
       </li>
       <li class="nav-item">
-        <a href="/transactions?status=archived" class='text-nowrap nav-link{{ if eq .Status "archived" }} active{{ end }}'>
+        <a href="/transactions?archives=true" class='text-nowrap nav-link{{ if .Archives }} active{{ end }}'>
           Archived{{ if $counts.Archived }} <span class="badge rounded-pill text-bg-secondary-subtle">{{ $counts.TotalArchived }}</span>{{ end }}
         </a>
       </li>
@@ -66,7 +66,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="transactions" hx-get="/v1/transactions{{ if .Status }}?status={{ .Status }}{{ end }}" hx-trigger="load, transactions-updated from:body">
+<section id="transactions" hx-get="/v1/transactions{{ if .Archives }}?archives=true{{ end }}" hx-trigger="load, transactions-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

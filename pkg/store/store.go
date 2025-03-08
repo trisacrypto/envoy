@@ -79,7 +79,7 @@ type Stats interface {
 // part of completing a travel rule exchange for the transaction.
 type TransactionStore interface {
 	SecureEnvelopeStore
-	ListTransactions(context.Context, *models.PageInfo) (*models.TransactionPage, error)
+	ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error)
 	CreateTransaction(context.Context, *models.Transaction) error
 	RetrieveTransaction(context.Context, uuid.UUID) (*models.Transaction, error)
 	UpdateTransaction(context.Context, *models.Transaction) error

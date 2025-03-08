@@ -28,8 +28,8 @@ type User struct {
 }
 
 type UserList struct {
-	Page  *PageQuery `json:"page"`
-	Users []*User    `json:"users"`
+	Page  *UserListQuery `json:"page"`
+	Users []*User        `json:"users"`
 }
 
 type UserPassword struct {
@@ -39,7 +39,7 @@ type UserPassword struct {
 
 type UserListQuery struct {
 	PageQuery
-	Role string `json:"role" url:"role,omitempty" form:"role"`
+	Role string `json:"role,omitempty" url:"role,omitempty" form:"role"`
 }
 
 type UserQuery struct {
@@ -68,7 +68,12 @@ func NewUser(model *models.User) (out *User, err error) {
 
 func NewUserList(page *models.UserPage) (out *UserList, err error) {
 	out = &UserList{
-		Page:  &PageQuery{},
+		Page: &UserListQuery{
+			PageQuery: PageQuery{
+				PageSize: int(page.Page.PageSize),
+			},
+			Role: page.Page.Role,
+		},
 		Users: make([]*User, 0, len(page.Users)),
 	}
 

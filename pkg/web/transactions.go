@@ -30,25 +30,30 @@ import (
 
 func (s *Server) ListTransactions(c *gin.Context) {
 	var (
-		err   error
-		in    *api.PageQuery
-		query *models.PageInfo
-		page  *models.TransactionPage
-		out   *api.TransactionsList
+		err  error
+		in   *api.TransactionListQuery
+		page *models.TransactionPage
+		out  *api.TransactionsList
 	)
 
 	// Parse the URL parameters from the input request
-	in = &api.PageQuery{}
+	in = &api.TransactionListQuery{}
 	if err = c.BindQuery(in); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
 		return
 	}
 
+	// Validate the incoming parameters from the query
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
 	// TODO: implement better pagination mechanism (with pagination tokens)
 
 	// Fetch the list of transactions from the database
-	if page, err = s.store.ListTransactions(c.Request.Context(), query); err != nil {
+	if page, err = s.store.ListTransactions(c.Request.Context(), in.Query()); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process transaction list request"))
 		return

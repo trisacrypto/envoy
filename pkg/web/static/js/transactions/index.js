@@ -16,11 +16,13 @@ document.addEventListener("htmx:afterSettle", function(e) {
   */
   if (isRequestFor(e, "/v1/transactions", "get")) {
     const cpList = document.getElementById('transactionList');
-    const list = createList(cpList);
+    if (cpList) {
+      const list = createList(cpList);
 
-    // Initialize Page Size Select
-    const pageSizeSelect = document.getElementById('pageSizeSelect');
-    createPageSizeSelect(pageSizeSelect, list);
+      // Initialize Page Size Select
+      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      createPageSizeSelect(pageSizeSelect, list);
+    }
 
     // Initialize the status tooltips
     const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');

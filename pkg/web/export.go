@@ -29,7 +29,7 @@ func (s *Server) ExportTransactions(c *gin.Context) {
 	var (
 		err  error
 		page *models.TransactionPage
-		info *models.PageInfo
+		info *models.TransactionPageInfo
 	)
 
 	// Create the filename for export based on the current date
@@ -51,7 +51,7 @@ func (s *Server) ExportTransactions(c *gin.Context) {
 	}
 
 	// Fetch 50 records per page from the database
-	info = &models.PageInfo{PageSize: 50, NextPageID: ulid.Null}
+	info = &models.TransactionPageInfo{PageInfo: models.PageInfo{PageSize: 50, NextPageID: ulid.Null}}
 
 	// TODO: we'll probably want to load more information from the secure envelope
 	// besides what's in the transaction and if we do that, we'll want a transaction

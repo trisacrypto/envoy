@@ -7633,6 +7633,50 @@
           },
           {
             "$ref": "#/components/parameters/prev_page_token"
+          },
+          {
+            "name": "archives",
+            "in": "query",
+            "description": "If true, archived transactions are queried",
+            "required": false,
+            "schema": {
+              "type": "bool",
+              "example": true
+            },
+            "example": true
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter the transactions by their status (can pass multiple params to include multiple statuses)",
+            "required": false,
+            "collectionFormat": "multi",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "started",
+                "pending",
+                "repair",
+                "review",
+                "rejected",
+                "completed"
+              ],
+              "example": "pending"
+            },
+            "example": "pending"
+          },
+          {
+            "name": "asset",
+            "in": "query",
+            "description": "Filter the transactions by a virtual asset (can pass multiple params to include multiple assets)",
+            "required": false,
+            "collectionFormat": "multi",
+            "schema": {
+              "type": "string",
+              "example": "BTC"
+            },
+            "example": "BTC"
           }
         ],
         "responses": {

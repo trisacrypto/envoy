@@ -18,9 +18,9 @@ import (
 // Transaction CRUD interface
 //==========================================================================
 
-const listTransactionsSQL = "SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id WHERE t.archived=0 GROUP BY t.id ORDER BY t.created DESC"
+const listTransactionsSQL = "SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id WHERE t.archived=:archives GROUP BY t.id ORDER BY t.created DESC"
 
-func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (out *models.TransactionPage, err error) {
+func (s *Store) ListTransactions(ctx context.Context, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
@@ -30,11 +30,16 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (ou
 	// TODO: handle pagination
 	out = &models.TransactionPage{
 		Transactions: make([]*models.Transaction, 0),
-		Page:         models.PageInfoFrom(page),
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listTransactionsSQL); err != nil {
+	if rows, err = tx.Query(listTransactionsSQL, sql.Named("archives", page.Archives)); err != nil {
 		// TODO: handle database specific errors
 		return nil, err
 	}

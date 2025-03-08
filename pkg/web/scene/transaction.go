@@ -11,7 +11,7 @@ import (
 
 // Converted from an *api.TransactionList to provide additional UI-specific functionality.
 type TransactionList struct {
-	Page         *api.PageQuery
+	Page         *api.TransactionListQuery
 	Transactions []*Transaction
 }
 

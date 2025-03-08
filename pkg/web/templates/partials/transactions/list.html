@@ -124,10 +124,20 @@
   <div class="card-body text-center">
     <div class="py-6">
       <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
-      <h1>No transfers yet!</h1>
+      <h1>{{ if .Page.Archives }}Archives are empty{{ else }}No transfers yet!{{ end }}</h1>
       <p class="text-muted">
+        {{- if .Page.Archives -}}
+        Archived transfers will appear here.
+        {{- else -}}
         Send a compliance travel rule message to get started!
+        {{- end -}}
       </p>
+      {{ if and $canEditTransfers (not .Page.Archives) -}}
+      <a href="/send" class="btn btn-primary mt-3">
+        <i class="fe fe-mail mt-1 me-2"></i>
+        Start Travel Rule Transfer
+      </a>
+      {{- end -}}
     </div>
   </div>
 </div>

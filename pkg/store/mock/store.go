@@ -23,7 +23,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) ListTransactions(context.Context, *models.PageInfo) (*models.TransactionPage, error) {
+func (s *Store) ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error) {
 	return nil, nil
 }
 

@@ -70,6 +70,13 @@ type TransactionCounts struct {
 	Archived map[string]int // Archived transaction counts by status
 }
 
+type TransactionPageInfo struct {
+	PageInfo
+	Status       []string `json:"status,omitempty"`
+	VirtualAsset []string `json:"asset,omitempty"`
+	Archives     bool     `json:"archives,omitempty"`
+}
+
 type SecureEnvelope struct {
 	Model
 	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
