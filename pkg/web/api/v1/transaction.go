@@ -10,8 +10,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"github.com/trisacrypto/trisa/pkg/iso3166"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
@@ -247,86 +245,6 @@ func (e *Envelope) Dump() string {
 		return ""
 	}
 	return string(data)
-}
-
-//===========================================================================
-// Transaction Status Helpers
-//===========================================================================
-
-const (
-	colorUnspecified   = "text-gray-500"
-	tooltipUnspecified = "The transfer state is unknown or purposefully not specified."
-
-	colorDraft   = "text-gray-500"
-	tooltipDraft = "The TRISA exchange is in a draft state and has not been sent."
-
-	colorPending   = "text-yellow-700"
-	tooltipPending = "Action is required by the sending party, await a following RPC."
-
-	colorReview   = "text-blue-700"
-	tooltipReview = "Action is required by the receiving party."
-
-	colorRepair   = "text-warning"
-	tooltipRepair = "Some part of the payload of the TRISA exchange requires repair."
-
-	colorAccepted   = "text-success"
-	tooltipAccepted = "The TRISA exchange is accepted and the counterparty is awaiting the on-chain transaction."
-
-	colorCompleted   = "text-success"
-	tooltipCompleted = "The TRISA exchange and the on-chain transaction have been completed."
-
-	colorRejected   = "text-warning"
-	tooltipRejected = "The TRISA exchange is rejected and no on-chain transaction should proceed."
-)
-
-func (c *Transaction) TitleStatus() string {
-	return cases.Title(language.English).String(c.Status)
-}
-
-func (c *Transaction) ColorStatus() string {
-	switch c.Status {
-	case models.StatusUnspecified, "":
-		return colorUnspecified
-	case models.StatusDraft:
-		return colorDraft
-	case models.StatusPending:
-		return colorPending
-	case models.StatusReview:
-		return colorReview
-	case models.StatusRepair:
-		return colorRepair
-	case models.StatusAccepted:
-		return colorAccepted
-	case models.StatusCompleted:
-		return colorCompleted
-	case models.StatusRejected:
-		return colorRejected
-	default:
-		panic(fmt.Errorf("unhandled color for status %q", c.Status))
-	}
-}
-
-func (c *Transaction) TooltipStatus() string {
-	switch c.Status {
-	case models.StatusUnspecified, "":
-		return tooltipUnspecified
-	case models.StatusDraft:
-		return tooltipDraft
-	case models.StatusPending:
-		return tooltipPending
-	case models.StatusReview:
-		return tooltipReview
-	case models.StatusRepair:
-		return tooltipRepair
-	case models.StatusAccepted:
-		return tooltipAccepted
-	case models.StatusCompleted:
-		return tooltipCompleted
-	case models.StatusRejected:
-		return tooltipRejected
-	default:
-		panic(fmt.Errorf("unhandled tooltip for status %q", c.Status))
-	}
 }
 
 //===========================================================================

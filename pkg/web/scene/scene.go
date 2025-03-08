@@ -174,19 +174,34 @@ func (s Scene) CounterpartyList() *api.CounterpartyList {
 	return nil
 }
 
-func (s Scene) TransactionsList() *api.TransactionsList {
+func (s Scene) TransactionsList() *TransactionList {
 	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.TransactionsList); ok {
+		if txns, ok := data.(*api.TransactionsList); ok {
+			out := &TransactionList{
+				Page:         txns.Page,
+				Transactions: make([]*Transaction, len(txns.Transactions)),
+			}
+
+			for i, txn := range txns.Transactions {
+				out.Transactions[i] = &Transaction{
+					Transaction: *txn,
+					Status:      Status(txn.Status),
+				}
+			}
+
 			return out
 		}
 	}
 	return nil
 }
 
-func (s Scene) TransactionDetail() *api.Transaction {
+func (s Scene) TransactionDetail() *Transaction {
 	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.Transaction); ok {
-			return out
+		if tx, ok := data.(*api.Transaction); ok {
+			return &Transaction{
+				Transaction: *tx,
+				Status:      Status(tx.Status),
+			}
 		}
 	}
 	return nil

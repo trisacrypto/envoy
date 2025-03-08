@@ -4,6 +4,7 @@ Application code for the transaction inbox dashboard page.
 
 import { createList, createPageSizeSelect } from '../modules/components.js';
 import { isRequestFor } from '../htmx/helpers.js';
+// import { Tooltip } from 'bootstrap';
 
 /*
 Post-event handling after htmx has settled the DOM.
@@ -20,6 +21,13 @@ document.addEventListener("htmx:afterSettle", function(e) {
     // Initialize Page Size Select
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     createPageSizeSelect(pageSizeSelect, list);
+
+    // Initialize the status tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+      new Tooltip(tooltip);
+    });
+
     return;
   };
 });

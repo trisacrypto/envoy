@@ -3,6 +3,22 @@
 {{ define "pretitle" }}Travel Rule{{ end }}
 {{ define "pagetitle" }}Transfers &amp; Messages{{ end }}
 
+{{ define "appstyle" }}
+<style>
+  .has-tooltip {
+    cursor: help;
+  }
+
+  .address-tooltip {
+    max-width: 512px;
+  }
+
+  .address-tooltip .tooltip-inner {
+    max-width: 512px;
+  }
+</style>
+{{ end }}
+
 {{- define "modals" }}
 {{- end }}
 
@@ -23,7 +39,7 @@
   </ul>
 </div>
 <a href="/v1/transactions/export" class="btn btn-dark ms-2" title="Export Transfers CSV">
-  <i class="fe fe-download"></i>
+  <i class="fe fe-download-cloud"></i>
 </a>
 {{- end }}
 {{- end }}

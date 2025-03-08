@@ -1,7 +1,7 @@
 {{- $canEditTransfers := not .IsViewOnly -}}
 {{- with .TransactionsList -}}
 {{ if .Transactions }}
-<div class="card" id="transactionList" data-list='{"valueNames": ["item-status", "item-counterparty", "item-originator", "item-beneficiary", "item-last-update"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+<div class="card" id="transactionList" data-list='{"valueNames": ["item-direction", "item-status", "item-counterparty", "item-originator", "item-beneficiary", "item-virtual-asset", "item-amount", "item-last-update"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
@@ -36,6 +36,9 @@
       <thead>
         <tr>
           <th>
+            <a class="list-sort text-muted" data-sort="item-direction" href="#">Source</a>
+          </th>
+          <th>
             <a class="list-sort text-muted" data-sort="item-status" href="#">Status</a>
           </th>
           <th>
@@ -47,6 +50,12 @@
           <th>
             <a class="list-sort text-muted" data-sort="item-beneficiary" href="#">Beneficiary</a>
           </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-virtual-asset" href="#">Virtual Asset</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-amount" href="#">Amount</a>
+          </th>
           <th colspan="2">
             <a class="list-sort text-muted" data-sort="item-last-update" href="#">Last Updated</a>
           </th>
@@ -55,10 +64,35 @@
       <tbody class="list fs-base">
         {{ range .Transactions }}
         <tr>
-          <td><span class="item-status badge bg-secondary">{{ .Status }}</span></td>
+          <td class="item-direction text-center">
+            {{- if eq .Source "remote" -}}
+            <i class="fe fe-download has-tooltip" title="Incoming message received from counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- else if eq .Source "local" -}}
+            <i class="fe fe-upload has-tooltip" title="Outgoing message sent to counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- else -}}
+            <i class="fe fe-help-question has-tooltip" title="Unknown message source" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- end -}}
+          </td>
+          <td><span class='item-status has-tooltip badge bg-{{ .Status.Color }}{{ if eq .Status "accepted" }}  bg-opacity-75{{ end }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="right">{{ .Status }}</span></td>
           <td><a class="item-counterparty text-reset" href="#">{{ .Counterparty }}</a></td>
-          <td><a class="item-originator text-reset" href="#">{{ .Originator }}</a></td>
-          <td><a class="item-beneficiary text-reset" href="#">{{ .Beneficiary }}</a></td>
+          <td><a class="item-originator text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .OriginatorAddress }}">
+            {{- if .Originator -}}
+            {{- .Originator -}}
+            <small class="d-none text-secondary">{{- .OriginatorAddress -}}</small>
+            {{- else -}}
+              <small class="text-secondary">{{- .OriginatorAddress -}}</small>
+            {{- end -}}
+          </a></td>
+          <td><a class="item-beneficiary text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .BeneficiaryAddress }}">
+            {{- if .Beneficiary -}}
+              {{- .Beneficiary -}}
+              <small class="d-none text-secondary">{{- .BeneficiaryAddress -}}</small>
+            {{- else -}}
+              <small class="text-secondary">{{- .BeneficiaryAddress -}}</small>
+            {{- end -}}
+          </a></td>
+          <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
+          <td class="item-amount">{{ .Amount }}</td>
           <td><time class="item-last-update" datetime="2020-01-14">{{ .Modified.Format "Jan 02, 2006 at 15:04:05" }}</time></td>
           <td class="text-end">
             <!-- Dropdown -->
@@ -67,12 +101,12 @@
                 <i class="fe fe-more-vertical"></i>
               </a>
               <div class="dropdown-menu dropdown-menu-end">
+                <a href="#!" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View
+                </a>
                 {{ if $canEditTransfers }}
                 <a href="#!" class="dropdown-item">
-                  <i class="fe fe-edit"></i> Edit
-                </a>
-                <a href="#!" class="dropdown-item">
-                  <i class="fe fe-trash"></i> Archive
+                  <i class="fe fe-archive"></i> Archive
                 </a>
                 {{ end }}
               </div>
