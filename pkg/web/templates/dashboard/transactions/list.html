@@ -66,7 +66,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="transactions" hx-get="/v1/transactions{{ if .Archives }}?archives=true{{ end }}" hx-trigger="load, transactions-updated from:body">
+<section id="transactions" hx-get="/v1/transactions{{ if .Archives }}?archives=true{{ end }}" hx-trigger="load, transactions-updated from:body, list-filter">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

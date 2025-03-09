@@ -59,3 +59,18 @@ export function urlPath(uri) {
     return uri.split('?')[0];
   }
 }
+
+// Extracts the query string from the path.
+export function urlQuery(uri) {
+  try {
+    const url = new URL(uri);
+    return new URLSearchParams(url.search);
+  } catch (InvalidURL) {
+    const parts = uri.split('?');
+    if (parts.length > 1) {
+      return new URLSearchParams(parts[1]);
+    } else {
+      return new URLSearchParams();
+    }
+  }
+}

@@ -33,7 +33,14 @@
                     <div class="col-7">
                       <select multiple name="status"
                         class="form-control form-select form-select-sm"
-                        data-choices='{"searchEnabled": true, "choices": [{"value": "draft", "label": "Draft"}, {"value": "pending", "label": "Pending"}, {"value": "review", "label": "Review"}, {"value": "repair", "label": "Repair"}, {"value": "accepted", "label": "Accepted"}, {"value": "rejected", "label": "Rejected"}, {"value": "completed", "label": "Completed"}]}'>
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="draft">Draft</option>
+                        <option value="pending">Pending</option>
+                        <option value="review">Review</option>
+                        <option value="repair">Repair</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="completed">Completed</option>
                       </select>
                     </div>
                   </div>
@@ -44,7 +51,9 @@
                       <small>Virtual Asset</small>
                     </div>
                     <div class="col-7">
-                      <select multiple class="form-select form-select-sm" name="asset" data-choices='{"searchEnabled": true}'>
+                      <select multiple name="asset"
+                        class="form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
                         <option value="BTC">Bitcoin</option>
                         <option value="ETH">Ethereum</option>
                         <option value="AGM">Argoneum</option>
