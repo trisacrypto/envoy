@@ -23,7 +23,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) ListTransactions(context.Context, *models.PageInfo) (*models.TransactionPage, error) {
+func (s *Store) ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error) {
 	return nil, nil
 }
 
@@ -45,6 +45,10 @@ func (s *Store) DeleteTransaction(context.Context, uuid.UUID) error {
 
 func (s *Store) ArchiveTransaction(context.Context, uuid.UUID) error {
 	return nil
+}
+
+func (s *Store) CountTransactions(context.Context) (*models.TransactionCounts, error) {
+	return nil, nil
 }
 
 func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error) {

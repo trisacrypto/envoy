@@ -11,8 +11,8 @@ type PageInfo struct {
 }
 
 type TransactionPage struct {
-	Transactions []*Transaction `json:"transactions"`
-	Page         *PageInfo      `json:"page"`
+	Transactions []*Transaction       `json:"transactions"`
+	Page         *TransactionPageInfo `json:"page"`
 }
 
 type SecureEnvelopePage struct {

@@ -10,8 +10,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"github.com/trisacrypto/trisa/pkg/iso3166"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
@@ -53,6 +51,10 @@ type Transaction struct {
 	EnvelopeCount      int64      `json:"envelope_count,omitempty"`
 	Created            time.Time  `json:"created"`
 	Modified           time.Time  `json:"modified"`
+}
+
+type TransactionQuery struct {
+	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
 }
 
 type SecureEnvelope struct {
@@ -108,24 +110,22 @@ type Repair struct {
 	Envelope *Envelope
 }
 
-type TransactionQuery struct {
-	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
-}
-
 type EnvelopeQuery struct {
 	Decrypt   bool   `json:"decrypt" url:"decrypt,omitempty" form:"decrypt"`
 	Archives  bool   `json:"archives" url:"archives,omitempty" form:"archives"`
 	Direction string `json:"direction,omitempty" url:"direction,omitempty" form:"direction"`
 }
 
-type EnvelopeListQuery struct {
-	PageQuery
-	EnvelopeQuery
+type TransactionsList struct {
+	Page         *TransactionListQuery `json:"page"`
+	Transactions []*Transaction        `json:"transactions"`
 }
 
-type TransactionsList struct {
-	Page         *PageQuery     `json:"page"`
-	Transactions []*Transaction `json:"transactions"`
+type TransactionListQuery struct {
+	PageQuery
+	Status       []string `json:"status,omitempty" url:"status,omitempty" form:"status"`
+	VirtualAsset []string `json:"asset,omitempty" url:"asset,omitempty" form:"asset"`
+	Archives     bool     `json:"archives,omitempty" url:"archives,omitempty" form:"archives"`
 }
 
 type EnvelopesList struct {
@@ -133,6 +133,11 @@ type EnvelopesList struct {
 	IsDecrypted        bool              `json:"is_decrypted"`
 	SecureEnvelopes    []*SecureEnvelope `json:"secure_envelopes,omitempty"`
 	DecryptedEnvelopes []*Envelope       `json:"decrypted_envelopes,omitempty"`
+}
+
+type EnvelopeListQuery struct {
+	PageQuery
+	EnvelopeQuery
 }
 
 //===========================================================================
@@ -172,7 +177,14 @@ func NewTransaction(model *models.Transaction) (*Transaction, error) {
 
 func NewTransactionList(page *models.TransactionPage) (out *TransactionsList, err error) {
 	out = &TransactionsList{
-		Page:         &PageQuery{},
+		Page: &TransactionListQuery{
+			PageQuery: PageQuery{
+				PageSize: int(page.Page.PageSize),
+			},
+			Status:       page.Page.Status,
+			VirtualAsset: page.Page.VirtualAsset,
+			Archives:     page.Page.Archives,
+		},
 		Transactions: make([]*Transaction, 0, len(page.Transactions)),
 	}
 
@@ -238,95 +250,6 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 	}
 
 	return model, nil
-}
-
-func (e *Envelope) Dump() string {
-	data, err := json.Marshal(e)
-	if err != nil {
-		log.Warn().Err(err).Msg("could not marshal envelope data")
-		return ""
-	}
-	return string(data)
-}
-
-//===========================================================================
-// Transaction Status Helpers
-//===========================================================================
-
-const (
-	colorUnspecified   = "text-gray-500"
-	tooltipUnspecified = "The transfer state is unknown or purposefully not specified."
-
-	colorDraft   = "text-gray-500"
-	tooltipDraft = "The TRISA exchange is in a draft state and has not been sent."
-
-	colorPending   = "text-yellow-700"
-	tooltipPending = "Action is required by the sending party, await a following RPC."
-
-	colorReview   = "text-blue-700"
-	tooltipReview = "Action is required by the receiving party."
-
-	colorRepair   = "text-warning"
-	tooltipRepair = "Some part of the payload of the TRISA exchange requires repair."
-
-	colorAccepted   = "text-success"
-	tooltipAccepted = "The TRISA exchange is accepted and the counterparty is awaiting the on-chain transaction."
-
-	colorCompleted   = "text-success"
-	tooltipCompleted = "The TRISA exchange and the on-chain transaction have been completed."
-
-	colorRejected   = "text-warning"
-	tooltipRejected = "The TRISA exchange is rejected and no on-chain transaction should proceed."
-)
-
-func (c *Transaction) TitleStatus() string {
-	return cases.Title(language.English).String(c.Status)
-}
-
-func (c *Transaction) ColorStatus() string {
-	switch c.Status {
-	case models.StatusUnspecified, "":
-		return colorUnspecified
-	case models.StatusDraft:
-		return colorDraft
-	case models.StatusPending:
-		return colorPending
-	case models.StatusReview:
-		return colorReview
-	case models.StatusRepair:
-		return colorRepair
-	case models.StatusAccepted:
-		return colorAccepted
-	case models.StatusCompleted:
-		return colorCompleted
-	case models.StatusRejected:
-		return colorRejected
-	default:
-		panic(fmt.Errorf("unhandled color for status %q", c.Status))
-	}
-}
-
-func (c *Transaction) TooltipStatus() string {
-	switch c.Status {
-	case models.StatusUnspecified, "":
-		return tooltipUnspecified
-	case models.StatusDraft:
-		return tooltipDraft
-	case models.StatusPending:
-		return tooltipPending
-	case models.StatusReview:
-		return tooltipReview
-	case models.StatusRepair:
-		return tooltipRepair
-	case models.StatusAccepted:
-		return tooltipAccepted
-	case models.StatusCompleted:
-		return tooltipCompleted
-	case models.StatusRejected:
-		return tooltipRejected
-	default:
-		panic(fmt.Errorf("unhandled tooltip for status %q", c.Status))
-	}
 }
 
 //===========================================================================
@@ -501,6 +424,15 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 	}
 
 	return out, nil
+}
+
+func (e *Envelope) Dump() string {
+	data, err := json.Marshal(e)
+	if err != nil {
+		log.Warn().Err(err).Msg("could not marshal envelope data")
+		return ""
+	}
+	return string(data)
 }
 
 func (e *Envelope) Validate() (err error) {
@@ -684,6 +616,38 @@ func (q *TransactionQuery) Validate() (err error) {
 		err = ValidationError(err, IncorrectField("detail", "should either be 'full' or 'preview'"))
 	}
 	return err
+}
+
+func (q *TransactionListQuery) Validate() (err error) {
+	if len(q.Status) > 0 {
+		for i, status := range q.Status {
+			q.Status[i] = strings.ToLower(strings.TrimSpace(status))
+			if !models.ValidStatus(q.Status[i]) {
+				err = ValidationError(err, IncorrectField("status", "invalid status enum"))
+				break
+			}
+		}
+	}
+
+	if len(q.VirtualAsset) > 0 {
+		for i, asset := range q.VirtualAsset {
+			q.VirtualAsset[i] = strings.ToUpper(strings.TrimSpace(asset))
+		}
+	}
+
+	return err
+}
+
+func (q *TransactionListQuery) Query() (query *models.TransactionPageInfo) {
+	query = &models.TransactionPageInfo{
+		PageInfo: models.PageInfo{
+			PageSize: uint32(q.PageSize),
+		},
+		Status:       q.Status,
+		VirtualAsset: q.VirtualAsset,
+		Archives:     q.Archives,
+	}
+	return query
 }
 
 //===========================================================================

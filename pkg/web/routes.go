@@ -92,26 +92,50 @@ func (s *Server) setupRoutes() (err error) {
 		return auth.Authorize(perms.String()...)
 	}
 
-	// Web UI Routes (Pages)
-	s.router.GET("/", authenticate, s.Home)
+	// Web UI Routes (Dashboards and Pages) - Unauthenticated
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/reset-password", s.ResetPasswordPage)
 	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
-	s.router.GET("/about", authenticate, s.AboutPage)
-	s.router.GET("/settings", authenticate, s.SettingsPage)
-	s.router.GET("/profile", authenticate, s.UserProfile)
-	s.router.GET("/profile/account", authenticate, s.UserAccount)
-	s.router.GET("/transactions", authenticate, s.TransactionsListPage)
-	s.router.GET("/transactions/:id/accept", authenticate, s.TransactionsAcceptPreview)
-	s.router.GET("/transactions/:id/repair", authenticate, s.TransactionsRepairPreview)
-	s.router.GET("/transactions/:id/info", authenticate, s.TransactionDetailPage)
-	s.router.GET("/send-envelope", authenticate, s.SendEnvelopeForm)
-	s.router.GET("/accounts", authenticate, s.AccountsListPage)
-	s.router.GET("/counterparties", authenticate, s.CounterpartiesListPage)
-	s.router.GET("/users", authenticate, s.UsersListPage)
-	s.router.GET("/apikeys", authenticate, s.APIKeysListPage)
-	s.router.GET("/utilities/travel-address", authenticate, s.TravelAddressUtility)
+
+	// Web UI Routes (Dashboards and Pages) - Authenticated
+	ui := s.router.Group("", authenticate)
+	{
+		ui.GET("/", s.Home)
+		ui.GET("/about", s.AboutPage)
+		ui.GET("/settings", s.SettingsPage)
+		ui.GET("/accounts", s.AccountsListPage)
+		ui.GET("/counterparties", s.CounterpartiesListPage)
+		ui.GET("/users", s.UsersListPage)
+		ui.GET("/apikeys", s.APIKeysListPage)
+		ui.GET("/utilities/travel-address", s.TravelAddressUtility)
+
+		// Profile Pages
+		profile := ui.Group("/profile")
+		{
+			profile.GET("", s.UserProfile)
+			profile.GET("/account", s.UserAccount)
+		}
+
+		// Transactions Pages
+		transactions := ui.Group("/transactions")
+		{
+			transactions.GET("", s.TransactionsListPage)
+			transactions.GET("/:id/accept", s.TransactionsAcceptPreview)
+			transactions.GET("/:id/repair", s.TransactionsRepairPreview)
+			transactions.GET("/:id/info", s.TransactionDetailPage)
+		}
+
+		// Send Secure Message Forms
+		send := ui.Group("/send", authorize(permiss.TravelRuleManage))
+		{
+			send.GET("", s.SendEnvelopeForm)
+			send.GET("/trisa", s.SendTRISAForm)
+			send.GET("/trp", s.SendTRPForm)
+			// The send sunrise message page for authenticated envoy users.
+			send.GET("/sunrise", s.SendSunriseForm)
+		}
+	}
 
 	// Swagger documentation with Swagger UI hosted from a CDN
 	// NOTE: should documentation require authentication?
@@ -119,6 +143,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/v1/docs", s.APIDocs)
 
 	// Sunrise Routes (can be disabled by the middleware)
+	// These routes are intended for external users to access a sunrise message
 	sunrise := s.router.Group("/sunrise", s.SunriseEnabled())
 	{
 		// Logs in a sunrise user to allow the external user to be sunrise authenticated.
@@ -129,9 +154,6 @@ func (s *Server) setupRoutes() (err error) {
 		sunrise.POST("/reject", sunriseAuth, s.SunriseMessageReject)
 		sunrise.POST("/accept", sunriseAuth, s.SunriseMessageAccept)
 		sunrise.GET("/download", sunriseAuth, s.SunriseMessageDownload)
-
-		// The send sunrise message page for authenticated envoy users.
-		sunrise.GET("/message", authenticate, authorize(permiss.TravelRuleManage), s.SendMessageForm)
 	}
 
 	// API Routes (Including Content Negotiated Partials)

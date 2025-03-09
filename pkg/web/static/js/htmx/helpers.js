@@ -7,12 +7,12 @@ export function isRequestFor(e, path, method) {
   // Check the request config for the path and method if it has been configured.
   const config = e.detail?.requestConfig;
   if (config) {
-    return config.path === path && config.verb === method;
+    return urlPath(config.path) === path && config.verb === method;
   }
 
   // Check the detail directly if this is during a request config event.
   if (e.detail?.path && e.detail?.verb) {
-    return e.detail.path === path && e.detail.verb === method;
+    return urlPath(e.detail.path) === path && e.detail.verb === method;
   }
 
   // Otherwise return false since we can't determine the configuration.
@@ -35,11 +35,11 @@ export function isRequestMatch(e, pattern, method) {
 
   const config = e.detail?.requestConfig;
   if (config) {
-    return config.verb === method && pattern.test(config.path);
+    return config.verb === method && pattern.test(urlPath(config.path));
   }
 
   if (e.detail?.verb) {
-    return e.detail.verb === method && pattern.test(e.detail.path);
+    return e.detail.verb === method && pattern.test(urlPath(e.detail.path));
   }
 
   return false;
@@ -48,4 +48,29 @@ export function isRequestMatch(e, pattern, method) {
 // Check the status of an HTMX request.
 export function checkStatus(e, status) {
   return e.detail?.xhr?.status === status;
+}
+
+// Removes any query strings from the path.
+export function urlPath(uri) {
+  try {
+    const url = new URL(uri);
+    return url.pathname;
+  } catch (InvalidURL) {
+    return uri.split('?')[0];
+  }
+}
+
+// Extracts the query string from the path.
+export function urlQuery(uri) {
+  try {
+    const url = new URL(uri);
+    return new URLSearchParams(url.search);
+  } catch (InvalidURL) {
+    const parts = uri.split('?');
+    if (parts.length > 1) {
+      return new URLSearchParams(parts[1]);
+    } else {
+      return new URLSearchParams();
+    }
+  }
 }

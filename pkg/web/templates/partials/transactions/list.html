@@ -1,0 +1,206 @@
+{{- $canEditTransfers := not .IsViewOnly -}}
+{{- with .TransactionsList -}}
+{{ if .Transactions }}
+<div class="card" id="transactionList" data-list='{"valueNames": ["item-direction", "item-status", "item-counterparty", "item-originator", "item-beneficiary", "item-virtual-asset", "item-amount", "item-last-update"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        {{ template "tableSearch" . }}
+      </div>
+      <div class="col-auto me-n3">
+        {{ template "tablePageSize" . }}
+      </div>
+      <div class="col-auto">
+        <!-- Filter Form -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span id="numFiltersBadge" class="badge bg-secondary ms-1">0</span>
+          </button>
+          <form id="filterListForm" class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+            <div class="card-header">
+              <h4 class="card-header-title">Filters</h4>
+              <button class="btn btn-sm btn-link text-reset" type="reset">
+                <small>Clear filters</small>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="list-group list-group-flush mt-n4 mb-4">
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Status</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple name="status"
+                        class="form-control form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="draft">Draft</option>
+                        <option value="pending">Pending</option>
+                        <option value="review">Review</option>
+                        <option value="repair">Repair</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Virtual Asset</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple name="asset"
+                        class="form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="BTC">Bitcoin</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="AGM">Argoneum</option>
+                        <option value="BCH">Bitcoin Cash</option>
+                        <option value="BTG">Bitcoin Gold</option>
+                        <option value="XBC">Bitcoinplus</option>
+                        <option value="BTX">BitCore</option>
+                        <option value="CHC">Chaincoin</option>
+                        <option value="DASH">Dash</option>
+                        <option value="DOGEC">DogeCash</option>
+                        <option value="DOGE">Dogecoin</option>
+                        <option value="FTC">Feathercoin</option>
+                        <option value="GRS">Groestlcoin</option>
+                        <option value="KOTO">Koto</option>
+                        <option value="LBTC">Liquid</option>
+                        <option value="LTC">Litecoin</option>
+                        <option value="MONA">Monacoin</option>
+                        <option value="POLIS">Polis</option>
+                        <option value="TRC">Terracoin</option>
+                        <option value="UFO">UFO</option>
+                        <option value="XVG">Verge Currency</option>
+                        <option value="VIA">Viacoin</option>
+                        <option value="ZCL">Zclassic</option>
+                        <option value="XZC">ZCoin</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button class="btn w-100 btn-primary" type="submit">
+                Apply filter
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover table-nowrap card-table">
+      <thead>
+        <tr>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-direction" href="#">Source</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-status" href="#">Status</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-counterparty" href="#">Counterparty</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-originator" href="#">Originator</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-beneficiary" href="#">Beneficiary</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-virtual-asset" href="#">Virtual Asset</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-amount" href="#">Amount</a>
+          </th>
+          <th colspan="2">
+            <a class="list-sort text-muted" data-sort="item-last-update" href="#">Last Updated</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="list fs-base">
+        {{ range .Transactions }}
+        <tr>
+          <td class="item-direction text-center">
+            {{- if eq .Source "remote" -}}
+            <i class="fe fe-download has-tooltip" title="Incoming message received from counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- else if eq .Source "local" -}}
+            <i class="fe fe-upload has-tooltip" title="Outgoing message sent to counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- else -}}
+            <i class="fe fe-help-question has-tooltip" title="Unknown message source" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+            {{- end -}}
+          </td>
+          <td><span class='item-status has-tooltip badge bg-{{ .Status.Color }}{{ if eq .Status "accepted" }}  bg-opacity-75{{ end }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="right">{{ .Status }}</span></td>
+          <td><a class="item-counterparty text-reset" href="#">{{ .Counterparty }}</a></td>
+          <td><a class="item-originator text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .OriginatorAddress }}">
+            {{- if .Originator -}}
+            {{- .Originator -}}
+            <small class="d-none text-secondary">{{- .OriginatorAddress -}}</small>
+            {{- else -}}
+              <small class="text-secondary">{{- .OriginatorAddress -}}</small>
+            {{- end -}}
+          </a></td>
+          <td><a class="item-beneficiary text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .BeneficiaryAddress }}">
+            {{- if .Beneficiary -}}
+              {{- .Beneficiary -}}
+              <small class="d-none text-secondary">{{- .BeneficiaryAddress -}}</small>
+            {{- else -}}
+              <small class="text-secondary">{{- .BeneficiaryAddress -}}</small>
+            {{- end -}}
+          </a></td>
+          <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
+          <td class="item-amount">{{ .Amount }}</td>
+          <td><time class="item-last-update" datetime="2020-01-14">{{ .Modified.Format "Jan 02, 2006 at 15:04:05" }}</time></td>
+          <td class="text-end">
+            <!-- Dropdown -->
+            <div class="dropdown">
+              <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fe fe-more-vertical"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end">
+                <a href="#!" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View
+                </a>
+                {{ if $canEditTransfers }}
+                <a href="#!" class="dropdown-item">
+                  <i class="fe fe-archive"></i> Archive
+                </a>
+                {{ end }}
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ template "tablePagination" . }}
+</div>
+{{ else }}
+<div class="card card-inactive">
+  <div class="card-body text-center">
+    <div class="py-6">
+      <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
+      <h1>{{ if .Page.Archives }}Archives are empty{{ else }}No transfers yet!{{ end }}</h1>
+      <p class="text-muted">
+        {{- if .Page.Archives -}}
+        Archived transfers will appear here.
+        {{- else -}}
+        Send a compliance travel rule message to get started!
+        {{- end -}}
+      </p>
+      {{ if and $canEditTransfers (not .Page.Archives) -}}
+      <a href="/send" class="btn btn-primary mt-3">
+        <i class="fe fe-mail mt-1 me-2"></i>
+        Start Travel Rule Transfer
+      </a>
+      {{- end -}}
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

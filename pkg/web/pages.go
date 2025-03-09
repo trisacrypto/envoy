@@ -51,10 +51,24 @@ func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) TransactionsListPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/transactions/list.html", scene.New(c))
+	// Count the number of transactions in the database (ignore errors)
+	counts, _ := s.store.CountTransactions(c.Request.Context())
+
+	ctx := scene.New(c).WithAPIData(counts)
+	ctx["Archives"] = strings.ToLower(c.Query("archives"))
+
+	c.HTML(http.StatusOK, "dashboard/transactions/list.html", ctx)
 }
 
 func (s *Server) SendEnvelopeForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+}
+
+func (s *Server) SendTRISAForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+}
+
+func (s *Server) SendTRPForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
 }
 

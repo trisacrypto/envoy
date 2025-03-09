@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -18,23 +19,50 @@ import (
 // Transaction CRUD interface
 //==========================================================================
 
-const listTransactionsSQL = "SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id WHERE t.archived=0 GROUP BY t.id ORDER BY t.created DESC"
+const listTransactionsSQL = "SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes FROM transactions t LEFT JOIN secure_envelopes e ON t.id=e.envelope_id WHERE t.archived=:archives GROUP BY t.id ORDER BY t.created DESC"
 
-func (s *Store) ListTransactions(ctx context.Context, page *models.PageInfo) (out *models.TransactionPage, err error) {
+func (s *Store) ListTransactions(ctx context.Context, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	// TODO: handle pagination
 	out = &models.TransactionPage{
 		Transactions: make([]*models.Transaction, 0),
-		Page:         models.PageInfoFrom(page),
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
+	}
+
+	// Create the base query and the query parameters list.
+	query := listTransactionsSQL
+	params := []interface{}{sql.Named("archives", page.Archives)}
+
+	// If there are filters in the page query, then modify the SQL query with them.
+	if len(page.Status) > 0 || len(page.VirtualAsset) > 0 {
+		filters := make([]string, 0, 2)
+		if len(page.Status) > 0 {
+			inquery, inparams := listParametrize(page.Status, "s")
+			filters = append(filters, "status IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		if len(page.VirtualAsset) > 0 {
+			inquery, inparams := listParametrize(page.VirtualAsset, "a")
+			filters = append(filters, "virtual_asset IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		query = "WITH txns AS (" + listTransactionsSQL + ") SELECT * FROM txns WHERE "
+		query += strings.Join(filters, " AND ")
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listTransactionsSQL); err != nil {
+	if rows, err = tx.Query(query, params...); err != nil {
 		// TODO: handle database specific errors
 		return nil, err
 	}
@@ -202,6 +230,56 @@ func (s *Store) archiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err err
 	}
 
 	return nil
+}
+
+const countTransactionsSQL = "SELECT count(id), status FROM transactions WHERE archived=:archived GROUP BY status"
+
+func (s *Store) CountTransactions(ctx context.Context) (counts *models.TransactionCounts, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	counts = &models.TransactionCounts{
+		Active:   make(map[string]int),
+		Archived: make(map[string]int),
+	}
+
+	if err = s.countTransactions(tx, counts, false); err != nil {
+		return nil, err
+	}
+
+	if err = s.countTransactions(tx, counts, true); err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return counts, nil
+}
+
+func (s *Store) countTransactions(tx *sql.Tx, counts *models.TransactionCounts, archived bool) (err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(countTransactionsSQL, sql.Named("archived", archived)); err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var count int
+		var status string
+		if err = rows.Scan(&count, &status); err != nil {
+			return err
+		}
+
+		if archived {
+			counts.Archived[status] = count
+		} else {
+			counts.Active[status] = count
+		}
+	}
+
+	return rows.Err()
 }
 
 //===========================================================================
