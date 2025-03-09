@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -37,8 +38,31 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.TransactionPa
 		},
 	}
 
+	// Create the base query and the query parameters list.
+	query := listTransactionsSQL
+	params := []interface{}{sql.Named("archives", page.Archives)}
+
+	// If there are filters in the page query, then modify the SQL query with them.
+	if len(page.Status) > 0 || len(page.VirtualAsset) > 0 {
+		filters := make([]string, 0, 2)
+		if len(page.Status) > 0 {
+			inquery, inparams := listParametrize(page.Status, "s")
+			filters = append(filters, "status IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		if len(page.VirtualAsset) > 0 {
+			inquery, inparams := listParametrize(page.VirtualAsset, "a")
+			filters = append(filters, "virtual_asset IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		query = "WITH txns AS (" + listTransactionsSQL + ") SELECT * FROM txns WHERE "
+		query += strings.Join(filters, " AND ")
+	}
+
 	var rows *sql.Rows
-	if rows, err = tx.Query(listTransactionsSQL, sql.Named("archives", page.Archives)); err != nil {
+	if rows, err = tx.Query(query, params...); err != nil {
 		// TODO: handle database specific errors
 		return nil, err
 	}
