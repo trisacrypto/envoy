@@ -60,16 +60,29 @@ func (s *Server) TransactionsListPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/transactions/list.html", ctx)
 }
 
-func (s *Server) SendEnvelopeForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+func (s *Server) AvailableProtocols(c *gin.Context) {
+	ctx := scene.New(c)
+	ctx["TRISAEnabled"] = s.conf.Node.Enabled
+	ctx["TRPEnabled"] = s.conf.TRP.Enabled
+	c.HTML(http.StatusOK, "pages/send/choose.html", ctx)
 }
 
 func (s *Server) SendTRISAForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+	ctx := scene.New(c)
+	ctx["Protocol"] = "trisa"
+	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
 }
 
 func (s *Server) SendTRPForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/transactions/send.html", scene.New(c))
+	ctx := scene.New(c)
+	ctx["Protocol"] = "trp"
+	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
+}
+
+func (s *Server) SendSunriseForm(c *gin.Context) {
+	ctx := scene.New(c)
+	ctx["Protocol"] = "sunrise"
+	c.HTML(http.StatusOK, "pages/send/sunrise.html", ctx)
 }
 
 func (s *Server) TransactionsAcceptPreview(c *gin.Context) {

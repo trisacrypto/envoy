@@ -6,9 +6,12 @@ import (
 	"html/template"
 	"io/fs"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //go:embed all:static
@@ -90,6 +93,7 @@ func NewRender(fsys fs.FS) (render *Render, err error) {
 // Implements the render.HTMLRender interface for gin.
 type Render struct {
 	templates map[string]*template.Template
+	funcs     template.FuncMap
 }
 
 var _ render.HTMLRender = &Render{}
@@ -113,13 +117,32 @@ func (r *Render) AddPattern(fsys fs.FS, pattern string, includes ...string) (err
 		patterns = append(patterns, includes...)
 		patterns = append(patterns, name)
 
-		if r.templates[name], err = template.ParseFS(fsys, patterns...); err != nil {
+		tmpl := template.New(name).Funcs(r.FuncMap())
+		if r.templates[name], err = tmpl.ParseFS(fsys, patterns...); err != nil {
 			return err
 		}
 
 		log.Trace().Str("template", name).Strs("patterns", patterns).Msg("parsed template")
 	}
 	return nil
+}
+
+func (r *Render) FuncMap() template.FuncMap {
+	title := cases.Title(language.English)
+	if r.funcs == nil {
+		r.funcs = template.FuncMap{
+			"uppercase": func(s string) string {
+				return strings.ToUpper(s)
+			},
+			"lowercase": func(s string) string {
+				return strings.ToLower(s)
+			},
+			"titlecase": func(s string) string {
+				return title.String(string(s))
+			},
+		}
+	}
+	return r.funcs
 }
 
 func globExists(fsys fs.FS, pattern string) (exists bool) {
