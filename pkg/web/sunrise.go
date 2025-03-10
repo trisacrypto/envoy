@@ -28,12 +28,6 @@ import (
 
 const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"
 
-func (s *Server) SendSunriseForm(c *gin.Context) {
-	ctx := scene.New(c)
-	ctx["Protocol"] = "sunrise"
-	c.HTML(http.StatusOK, "pages/send/sunrise.html", ctx)
-}
-
 // The incoming request should be coming from a compliance officer at a VASP who has
 // received a sunrise message. The request should include a verification token,
 // otherwise a 404 is returned. If the verification token is valid, this endpoint will

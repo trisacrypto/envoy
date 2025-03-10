@@ -129,7 +129,7 @@ func (s *Server) setupRoutes() (err error) {
 		// Send Secure Message Forms
 		send := ui.Group("/send", authorize(permiss.TravelRuleManage))
 		{
-			send.GET("", s.SendEnvelopeForm)
+			send.GET("", s.AvailableProtocols)
 			send.GET("/trisa", s.SendTRISAForm)
 			send.GET("/trp", s.SendTRPForm)
 			// The send sunrise message page for authenticated envoy users.
