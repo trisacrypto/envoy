@@ -1,0 +1,131 @@
+{{ template "page.html" . }}
+{{ define "title" }}Send Travel Rule Message | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Travel Rule{{ end }}
+{{ define "pagetitle" }}Send a Travel Rule Message{{ end }}
+
+{{ define "main"  }}
+<section>
+  <div class="row justify-content-between align-items-center mb-5">
+    <div class="col-12">
+      <p class="text-body-secondary mb-4">
+        When a virtual asset transfer crosses national borders, the sending and
+        receiving financial institutions may have to exchange PII information about the
+        account holders &amp counterparties involved in the transfer.
+      </p>
+      <h3 class="mb-2">Available Protocols</h3>
+      <p class="text-body-secondary mb-4">
+        Envoy supports the following protocols; each of which have to be enabled and configured.
+      </p>
+      <div class="accordion" id="availableProtocols">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTRISA">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRISA" aria-expanded="true" aria-controls="collapseTRISA">
+              <strong class='{{ if not .TRISAEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
+                <i class="fe fe-shield"></i> TRISA
+              </strong>
+            </button>
+          </h2>
+          <div id="collapseTRISA" class="accordion-collapse collapse show" aria-labelledby="headingTRISA" data-bs-parent="#availableProtocols">
+            <div class="accordion-body">
+              {{ if not .TRISAEnabled }}
+              <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">TRISA is Disabled</h4>
+                <p class="mb-0">
+                  To enable TRISA functionality you must request valid certificates from
+                  the TRISA Global Directory and be approved for membership in the TRISA
+                  network.
+                </p>
+              </div>
+              {{ end }}
+              <p>
+                <a href="https://trisa.io" target="_blank">TRISA</a> is a secure
+                peer-to-peer messaging system that uses strong cryptography and a
+                certificate authority with mTLS to verify counterparties and protect
+                PII both in-flight and at-rest.
+              </p>
+              <p>
+                To send a TRISA message, first select a counterparty from the TRISA
+                Directory, which lists all registered TRISA VASPs.
+              </p>
+              <a href="/send/trisa" class="btn btn-primary btn-sm mt-2{{ if not .TRISAEnabled}} disabled{{ end }}">Send TRISA Message</a>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTRP">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRP" aria-expanded="true" aria-controls="collapseTRP">
+              <strong class='{{ if not .TRPEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
+                <i class="fe fe-zap"></i> TRP (OpenVASP)
+              </strong>
+            </button>
+          </h2>
+          <div id="collapseTRP" class="accordion-collapse collapse show" aria-labelledby="headingTRP" data-bs-parent="#availableProtocols">
+            <div class="accordion-body">
+              {{ if not .TRPEnabled }}
+              <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">TRP is Disabled</h4>
+                <p class="mb-0">
+                  To enable TRP functionality you must set the TRP enabled flag to true.
+                </p>
+              </div>
+              {{ end }}
+              <p>
+                The <a href="https://www.openvasp.org/" target="_blank">Travel Rule Protocol (TRP)</a>
+                is a simple and pragmatic API created by the OpenVASP association to
+                quickly facilitate PII transactions between VASPs.
+              </p>
+              <p>
+                To send a TRP message you must have the <a href="https://www.21analytics.ch/glossary/travel-address/" target="_blank">Travel Address</a>
+                of the recipient you wish to send a message to. The Travel Address encodes
+                the details of how to reach the counterparty and the account holder
+                initiating the transfer is responsible for collecting the travel address
+                from the recipient.
+              </p>
+              <p class="text-body-secondary">
+                At this time there exists no directory of TRP travel addresses.
+              </p>
+              <a href="/send/trp" class="btn btn-primary btn-sm mt-2{{ if not .TRPEnabled}} disabled{{ end }}">Send TRP Message</a>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingSunrise">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSunrise" aria-expanded="true" aria-controls="collapseSunrise">
+              <strong class='{{ if not .SunriseEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
+                <i class="fe fe-sunrise"></i> Sunrise
+              </strong>
+            </button>
+          </h2>
+          <div id="collapseSunrise" class="accordion-collapse collapse show" aria-labelledby="headingSunrise" data-bs-parent="#availableProtocols">
+            <div class="accordion-body">
+              {{ if not .SunriseEnabled }}
+              <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">Sunrise is Disabled</h4>
+                <p class="mb-0">
+                  To enable sunrise functionality you must configure your Envoy node with
+                  either an SMTP server or a SendGrid API key and enable Sunrise messages.
+                </p>
+              </div>
+              {{ end }}
+              <p>
+                The Sunrise protocol is used when the counterparty is not a TRISA member
+                or when you do not have a travel address to send a TRP message.
+              </p>
+              <p>
+                First, identify the email address of the compliance officer or other
+                responsible party at the recipient VASP; then create a secure message
+                to send a secure verification link via email.
+              </p>
+              <a href="/send/sunrise" class="btn btn-primary btn-sm mt-2{{ if not .SunriseEnabled}} disabled{{ end }}">Send Sunrise Email</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/profile/index.js"></script>
+{{ end }}

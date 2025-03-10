@@ -1,4 +1,4 @@
-{{ template "dashboard.html" . }}
+{{ template "page.html" . }}
 {{ define "title" }}Send Travel Rule Message | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Travel Rule{{ end }}
-{{ define "pagetitle" }}Send a Secure Envelope{{ end }}
+{{ define "pagetitle" }}Send a {{ uppercase .Protocol }} Secure Envelope{{ end }}
