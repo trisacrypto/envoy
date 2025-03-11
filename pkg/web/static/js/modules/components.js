@@ -132,6 +132,27 @@ export function createPageSizeSelect(elem, list) {
   });
 }
 
+// Initializes a search select for TRISA VASPs, fetching the options from the backend.
+export function selectTRISATravelAddress(elem) {
+  const elementOptions = elem.dataset.travelAddress ? JSON.parse(elem.dataset.travelAddress) : {};
+  const options = {
+    ...elementOptions,
+    ...choicesDefaultOptions(elem),
+  };
+
+  const choices = new Choices(elem, options);
+  choices.setChoices(function(callback) {
+    return fetch('/v1/counterparties?source=gds')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        return data.counterparties.map(counterparty => {
+          return { label: counterparty.name, value: counterparty.travel_address };
+        });
+      });
+  });
+}
+
 /*
 This function activates copy and paste buttons that are on text inputs.
 */

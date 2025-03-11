@@ -10,15 +10,12 @@
     <h2>Select Counterparty</h2>
     {{ if eq .Protocol "trisa" }}
     <div class="form-group">
-      <label class="form-label mb-1" for="travelAddress">Search for TRISA Member</label>
+      <label class="form-label mb-1" for="trisaTravelAddress">Search for TRISA Member</label>
       <small class="form-text text-body-secondary">
         All TRISA VASPs are registered in the TRISA Directory (GDS).
       </small>
-      <select class="form-control" id="travelAddress" name="travel_address" data-choices='{"searchEnabled": true}' required>
-        <option value="0">Select TRISA VASP</option>
-        <option value="1">TRISA VASP 1</option>
-        <option value="2">TRISA VASP 2</option>
-        <option value="3">TRISA VASP 3</option>
+      <select class="form-control" id="trisaTravelAddress" name="travel_address" data-travel-address='{"searchEnabled": true, "allowHTML": false, "searchPlaceholderValue": "Search for a TRISA Counterparty"}' required>
+        <option value="">Search for a TRISA Counterparty</option>
       </select>
     </div>
     {{ else if eq .Protocol "sunrise" }}
@@ -38,11 +35,11 @@
     </div>
     {{ else }}
     <div class="form-group">
-      <label class="form-label mb-1" for="travelAddress">Travel Address</label>
+      <label class="form-label mb-1" for="trpTravelAddress">Travel Address</label>
       <small class="form-text text-body-secondary">
         TRP transfers require a travel address received from your account holder.
       </small>
-      <input type="text" class="form-control" id="travelAddress" name="travel_address" placeholder="TRP Travel Address" required>
+      <input type="text" class="form-control" id="trpTravelAddress" name="travel_address" placeholder="TRP Travel Address" required>
     </div>
     {{ end}}
   </fieldset><!-- end choose counterparty -->
@@ -81,7 +78,7 @@
           <small class="form-text text-body-secondary">
             Select the network or blockchain DTI/SLIP-0044 code.
           </small>
-          <select class="form-control" id="network" name="transfer_network" data-networks='{"searchEnabled": true}' placeholder="Digital Token Identifier"></select>
+          <select class="form-control" id="network" name="transfer_network" data-networks='{"searchEnabled": true}' placeholder="Digital Token Identifier" required></select>
         </div>
       </div>
     </div>

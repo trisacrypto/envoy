@@ -4,6 +4,7 @@ Application code for the send TRISA/TRP forms.
 
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
+import { selectTRISATravelAddress } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
 
@@ -26,6 +27,12 @@ document.querySelectorAll('[data-address-type]').forEach(elem => {
 document.querySelectorAll('[data-national-identifier-type]').forEach(elem => {
   selectNationalIdentifierType(elem);
 });
+
+// Initialize the TRISA VASP Selection choices.
+const vaspSelect = document.getElementById('trisaTravelAddress');
+if (vaspSelect)  {
+  selectTRISATravelAddress(vaspSelect);
+}
 
 // Handle form submission
 document.getElementById('sendTransferForm').addEventListener('submit', function(e) {
