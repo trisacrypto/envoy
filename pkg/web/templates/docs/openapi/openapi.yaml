@@ -912,7 +912,7 @@ components:
           type: string
           format: date-time
           description: The date and time when the counterparty record was verified as being
-            a TRISA member on the network your node is connected to.
+            a TRISA member.
           example: 2024-08-28T10:14:43-05:00
         created:
           type: string
@@ -2073,14 +2073,27 @@ components:
           description: The personal identity information of the originator account holder
             of the virtual asset transaction.
           properties:
-            first_name:
+            crypto_address:
               type: string
-              description: The first (or secondary) legal name of the originator person.
+              description: The crypto wallet address of the originator person where the
+                virtual assets will be transfered from.
+              example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            forename:
+              type: string
+              description: The forenames, framiliar names, given names, or initials (e.g.
+                secondary) legal name of the originator person.
               example: James
-            last_name:
+            surname:
               type: string
-              description: The last (or primary/family) legal name of the originator person.
+              description: Family, maiden, or surname excluding suffixes or titles (e.g.
+                primary) legal name of the originator person.
               example: Bond
+            country_of_residence:
+              type: string
+              format: ISO-3166-1 Alpha-2
+              description: The country that the virtual assets are being transferred from,
+                where the originator person resides.
+              example: GB
             customer_id:
               type: string
               description: An internal customer id that identifies the originator person in
@@ -2132,48 +2145,54 @@ components:
                 country: GB
                 dob: 1920-11-11
                 birth_place: Wattenscheid, Germany
-            addr_line_1:
-              type: string
-              description: The first line of a geographic address (e.g. home address) of
-                the originator person.
-              example: 1 High Street
-            addr_line_2:
-              type: string
-              description: The second line of a geographic address (e.g. home address) of
-                the originator person.
-              example: Apt. 007
-            city:
-              type: string
-              description: The city of the geographic address (e.g. home address) of the
-                originator person.
-              example: London
-            state:
-              type: string
-              description: The state or province of the geographic address (e.g. home
-                address) of the originator person.
-              example: Greater London
-            post_code:
-              type: string
-              description: The postal code of the geographic address (e.g. home address) of
-                the originator person.
-              example: SE1 2QH
-            country:
-              type: string
-              format: ISO-3166-1 Alpha-2
-              description: The country of the geographic address (e.g. home address) of the
-                originator person.
-              example: GB
-            crypto_address:
-              type: string
-              description: The crypto wallet address of the originator person where the
-                virtual assets will be transfered from.
-              example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            addresses:
+              type: array
+              description: The mailing or physical address of the originator person.
+              items:
+                type: object
+                properties:
+                  address_type:
+                    type: string
+                    description: The type of originator address, e.g. home, business, or a
+                      physical (geographic) location.
+                    enum:
+                      - HOME
+                      - BIZZ
+                      - GEOG
+                      - MISC
+                    example: HOME
+                  address_lines:
+                    type: array
+                    description: The address lines that describe the originator's physical
+                      address (e.g. street name and number, city, post code)
+                    items:
+                      type: string
+                      descrption: Each line of an international address
+                      example: 1 High Street
+                    example:
+                      - 1 High Street
+                      - Apt. 007
+                      - London SE1 2QH
+                  country:
+                    type: string
+                    format: ISO-3166-1 Alpha-2
+                    description: The country of the geographic address (e.g. home address)
+                      of the originator person.
+                    example: GB
+              example:
+                - address_type: HOME
+                  address_lines:
+                    - 1 High Street
+                    - Apt. 007
+                    - London SE1 2QH
+                  country: GB
           required:
             - last_name
             - crypto_address
           example:
-            first_name: James
-            last_name: Bond
+            crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            forename: James
+            surname: Bond
             customer_id: "674907513"
             identification:
               type_code: DRLC
@@ -2181,25 +2200,39 @@ components:
               country: GB
               dob: 1920-11-11
               birth_place: Wattenscheid, Germany
-            addr_line_1: 1 High Street
-            city: London
-            post_code: SE1 2QH
-            country: GB
-            crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+            addresses:
+              - address_type: HOME
+                address_lines:
+                  - 1 High Street
+                  - Apt. 007
+                  - London SE1 2QH
+                country: GB
         beneficiary:
           type: object
           description: The personal identity information of the beneficiary account holder
             of the virtual asset transaction.
           properties:
-            first_name:
+            crypto_address:
               type: string
-              description: The first (or secondary) legal name of the beneficiary person.
+              description: The crypto wallet address of the beneficiary person where the
+                virtual assets will be transfered from.
+              example: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+            forename:
+              type: string
+              description: The forenames, framiliar names, given names, or initials (e.g.
+                secondary) legal name of the beneficiary person.
               example: Twilda
-            last_name:
+            surname:
               type: string
-              description: The last (or primary/family) legal name of the beneficiary
-                person.
+              description: Family, maiden, or surname excluding suffixes or titles (e.g.
+                primary) legal name of the beneficiary person.
               example: Swansong
+            country_of_residence:
+              type: string
+              format: ISO-3166-1 Alpha-2
+              description: The country that the virtual assets are being transferred to,
+                where the beneficiary person resides.
+              example: US
             customer_id:
               type: string
               description: An internal customer id that identifies the beneficiary person
@@ -2252,48 +2285,50 @@ components:
                 country: US
                 dob: 1978-02-14
                 birth_place: Toronto, Ontario, Canada
-            addr_line_1:
-              type: string
-              description: The first line of a geographic address (e.g. home address) of
-                the beneficiary person.
-              example: 123 Main Street
-            addr_line_2:
-              type: string
-              description: The second line of a geographic address (e.g. home address) of
-                the beneficiary person.
-              example: Suite 300
-            city:
-              type: string
-              description: The city of the geographic address (e.g. home address) of the
-                beneficiary person.
-              example: Casper
-            state:
-              type: string
-              description: The state or province of the geographic address (e.g. home
-                address) of the beneficiary person.
-              example: WY
-            post_code:
-              type: string
-              description: The postal code of the geographic address (e.g. home address) of
-                the beneficiary person.
-              example: "82604"
-            country:
-              type: string
-              format: ISO-3166-1 Alpha-2
-              description: The country of the geographic address (e.g. home address) of the
-                beneficiary person.
-              example: US
-            crypto_address:
-              type: string
-              description: The crypto wallet address of the beneficiary person where the
-                virtual assets will be transfered from.
-              example: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+            addresses:
+              type: array
+              description: The mailing or physical address of the beneficiary person.
+              items:
+                type: object
+                properties:
+                  address_type:
+                    type: string
+                    description: The type of beneficiary address, e.g. home, business, or a
+                      physical (geographic) location.
+                    enum:
+                      - HOME
+                      - BIZZ
+                      - GEOG
+                      - MISC
+                    example: GEOG
+                  address_lines:
+                    type: array
+                    description: The address lines that describe the beneficiary address
+                      (e.g. street name and number, city, post code)
+                    items:
+                      type: string
+                    example:
+                      - 123 Main Street
+                      - Casper, WY 82604
+                  country:
+                    type: string
+                    format: ISO-3166-1 Alpha-2
+                    description: The country of the geographic address (e.g. home address)
+                      of the beneficiary person.
+                    example: GB
+              example:
+                - address_type: HOME
+                  address_lines:
+                    - 123 Main Street
+                    - Casper, WY 82604
+                  country: US
           required:
             - last_name
             - crypto_address
           example:
-            first_name: Twilda
-            last_name: Swansong
+            crypto_address: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+            forename: Twilda
+            surname: Swansong
             customer_id: "39910432"
             identification:
               type_code: SOCS
@@ -2301,12 +2336,12 @@ components:
               country: US
               dob: 1978-02-14
               birth_place: Toronto, Ontario, Canada
-            addr_line_1: 123 Main Street
-            city: Casper
-            state: WY
-            post_code: "82604"
-            country: US
-            crypto_address: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+            addresses:
+              - address_type: GEOG
+                address_lines:
+                  - 123 Main Street
+                  - Casper, WY 82604
+                country: US
         transfer:
           type: object
           description: The details of the virtual asset transfer related to the travel rule
@@ -2353,8 +2388,10 @@ components:
       example:
         travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
         originator:
-          first_name: James
-          last_name: Bond
+          crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          forename: James
+          surname: Bond
+          country_of_residence: GB
           customer_id: "674907513"
           identification:
             type_code: DRLC
@@ -2362,27 +2399,31 @@ components:
             country: GB
             dob: 1920-11-11
             birth_place: Wattenscheid, Germany
-          addr_line_1: 1 High Street
-          city: London
-          post_code: SE1 2QH
-          country: GB
-          crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          addresses:
+            - address_type: HOME
+              address_lines:
+                - 1 High Street
+                - Apt. 007
+                - London SE1 2QH
+              country: GB
         beneficiary:
-          first_name: Twilda
-          last_name: Swansong
+          crypto_address: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+          forename: Twilda
+          surname: Swansong
           customer_id: "39910432"
+          country_of_residence: US
           identification:
             type_code: SOCS
             number: 880-02-22213
             country: US
             dob: 1978-02-14
             birth_place: Toronto, Ontario, Canada
-          addr_line_1: 123 Main Street
-          city: Casper
-          state: WY
-          post_code: "82604"
-          country: US
-          crypto_address: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
+          addresses:
+            - address_type: GEOG
+              address_lines:
+                - 123 Main Street
+                - Casper, WY 82604
+              country: US
         transfer:
           amount: 0.0007
           network: BTC
@@ -5709,7 +5750,7 @@ paths:
                 success: false
                 error: could not parse contact data
         "401":
-          description: Not Authorized to Manage Counterparties
+          description: Not Authorized to Manage Counterparty Contacts
           content:
             application/json:
               schema:
@@ -5943,6 +5984,42 @@ paths:
         - $ref: "#/components/parameters/page_size"
         - $ref: "#/components/parameters/next_page_token"
         - $ref: "#/components/parameters/prev_page_token"
+        - name: archives
+          in: query
+          description: If true, archived transactions are queried
+          required: false
+          schema:
+            type: bool
+            example: true
+          example: true
+        - name: status
+          in: query
+          description: Filter the transactions by their status (can pass multiple params to
+            include multiple statuses)
+          required: false
+          collectionFormat: multi
+          schema:
+            type: string
+            enum:
+              - draft
+              - started
+              - pending
+              - repair
+              - review
+              - rejected
+              - completed
+            example: pending
+          example: pending
+        - name: asset
+          in: query
+          description: Filter the transactions by a virtual asset (can pass multiple params
+            to include multiple assets)
+          required: false
+          collectionFormat: multi
+          schema:
+            type: string
+            example: BTC
+          example: BTC
       responses:
         "200":
           description: Successful Transaction Page Response

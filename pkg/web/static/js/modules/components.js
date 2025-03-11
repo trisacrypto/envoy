@@ -65,11 +65,9 @@ export function createList(elem) {
   return list;
 }
 
-// Initialize a Choices.js component on the specified element using the DashKit default
-// options. Used after an HTMX request settles to ensure the component is loaded.
-export function createChoices(elem) {
-  const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
-  const defaultOptions = {
+// Default options for Choices.js components with Dashkit styling.
+export function choicesDefaultOptions(elem) {
+  return {
     classNames: {
       containerInner: elem.className,
       input: 'form-control',
@@ -107,10 +105,15 @@ export function createChoices(elem) {
       };
     },
   };
+}
 
+// Initialize a Choices.js component on the specified element using the DashKit default
+// options. Used after an HTMX request settles to ensure the component is loaded.
+export function createChoices(elem) {
+  const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
   const options = {
     ...elementOptions,
-    ...defaultOptions,
+    ...choicesDefaultOptions(elem),
   };
 
   return new Choices(elem, options);
@@ -126,6 +129,27 @@ export function createPageSizeSelect(elem, list) {
     list.page = parseInt(e.target.value);
     list.show(1, list.page);
     list.update()
+  });
+}
+
+// Initializes a search select for TRISA VASPs, fetching the options from the backend.
+export function selectTRISATravelAddress(elem) {
+  const elementOptions = elem.dataset.travelAddress ? JSON.parse(elem.dataset.travelAddress) : {};
+  const options = {
+    ...elementOptions,
+    ...choicesDefaultOptions(elem),
+  };
+
+  const choices = new Choices(elem, options);
+  choices.setChoices(function(callback) {
+    return fetch('/v1/counterparties?source=gds')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        return data.counterparties.map(counterparty => {
+          return { label: counterparty.name, value: counterparty.travel_address };
+        });
+      });
   });
 }
 
