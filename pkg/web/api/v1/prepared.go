@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	"slices"
 	"strings"
 	"time"
 
@@ -28,17 +26,19 @@ type Prepared struct {
 }
 
 type Person struct {
-	FirstName      string          `json:"first_name"`
-	LastName       string          `json:"last_name"`
+	CryptoAddress  string          `json:"crypto_address"`
+	Forename       string          `json:"forename"`
+	Surname        string          `json:"surname"`
+	ResidesIn      string          `json:"country_of_residence"`
 	CustomerID     string          `json:"customer_id"`
 	Identification *Identification `json:"identification"`
-	AddrLine1      string          `json:"addr_line_1"`
-	AddrLine2      string          `json:"addr_line_2"`
-	City           string          `json:"city"`
-	State          string          `json:"state"`
-	PostalCode     string          `json:"post_code"`
-	Country        string          `json:"country"`
-	CryptoAddress  string          `json:"crypto_address"`
+	Addresses      []*Address      `json:"addresses"`
+}
+
+type Address struct {
+	AddressType  string   `json:"address_type"`
+	AddressLines []string `json:"address_lines"`
+	Country      string   `json:"country"`
 }
 
 type Identification struct {
@@ -121,20 +121,31 @@ func (p *Prepare) Transaction() *generic.Transaction {
 }
 
 func (p *Person) FullName() string {
-	return strings.TrimSpace(p.FirstName + " " + p.LastName)
+	return strings.TrimSpace(p.Forename + " " + p.Surname)
 }
 
 func (p *Person) NaturalPerson() *ivms101.Person {
-	addrLines := []string{
-		strings.TrimSpace(p.AddrLine1),
-		strings.TrimSpace(p.AddrLine2),
-		strings.TrimSpace(fmt.Sprintf("%s, %s, %s", p.City, p.State, p.PostalCode)),
-	}
-
-	for i, line := range addrLines {
-		if line == "" || line == "," {
-			addrLines = slices.Delete(addrLines, i, i)
+	// Clean up the address lines in the addresses
+	addresses := []*ivms101.Address{}
+	for _, addr := range p.Addresses {
+		address := &ivms101.Address{
+			AddressLine: make([]string, 0, len(addr.AddressLines)),
+			Country:     addr.Country,
 		}
+
+		var err error
+		if address.AddressType, err = ivms101.ParseAddressTypeCode(addr.AddressType); err != nil {
+			address.AddressType = ivms101.AddressTypeMisc
+		}
+
+		for _, line := range addr.AddressLines {
+			line = strings.TrimSpace(line)
+			if line != "" && line != "," {
+				address.AddressLine = append(address.AddressLine, line)
+			}
+		}
+
+		addresses = append(addresses, address)
 	}
 
 	// NOTE: the country of the address is assigned country of residence
@@ -144,21 +155,15 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 				Name: &ivms101.NaturalPersonName{
 					NameIdentifiers: []*ivms101.NaturalPersonNameId{
 						{
-							PrimaryIdentifier:   p.LastName,
-							SecondaryIdentifier: p.FirstName,
+							PrimaryIdentifier:   p.Surname,
+							SecondaryIdentifier: p.Forename,
 							NameIdentifierType:  ivms101.NaturalPersonLegal,
 						},
 					},
 					LocalNameIdentifiers:    nil,
 					PhoneticNameIdentifiers: nil,
 				},
-				GeographicAddresses: []*ivms101.Address{
-					{
-						AddressType: ivms101.AddressTypeHome,
-						AddressLine: addrLines,
-						Country:     p.Country,
-					},
-				},
+				GeographicAddresses: addresses,
 				NationalIdentification: &ivms101.NationalIdentification{
 					NationalIdentifierType: p.Identification.NationalIdentifierTypeCode(),
 					NationalIdentifier:     p.Identification.Number,
@@ -169,7 +174,7 @@ func (p *Person) NaturalPerson() *ivms101.Person {
 					DateOfBirth:  p.Identification.DateOfBirth,
 					PlaceOfBirth: p.Identification.BirthPlace,
 				},
-				CountryOfResidence: p.Country,
+				CountryOfResidence: p.ResidesIn,
 			},
 		},
 	}

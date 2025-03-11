@@ -65,11 +65,9 @@ export function createList(elem) {
   return list;
 }
 
-// Initialize a Choices.js component on the specified element using the DashKit default
-// options. Used after an HTMX request settles to ensure the component is loaded.
-export function createChoices(elem) {
-  const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
-  const defaultOptions = {
+// Default options for Choices.js components with Dashkit styling.
+export function choicesDefaultOptions(elem) {
+  return {
     classNames: {
       containerInner: elem.className,
       input: 'form-control',
@@ -107,10 +105,15 @@ export function createChoices(elem) {
       };
     },
   };
+}
 
+// Initialize a Choices.js component on the specified element using the DashKit default
+// options. Used after an HTMX request settles to ensure the component is loaded.
+export function createChoices(elem) {
+  const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
   const options = {
     ...elementOptions,
-    ...defaultOptions,
+    ...choicesDefaultOptions(elem),
   };
 
   return new Choices(elem, options);

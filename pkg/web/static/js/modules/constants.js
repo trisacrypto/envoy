@@ -318,13 +318,6 @@ export const IDENTIFIER_TYPE = {
   UNKNOWN_ENTITY: 'Unknown Entity'
 };
 
-const ADDRESS_TYPE = {
-  HOME: 'Residential',
-  BIZZ: 'Business',
-  GEOG: 'Geographic',
-  MISC: 'Unspecified',
-};
-
 const LEGAL_PERSON_NAME_TYPE = {
   LEGL: 'Legal',
   SHRT: 'Short',
@@ -332,18 +325,7 @@ const LEGAL_PERSON_NAME_TYPE = {
   MISC: 'Unspecified',
 };
 
-export const NATIONAL_IDENTIFIER_TYPE = {
-  ARNU: 'ARNU',
-  CCPT: 'Passport',
-  RAID: 'RAID',
-  DRLC: "Driver's License",
-  FIIN: 'FIIN',
-  TXID: 'Tax ID',
-  SOCS: 'Social Security',
-  IDCD: 'Identity Card',
-  LEIX: 'LEI',
-  MISC: 'Unspecified',
-};
+
 
 export const NATURAL_PERSON_NAME_TYPE = {
   ALIA: 'Alias',

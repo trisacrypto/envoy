@@ -46,8 +46,8 @@ func TestSunriseIntegration(t *testing.T) {
 		Email:        "benjamin@rotational.io",
 		Counterparty: "SpudCoin Exchange",
 		Originator: &api.Person{
-			FirstName: "Alice",
-			LastName:  "Murray",
+			Forename: "Alice",
+			Surname:  "Murray",
 			Identification: &api.Identification{
 				TypeCode:    "SOCS",
 				Number:      "800-00-8080",
@@ -55,20 +55,32 @@ func TestSunriseIntegration(t *testing.T) {
 				DateOfBirth: "1982-03-14",
 				BirthPlace:  "Carlsbad, CA",
 			},
-			AddrLine1:     "134 Deercove Drive",
-			City:          "Arlington",
-			State:         "TX",
-			PostalCode:    "76011",
-			Country:       "US",
+			Addresses: []*api.Address{
+				{
+					AddressType: "HOME",
+					AddressLines: []string{
+						"134 Deercove Drive",
+						"Arlington, TX 76011",
+					},
+					Country: "US",
+				},
+			},
 			CryptoAddress: "n3oDpHRYue9Ene9neasSE9cchfXNdtfzYM",
 		},
 		Beneficiary: &api.Person{
-			FirstName:     "Larissa Correia",
-			LastName:      "Sousa",
-			AddrLine1:     "Rua Cajamar, 673",
-			City:          "Jandira-SP",
-			PostalCode:    "06622-290",
-			Country:       "BR",
+			Forename: "Larissa Correia",
+			Surname:  "Sousa",
+			Addresses: []*api.Address{
+				{
+					AddressType: "HOME",
+					AddressLines: []string{
+						"Rua Cajamar, 673",
+						"Jandira-SP",
+						"06622-290",
+					},
+					Country: "BR",
+				},
+			},
 			CryptoAddress: "mkGQh6QSYhAVHXBFaMDoDAd8zKQLBMayy4",
 		},
 		Transfer: &api.Transfer{

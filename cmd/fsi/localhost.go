@@ -52,8 +52,8 @@ func createContacts(conn api.Client, country string) (err error) {
 
 		account := &api.Account{
 			CustomerID:      person.CustomerID,
-			FirstName:       person.FirstName,
-			LastName:        person.LastName,
+			FirstName:       person.Forename,
+			LastName:        person.Surname,
 			CryptoAddresses: make([]*api.CryptoAddress, 0, 2),
 		}
 
