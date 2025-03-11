@@ -7,9 +7,11 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
+	"go.rtnl.ai/x/humanize"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -139,6 +141,12 @@ func (r *Render) FuncMap() template.FuncMap {
 			},
 			"titlecase": func(s string) string {
 				return title.String(string(s))
+			},
+			"moment": func(t time.Time) string {
+				return humanize.Time(t)
+			},
+			"rfc3339": func(t time.Time) string {
+				return t.Format(time.RFC3339)
 			},
 		}
 	}

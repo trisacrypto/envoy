@@ -293,8 +293,8 @@ go.opentelemetry.io/otel/trace v1.32.0 h1:WIC9mYrXf8TmY/EXuULKc8hR17vE+Hjv2cssQD
 go.opentelemetry.io/otel/trace v1.32.0/go.mod h1:+i4rkvCraA+tG6AzwloGaCtkx53Fa+L+V8e9a7YvhT8=
 go.rtnl.ai/ulid v1.1.1 h1:7zDInpWEeiKFcDoJyonails5lQxwOr4wc8K4TAuOVNE=
 go.rtnl.ai/ulid v1.1.1/go.mod h1:F95yPYwEEZdz5sM4GC6buziff6xD+7XVcGZ/8n37Cn0=
-go.rtnl.ai/x v1.1.1 h1:uoACQocxrS99IoLbViedmyipw/1eJlv/Kawiyp8W460=
-go.rtnl.ai/x v1.1.1/go.mod h1:byb5sLYI3gv3FwRAu8etl167tYoRpyCUHDDxXRas1eU=
+go.rtnl.ai/x v1.2.0 h1:KfnMjagGzq5IuBLrArVCRY8G3ctlpTXTbeVFHjUXE50=
+go.rtnl.ai/x v1.2.0/go.mod h1:byb5sLYI3gv3FwRAu8etl167tYoRpyCUHDDxXRas1eU=
 golang.org/x/arch v0.12.0 h1:UsYJhbzPYGsT0HbEdmYcqtCv8UNGvnaL561NnIUvaKg=
 golang.org/x/arch v0.12.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

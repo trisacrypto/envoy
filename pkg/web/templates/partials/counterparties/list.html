@@ -59,13 +59,13 @@
           <td><a href="{{ .Website }}" target="_blank"><span class="item-website">{{ .Website }}</span></a></td>
           <td class="text-center"><span class="item-country">{{ .Country }}</span></td>
           <td><span class="item-protocol">{{ .Protocol }}</span></td>
-          {{ $created := "" }}
-          {{ if and .VerifiedOn (not .VerifiedOn.IsZero) }}
-          {{ $created = .VerifiedOn.Format "Jan 02, 2006" }}
-          {{ else }}
-          {{ $created = .Created.Format "Jan 02, 2006" }}
-          {{ end }}
-          <td><time class="item-date-added" datetime="2020-01-14">{{ $created }}</time></td>
+          <td>
+            {{- if and .VerifiedOn (not .VerifiedOn.IsZero) }}
+            <time class="item-date-added" datetime="{{ rfc3339 .VerifiedOn }}">{{ .VerifiedOn.Format "Jan 02, 2006" }}</time>
+            {{- else }}
+            <time class="item-date-added" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+            {{- end }}
+          </td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">

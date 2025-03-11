@@ -154,7 +154,11 @@
           </a></td>
           <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
           <td class="item-amount">{{ .Amount }}</td>
-          <td><time class="item-last-update" datetime="2020-01-14">{{ .Modified.Format "Jan 02, 2006 at 15:04:05" }}</time></td>
+          <td>
+            <time class="item-last-update" datetime="{{ rfc3339 .Modified }}">
+              {{ moment .Modified }}
+            </time>
+          </td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">
