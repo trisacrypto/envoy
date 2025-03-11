@@ -4,12 +4,12 @@
 {{ define "pagetitle" }}Send a Sunrise Email{{ end }}
 
 {{ define "main"  }}
-<section>
-  <div class="row justify-content-between align-items-center mb-5">
-    <div class="col-12">
+  {{ template "sendTransferForm" . }}
+{{ end }}
 
-    </div>
-
-  </div>
-</section>
+{{ define "appcode" }}
+<script type="module" src="/static/js/modules/networks.js"></script>
+<script type="module" src="/static/js/modules/countries.js"></script>
+<script type="module" src="/static/js/modules/ivms101.js"></script>
+<script type="module" src="/static/js/send/index.js"></script>
 {{ end }}
