@@ -55,7 +55,11 @@
           <td><span class="item-customer-id">{{ .CustomerID }}</span></td>
           <td><span class="item-first-name">{{ .FirstName }}</span></td>
           <td><span class="item-last-name">{{ .LastName }}</span></td>
-          <td><time class="item-date-updated" datetime="2020-01-14">{{ .Modified.Format "Jan 02, 2006" }}</time></td>
+          <td>
+            <time class="item-date-updated" datetime="{{ rfc3339 .Modified }}">
+              {{ moment .Modified }}
+            </time>
+          </td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">

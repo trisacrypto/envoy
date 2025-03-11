@@ -24,7 +24,7 @@ require (
 	github.com/trisacrypto/trisa v1.6.0
 	github.com/urfave/cli/v2 v2.27.5
 	go.rtnl.ai/ulid v1.1.1
-	go.rtnl.ai/x v1.1.1
+	go.rtnl.ai/x v1.2.0
 	golang.org/x/crypto v0.29.0
 	golang.org/x/text v0.20.0
 	google.golang.org/api v0.206.0
