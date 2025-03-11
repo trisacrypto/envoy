@@ -3,12 +3,18 @@ Application code for the send TRISA/TRP forms.
 */
 
 import { selectNetwork } from '../modules/networks.js';
+import { selectCountry } from '../modules/countries.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
 
 // Initialize the network select choices.
 document.querySelectorAll('[data-networks]').forEach(elem => {
   selectNetwork(elem);
+});
+
+// Initialize the country select choices.
+document.querySelectorAll('[data-countries]').forEach(elem => {
+  selectCountry(elem);
 });
 
 // Initialize the address type select choices.
