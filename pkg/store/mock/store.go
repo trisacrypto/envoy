@@ -91,6 +91,10 @@ func (s *Store) CreateAccount(context.Context, *models.Account) error {
 	return nil
 }
 
+func (s *Store) LookupAccount(ctx context.Context, cryptoAddress string) (*models.Account, error) {
+	return nil, nil
+}
+
 func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error) {
 	return nil, nil
 }

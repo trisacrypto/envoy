@@ -424,7 +424,10 @@ func (s *APIv1) DeleteSecureEnvelope(ctx context.Context, transactionID uuid.UUI
 // Accounts Resource
 //===========================================================================
 
-const accountsEP = "/v1/accounts"
+const (
+	accountsEP       = "/v1/accounts"
+	accountsLookupEP = "/v1/accounts/lookup"
+)
 
 func (s *APIv1) ListAccounts(ctx context.Context, in *PageQuery) (out *AccountsList, err error) {
 	if err = s.List(ctx, accountsEP, in, &out); err != nil {
@@ -437,6 +440,24 @@ func (s *APIv1) CreateAccount(ctx context.Context, in *Account) (out *Account, e
 	if err = s.Create(ctx, accountsEP, in, &out); err != nil {
 		return nil, err
 	}
+	return out, nil
+}
+
+func (s *APIv1) LookupAccount(ctx context.Context, in *AccountLookupQuery) (out *Account, err error) {
+	var params url.Values
+	if params, err = query.Values(in); err != nil {
+		return nil, fmt.Errorf("could not encode account lookup query: %w", err)
+	}
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, accountsLookupEP, nil, &params); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.Do(req, &out, true); err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 

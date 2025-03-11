@@ -124,6 +124,54 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	})
 }
 
+func (s *Server) LookupAccount(c *gin.Context) {
+	var (
+		err     error
+		query   *api.AccountLookupQuery
+		account *models.Account
+		out     *api.Account
+	)
+
+	query = &api.AccountLookupQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse account lookup query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	// Fetch the model from the database
+	if account, err = s.store.LookupAccount(c.Request.Context(), query.CryptoAddress); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model into an API response
+	if out, err = api.NewAccount(account, &query.EncodingQuery); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Content negotiation
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "partials/accounts/form.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+	})
+}
+
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
 		err       error

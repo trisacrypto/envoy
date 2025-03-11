@@ -106,6 +106,7 @@ type AccountStore interface {
 	CryptoAddressStore
 	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
 	CreateAccount(context.Context, *models.Account) error
+	LookupAccount(ctx context.Context, cryptoAddress string) (*models.Account, error)
 	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
 	UpdateAccount(context.Context, *models.Account) error
 	DeleteAccount(ctx context.Context, id ulid.ULID) error

@@ -63,6 +63,7 @@ type Client interface {
 	// Accounts Resource
 	ListAccounts(context.Context, *PageQuery) (*AccountsList, error)
 	CreateAccount(context.Context, *Account) (*Account, error)
+	LookupAccount(context.Context, *AccountLookupQuery) (*Account, error)
 	AccountDetail(context.Context, ulid.ULID) (*Account, error)
 	UpdateAccount(context.Context, *Account) (*Account, error)
 	DeleteAccount(context.Context, ulid.ULID) error

@@ -182,6 +182,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			accounts.GET("", authorize(permiss.AccountsView), s.ListAccounts)
 			accounts.POST("", authorize(permiss.AccountsManage), s.CreateAccount)
+			accounts.GET("/lookup", authorize(permiss.AccountsView), s.LookupAccount)
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
 			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
 			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
