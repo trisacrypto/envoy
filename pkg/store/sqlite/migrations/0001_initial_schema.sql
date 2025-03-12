@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS accounts (
 );
 
 -- CryptoAddresses represent the crypto wallet address records for a specific account.
+-- We rely on the UNIQUE index on crypto_address for account lookups, however this
+-- an edge case where crypto addresses must be unique even across networks. A collision
+-- like this is rare, but it is possible.
 CREATE TABLE IF NOT EXISTS crypto_addresses (
     id              TEXT PRIMARY KEY,
     account_id      TEXT NOT NULL,

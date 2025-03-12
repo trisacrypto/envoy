@@ -2,7 +2,7 @@
 Code to manage IVMS101 forms and elements.
 */
 
-import { choicesDefaultOptions } from "./components.js";
+import { createChoicesWithArray } from "./components.js";
 
 
 const ADDRESS_TYPE = [
@@ -15,14 +15,7 @@ const ADDRESS_TYPE = [
 
 export function selectAddressType(elem) {
   const elementOptions = elem.dataset.addressType ? JSON.parse(elem.dataset.addressType) : {};
-  elementOptions.choices = ADDRESS_TYPE;
-
-  const options = {
-    ...elementOptions,
-    ...choicesDefaultOptions(elem),
-  };
-
-  return new Choices(elem, options);
+  return createChoicesWithArray(elem, elementOptions, ADDRESS_TYPE);
 }
 
 const NATIONAL_IDENTIFIER_TYPE = [
@@ -41,12 +34,5 @@ const NATIONAL_IDENTIFIER_TYPE = [
 
 export function selectNationalIdentifierType(elem) {
   const elementOptions = elem.dataset.nationalIdentifierType ? JSON.parse(elem.dataset.nationalIdentifierType) : {};
-  elementOptions.choices = NATIONAL_IDENTIFIER_TYPE;
-
-  const options = {
-    ...elementOptions,
-    ...choicesDefaultOptions(elem),
-  };
-
-  return new Choices(elem, options);
+  return createChoicesWithArray(elem, elementOptions, NATIONAL_IDENTIFIER_TYPE);
 }

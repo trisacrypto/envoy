@@ -4660,6 +4660,74 @@ paths:
                     error: field id is a read only field
                   - field: travel_address
                     error: field travel address is a read only field
+  /v1/accounts/lookup:
+    get:
+      summary: Account Lookup
+      description: Lookup a customer account record by a crypto wallet address; returns a
+        single account or a 404.
+      operationId: accountLookup
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: crypto_address
+          in: query
+          description: The crypto wallet address to lookup the associated account for.
+          required: true
+          schema:
+            type: string
+            example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+          example: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+        - $ref: "#/components/parameters/encoding"
+        - $ref: "#/components/parameters/formatq"
+      responses:
+        "200":
+          description: Account Lookup Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+              example:
+                id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                customer_id: "674907513"
+                first_name: James
+                last_name: Bond
+                travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                crypto_addresses:
+                  - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
+                    crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
+                    network: ETH
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5XP69YEctxHMPwa7YTEU3QjKcC2RY9Jqjd4VsCsj396YMZvVCfFaYjDR7P
+                    created: 2024-08-29T14:05:31-05:00
+                    modified: 2024-08-30T18:39:02-05:00
+                  - id: 01J6DJ9F691CF8E9H0V3ET0M0E
+                    crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                    network: BTC
+                    travel_address: ta5TXL58tSWo9eeNP1C4iSsybuX1KMeLiqeprHtF5WTaDe5fEN9vFTCtNxb2bv1HegpR8RcuV4EAhxtvKt8wfx4SnH414o6eWU
+                    created: 2024-08-28T10:14:43-05:00
+                    modified: 2024-08-28T12:23:24-05:00
+                created: 2024-08-28T10:14:43-05:00
+                modified: 2024-08-28T12:23:24-05:00
+        "401":
+          description: Not Authorized to Lookup Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: No Account with Crypto Address Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: account not found
   "/v1/accounts/{accountID}":
     get:
       summary: Account Detail

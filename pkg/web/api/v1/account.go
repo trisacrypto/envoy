@@ -54,6 +54,12 @@ type CryptoAddressList struct {
 	CryptoAddresses []*CryptoAddress `json:"crypto_addresses"`
 }
 
+type AccountLookupQuery struct {
+	EncodingQuery
+	Prefix        string `json:"prefix,omitempty" url:"prefix,omitempty" form:"prefix"`
+	CryptoAddress string `json:"crypto_address,omitempty" url:"crypto_address,omitempty" form:"crypto_address"`
+}
+
 func NewAccount(model *models.Account, encoding *EncodingQuery) (out *Account, err error) {
 	if encoding == nil {
 		encoding = &EncodingQuery{}
@@ -172,6 +178,17 @@ func (a *Account) IVMS101() (p *ivms101.Person, err error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+func (a *Account) CustomerNumber() string {
+	if a.CustomerID != "" {
+		return a.CustomerID
+	}
+	return a.ID.String()
+}
+
+func (a *Account) FullName() string {
+	return strings.TrimSpace(a.FirstName + " " + a.LastName)
 }
 
 func (a *Account) Validate(create bool) (err error) {
@@ -310,5 +327,17 @@ func (c *CryptoAddress) Validate(create bool) (err error) {
 		err = ValidationError(err, ReadOnlyField("travel_address"))
 	}
 
+	return err
+}
+
+func (c *AccountLookupQuery) Validate() (err error) {
+	// Validate the encoding query
+	c.EncodingQuery.Validate()
+
+	// Require a crypto address for lookups
+	c.CryptoAddress = strings.TrimSpace(c.CryptoAddress)
+	if c.CryptoAddress == "" {
+		err = ValidationError(err, MissingField("crypto_address"))
+	}
 	return err
 }

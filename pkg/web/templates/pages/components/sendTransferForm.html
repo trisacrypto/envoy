@@ -46,14 +46,32 @@
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-label" for="originatorCryptoAddress">Originator Wallet Address</label>
-          <input type="text" class="form-control" id="originatorCryptoAddress" name="originator_crypto_address" placeholder="Crypto Wallet Address" required>
+          <label class="form-label" for="originatorCryptoAddress">
+            Originator Wallet Address <span id="originatorLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <input
+            type="text" class="form-control"
+            id="originatorCryptoAddress" name="originator_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetOriginator" hx-swap="outerHTML"
+            hx-indicator="#originatorLookupIndicator"
+          >
         </div>
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-label" for="beneficiaryCryptoAddress">Beneficiary Wallet Address</label>
-          <input type="text" class="form-control" id="beneficiaryCryptoAddress" name="beneficiary_crypto_address" placeholder="Crypto Wallet Address" required>
+          <label class="form-label" for="beneficiaryCryptoAddress">
+            Beneficiary Wallet Address <span id="beneficiaryLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <input
+            type="text" class="form-control"
+            id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetBeneficiary" hx-swap="outerHTML"
+            hx-indicator="#beneficiaryLookupIndicator"
+          >
         </div>
       </div>
     </div>
@@ -102,191 +120,11 @@
   <hr class="mt-4 mb-5">
 
   <!-- originator information -->
-  <fieldset id="fieldsetOriginator">
-    <h2>Originator Information</h2>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="originator_secondaryIdentifier">Legal First or Given Name</label>
-          <small class="form-text text-body-secondary">
-            Forenames, familiar names, given names, or initials.
-          </small>
-          <input type="text" class="form-control" id="originator_SecondaryIdentifier" name="originator_forename" placeholder="Legal Forename">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="originator_primaryIdentifier">Legal Last or Family Name</label>
-          <small class="form-text text-body-secondary">
-            Family, maiden, or surname excluding suffixes or titles.
-          </small>
-          <input type="text" class="form-control" id="originator_primaryIdentifier" name="originator_surname" placeholder="Legal Surname">
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="originator_countryOfResidence">Country of Residence</label>
-          <small class="form-text text-body-secondary">
-            The country where the virtual asset is being transferred from.
-          </small>
-          <select class="form-control" id="originator_countryOfResidence" name="originator_country_of_residence" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="originator_customerID">Internal Customer Identifier</label>
-          <small class="form-text text-body-secondary">
-            Optional, an internal identifier for the account holder.
-          </small>
-          <input type="text" class="form-control" id="originator_customerID" name="originator_customer_id" placeholder="Customer Identifier">
-        </div>
-      </div>
-    </div>
-    <div class="row mt-3">
-      <div class="col-lg-6">
-        <h3>Geographic Address</h3>
-        <div class="form-group">
-          <label class="form-label" for="originator_addressType">Address Type</label>
-          <select class="form-control" id="originator_addressType" name="originator_addresses_0_address_type" data-address-type='{"searchEnabled": false}'></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_addressLine1">Address Line 1</label>
-          <input type="text" class="form-control" id="originator_addressLine1" name="originator_addresses_0_address_lines_0" placeholder="Street Address">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_addressLine2">Address Line 2</label>
-          <input type="text" class="form-control" id="originator_addressLine2" name="originator_addresses_0_address_lines_1" placeholder="Suite or Building Details">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_addressLine3">Address Line 3</label>
-          <input type="text" class="form-control" id="beneficiary_addressLine3" name="originator_addresses_0_address_lines_2" placeholder="City, State, Postal Code">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_addressCountry">Address Country</label>
-          <select class="form-control" id="originator_addressCountry" name="originator_addresses_0_country" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <h3>National Identification</h3>
-        <div class="form-group">
-          <label class="form-label" for="originator_dateOfBirth">Date of Birth</label>
-          <input type="date" class="form-control" id="originator_dateOfBirth" name="originator_identification_dob" data-flatpickr placeholder="YYYY-MM-DD">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_placeOfBirth">Place of Birth</label>
-          <input type="text" class="form-control" id="originator_placeOfBirth" name="originator_identification_birth_place" placeholder="Place of Birth">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_nationalIdentificationType">Type of National Identification</label>
-          <select class="form-control" id="originator_nationalIdentificationType" name="originator_identification_type_code" data-national-identifier-type='{"searchEnabled": false}'></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_nationalIdentificationNumber">National Identification Number</label>
-          <input type="text" class="form-control" id="originator_nationalIdentificationNumber" name="originator_identification_number" placeholder="Identification Number">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="originator_countryOfIssue">Country of Issue</label>
-          <select class="form-control" id="originator_countryOfIssue" name="originator_identification_country" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-    </div>
-  </fieldset><!-- end originator information -->
+  {{ template "legalPersonForm" dict "Prefix" "originator" }}
   <hr class="mt-4 mb-5">
 
   <!-- beneficiary information -->
-  <fieldset id="fieldsetBeneficiary">
-    <h2>Beneficiary Information</h2>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="beneficiary_secondaryIdentifier">Legal First or Given Name</label>
-          <small class="form-text text-body-secondary">
-            Forenames, familiar names, given names, or initials.
-          </small>
-          <input type="text" class="form-control" id="beneficiary_secondaryIdentifier" name="beneficiary_forename" placeholder="Legal Forename">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="beneficiary_primaryIdentifier">Legal Last or Family Name</label>
-          <small class="form-text text-body-secondary">
-            Family, maiden, or surname excluding suffixes or titles.
-          </small>
-          <input type="text" class="form-control" id="beneficiary_primaryIdentifier" name="beneficiary_surname" placeholder="Legal Surname">
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="beneficiary_countryOfResidence">Country of Residence</label>
-          <small class="form-text text-body-secondary">
-            The country where the virtual asset is being transferred to.
-          </small>
-          <select class="form-control" id="beneficiary_countryOfResidence" name="beneficiary_country_of_residence" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <label class="form-label mb-1" for="beneficiary_customerID">Internal Customer Identifier</label>
-          <small class="form-text text-body-secondary">
-            Optional, an internal identifier for the account holder.
-          </small>
-          <input type="text" class="form-control" id="beneficiary_customerID" name="beneficiary_customer_id" placeholder="Customer Identifier">
-        </div>
-      </div>
-    </div>
-    <div class="row mt-3">
-      <div class="col-lg-6">
-        <h3>Geographic Address</h3>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_addressType">Address Type</label>
-          <select class="form-control" id="beneficiary_addressType" name="beneficiary_addresses_0_address_type" data-address-type='{"searchEnabled": false}'></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_addressLine1">Address Line 1</label>
-          <input type="text" class="form-control" id="beneficiary_addressLine1" name="beneficiary_addresses_0_address_lines_0" placeholder="Street Address">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_addressLine2">Address Line 2</label>
-          <input type="text" class="form-control" id="beneficiary_addressLine2" name="beneficiary_addresses_0_address_lines_1" placeholder="Suite or Building Details">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_addressLine3">Address Line 3</label>
-          <input type="text" class="form-control" id="beneficiary_addressLine3" name="beneficiary_addresses_0_address_lines_2" placeholder="City, State, Postal Code">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_addressCountry">Address Country</label>
-          <select class="form-control" id="beneficiary_addressCountry" name="beneficiary_addresses_0_country" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <h3>National Identification</h3>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_dateOfBirth">Date of Birth</label>
-          <input type="date" class="form-control" id="beneficiary_dateOfBirth" name="beneficiary_identification_dob" data-flatpickr placeholder="YYYY-MM-DD">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_placeOfBirth">Place of Birth</label>
-          <input type="text" class="form-control" id="beneficiary_placeOfBirth" name="beneficiary_identification_birth_place" placeholder="Place of Birth">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_nationalIdentificationType">Type of National Identification</label>
-          <select class="form-control" id="beneficiary_nationalIdentificationType" name="beneficiary_identification_type_code" data-national-identifier-type='{"searchEnabled": false}'></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_nationalIdentificationNumber">National Identification Number</label>
-          <input type="text" class="form-control" id="beneficiary_nationalIdentificationNumber" name="beneficiary_identification_number" placeholder="Identification Number">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="beneficiary_countryOfIssue">Country of Issue</label>
-          <select class="form-control" id="beneficiary_countryOfIssue" name="beneficiary_identification_country" data-countries='{"searchEnabled": true}'></select>
-        </div>
-      </div>
-    </div>
-  </fieldset><!-- end beneficiary information -->
+  {{ template "legalPersonForm" dict "Prefix" "beneficiary" }}
   <hr class="mt-4 mb-5">
 
   <!-- buttons -->

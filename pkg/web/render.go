@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -23,10 +24,11 @@ var content embed.FS
 const (
 	partials           = "partials/**/*.html"
 	partialsComponents = "partials/components/**/*.html"
+	subComponents      = "components/**/*.html"
 )
 
 var (
-	includes = []string{"*.html", "components/*.html"}
+	includes = []string{"*.html", "components/*.html", "components/**/*.html"}
 	excludes = map[string]struct{}{
 		"partials":   {},
 		"components": {},
@@ -85,7 +87,7 @@ func NewRender(fsys fs.FS) (render *Render, err error) {
 
 	// Add the partials to the templates.
 	// Partials are independently rendered with other templates included.
-	if err = render.AddPattern(fsys, partials, partialsComponents); err != nil {
+	if err = render.AddPattern(fsys, partials, subComponents, partialsComponents); err != nil {
 		return nil, err
 	}
 
@@ -139,14 +141,24 @@ func (r *Render) FuncMap() template.FuncMap {
 			"lowercase": func(s string) string {
 				return strings.ToLower(s)
 			},
-			"titlecase": func(s string) string {
-				return title.String(string(s))
-			},
-			"moment": func(t time.Time) string {
-				return humanize.Time(t)
-			},
+			"titlecase": title.String,
+			"moment":    humanize.Time,
 			"rfc3339": func(t time.Time) string {
 				return t.Format(time.RFC3339)
+			},
+			"dict": func(values ...interface{}) (map[string]interface{}, error) {
+				if len(values)%2 != 0 {
+					return nil, errors.New("invalid dict call")
+				}
+				dict := make(map[string]interface{}, len(values)/2)
+				for i := 0; i < len(values); i += 2 {
+					key, ok := values[i].(string)
+					if !ok {
+						return nil, errors.New("dict keys must be strings")
+					}
+					dict[key] = values[i+1]
+				}
+				return dict, nil
 			},
 		}
 	}

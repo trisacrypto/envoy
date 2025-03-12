@@ -103,6 +103,37 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 	return tx.Commit()
 }
 
+const lookupAccountSQL = "SELECT account_id FROM crypto_addresses WHERE crypto_address=:cryptoAddress"
+
+// Lookup an account by an associated crypto address.
+func (s *Store) LookupAccount(ctx context.Context, cryptoAddress string) (account *models.Account, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var accountID ulid.ULID
+	if err = tx.QueryRow(lookupAccountSQL, sql.Named("cryptoAddress", cryptoAddress)).Scan(&accountID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, dberr.ErrNotFound
+		}
+		return nil, err
+	}
+
+	if account, err = retrieveAccount(tx, accountID); err != nil {
+		return nil, err
+	}
+
+	// Retrieve associated crypto addresses with the account.
+	if err = s.listCryptoAddresses(tx, account); err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return account, nil
+}
+
 const retreiveAccountSQL = "SELECT * FROM accounts WHERE id=:id"
 
 // Retrieve account detail information including all associated crypto addresses.
