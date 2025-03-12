@@ -224,6 +224,7 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.GET("/:id/repair", authorize(permiss.TravelRuleView), s.RepairTransactionPreview)
 			transactions.POST("/:id/repair", authorize(permiss.TravelRuleManage), s.RepairTransaction)
 			transactions.POST("/:id/archive", authorize(permiss.TravelRuleManage), s.ArchiveTransaction)
+			transactions.POST("/:id/unarchive", authorize(permiss.TravelRuleManage), s.UnarchiveTransaction)
 
 			// SecureEnvelope Resource (nested on Transactions)
 			se := transactions.Group("/:id/secure-envelopes")

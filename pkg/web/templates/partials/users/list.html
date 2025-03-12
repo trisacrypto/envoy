@@ -88,7 +88,10 @@
                 <a href="#!" class="dropdown-item">
                   <i class="fe fe-lock"></i> Change Password
                 </a>
-                <a href="#!" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#confirmDeleteUserModal" data-bs-user-id="{{ .ID }}" data-bs-name="{{ .Name }}" data-bs-email="{{ .Email }}">
+                <a href="#!" class="dropdown-item"
+                  data-bs-toggle="modal" data-bs-target="#confirmDeleteUserModal"
+                  data-bs-user-id="{{ .ID }}" data-bs-name="{{ .Name }}" data-bs-email="{{ .Email }}"
+                >
                   <i class="fe fe-trash"></i> Remove
                 </a>
                 {{ end }}

@@ -141,7 +141,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	out.Password = password
 
 	// Add HTMX Trigger to reload the API Key List
-	c.Header(htmx.HXTriggerAfterSwap, "users-updated")
+	c.Header(htmx.HXTriggerAfterSwap, htmx.UsersUpdated)
 
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
@@ -326,7 +326,7 @@ func (s *Server) DeleteUser(c *gin.Context) {
 	case binding.MIMEJSON:
 		c.JSON(http.StatusOK, api.Reply{Success: true})
 	case binding.MIMEHTML:
-		htmx.Trigger(c, "users-updated")
+		htmx.Trigger(c, htmx.UsersUpdated)
 	}
 }
 

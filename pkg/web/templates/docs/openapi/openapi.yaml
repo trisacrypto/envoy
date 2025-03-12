@@ -8506,7 +8506,7 @@ paths:
           example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
       requestBody:
         required: false
-        description: No request body should be sent in this POST request.
+        description: No request body should be sent in an archive request.
       responses:
         "204":
           description: Transaction Archived
@@ -8521,6 +8521,49 @@ paths:
                 error: this endpoint requires authentication
         "404":
           description: Transaction Not Found (Could Not Archive)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: transaction not found
+  "/v1/transactions/{transactionID}/unarchive":
+    post:
+      summary: Unarchive Transaction
+      description: Unarchive a transaction so it appears in the transaction list again.
+      operationId: unarchiveTransaction
+      tags:
+        - Transaction Workflows
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transactionID
+          in: path
+          description: The ID of the transaction to unarchive.
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+          example: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+      requestBody:
+        required: false
+        description: No request body should be sent in an unarchive request.
+      responses:
+        "204":
+          description: Transaction Unarchived
+        "401":
+          description: Not Authorized to Unarchive Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: Transaction Not Found (Could Not Unarchive)
           content:
             application/json:
               schema:

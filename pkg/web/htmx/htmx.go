@@ -35,6 +35,15 @@ const (
 // HXTrigger is both a request and a response header
 const HXTrigger = "HX-Trigger" // the id of the triggered element if it exists in requests, allows you to trigger client-side events in responses
 
+// Envoy-specific HTMX events
+const (
+	TransactionsUpdated   = "transactions-updated"
+	AccountsUpdated       = "accounts-updated"
+	CounterpartiesUpdated = "counterparties-updated"
+	UsersUpdated          = "users-updated"
+	APIKeysUpdated        = "apikeys-updated"
+)
+
 // Redirect determines if the request is an HTMX request, if so, it sets the HX-Redirect
 // header and returns a 204 no content to allow HTMX to handle the redirect. Otherwise
 // it sets the code and issues a normal gin redirect with the location in the headers.
