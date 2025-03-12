@@ -29,11 +29,27 @@
 
 {{ define "modals" }}
   <!-- message preview modal -->
-  <div id="previewModal" class="modal" tabindex="-1"></div>
+  <div id="previewModal" class="modal" tabindex="-1">
+    <div class='modal-dialog modal-lg'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Transfer Preview</h4>
+          <span id="previewModalLoader" class="ms-3 htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div id="previewModalBody" class="modal-body"></div>
+        <div class="modal-footer">
+          <button id="sendBtn" type="button" class="btn btn-primary" hx-swap="none">Send</button>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal">Edit</button>
+          <a href="/transactions" class="btn btn-warning">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
 {{ end }}
 
 {{ define "main"  }}
-<form id="sendTransferForm" class="mb-5" hx-post="/v1/transactions/prepare" hx-ext="json-enc" hx-target="#previewModal" hx-swap="innerHTML">
+<form id="sendTransferForm" class="mb-5" hx-post="/v1/transactions/prepare" hx-ext="json-enc" hx-target="#previewModalBody" hx-indicator="#previewModalLoader" hx-swap="innerHTML">
   <!-- choose counterparty -->
   <fieldset id="fieldsetCounterparty">
     <h2>Select Counterparty</h2>

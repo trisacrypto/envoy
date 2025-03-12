@@ -651,7 +651,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page and set a cookie to display a toast message
-	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+	if htmx.IsHTMXRequest(c) {
 		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
 		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 
@@ -970,7 +970,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 
 	// If the content requested is HTML (e.g. the web-front end), then redirect the user
 	// to the transaction detail page and set a cookie to display a toast message
-	if c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) == binding.MIMEHTML {
+	if htmx.IsHTMXRequest(c) {
 		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
 		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 

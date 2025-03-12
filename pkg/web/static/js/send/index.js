@@ -8,6 +8,8 @@ import { selectCountry } from '../modules/countries.js';
 import { selectTRISATravelAddress, createFlatpickr } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
+const previewModal = document.getElementById('previewModal');
+
 /*
 Create pop up toast alerts for errors or info when the form is being handled.
 */
@@ -84,6 +86,11 @@ document.body.addEventListener('htmx:configRequest', function(e) {
   Prepare the parameters for the preview transfer submission
   */
   if (isRequestFor(e, "/v1/transactions/prepare", "post")) {
+    // Show the modal - this will show the loading spinner!
+    const modal = new Modal(previewModal);
+    modal.show();
+
+    // Prepare the outgoing data as a nested JSON payload.
     const form = e.target;
     const formData = new FormData(form);
 
@@ -219,4 +226,11 @@ document.body.addEventListener("htmx:responseError", (e) => {
     default:
       break;
   }
+});
+
+/*
+When the preview modal is closed, remove the modal body.
+*/
+previewModal.addEventListener('hidden.bs.modal', (e) => {
+  previewModal.querySelector('.modal-body').innerHTML = "";
 });

@@ -145,7 +145,8 @@ func (s *Server) CreateUser(c *gin.Context) {
 
 	c.Negotiate(http.StatusCreated, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     scene.New(c).WithAPIData(out),
+		JSONData: out,
+		HTMLData: scene.New(c).WithAPIData(out),
 		HTMLName: "partials/users/created.html",
 	})
 }
@@ -207,6 +208,7 @@ func (s *Server) UserDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
+		HTMLData: scene.New(c).WithAPIData(out),
 		HTMLName: template,
 	})
 }
@@ -293,6 +295,7 @@ func (s *Server) UpdateUser(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
+		HTMLData: scene.New(c).WithAPIData(out),
 		HTMLName: "user_update.html",
 	})
 }

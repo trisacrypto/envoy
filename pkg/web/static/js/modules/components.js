@@ -182,7 +182,17 @@ export function selectTRISATravelAddress(elem) {
 
   const choices = new Choices(elem, options);
   choices.setChoices(function(callback) {
-    return fetch('/v1/counterparties?source=gds')
+    const headers = new Headers();
+    headers.append('Accept', 'application/json');
+
+    const opts = {
+      method: 'GET',
+      headers: headers,
+      cache: 'default'
+    }
+
+    const request = new Request('/v1/counterparties?source=gds', opts);
+    return fetch(request)
       .then(response => response.json())
       .then(data => {
         return data.counterparties.map(counterparty => {
