@@ -195,7 +195,7 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 	return tx.Commit()
 }
 
-const archiveTransactionSQL = "UPDATE transactions SET archived=1, archived_on=:archivedOn, modified=:modified WHERE id=:id"
+const archiveTransactionSQL = "UPDATE transactions SET archived=:archived, archived_on=:archivedOn, modified=:modified WHERE id=:id"
 
 func (s *Store) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
 	var tx *sql.Tx
@@ -216,8 +216,44 @@ func (s *Store) archiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err err
 	timestamp := time.Now()
 	params := []any{
 		sql.Named("id", transactionID),
+		sql.Named("archived", true),
 		sql.Named("archivedOn", timestamp),
 		sql.Named("modified", timestamp),
+	}
+
+	var result sql.Result
+	if result, err = tx.Exec(archiveTransactionSQL, params...); err != nil {
+		return err
+	}
+
+	if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *Store) UnarchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = s.unarchiveTransaction(tx, transactionID); err != nil {
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (s *Store) unarchiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err error) {
+	params := []any{
+		sql.Named("id", transactionID),
+		sql.Named("archived", false),
+		sql.Named("archivedOn", sql.NullTime{Valid: false}),
+		sql.Named("modified", time.Now()),
 	}
 
 	var result sql.Result

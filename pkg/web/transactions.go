@@ -1016,11 +1016,41 @@ func (s *Server) ArchiveTransaction(c *gin.Context) {
 	// to handle the success message in the toast. Otherwise, just send the status.
 	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
 	case binding.MIMEHTML:
-		htmx.Trigger(c, "transactionArchived")
-	case binding.MIMEJSON:
-		c.Status(http.StatusNoContent)
+		htmx.Trigger(c, htmx.TransactionsUpdated)
 	default:
-		// NOTE: not returning a 406 error since the transaction has been archived.
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func (s *Server) UnarchiveTransaction(c *gin.Context) {
+	var (
+		err           error
+		transactionID uuid.UUID
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	if err = s.store.UnarchiveTransaction(c.Request.Context(), transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Respond with a 204 no content response; use the HTMX trigger in the front-end
+	// to handle the success message in the toast. Otherwise, just send the status.
+	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
+	case binding.MIMEHTML:
+		htmx.Trigger(c, htmx.TransactionsUpdated)
+	default:
 		c.Status(http.StatusNoContent)
 	}
 }
