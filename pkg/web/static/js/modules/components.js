@@ -65,6 +65,16 @@ export function createList(elem) {
   return list;
 }
 
+// Initialize flatpickr component for selecting a date on the specified element using
+// DashKit default options and DaskKit styling.
+export function createFlatpickr(elem) {
+  const options = elem.dataset.flatpickr ? JSON.parse(elem.dataset.flatpickr) : {};
+  flatpickr(elem, options);
+}
+
+
+
+
 // Default options for Choices.js components with Dashkit styling.
 export function choicesDefaultOptions(elem) {
   return {
@@ -111,6 +121,36 @@ export function choicesDefaultOptions(elem) {
 // options. Used after an HTMX request settles to ensure the component is loaded.
 export function createChoices(elem) {
   const elementOptions = elem.dataset.choices ? JSON.parse(elem.dataset.choices) : {};
+
+  const options = {
+    ...elementOptions,
+    ...choicesDefaultOptions(elem),
+  };
+
+  return new Choices(elem, options);
+}
+
+// Initialize a Choices.js component on the specified element using the specified
+// array as the choices. If the data-selected attribute is on the element, then the
+// choices are updated with selections by copying the original array and objects to
+// prevent global modification of the array.
+export function createChoicesWithArray(elem, elementOptions, choices) {
+  const selected = elem.dataset.selected;
+  if (selected) {
+    // TODO: handle multiple selected elements.
+    if (typeof elementOptions.choices !== 'function') {
+      elementOptions.choices = choices.map(item => {
+        const choice = {...item};
+        if (choice.value === selected) {
+          choice.selected = true;
+        }
+        return choice;
+      });
+    }
+  } else {
+    elementOptions.choices = choices;
+  }
+
   const options = {
     ...elementOptions,
     ...choicesDefaultOptions(elem),
@@ -145,7 +185,6 @@ export function selectTRISATravelAddress(elem) {
     return fetch('/v1/counterparties?source=gds')
       .then(response => response.json())
       .then(data => {
-        console.log(data);
         return data.counterparties.map(counterparty => {
           return { label: counterparty.name, value: counterparty.travel_address };
         });

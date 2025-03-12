@@ -2,7 +2,7 @@
 SLIP-004 Virtual Asset Identifiers.
 */
 
-import { choicesDefaultOptions } from "./components.js";
+import { createChoicesWithArray } from "./components.js";
 
 const COIN_TYPES = [
   {value: "BTC", label: "Bitcoin (BTC)"},
@@ -962,15 +962,7 @@ const COIN_TYPES = [
   {value: "QFS", label: "Qfs"},
 ]
 
-
 export function selectNetwork(elem) {
   const elementOptions = elem.dataset.network ? JSON.parse(elem.dataset.network) : {};
-  elementOptions.choices = COIN_TYPES;
-
-  const options = {
-    ...elementOptions,
-    ...choicesDefaultOptions(elem),
-  };
-
-  return new Choices(elem, options);
+  return createChoicesWithArray(elem, elementOptions, COIN_TYPES);
 };

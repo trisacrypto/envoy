@@ -56,6 +56,7 @@ type CryptoAddressList struct {
 
 type AccountLookupQuery struct {
 	EncodingQuery
+	Prefix        string `json:"prefix,omitempty" url:"prefix,omitempty" form:"prefix"`
 	CryptoAddress string `json:"crypto_address,omitempty" url:"crypto_address,omitempty" form:"crypto_address"`
 }
 
@@ -177,6 +178,17 @@ func (a *Account) IVMS101() (p *ivms101.Person, err error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+func (a *Account) CustomerNumber() string {
+	if a.CustomerID != "" {
+		return a.CustomerID
+	}
+	return a.ID.String()
+}
+
+func (a *Account) FullName() string {
+	return strings.TrimSpace(a.FirstName + " " + a.LastName)
 }
 
 func (a *Account) Validate(create bool) (err error) {

@@ -147,6 +147,30 @@ func (s Scene) AccountDetail() *api.Account {
 	return nil
 }
 
+func (s Scene) AccountPerson() Person {
+	if data, ok := s[APIData]; ok {
+		if account, ok := data.(*api.Account); ok {
+			// Try to get the IVMS101 person
+			if person, err := account.IVMS101(); err == nil {
+				if np := person.GetNaturalPerson(); np != nil {
+					return makePerson(np)
+				}
+			}
+
+			// Otherwise get the account information available from the struct.
+			return Person{
+				Forename:       account.FirstName,
+				Surname:        account.LastName,
+				FullLegalName:  account.FullName(),
+				CustomerNumber: account.CustomerNumber(),
+			}
+		}
+	}
+
+	// Return an empty person so no checking has to be done.
+	return Person{}
+}
+
 func (s Scene) UserList() *api.UserList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.UserList); ok {

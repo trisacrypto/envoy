@@ -19,8 +19,8 @@ type IVMS101 struct {
 type Person struct {
 	AddressComponents
 	FullLegalName       string
-	PrimaryName         string
-	SecondaryName       string
+	Forename            string
+	Surname             string
 	PrimaryAddress      *ivms101.Address
 	PrimaryAddressLines []string
 	CustomerNumber      string
@@ -50,11 +50,9 @@ type NationalIdentifier struct {
 
 type AddressComponents struct {
 	AddressType    string
+	AddressLine0   string
 	AddressLine1   string
 	AddressLine2   string
-	City           string
-	Region         string
-	PostCode       string
 	AddressCountry string
 }
 
@@ -92,9 +90,9 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 	// Handle the name of the person
 	if nameIdx := api.FindLegalName(person); nameIdx >= 0 {
 		name := person.Name.NameIdentifiers[nameIdx]
-		p.PrimaryName = name.PrimaryIdentifier
-		p.SecondaryName = name.SecondaryIdentifier
-		p.FullLegalName = name.SecondaryIdentifier + " " + name.PrimaryIdentifier
+		p.Surname = name.PrimaryIdentifier
+		p.Forename = name.SecondaryIdentifier
+		p.FullLegalName = strings.TrimSpace(name.SecondaryIdentifier + " " + name.PrimaryIdentifier)
 	}
 
 	if person.DateAndPlaceOfBirth != nil {
@@ -164,34 +162,19 @@ func makeAddressComponents(addr *ivms101.Address) (a AddressComponents) {
 		return a
 	}
 
-	a.City = addr.TownName
-	a.Region = addr.CountrySubDivision
-	a.PostCode = addr.PostCode
 	a.AddressType = strings.TrimPrefix(addr.AddressType.String(), "ADDRESS_TYPE_CODE_")
 	a.AddressCountry = addr.Country
 
 	if len(addr.AddressLine) > 0 {
-		a.AddressLine1 = addr.AddressLine[0]
+		a.AddressLine0 = addr.AddressLine[0]
 	}
 
 	if len(addr.AddressLine) > 1 {
-		a.AddressLine2 = addr.AddressLine[1]
+		a.AddressLine1 = addr.AddressLine[1]
 	}
 
-	// Attempt to parse the city, state, postal code from line 3 if it exists
 	if len(addr.AddressLine) > 2 {
-		parts := strings.Split(addr.AddressLine[len(addr.AddressLine)-1], ",")
-		if len(parts) > 0 && a.City == "" {
-			a.City = strings.TrimSpace(parts[0])
-		}
-
-		if len(parts) > 1 && a.Region == "" {
-			a.Region = strings.TrimSpace(parts[1])
-		}
-
-		if len(parts) > 2 && a.PostCode == "" {
-			a.PostCode = strings.TrimSpace(parts[2])
-		}
+		a.AddressLine2 = addr.AddressLine[2]
 	}
 
 	return a

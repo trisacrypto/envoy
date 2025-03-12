@@ -2,7 +2,7 @@
 Countries dropdown and emoji lookups.
 */
 
-import { choicesDefaultOptions } from "./components.js";
+import { createChoicesWithArray } from "./components.js";
 
 const COUNTRIES = [
   {"value": "", "label": "Select Country"},
@@ -259,12 +259,5 @@ const COUNTRIES = [
 
 export function selectCountry(elem) {
   const elementOptions = elem.dataset.countries ? JSON.parse(elem.dataset.countries) : {};
-  elementOptions.choices = COUNTRIES;
-
-  const options = {
-    ...elementOptions,
-    ...choicesDefaultOptions(elem),
-  };
-
-  return new Choices(elem, options);
+  return createChoicesWithArray(elem, elementOptions, COUNTRIES);
 }

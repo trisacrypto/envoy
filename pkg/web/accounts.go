@@ -164,11 +164,14 @@ func (s *Server) LookupAccount(c *gin.Context) {
 	}
 
 	// Content negotiation
+	ctx := scene.New(c).WithAPIData(out)
+	ctx["Prefix"] = query.Prefix
+
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/accounts/form.html",
-		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/accounts/lookup.html",
+		HTMLData: ctx,
 	})
 }
 
