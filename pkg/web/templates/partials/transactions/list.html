@@ -1,5 +1,6 @@
 {{- $canEditTransfers := not .IsViewOnly -}}
 {{- with .TransactionsList -}}
+{{ $archives := .Page.Archives}}
 {{ if .Transactions }}
 <div class="card" id="transactionList" data-list='{"valueNames": ["item-direction", "item-status", "item-counterparty", "item-originator", "item-beneficiary", "item-virtual-asset", "item-amount", "item-last-update"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
   <div class="card-header">
@@ -169,16 +170,28 @@
                 <a href="#!" class="dropdown-item">
                   <i class="fe fe-eye"></i> View
                 </a>
-                {{ if $canEditTransfers }}
-                <a href="#!" class="dropdown-item">
+                {{- if $canEditTransfers }}
+                {{- if $archives }}
+                <a href="#!" class="dropdown-item" hx-post="/v1/transactions/{{ .ID }}/unarchive" hx-swap="none">
+                  <i class="fe fe-inbox"></i> Unarchive
+                </a>
+                {{- else }}
+                <a href="#!" class="dropdown-item"
+                  data-bs-toggle="modal" data-bs-target="#confirmArchiveTransferModal"
+                  data-bs-transaction-id="{{ .ID }}" data-bs-originator="{{ .Originator }}"
+                  data-bs-beneficiary="{{ .Beneficiary }}" data-bs-status="{{ .Status }}"
+                  data-bs-counterparty="{{ .Counterparty }}" data-bs-amount="{{ .Amount }}"
+                  data-bs-network="{{ .VirtualAsset }}" data-bs-status-color="{{ .Status.Color }}"
+                >
                   <i class="fe fe-archive"></i> Archive
                 </a>
-                {{ end }}
+                {{- end }}
+                {{- end }}
               </div>
             </div>
           </td>
         </tr>
-        {{ end }}
+        {{- end }}
       </tbody>
     </table>
   </div>

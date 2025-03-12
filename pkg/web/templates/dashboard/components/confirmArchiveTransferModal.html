@@ -1,0 +1,35 @@
+{{ define "confirmArchiveTransferModal" }}
+<div id="confirmArchiveTransferModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Archive Transfer?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light">
+          Archiving this transfer will omit it from the transfer inbox active tab,
+          however, the transfer will still be accessible using the transaction ID or by
+          searching for all transfers including archives.
+        </div>
+        <p class="px-3 text-warning"><strong>Are you sure you want to archive this transfer?</strong></p>
+        <div class="card mb-0">
+          <div class="card-body py-0">
+            <h4 class="mt-4">Transfer from <span id="archiveOriginator">Mark Brown</span> to <span id="archiveBeneficiary">John Doe</span> <span id="archiveStatus" class="badge bg-secondary ms-3">pending</span></h3>
+            <dl>
+              <dt>Counterparty</dt>
+              <dd><span id="archiveCounterparty">Bitcoin Finance</span></dd>
+              <dt>Amount</dt>
+              <dd><span id="archiveAmount">0.0001</span> <span id="archiveNetwork">BTC</span></dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="archiveBtn" type="button" class="btn btn-warning" hx-swap="none" hx-target="#confirmArchiveTransferModal">Archive</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
