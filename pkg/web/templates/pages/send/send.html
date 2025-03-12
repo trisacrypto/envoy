@@ -1,7 +1,13 @@
 {{ template "page.html" . }}
 {{ define "title" }}Send Travel Rule Message | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Travel Rule{{ end }}
-{{ define "pagetitle" }}Send a {{ uppercase .Protocol }} Secure Envelope{{ end }}
+{{ define "pagetitle" }}
+  {{- if .PageTitle -}}
+    {{ .PageTitle }}
+  {{- else -}}
+    Send a {{ uppercase .Protocol }} Secure Envelope
+  {{- end -}}
+{{ end }}
 
 {{ define "htmxConfig" }}
 <meta
@@ -21,8 +27,148 @@
 <div id="alerts" class="position-fixed top-0 end-0 p-3 w-25"></div>
 {{ end }}
 
+{{ define "modals" }}
+  <!-- message preview modal -->
+  <div id="previewModal" class="modal" tabindex="-1"></div>
+{{ end }}
+
 {{ define "main"  }}
-  {{ template "sendTransferForm" . }}
+<form id="sendTransferForm" class="mb-5" hx-post="/v1/transactions/prepare" hx-ext="json-enc" hx-target="#previewModal" hx-swap="innerHTML">
+  <!-- choose counterparty -->
+  <fieldset id="fieldsetCounterparty">
+    <h2>Select Counterparty</h2>
+    {{ if eq .Protocol "trisa" }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="trisaTravelAddress">Search for TRISA Member</label>
+      <small class="form-text text-body-secondary">
+        All TRISA VASPs are registered in the TRISA Directory (GDS).
+      </small>
+      <select class="form-control" id="trisaTravelAddress" name="travel_address" data-travel-address='{"searchEnabled": true, "allowHTML": false, "searchPlaceholderValue": "Search for a TRISA Counterparty"}' required>
+        <option value="">Search for a TRISA Counterparty</option>
+      </select>
+    </div>
+    {{ else if eq .Protocol "sunrise" }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="email">Counterparty Name</label>
+      <small class="form-text text-body-secondary">
+        The name of the VASP or CASP your account holder is transfering funds through.
+      </small>
+      <input type="text" class="form-control" id="counterparty" name="counterparty" placeholder="Business Legal Name" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="email">Compliance Email Address</label>
+      <small class="form-text text-body-secondary">
+        Email address of the compliance team at the counterparty VASP.
+      </small>
+      <input type="text" class="form-control" id="email" name="email" placeholder="Full Name <email@address.com>" required>
+    </div>
+    {{ else }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="trpTravelAddress">Travel Address</label>
+      <small class="form-text text-body-secondary">
+        TRP transfers require a travel address received from your account holder.
+      </small>
+      <input type="text" class="form-control" id="trpTravelAddress" name="travel_address" placeholder="TRP Travel Address" required>
+    </div>
+    {{ end}}
+  </fieldset><!-- end choose counterparty -->
+  <hr class="mt-4 mb-5">
+
+  <!-- transfer details -->
+  <fieldset id="fielsetTransaction">
+    <h2>Transfer Details</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="originatorCryptoAddress">
+            Originator Wallet Address <span id="originatorLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <input
+            type="text" class="form-control"
+            id="originatorCryptoAddress" name="originator_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetOriginator" hx-swap="outerHTML"
+            hx-indicator="#originatorLookupIndicator"
+          >
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="beneficiaryCryptoAddress">
+            Beneficiary Wallet Address <span id="beneficiaryLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <input
+            type="text" class="form-control"
+            id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetBeneficiary" hx-swap="outerHTML"
+            hx-indicator="#beneficiaryLookupIndicator"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="transferAmount">Transfer Amount</label>
+          <small class="form-text text-body-secondary">
+            Enter a value that can be matched on the blockchain.
+          </small>
+          <input type="text" class="form-control" id="transferAmount" name="transfer_amount" placeholder="Transfer Amount" required>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="transferAmount">Network</label>
+          <small class="form-text text-body-secondary">
+            Select the network or blockchain DTI/SLIP-0044 code.
+          </small>
+          <select class="form-control" id="network" name="transfer_network" data-networks='{"searchEnabled": true}' placeholder="Digital Token Identifier" required></select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="assetType">Asset Type</label>
+          <input type="text" class="form-control" id="assetType" name="transfer_asset_type" placeholder="Network-Specific Asset Type (optional)">
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="tag">Memo/Destination Tag</label>
+          <input type="text" class="form-control" id="tag" name="transfer_tag" placeholder="Network-Specific Memo (optional)">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="txnID">Transaction ID/Hash</label>
+      <small class="form-text text-body-secondary">
+        If the transfer has already been completed on the chain, enter the hash or ID.
+      </small>
+      <input type="text" class="form-control" id="txnID" name="transfer_transaction_id" placeholder="Transaction ID or Hash">
+    </div>
+  </fieldset><!-- end transfer details -->
+  <hr class="mt-4 mb-5">
+
+  <!-- originator information -->
+  {{ template "legalPersonForm" dict "Prefix" "originator" }}
+  <hr class="mt-4 mb-5">
+
+  <!-- beneficiary information -->
+  {{ template "legalPersonForm" dict "Prefix" "beneficiary" }}
+  <hr class="mt-4 mb-5">
+
+  <!-- buttons -->
+  <button type="submit" class="btn w-100 btn-primary">
+    Preview Message
+  </button>
+  <a type="reset" href="/transactions" class="btn w-100 btn-link text-body-secondary mt-2">
+    <i class="fe fe-arrow-left"></i> Back to Transfer Inbox
+  </a>
+</form>
 {{ end }}
 
 {{ define "appcode" }}
