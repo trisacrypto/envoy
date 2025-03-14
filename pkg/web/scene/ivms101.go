@@ -18,7 +18,6 @@ type IVMS101 struct {
 
 type Person struct {
 	AddressComponents
-	FullLegalName       string
 	Forename            string
 	Surname             string
 	PrimaryAddress      *ivms101.Address
@@ -75,6 +74,10 @@ func (s Scene) IVMS101() *IVMS101 {
 	return ivms
 }
 
+func (p Person) FullName() string {
+	return strings.TrimSpace(p.Forename + " " + p.Surname)
+}
+
 func makePerson(person *ivms101.NaturalPerson) (p Person) {
 	if person == nil {
 		return p
@@ -92,7 +95,6 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 		name := person.Name.NameIdentifiers[nameIdx]
 		p.Surname = name.PrimaryIdentifier
 		p.Forename = name.SecondaryIdentifier
-		p.FullLegalName = strings.TrimSpace(name.SecondaryIdentifier + " " + name.PrimaryIdentifier)
 	}
 
 	if person.DateAndPlaceOfBirth != nil {

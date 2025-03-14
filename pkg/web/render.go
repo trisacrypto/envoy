@@ -160,6 +160,26 @@ func (r *Render) FuncMap() template.FuncMap {
 				}
 				return dict, nil
 			},
+			"flag": func(code string) string {
+				code = strings.ToUpper(code)
+				if len(code) != 2 {
+					return ""
+				}
+				emoji := ""
+				for _, r := range code {
+					emoji += string(r + 0x1F1A5)
+				}
+				return emoji
+			},
+			"add": func(a, b int) int {
+				return a + b
+			},
+			"sub": func(a, b int) int {
+				return a - b
+			},
+			"fillbr": func(n int) template.HTML {
+				return template.HTML(strings.Repeat("<br />", n))
+			},
 		}
 	}
 	return r.funcs

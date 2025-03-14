@@ -1,1 +1,154 @@
-{{ . }}
+{{ with .Prepared -}}
+<div class="row">
+  <div class="col">
+    <h4>Transfer Details</h4>
+  </div>
+</div>
+
+{{ with .Transfer }}
+<div class="row">
+  <div class="col-md-6">
+    <dl class="mb-0">
+      <dt class="fs-5">Originator Wallet Address</dt>
+      <dd class="text-muted">{{ .Originator }}</dd>
+      <dt class="fs-5">Amount</dt>
+      <dd>{{ .Amount }}</dd>
+      <dt class="fs-5">Asset Type</dt>
+      <dd>{{ if .AssetType }}{{ .AssetType }}{{ else }}&mdash;{{ end }}</dd>
+    </dl>
+  </div>
+  <div class="col-md-6">
+    <dl class="mb-0">
+      <dt class="fs-5">Beneficiary Wallet Address</dt>
+      <dd class="text-muted">{{ .Beneficiary }}</dd>
+      <dt class="fs-5">Virtual Asset (Network)</dt>
+      <dd>{{ .VirtualAsset }}</dd>
+      <dt class="fs-5">Tag/Memo</dt>
+      <dd>{{ if .Tag }}{{ .Tag }}{{ else }}&mdash;{{ end }}</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <h5 class="mb-1">Transaction ID/Hash</h5>
+    {{- if .TxID }}
+    <p class="text-info mb-1">{{ .TxID }}</p>
+    {{- else }}
+    <p class="text-muted mb-1"><small>Blockchain transaction pending.</small></p>
+    {{- end }}
+  </div>
+</div>
+
+{{ end }}
+
+<hr class="mt-3 mb-4">
+
+<div class="row">
+  {{ with .Originator }}
+  <div class="col-md-6">
+    <h4>Originator Person</h4>
+    <p class="mb-0"><span class="countryOfResidence">{{ flag .CountryOfResidence }}</span> {{ .FullName }}</p>
+    <p class="text-muted"><small>{{ if .CustomerNumber }}{{ .CustomerNumber }}{{ else }}<span class="fst-italic fw-lighte">No customer number</span>{{ end }}</small></p>
+    <address>
+      {{- range $idx, $item := .PrimaryAddressLines -}}
+      {{- if eq $idx 0 -}}
+      <h5 class="mb-1"><i class="fe fe-map-pin"></i> {{ $item }}</h5><p>
+      {{- else -}}
+      {{ $item }}<br />
+      {{- end -}}
+      {{- end -}}
+      {{- if ne (len .PrimaryAddressLines) 5 }}{{ fillbr (sub 5 (len .PrimaryAddressLines)) }}{{ end -}}
+    </p></address>
+    <dl class="row">
+      <dt class="col-4 fs-5"><i class="fe fe-calendar"></i> DOB:</dt>
+      <dd class="col-8">{{ if .DateOfBirth }}<time>{{ .DateOfBirth }}</time>{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4 fs-5"><i class="fe fe-globe"></i> Birthplace:</dt>
+      <dd class="col-8 text-truncate">{{ if .PlaceOfBirth }}{{ .PlaceOfBirth }}{{ else }}&mdash;{{ end }}</dd>
+      {{ with .NationalIdentifier}}
+      <dt class="col-4 fs-5">{{ .TypeRepr }}</dt>
+      <dd class="col-8">{{ flag .CountryOfIssue }} {{ .Identifier }}</dd>
+      {{ end }}
+    </dl>
+  </div>
+  {{ end }}
+  {{ with .Beneficiary }}
+  <div class="col-md-6">
+    <h4>Beneficiary Person</h4>
+    <p class="mb-0"><span class="countryOfResidence">{{ flag .CountryOfResidence }}</span> {{ .FullName }}</p>
+    <p class="text-muted"><small>{{ if .CustomerNumber }}{{ .CustomerNumber }}{{ else }}<span class="fst-italic fw-lighte">No customer number</span>{{ end }}</small></p>
+    <address>
+      {{- range $idx, $item := .PrimaryAddressLines -}}
+      {{- if eq $idx 0 -}}
+      <h5 class="mb-1"><i class="fe fe-map-pin"></i> {{ $item }}</h5><p>
+      {{- else -}}
+      {{ $item }}<br />
+      {{- end -}}
+      {{- end -}}
+      {{- if ne (len .PrimaryAddressLines) 5 }}{{ fillbr (sub 5 (len .PrimaryAddressLines)) }}{{ end -}}
+    </p></address>
+    <dl class="row">
+      <dt class="col-4 fs-5"><i class="fe fe-calendar"></i> DOB:</dt>
+      <dd class="col-8">{{ if .DateOfBirth }}<time>{{ .DateOfBirth }}</time>{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4 fs-5"><i class="fe fe-globe"></i> Birthplace:</dt>
+      <dd class="col-8 text-truncate">{{ if .PlaceOfBirth }}{{ .PlaceOfBirth }}{{ else }}&mdash;{{ end }}</dd>
+      {{ with .NationalIdentifier}}
+      <dt class="col-4 fs-5">{{ .TypeRepr }}</dt>
+      <dd class="col-8">{{ flag .CountryOfIssue }} {{ .Identifier }}</dd>
+      {{ end }}
+    </dl>
+  </div>
+  {{ end }}
+</div>
+
+<hr class="mt-3 mb-4">
+
+<div class="row">
+  {{ with .OriginatingVASP }}
+  <div class="col-md-6">
+    <h4>Originating VASP</h4>
+    <p class="mb-0"><span class="countryOfRegistration">{{ flag .CountryOfRegistration }}</span> {{ .LegalName }}</p>
+    <p class="text-muted"><small>{{ if .CustomerNumber }}{{ .CustomerNumber }}{{ else }}<span class="fst-italic fw-lighte">No customer number</span>{{ end }}</small></p>
+    <address>
+      {{- range $idx, $item := .PrimaryAddressLines -}}
+      {{- if eq $idx 0 -}}
+      <h5 class="mb-1"><i class="fe fe-map-pin"></i> {{ $item }}</h5><p>
+      {{- else -}}
+      {{ $item }}<br />
+      {{- end -}}
+      {{- end -}}
+      {{- if ne (len .PrimaryAddressLines) 5 }}{{ fillbr (sub 5 (len .PrimaryAddressLines)) }}{{ end -}}
+    </p></address>
+    <dl class="row">
+      {{ with .NationalIdentifier}}
+      <dt class="col-4 fs-5">{{ .TypeRepr }}</dt>
+      <dd class="col-8">{{ flag .CountryOfIssue }} {{ .Identifier }}</dd>
+      {{ end }}
+    </dl>
+  </div>
+  {{ end }}
+  {{ with .BeneficiaryVASP }}
+  <div class="col-md-6">
+    <h4>Beneficiary VASP</h4>
+    <p class="mb-0"><span class="countryOfRegistration">{{ flag .CountryOfRegistration }}</span> {{ .LegalName }}</p>
+    <p class="text-muted"><small>{{ if .CustomerNumber }}{{ .CustomerNumber }}{{ else }}<span class="fst-italic fw-lighte">No customer number</span>{{ end }}</small></p>
+    <address>
+      {{- range $idx, $item := .PrimaryAddressLines -}}
+      {{- if eq $idx 0 -}}
+      <h5 class="mb-1"><i class="fe fe-map-pin"></i> {{ $item }}</h5><p>
+      {{- else -}}
+      {{ $item }}<br />
+      {{- end -}}
+      {{- end -}}
+      {{- if ne (len .PrimaryAddressLines) 5 }}{{ fillbr (sub 5 (len .PrimaryAddressLines)) }}{{ end -}}
+    </p></address>
+    <dl class="row">
+      {{ with .NationalIdentifier}}
+      <dt class="col-4 fs-5">{{ .TypeRepr }}</dt>
+      <dd class="col-8">{{ flag .CountryOfIssue }} {{ .Identifier }}</dd>
+      {{ end }}
+    </dl>
+  </div>
+  {{ end }}
+</div>
+{{- end }}

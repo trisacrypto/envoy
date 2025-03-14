@@ -49,6 +49,25 @@
 {{ end }}
 
 {{ define "main"  }}
+<div class="d-flex justify-content-end mb-n5">
+  <span class="text-muted mt-1 p-0"><small>Switch Protocol:</small></span>
+  {{ if ne .Protocol "trisa" }}
+  <a href="/send/trisa" class="btn btn-light btn-sm ms-2" title="Send TRISA Message">
+    <i class="fe fe-shield"></i>
+  </a>
+  {{ end }}
+  {{ if ne .Protocol "trp" }}
+  <a href="/send/trp" class="btn btn-light btn-sm ms-2" title="Send TRP Message">
+    <i class="fe fe-zap"></i>
+  </a>
+  {{ end }}
+  {{ if ne .Protocol "sunrise" }}
+  <a href="/send/sunrise" class="btn btn-light btn-sm ms-2" title="Send Sunrise Email">
+    <i class="fe fe-sunrise"></i>
+  </a>
+  {{ end }}
+</div>
+
 <form id="sendTransferForm" class="mb-5" hx-post="/v1/transactions/prepare" hx-ext="json-enc" hx-target="#previewModalBody" hx-indicator="#previewModalLoader" hx-swap="innerHTML">
   <!-- choose counterparty -->
   <fieldset id="fieldsetCounterparty">
@@ -96,9 +115,12 @@
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-label" for="originatorCryptoAddress">
+          <label class="form-label mb-1" for="originatorCryptoAddress">
             Originator Wallet Address <span id="originatorLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
           </label>
+          <small class="form-text text-body-secondary">
+            Registered wallet addresses will update the originator info.
+          </small>
           <input
             type="text" class="form-control"
             id="originatorCryptoAddress" name="originator_crypto_address"
@@ -111,9 +133,12 @@
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-label" for="beneficiaryCryptoAddress">
+          <label class="form-label mb-1" for="beneficiaryCryptoAddress">
             Beneficiary Wallet Address <span id="beneficiaryLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
           </label>
+          <small class="form-text text-body-secondary">
+            Registered wallet addresses will update the beneficiary info.
+          </small>
           <input
             type="text" class="form-control"
             id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
