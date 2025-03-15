@@ -56,7 +56,8 @@
           <td><span class="item-first-name">{{ .FirstName }}</span></td>
           <td><span class="item-last-name">{{ .LastName }}</span></td>
           <td>
-            <time class="item-date-updated" datetime="{{ rfc3339 .Modified }}">
+            <span class="item-date-updated d-none">{{ rfc3339 .Modified }}</span>
+            <time datetime="{{ rfc3339 .Modified }}">
               {{ moment .Modified }}
             </time>
           </td>

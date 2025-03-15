@@ -62,12 +62,14 @@
           </td>
           <td><a class="item-email text-reset" href="mailto:{{ .Email }}">{{ .Email }}</a></td>
           <td><span class="item-role">{{ .Role }}</span></td>
-          <td><time class="item-date-joined" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time></td>
+          <td>
+            <span class="item-date-joined d-none">{{ rfc3339 .Created }}</span>
+            <time datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+          </td>
           <td>
             {{- if .LastLogin }}
-            <time class="item-last-login" datetime="{{ rfc3339 .LastLogin }}">
-              {{ moment .LastLogin }}
-            </time>
+            <span class="item-last-login d-none">{{ rfc3339 .LastLogin }}</span>
+            <time datetime="{{ rfc3339 .LastLogin }}">{{ moment .LastLogin }}</time>
             {{- else }}
             <span class="item-last-login text-warning">
               <i class="fe fe-user-x"></i> Account Unused

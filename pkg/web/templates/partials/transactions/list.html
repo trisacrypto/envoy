@@ -156,7 +156,8 @@
           <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
           <td class="item-amount">{{ .Amount }}</td>
           <td>
-            <time class="item-last-update" datetime="{{ rfc3339 .Modified }}">
+            <span class="item-last-update d-none">{{ rfc3339 .Modified }}</span>
+            <time datetime="{{ rfc3339 .Modified }}">
               {{ moment .Modified }}
             </time>
           </td>
