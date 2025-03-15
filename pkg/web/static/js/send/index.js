@@ -222,7 +222,14 @@ document.body.addEventListener("htmx:responseError", (e) => {
 
   switch (e.detail.xhr.status) {
     case 400:
-      alert("warning", "Bad request", error.error);
+      if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
+        const modal = Modal.getInstance(previewModal);
+        modal.hide();
+
+        alert("danger", "Transfer failed", error.error);
+      } else {
+        alert("warning", "Bad request", error.error);
+      }
       break;
     case 404:
       if (isRequestFor(e, "/v1/accounts/lookup", "get")) {

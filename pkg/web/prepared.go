@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/logger"
@@ -102,6 +103,12 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 }
 
 func (s *Server) SendPreparedTransaction(c *gin.Context) {
+	time.Sleep(1 * time.Second) // Simulate a delay for testing
+	if true {
+		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty, please try again later"))
+		return
+	}
+
 	var (
 		err     error
 		in      *api.Prepared
@@ -165,7 +172,7 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
 	if err = s.SendEnvelope(ctx, packet); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty"))
+		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty, please try again later"))
 		return
 	}
 
