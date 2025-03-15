@@ -8,6 +8,8 @@ import { selectCountry } from '../modules/countries.js';
 import { selectTRISATravelAddress, createFlatpickr } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
+const previewModal = document.getElementById('previewModal');
+
 /*
 Create pop up toast alerts for errors or info when the form is being handled.
 */
@@ -61,17 +63,6 @@ if (vaspSelect)  {
   selectTRISATravelAddress(vaspSelect);
 }
 
-// Handle form submission
-document.getElementById('sendTransferForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-  const json = JSON.stringify(data, null, 2);
-  console.log(json);
-  return false;
-});
-
 /*
 Configure requests made by htmx before they are sent.
 */
@@ -91,6 +82,92 @@ document.body.addEventListener('htmx:configRequest', function(e) {
     return
   }
 
+  /*
+  Prepare the parameters for the preview transfer submission
+  */
+  if (isRequestFor(e, "/v1/transactions/prepare", "post")) {
+    // Show the modal - this will show the loading spinner!
+    const modal = new Modal(previewModal);
+    modal.show();
+
+    // Prepare the outgoing data as a nested JSON payload.
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const data = {
+      "travel_address": "",
+      "originator": {
+        "identification": {},
+        "addresses": []
+      },
+      "beneficiary": {
+        "identification": {},
+        "addresses": []
+      },
+      "transfer": {}
+    }
+
+    formData.entries().forEach(([key, value]) => {
+      // Skip keys from nested forms or choices.
+      if (key == "search_terms") return;
+
+      // The only top level key is the travel address.
+      if (key == "travel_address") {
+        data.travel_address = value;
+        return;
+      }
+
+      // Find the prefix to nest the object under.
+      const prefix = key.split("_", 1)[0];
+      key = key.replace(prefix + "_", "");
+
+      // Get the object to update.
+      let obj = data[prefix];
+
+      // Identification and Address are nested one level below
+      if (key.startsWith("identification_")) {
+        key = key.replace("identification_", "");
+        obj = obj.identification;
+      }
+
+      if (key.startsWith("addresses_")) {
+        key = key.replace("addresses_", "");
+        const idx = parseInt(key.split("_", 1)[0]);
+        key = key.replace(idx + "_", "");
+
+        if (obj.addresses.length <= idx) {
+          obj.addresses.push({"address_lines": ["", "", ""]});
+        }
+
+        obj = obj.addresses[idx];
+        if (key.startsWith("address_lines_")) {
+          key = parseInt(key.replace("address_lines_", ""));
+          obj = obj.address_lines;
+        }
+      }
+
+      // Need amount to be a float64; not a string
+      if (key == "amount") {
+        value = parseFloat(value);
+      }
+
+      obj[key] = value;
+    });
+
+    // Unfortunately, htmx converts everything into flattened FormData objects so
+    // all values have to be strings. Our work around is to serialize JSON and prepend
+    // the key with a json: prefix so the extension knows to parse it as JSON.
+    e.detail.parameters = new FormData();
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === "object") {
+        e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+      } else {
+        e.detail.parameters.append(key, value);
+      }
+    }
+
+    return;
+  }
 });
 
 /*
@@ -104,6 +181,20 @@ document.body.addEventListener('htmx:beforeRequest', function(e) {
     if (!e.detail.requestConfig.parameters['crypto_address']) e.preventDefault();
     return
   }
+
+  /*
+  Sending a prepared transaction may take a few seconds, so we want to give as many
+  indicators to the user that everything is working well as possible.
+  */
+ if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
+    // Mark the cancel link button as disabled.
+    const cancelBtn = document.getElementById('cancelBtn');
+    cancelBtn.classList.add('disabled');
+
+    // Add an overlay to the modal body to indicate the transfer is being sent.
+    const overlay = document.getElementById('previewModalBodyOverlay');
+    overlay.classList.remove('d-none');
+ }
 });
 
 /*
@@ -131,7 +222,14 @@ document.body.addEventListener("htmx:responseError", (e) => {
 
   switch (e.detail.xhr.status) {
     case 400:
-      alert("warning", "Bad request", error.error);
+      if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
+        const modal = Modal.getInstance(previewModal);
+        modal.hide();
+
+        alert("danger", "Transfer failed", error.error);
+      } else {
+        alert("warning", "Bad request", error.error);
+      }
       break;
     case 404:
       if (isRequestFor(e, "/v1/accounts/lookup", "get")) {
@@ -149,4 +247,11 @@ document.body.addEventListener("htmx:responseError", (e) => {
     default:
       break;
   }
+});
+
+/*
+When the preview modal is closed, remove the modal body.
+*/
+previewModal.addEventListener('hidden.bs.modal', (e) => {
+  previewModal.querySelector('.modal-body').innerHTML = "";
 });

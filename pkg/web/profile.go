@@ -153,12 +153,13 @@ func (s *Server) DeleteProfile(c *gin.Context) {
 	// Success! Log the user out and redirect to the login page.
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
-	// Send the user to the login page
-	if c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) == binding.MIMEHTML {
+	// Send the user to the login page if this is an HTMX request
+	if htmx.IsHTMXRequest(c) {
 		htmx.Redirect(c, http.StatusFound, "/login")
 		return
 	}
 
+	// Otherwise respond with a JSON 200 message
 	c.JSON(http.StatusOK, &api.Reply{Success: true})
 }
 
@@ -233,12 +234,13 @@ func (s *Server) ChangeProfilePassword(c *gin.Context) {
 	// Success! Log the user out and redirect to the login page.
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
-	// Send the user to the login page
-	if c.NegotiateFormat(binding.MIMEHTML, binding.MIMEJSON) == binding.MIMEHTML {
+	// Send the user to the login page if this is an HTMX request
+	if htmx.IsHTMXRequest(c) {
 		htmx.Redirect(c, http.StatusFound, "/login")
 		return
 	}
 
+	// Otherwise respond with a JSON 200 message
 	c.JSON(http.StatusOK, &api.Reply{Success: true})
 }
 

@@ -23,12 +23,20 @@ htmx.defineExtension('json-enc', {
     // the form data and deserialize it by checking if it was a blob type (async).
     if (parameters instanceof FormData) {
       const obj = {};
-      for (const key of parameters.keys()) {
+      for (var key of parameters.keys()) {
+        // Get all values for this key if needed to pass them as an array.
         const values = parameters.getAll(key);
+
+        // If it starts with a json: prefix, then we need to parse it as JSON.
+        const isJSON = key.startsWith("json:");
+        if (isJSON) {
+          key = key.substring(5);
+        }
+
         if (values.length === 1) {
-          obj[key] = values[0];
+          obj[key] = isJSON ? JSON.parse(values[0]) : values[0];
         } else {
-          obj[key] = values;
+          obj[key] = values.map(value => isJSON ? JSON.parse(value) : value);
         }
       }
       return (JSON.stringify(obj));

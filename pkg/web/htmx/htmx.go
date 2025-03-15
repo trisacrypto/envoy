@@ -57,6 +57,7 @@ func Redirect(c *gin.Context, code int, location string) {
 	c.Redirect(code, location)
 }
 
+// Returns true if the request contains the HXRequest header.
 func IsHTMXRequest(c *gin.Context) bool {
 	return strings.ToLower(c.GetHeader(HXRequest)) == "true"
 }

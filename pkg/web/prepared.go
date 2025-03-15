@@ -2,12 +2,15 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
+	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -94,11 +97,18 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "transaction_preview.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/send/preview.html",
 	})
 }
 
 func (s *Server) SendPreparedTransaction(c *gin.Context) {
+	time.Sleep(1 * time.Second) // Simulate a delay for testing
+	if true {
+		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty, please try again later"))
+		return
+	}
+
 	var (
 		err     error
 		in      *api.Prepared
@@ -162,7 +172,7 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
 	if err = s.SendEnvelope(ctx, packet); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty"))
+		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty, please try again later"))
 		return
 	}
 
@@ -192,6 +202,13 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		return
 	}
 
+	// If this is a UI request, then redirect the user to the transaction detail page
+	if htmx.IsHTMXRequest(c) {
+		htmx.Redirect(c, http.StatusFound, "/transactions/"+packet.Transaction.ID.String())
+		return
+	}
+
+	// Send a JSON response back to the user.
 	// Send 200 or 201 depending on if the transaction was created or not.
 	var status int
 	if packet.DB.Created() {
@@ -200,9 +217,5 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		status = http.StatusOK
 	}
 
-	c.Negotiate(status, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_sent.html",
-	})
+	c.JSON(status, out)
 }

@@ -82,7 +82,8 @@ func (s *Server) SendTRPForm(c *gin.Context) {
 func (s *Server) SendSunriseForm(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["Protocol"] = "sunrise"
-	c.HTML(http.StatusOK, "pages/send/sunrise.html", ctx)
+	ctx["PageTitle"] = "Send a Sunrise Email"
+	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
 }
 
 func (s *Server) TransactionsAcceptPreview(c *gin.Context) {
@@ -106,7 +107,7 @@ func (s *Server) TransactionDetailPage(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["ID"] = c.Param("id")
 
-	c.HTML(http.StatusOK, "dashboard/transactions/detail.html", ctx)
+	c.HTML(http.StatusOK, "pages/transactions/detail.html", ctx)
 }
 
 //===========================================================================

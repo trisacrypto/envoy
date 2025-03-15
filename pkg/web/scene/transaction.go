@@ -22,6 +22,52 @@ type Transaction struct {
 }
 
 //===========================================================================
+// Scene Transaction Helpers
+//===========================================================================
+
+func (s Scene) TransactionsList() *TransactionList {
+	if data, ok := s[APIData]; ok {
+		if txns, ok := data.(*api.TransactionsList); ok {
+			out := &TransactionList{
+				Page:         txns.Page,
+				Transactions: make([]*Transaction, len(txns.Transactions)),
+			}
+
+			for i, txn := range txns.Transactions {
+				out.Transactions[i] = &Transaction{
+					Transaction: *txn,
+					Status:      Status(txn.Status),
+				}
+			}
+
+			return out
+		}
+	}
+	return nil
+}
+
+func (s Scene) TransactionDetail() *Transaction {
+	if data, ok := s[APIData]; ok {
+		if tx, ok := data.(*api.Transaction); ok {
+			return &Transaction{
+				Transaction: *tx,
+				Status:      Status(tx.Status),
+			}
+		}
+	}
+	return nil
+}
+
+func (s Scene) TransactionCounts() *models.TransactionCounts {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*models.TransactionCounts); ok {
+			return out
+		}
+	}
+	return nil
+}
+
+//===========================================================================
 // Status Helpers
 //===========================================================================
 

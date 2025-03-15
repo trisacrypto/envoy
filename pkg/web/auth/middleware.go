@@ -62,6 +62,13 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 		)
 
 		if claims, err = innerAuthenticate(c); err != nil {
+			// If this is an HTMX query to an API endpoint, redirect to login without
+			// the path as next because it's likely an API endpoint.
+			if htmx.IsHTMXRequest(c) {
+				htmx.Redirect(c, http.StatusFound, "/login")
+				c.Abort()
+			}
+
 			// Content Negotiation
 			switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
 			case binding.MIMEJSON:
@@ -74,8 +81,8 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 				params.Set("next", c.Request.URL.Path)
 				redirect := &url.URL{Path: "/login", RawQuery: params.Encode()}
 
-				c.Abort()
 				htmx.Redirect(c, http.StatusFound, redirect.String())
+				c.Abort()
 				return
 			default:
 				c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)

@@ -20,9 +20,18 @@ func TestIsAPIRequest(t *testing.T) {
 		{http.MethodGet, "/v1/users", map[string]string{"Accept": "application/json"}, require.True},
 		{http.MethodGet, "/v1/users", map[string]string{"Accept": "text/html"}, require.False},
 		{http.MethodGet, "/v1/users", map[string]string{"Accept": "application/yaml"}, require.False},
-		{http.MethodGet, "/v1/users", map[string]string{}, require.False},
+		{http.MethodGet, "/v1/users", map[string]string{}, require.True},
+		{http.MethodGet, "/v1/users", map[string]string{"Accept": "*/*"}, require.True},
+		{http.MethodGet, "/v1/users", map[string]string{"Accept": "*/*", "HX-Request": "true"}, require.False},
+		{http.MethodGet, "/v1/users", map[string]string{"Accept": "text/html", "HX-Request": "true"}, require.False},
+		{http.MethodGet, "/v1/users", map[string]string{"Accept": "application/json", "HX-Request": "true"}, require.False},
+		{http.MethodGet, "/v1/users", map[string]string{"Accept": "application/json", "HX-Request": "false"}, require.True},
 		{http.MethodGet, "/users", map[string]string{"Accept": "application/json"}, require.False},
 		{http.MethodGet, "/users", map[string]string{"Accept": "text/html"}, require.False},
+		{http.MethodGet, "/users", map[string]string{"Accept": "*/*"}, require.False},
+		{http.MethodGet, "/users", map[string]string{"Accept": "application/yaml"}, require.False},
+		{http.MethodGet, "/users", map[string]string{"Accept": "application/json", "HX-Request": "true"}, require.False},
+		{http.MethodGet, "/users", map[string]string{"Accept": "application/json", "HX-Request": "false"}, require.False},
 	}
 
 	for i, tc := range tests {
