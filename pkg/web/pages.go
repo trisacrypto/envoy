@@ -107,7 +107,7 @@ func (s *Server) TransactionDetailPage(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["ID"] = c.Param("id")
 
-	c.HTML(http.StatusOK, "dashboard/transactions/detail.html", ctx)
+	c.HTML(http.StatusOK, "pages/transactions/detail.html", ctx)
 }
 
 //===========================================================================

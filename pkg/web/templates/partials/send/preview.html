@@ -151,4 +151,32 @@
   </div>
   {{ end }}
 </div>
+
+<form id="sendPreparedForm" class="d-none"
+  hx-post="/v1/transactions/send-prepared"
+  hx-ext="json-enc"
+  hx-target="#previewModal"
+  hx-indicator="#previewModalLoader"
+  hx-swap="none"
+  hx-disabled-elt="next button[type='submit'], next button[type='button']"
+  >
+  <input type="hidden" name="travel_address" value="{{ .TravelAddress }}" />
+  <input type="hidden" name="json:identity" value="{{ .IdentityJSON }}" />
+  <input type="hidden" name="json:transaction" value="{{ .TransactionJSON }}" />
+</form>
+
+
+<div id="previewModalBodyOverlay" class="d-none bg-dark opacity-75 position-absolute top-0 start-0 w-100 h-100">
+  <div class="d-flex align-items-center w-100 h-100">
+    <div class="mx-auto">
+      <p class="text-white text-center fs-1 fw-semibold mb-0">Transfer sending &hellip;</p>
+      <p class="text-white text-center">This could take a few seconds.</p>
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border text-white" style="width: 2rem; height: 2rem;" role="status">
+          <span class="visually-hidden">Sending...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {{- end }}

@@ -39,9 +39,9 @@
         </div>
         <div id="previewModalBody" class="modal-body"></div>
         <div class="modal-footer">
-          <button id="sendBtn" type="button" class="btn btn-primary" hx-swap="none">Send</button>
-          <button type="button" class="btn btn-info" data-bs-dismiss="modal">Edit</button>
-          <a href="/transactions" class="btn btn-warning">Cancel</a>
+          <button id="sendBtn" type="submit" form="sendPreparedForm" class="btn btn-primary" hx-swap="none">Send</button>
+          <button id="editBtn" type="button" class="btn btn-info" data-bs-dismiss="modal">Edit</button>
+          <a id="cancelBtn" href="/transactions" class="btn btn-warning">Cancel</a>
         </div>
       </div>
     </div>

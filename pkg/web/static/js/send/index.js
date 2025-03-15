@@ -181,6 +181,20 @@ document.body.addEventListener('htmx:beforeRequest', function(e) {
     if (!e.detail.requestConfig.parameters['crypto_address']) e.preventDefault();
     return
   }
+
+  /*
+  Sending a prepared transaction may take a few seconds, so we want to give as many
+  indicators to the user that everything is working well as possible.
+  */
+ if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
+    // Mark the cancel link button as disabled.
+    const cancelBtn = document.getElementById('cancelBtn');
+    cancelBtn.classList.add('disabled');
+
+    // Add an overlay to the modal body to indicate the transfer is being sent.
+    const overlay = document.getElementById('previewModalBodyOverlay');
+    overlay.classList.remove('d-none');
+ }
 });
 
 /*

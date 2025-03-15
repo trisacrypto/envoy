@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"encoding/json"
+
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -74,4 +76,22 @@ func (s Prepared) BeneficiaryVASP() VASP {
 		return VASP{}
 	}
 	return makeVASP(s.identity.BeneficiaryVasp.BeneficiaryVasp.GetLegalPerson())
+}
+
+func (s Prepared) IdentityJSON() string {
+	if s.identity == nil {
+		return ""
+	}
+
+	data, _ := json.Marshal(s.identity)
+	return string(data)
+}
+
+func (s Prepared) TransactionJSON() string {
+	if s.transaction == nil {
+		return ""
+	}
+
+	data, _ := json.Marshal(s.transaction)
+	return string(data)
 }

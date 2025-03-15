@@ -121,9 +121,9 @@ func (s *Server) setupRoutes() (err error) {
 		transactions := ui.Group("/transactions")
 		{
 			transactions.GET("", s.TransactionsListPage)
+			transactions.GET("/:id", s.TransactionDetailPage)
 			transactions.GET("/:id/accept", s.TransactionsAcceptPreview)
 			transactions.GET("/:id/repair", s.TransactionsRepairPreview)
-			transactions.GET("/:id/info", s.TransactionDetailPage)
 		}
 
 		// Send Secure Message Forms
