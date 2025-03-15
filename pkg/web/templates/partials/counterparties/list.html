@@ -61,9 +61,11 @@
           <td><span class="item-protocol">{{ .Protocol }}</span></td>
           <td>
             {{- if and .VerifiedOn (not .VerifiedOn.IsZero) }}
-            <time class="item-date-added" datetime="{{ rfc3339 .VerifiedOn }}">{{ .VerifiedOn.Format "Jan 02, 2006" }}</time>
+            <span class="item-date-added d-none">{{ rfc3339 .VerifiedOn }}</span>
+            <time datetime="{{ rfc3339 .VerifiedOn }}">{{ .VerifiedOn.Format "Jan 02, 2006" }}</time>
             {{- else }}
-            <time class="item-date-added" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+            <span class="item-date-added d-none">{{ rfc3339 .Created }}</span>
+            <time datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
             {{- end }}
           </td>
           <td class="text-end">

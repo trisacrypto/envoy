@@ -54,10 +54,14 @@
         <tr>
           <td><span class="item-description">{{ .Description }}</span></td>
           <td><span class="item-client-id text-muted font-monospace ">{{ .ClientID }}</span></td>
-          <td><time class="item-date-created" datetime="2020-01-14">{{ .Created.Format "Jan 02, 2006" }}</time></td>
+          <td>
+            <span class="item-date-created d-none">{{ rfc3339 .Created }}</span>
+            <time datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+          </td>
           <td>
             {{- if.LastSeen }}
-            <time class="item-last-used" datetime="{{ rfc3339 .LastSeen }}">
+            <span class="item-last-used d-none">{{ rfc3339 .LastSeen }}</span>
+            <time datetime="{{ rfc3339 .LastSeen }}">
               {{ moment .LastSeen }}
             </time>
             {{- else }}
