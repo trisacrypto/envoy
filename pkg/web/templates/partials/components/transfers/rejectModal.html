@@ -1,0 +1,64 @@
+{{ define "rejectTransferModal" }}
+<div id="rejectTransferModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Reject Transfer</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="rejectAlerts"></div>
+        <form id="rejectForm" hx-post="/v1/transactions/{{ .ID }}/reject" hx-ext="json-enc" hx-swap="none" hx-indicator="#rejectLoader" hx-disabled-elt="next button[type='submit'], next button[type='button']">
+          <div class="form-group">
+            <label for="code" class="mb-1">Reason for Rejection</label>
+            <select id="code" name="code" class="form-control" required>
+              <option value="REJECTED">Rejected by Default</option>
+              <option value="UNKNOWN_WALLET_ADDRESS">Unknown Wallet Address</option>
+              <option value="UNKNOWN_IDENTITY">Unknown or Incorrect Identity Information</option>
+              <option value="UNKNOWN_ORIGINATOR">Unknown or Incorrect Originator</option>
+              <option value="UNKOWN_BENEFICIARY">Unknown or Incorrect Beneficiary</option>
+              <option value="UNSUPPORTED_NETWORK">Unsupported Virtual Asset</option>
+              <option value="EXCEEDED_TRADING_VOLUME">Trading Volume Exceeded</option>
+              <option value="COMPLIANCE_CHECK_FAIL">Compliance Check Failed</option>
+              <option value="NO_COMPLIANCE">Unable to determine Travel Rule Compliance</option>
+              <option value="HIGH_RISK">High Risk Transfer</option>
+              <option value="OUT_OF_NETWORK">Out of Network</option>
+              <option value="UNPARSEABLE_IDENTITY">Could not Parse Travel Rule Identities</option>
+              <option value="UNPARSEABLE_TRANSACTION">Could not Parse Transfer Information</option>
+              <option value="MISSING_FIELDS">Missing Required Transaction Fields</option>
+              <option value="INCOMPLETE_IDENTITY">Missing Required Identity Fields</option>
+              <option value="VALIDATION_ERROR">Invalid Fields</option>
+              <option value="COMPLIANCE_PERIOD_EXCEEDED">Review has Exceeded Compliance Period</option>
+              <option value="CANCELED">Cancel the Transfer</option>
+            </select>
+            <small class="form-text text-body-secondary mt-1">
+              Specify the error code to reject the transfer or request data repair.
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="message" class="mb-1">Message</label>
+            <textarea id="message" name="message" class="form-control" rows="3" placeholder="" required></textarea>
+            <small class="form-text text-body-secondary mt-1">
+              Specify a message to the counterparty compliance team.
+              For repair, please specify exactly what data is required for your
+              Travel Rule jurisdiction.
+            </small>
+          </div>
+          <div class="form-group">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="retry" name="retry">
+              <label class="form-check-label" for="retry">Request Repair <i class="fe fe-info ms-2" title="Toggle on to send a repair message to the originating VASP indicating their compliance team should try again if more information is required or something went wrong while handling the travel rule information exchange." data-bs-toggle="tooltip" data-bs-placement="right"></i></label>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span id="rejectLoader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" form="rejectForm" class="btn btn-danger">Reject</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}
