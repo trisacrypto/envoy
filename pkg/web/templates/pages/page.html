@@ -9,6 +9,7 @@
     <div class="container-fluid">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
+          {{- block "page-content" . }}
           {{- block "header" . }}
           <div class="header mt-md-5">
             <div class="header-body">
@@ -22,17 +23,17 @@
 
                   <!-- Title -->
                   <h1 class="header-title">
-                    {{ block "pagetitle" . }}Dashboard{{ end }}
+                    {{ block "pagetitle" . }}Blank Page{{ end }}
                   </h1>
 
                 </div>
+                {{- block "header-actions" . }}{{ end }}
               </div> <!-- / .row -->
-              {{- block "tabs" . }}
-              {{- end }}
+              {{- block "tabs" . }}{{ end }}
             </div>
-          </div>
+        </div>
           {{- end }}
-          {{- block "main" . }}
+          {{- block "main" . }}{{ end }}
           {{- end }}
         </div><!-- / center .col12 -->
       </div><!-- / center .row -->

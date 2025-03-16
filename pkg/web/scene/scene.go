@@ -232,6 +232,15 @@ func (s Scene) APIKeyDetail() *api.APIKey {
 	return nil
 }
 
+func (s Scene) EnvelopeList() *api.EnvelopesList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.EnvelopesList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) Envelope() *api.Envelope {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.Envelope); ok {

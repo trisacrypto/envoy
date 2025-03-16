@@ -134,7 +134,6 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	var (
 		err           error
 		transactionID uuid.UUID
-		query         *api.TransactionQuery
 		transaction   *models.Transaction
 		out           *api.Transaction
 	)
@@ -142,14 +141,6 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 	// Parse the transactionID passed in from the URL
 	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	// Parse the transaction query
-	query = &api.TransactionQuery{}
-	if err = c.BindQuery(query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse transaction query in request"))
 		return
 	}
 
@@ -170,22 +161,10 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 		return
 	}
 
-	// Determine the HTML template to use based on the query
-	var template string
-	switch query.Detail {
-	case api.DetailFull:
-		template = "transaction_detail.html"
-	case api.DetailPreview:
-		template = "transaction_info.html"
-	default:
-		c.Error(fmt.Errorf("unhandled detail query '%q'", query.Detail))
-		template = "transaction_detail.html"
-	}
-
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: template,
+		HTMLName: "partials/transactions/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -1129,7 +1108,8 @@ func (s *Server) ListSecureEnvelopes(c *gin.Context) {
 	c.Negotiate(code, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "secure_envelope_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/transactions/envelopes.html",
 	})
 }
 

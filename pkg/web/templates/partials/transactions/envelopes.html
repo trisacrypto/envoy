@@ -1,0 +1,18 @@
+{{ with .EnvelopeList }}
+<div class="mb-3 border-bottom border-light">
+    <h2>Secure Envelopes</h2>
+</div>
+
+{{- if .SecureEnvelopes }}
+  <ul>
+  {{- range .SecureEnvelopes }}
+    <li class="font-monospace">{{ .ID }}</li>
+  {{- end }}
+  </ul>
+{{- end }}
+
+{{- if .DecryptedEnvelopes }}
+<!-- No decrypted envelope templates yet. -->
+{{ end }}
+
+{{- end }}
