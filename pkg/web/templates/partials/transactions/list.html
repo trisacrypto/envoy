@@ -156,9 +156,13 @@
           <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
           <td class="item-amount">{{ .Amount }}</td>
           <td>
-            <span class="item-last-update d-none">{{ rfc3339 .Modified }}</span>
-            <time datetime="{{ rfc3339 .Modified }}">
-              {{ moment .Modified }}
+            {{ $lastUpdate := .LastUpdate }}
+            {{ if not $lastUpdate }}
+              {{ $lastUpdate = .Modified }}
+            {{ end }}
+            <span class="item-last-update d-none">{{ rfc3339 $lastUpdate }}</span>
+            <time datetime="{{ rfc3339 $lastUpdate }}">
+              {{ moment $lastUpdate }}
             </time>
           </td>
           <td class="text-end">

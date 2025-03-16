@@ -78,7 +78,7 @@
           <dt class="col-4">Initiated</dt>
           <dd class="col-8">{{ .Created.Format "Jan 2, 2006 at 15:04" }}</dd>
           <dt class="col-4">Last Update</dt>
-          <dd class="col-8">{{ moment .Modified }}</dd>
+          <dd class="col-8">{{ if .LastUpdate }}{{ moment .LastUpdate }}{{ else }}&mdash;{{ end }}</dd>
         </dl>
       </div>
     </div>
@@ -89,7 +89,7 @@
         {{- if not .Archived }}
         {{- if and .Status.Review $canEditTransfers }}
         <button class="btn btn-success"><i class="fe fe-check-square"></i> Accept</button>
-        <button class="btn btn-danger"><i class="fe fe-x-square"></i> Reject</button>
+        <a href="#!" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectTransferModal"><i class="fe fe-x-square"></i> Reject</a>
         {{- end }}
         {{- if and .Status.Repair $canEditTransfers }}
         <button class="btn btn-warning"><i class="fe fe-tool"></i> Repair</button>
@@ -112,4 +112,8 @@
       </div>
   </div>
 </div>
+
+{{- if and (not .Archived) (and .Status.Review $canEditTransfers) }}
+  {{- template "rejectTransferModal" . }}
+{{- end }}
 {{ end }}
