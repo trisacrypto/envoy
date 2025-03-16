@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
@@ -104,9 +105,17 @@ func (s *Server) TransactionsRepairPreview(c *gin.Context) {
 
 func (s *Server) TransactionDetailPage(c *gin.Context) {
 	// Get the transaction ID from the URL path and make available to the template.
-	ctx := scene.New(c)
-	ctx["ID"] = c.Param("id")
+	// The transaction detail is loaded using htmx.
+	txID := c.Param("id")
 
+	// Validate that the transaction ID is a valid UUID.
+	if _, err := uuid.Parse(txID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = txID
 	c.HTML(http.StatusOK, "pages/transactions/detail.html", ctx)
 }
 

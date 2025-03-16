@@ -1,0 +1,115 @@
+{{- $canEditTransfers := not .IsViewOnly -}}
+{{ with .TransactionDetail }}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Transfer Detail</h6>
+        <h1 class="header-title">
+          {{- if eq .Source "local" -}}
+          Transfer sent to {{ .Counterparty }}
+          {{- else if eq .Source "remote" -}}
+          Transfer received from {{ .Counterparty }}
+          {{- else -}}
+          Transfer with {{ .Counterparty }}
+          {{- end -}}
+        </h1>
+      </div>
+      <div class="col-auto">
+        <span class='badge bg-{{ .Status.Color }}{{ if eq .Status "accepted" }}  bg-opacity-75{{ end }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ .Status }}</span>
+        {{- if .Archived }}
+        <span class="badge bg-secondary">Archived</span>
+        {{- end }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col">
+        <h4 class="card-title">Transfer ID: <span class="text-muted font-monospace ms-1">{{ .ID }}</span></h4>
+      </div>
+      <div class="col-auto">
+        {{- if eq .Source "remote" }}
+        <i class="fe fe-download has-tooltip" title="Incoming message received from counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+        {{- else if eq .Source "local" }}
+        <i class="fe fe-upload has-tooltip" title="Outgoing message sent to counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+        {{- else }}
+        <i class="fe fe-help-question has-tooltip" title="Unknown message source" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+        {{- end }}
+        {{- if not .Archived }}
+        {{- if or .Status.ActionRequired }}
+        <i class="fe fe-alert-circle has-tooltip" title="Action required by your compliance team" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+        {{- else if .Status.Wait }}
+        <i class="fe fe-pause-circle has-tooltip" title="Awaiting activity by counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+        {{- end }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-lg-7">
+        <h3>Transfer Details</h3>
+        <dl class="row">
+          <dt class="col-4">Originator</dt>
+          <dd class="col-8">{{ .Originator }}<br /><small class="text-muted">{{ .OriginatorAddress }}</small></dd>
+          <dt class="col-4">Beneficiary</dt>
+          <dd class="col-8">{{ .Beneficiary }}<br /><small class="text-muted">{{ .BeneficiaryAddress }}</small></dd>
+          <dt class="col-4">Counterparty</dt>
+          <dd class="col-8"><a href="/counterparties/{{ .CounterpartyID }}">{{ .Counterparty }}</a></dd>
+          <dt class="col-4">Amount</dt>
+          <dd class="col-8">{{ .Amount }}</dd>
+          <dt class="col-4">Virtual Asset</dt>
+          <dd class="col-8">{{ .VirtualAsset }}</dd>
+        </dl>
+      </div>
+      <div class="col-lg-5 mt-4 mt-lg-0">
+        <h3>Message Details</h3>
+        <dl class="row">
+          <dt class="col-4">Source</dt>
+          <dd class="col-8">{{ if eq .Source "local" }}Outgoing{{ else if eq .Source "remote" }}Incoming{{ else }}Unknown{{ end }}</dd>
+          <dt class="col-4">Envelopes</dt>
+          <dd class="col-8">{{ .EnvelopeCount }}</dd>
+          <dt class="col-4">Status</dt>
+          <dd class="col-8">{{ .Status }}</dd>
+          <dt class="col-4">Initiated</dt>
+          <dd class="col-8">{{ .Created.Format "Jan 2, 2006 at 15:04" }}</dd>
+          <dt class="col-4">Last Update</dt>
+          <dd class="col-8">{{ moment .Modified }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="row">
+      <div class="col">
+        {{- if not .Archived }}
+        {{- if and .Status.Review $canEditTransfers }}
+        <button class="btn btn-success"><i class="fe fe-check-square"></i> Accept</button>
+        <button class="btn btn-danger"><i class="fe fe-x-square"></i> Reject</button>
+        {{- end }}
+        {{- if and .Status.Repair $canEditTransfers }}
+        <button class="btn btn-warning"><i class="fe fe-tool"></i> Repair</button>
+        {{- end }}
+        {{- end}}
+      </div>
+      <div class="col-auto">
+        {{- if $canEditTransfers }}
+        {{- if .Archived }}
+        <button class="btn btn-secondary" hx-post="/v1/transactions/{{ .ID }}/unarchive" hx-trigger="click" hx-target="this" hx-swap="none">
+          <i class="fe fe-archive"></i> Unarchive
+        </button>
+        {{- else }}
+        <button class="btn btn-secondary" hx-post="/v1/transactions/{{ .ID }}/archive" hx-trigger="click" hx-target="this" hx-swap="none">
+          <i class="fe fe-archive"></i> Archive
+        </button>
+        {{- end }}
+        {{- end }}
+        <a href="/transactions" class="btn btn-primary"><i class="fe fe-inbox"></i> Back</a>
+      </div>
+  </div>
+</div>
+{{ end }}

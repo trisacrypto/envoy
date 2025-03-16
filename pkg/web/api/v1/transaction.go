@@ -51,10 +51,6 @@ type Transaction struct {
 	Modified           time.Time  `json:"modified"`
 }
 
-type TransactionQuery struct {
-	Detail string `json:"detail" url:"detail,omitempty" form:"detail"`
-}
-
 type SecureEnvelope struct {
 	ID                  ulid.ULID    `json:"id"`
 	EnvelopeID          uuid.UUID    `json:"envelope_id"`
@@ -600,21 +596,8 @@ func (e *Envelope) TransactionPayload() *generic.Transaction {
 }
 
 //===========================================================================
-// Transaction Query
+// Transaction Queries
 //===========================================================================
-
-func (q *TransactionQuery) Validate() (err error) {
-	// Handle parsing and default values
-	q.Detail = strings.ToLower(strings.TrimSpace(q.Detail))
-	if q.Detail == "" {
-		q.Detail = DetailFull
-	}
-
-	if q.Detail != DetailFull && q.Detail != DetailPreview {
-		err = ValidationError(err, IncorrectField("detail", "should either be 'full' or 'preview'"))
-	}
-	return err
-}
 
 func (q *TransactionListQuery) Validate() (err error) {
 	if len(q.Status) > 0 {

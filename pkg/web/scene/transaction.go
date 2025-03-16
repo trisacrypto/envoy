@@ -150,3 +150,19 @@ func (s Status) Tooltip() string {
 		panic(fmt.Errorf("unhandled tooltip for status %q", s))
 	}
 }
+
+func (s Status) Review() bool {
+	return s == models.StatusReview
+}
+
+func (s Status) Repair() bool {
+	return s == models.StatusRepair
+}
+
+func (s Status) ActionRequired() bool {
+	return s == models.StatusReview || s == models.StatusRepair || s == models.StatusDraft
+}
+
+func (s Status) Wait() bool {
+	return s == models.StatusPending
+}
