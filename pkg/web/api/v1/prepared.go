@@ -71,9 +71,10 @@ type Transfer struct {
 //===========================================================================
 
 func (r *Routing) Validate() (err error) {
+	// NOTE: this check must be first because of the use of the shadowed err variable.
 	var protocol enum.Protocol
 	if protocol, err = enum.ParseProtocol(r.Protocol); err != nil || protocol == enum.ProtocolUnknown {
-		err = ValidationError(err, IncorrectField("routing.protocol", "unknown protocol"))
+		err = ValidationError(nil, IncorrectField("routing.protocol", "unknown protocol"))
 	}
 
 	// Trim whitespace in strings
@@ -86,6 +87,10 @@ func (r *Routing) Validate() (err error) {
 		// For TRISA either the travel address or the counterparty ID must be set
 		if r.TravelAddress == "" && r.CounterpartyID.IsZero() {
 			err = ValidationError(err, OneOfMissing("routing.travel_address", "routing.counterparty_id"))
+		}
+
+		if r.TravelAddress != "" && !r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfTooMany("routing.travel_address", "routing.counterparty_id"))
 		}
 
 		if r.Counterparty != "" {
@@ -118,9 +123,15 @@ func (r *Routing) Validate() (err error) {
 			err = ValidationError(err, OneOfMissing("routing.email", "routing.counterparty_id"))
 		}
 
+		if r.EmailAddress != "" && !r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfTooMany("routing.email", "routing.counterparty_id"))
+		}
+
 		// Validate the email address can be parsed correctly
-		if _, perr := mail.ParseAddress(r.EmailAddress); perr != nil {
-			err = ValidationError(err, IncorrectField("routing.email", perr.Error()))
+		if r.EmailAddress != "" {
+			if _, perr := mail.ParseAddress(r.EmailAddress); perr != nil {
+				err = ValidationError(err, IncorrectField("routing.email", perr.Error()))
+			}
 		}
 
 		if r.TravelAddress != "" {
@@ -136,8 +147,8 @@ func (p *Prepare) Validate() (err error) {
 	if p.Routing == nil {
 		err = ValidationError(err, MissingField("routing"))
 	} else {
-		if err = p.Routing.Validate(); err != nil {
-			err = ValidationError(err, err.(ValidationErrors)...)
+		if verr := p.Routing.Validate(); verr != nil {
+			err = ValidationError(err, verr.(ValidationErrors)...)
 		}
 	}
 

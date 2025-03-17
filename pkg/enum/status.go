@@ -25,8 +25,10 @@ var statusNames [8]string = [...]string{
 }
 
 func ValidStatus(s interface{}) bool {
-	_, err := ParseStatus(s)
-	return err == nil
+	if p, err := ParseStatus(s); err != nil || p > StatusRejected {
+		return false
+	}
+	return true
 }
 
 func CheckStatus(s interface{}, targets ...Status) (_ bool, err error) {

@@ -23,8 +23,10 @@ var sourceNames [6]string = [...]string{
 }
 
 func ValidSource(s interface{}) bool {
-	_, err := ParseSource(s)
-	return err == nil
+	if p, err := ParseSource(s); err != nil || p > SourceRemote {
+		return false
+	}
+	return true
 }
 
 func CheckSource(s interface{}, targets ...Source) (_ bool, err error) {

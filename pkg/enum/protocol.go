@@ -21,8 +21,10 @@ var protocolNames [4]string = [...]string{
 }
 
 func ValidProtocol(s interface{}) bool {
-	_, err := ParseProtocol(s)
-	return err == nil
+	if p, err := ParseProtocol(s); err != nil || p > ProtocolSunrise {
+		return false
+	}
+	return true
 }
 
 func ParseProtocol(s interface{}) (Protocol, error) {
