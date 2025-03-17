@@ -5,7 +5,7 @@ Application code for the send TRISA/TRP forms.
 import { isRequestFor } from '../htmx/helpers.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
-import { selectTRISATravelAddress, createFlatpickr } from '../modules/components.js';
+import { selectTRISACounterparty, createFlatpickr } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
 const previewModal = document.getElementById('previewModal');
@@ -58,9 +58,9 @@ function initializeChoices(elem) {
 initializeChoices(document);
 
 // Initialize the TRISA VASP Selection choices.
-const vaspSelect = document.getElementById('trisaTravelAddress');
+const vaspSelect = document.getElementById('routingCounterpartyID');
 if (vaspSelect)  {
-  selectTRISATravelAddress(vaspSelect);
+  selectTRISACounterparty(vaspSelect);
 }
 
 /*
@@ -95,7 +95,7 @@ document.body.addEventListener('htmx:configRequest', function(e) {
     const formData = new FormData(form);
 
     const data = {
-      "travel_address": "",
+      "routing": {},
       "originator": {
         "identification": {},
         "addresses": []
@@ -110,12 +110,6 @@ document.body.addEventListener('htmx:configRequest', function(e) {
     formData.entries().forEach(([key, value]) => {
       // Skip keys from nested forms or choices.
       if (key == "search_terms") return;
-
-      // The only top level key is the travel address.
-      if (key == "travel_address") {
-        data.travel_address = value;
-        return;
-      }
 
       // Find the prefix to nest the object under.
       const prefix = key.split("_", 1)[0];
@@ -220,12 +214,14 @@ document.body.addEventListener("htmx:responseError", (e) => {
   const error = JSON.parse(e.detail.xhr.response);
   console.error(e.detail.requestConfig.path, error.error);
 
+  const modal = Modal.getInstance(previewModal);
+  if (modal) {
+    modal.hide();
+  }
+
   switch (e.detail.xhr.status) {
     case 400:
       if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
-        const modal = Modal.getInstance(previewModal);
-        modal.hide();
-
         alert("danger", "Transfer failed", error.error);
       } else {
         alert("warning", "Bad request", error.error);
@@ -237,6 +233,9 @@ document.body.addEventListener("htmx:responseError", (e) => {
         break;
       }
       alert("info", "Not Found", error.error);
+      break;
+    case 409:
+      alert("warning", "Conflict", error.error);
       break;
     case 422:
       alert("warning", "Validation error", error.error);

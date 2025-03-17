@@ -160,7 +160,7 @@
   hx-swap="none"
   hx-disabled-elt="next button[type='submit'], next button[type='button']"
   >
-  <input type="hidden" name="travel_address" value="{{ .TravelAddress }}" />
+  <input type="hidden" name="json:routing" value="{{ .RoutingJSON }}" />
   <input type="hidden" name="json:identity" value="{{ .IdentityJSON }}" />
   <input type="hidden" name="json:transaction" value="{{ .TransactionJSON }}" />
 </form>

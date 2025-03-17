@@ -46,10 +46,10 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 		return
 	}
 
-	// Parse the TravelAddress to identify the beneficiary VASP and lookup the
+	// Parse the routing object to identify the beneficiary VASP and lookup the
 	// counterparty in the local database for IVMS101 information if any.
-	// TODO: identify beneficiary VASP using routing mechanism
-	if beneficiaryVASP, err = s.CounterpartyFromTravelAddress(c, in.Routing.TravelAddress); err != nil {
+	// If this is a sunrise message, the counterparty is created if necessary.
+	if beneficiaryVASP, err = s.ResolveCounterparty(c, in.Routing); err != nil {
 		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
 		return
 	}

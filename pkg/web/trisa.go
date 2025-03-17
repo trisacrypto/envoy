@@ -4,15 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/postman"
-	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
-	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
@@ -115,62 +110,6 @@ func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.TRISAPacket) 
 	}
 
 	return nil
-}
-
-func (s *Server) CounterpartyFromTravelAddress(c *gin.Context, address string) (cp *models.Counterparty, err error) {
-	var (
-		dst    string
-		dstURI *traddr.URL
-	)
-
-	if dst, err = traddr.Decode(address); err != nil {
-		c.Error(fmt.Errorf("could not decode travel address %q: %w", address, err))
-		c.JSON(http.StatusBadRequest, api.Error("could not parse the travel address"))
-		return nil, err
-	}
-
-	if dstURI, err = traddr.Parse(dst); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse travel address url"))
-		return nil, err
-	}
-
-	if cp, err = s.findCounterparty(c.Request.Context(), dstURI); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.Error(fmt.Errorf("could not identify counterparty for %s or %s", dstURI.Hostname(), dstURI.Host))
-			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from travel address"))
-			return nil, err
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
-		return nil, err
-	}
-
-	return cp, nil
-}
-
-func (s *Server) findCounterparty(ctx context.Context, uri *traddr.URL) (cp *models.Counterparty, err error) {
-	// Lookup counterparty by hostname first (e.g. the common name).
-	if cp, err = s.store.LookupCounterparty(ctx, models.FieldCommonName, uri.Hostname()); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			// If we couldn't find it, try again by endpoint
-			// NOTE: this is primarily to assist with lookups for localhost where the
-			// port number is the only differentiating aspect of the node.
-			if cp, err = s.store.LookupCounterparty(ctx, models.FieldCommonName, uri.Host); err != nil {
-				return nil, dberr.ErrNotFound
-			}
-
-			// Found! Short-circuit the error handling by returning early!
-			return cp, err
-		}
-
-		// Return the internal error
-		return nil, err
-	}
-
-	// Found on first try!
-	return cp, nil
 }
 
 func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err error) {

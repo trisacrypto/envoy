@@ -64,9 +64,7 @@ func (s *Server) SendSunrise(c *gin.Context) {
 	}
 
 	// Get or create the counterparty for the associated email address
-	if beneficiaryVASP, err = s.store.GetOrCreateSunriseCounterparty(c.Request.Context(), in.Routing.EmailAddress, in.Routing.Counterparty); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
+	if beneficiaryVASP, err = s.ResolveCounterparty(c, in.Routing); err != nil {
 		return
 	}
 

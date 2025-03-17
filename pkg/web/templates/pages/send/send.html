@@ -74,36 +74,45 @@
     <h2>Select Counterparty</h2>
     {{ if eq .Protocol "trisa" }}
     <div class="form-group">
-      <label class="form-label mb-1" for="trisaTravelAddress">Search for TRISA Member</label>
+      <label class="form-label mb-1" for="routingCounterpartyID">Search for TRISA Member</label>
       <small class="form-text text-body-secondary">
         All TRISA VASPs are registered in the TRISA Directory (GDS).
       </small>
-      <select class="form-control" id="trisaTravelAddress" name="travel_address" data-travel-address='{"searchEnabled": true, "allowHTML": false, "searchPlaceholderValue": "Search for a TRISA Counterparty"}' required>
+      <select class="form-control" id="routingCounterpartyID" name="routing_counterparty_id" data-counterparty-lookup='{"searchEnabled": true, "allowHTML": false, "searchPlaceholderValue": "Search for a TRISA Counterparty"}' required>
         <option value="">Search for a TRISA Counterparty</option>
       </select>
     </div>
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="trisa">
     {{ else if eq .Protocol "sunrise" }}
     <div class="form-group">
-      <label class="form-label mb-1" for="email">Counterparty Name</label>
+      <label class="form-label mb-1" for="routingCounterparty">Counterparty Name</label>
       <small class="form-text text-body-secondary">
         The name of the VASP or CASP your account holder is transfering funds through.
       </small>
-      <input type="text" class="form-control" id="counterparty" name="counterparty" placeholder="Business Legal Name" required>
+      <input type="text" class="form-control" id="routingCounterparty" name="routing_counterparty" placeholder="Business Legal Name">
     </div>
     <div class="form-group">
-      <label class="form-label mb-1" for="email">Compliance Email Address</label>
+      <label class="form-label mb-1" for="routingEmail">Compliance Email Address</label>
       <small class="form-text text-body-secondary">
         Email address of the compliance team at the counterparty VASP.
       </small>
-      <input type="text" class="form-control" id="email" name="email" placeholder="Full Name <email@address.com>" required>
+      <input type="text" class="form-control" id="routingEmail" name="routing_email" placeholder="Full Name <email@address.com>" required>
     </div>
-    {{ else }}
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="sunrise">
+    {{ else if eq .Protocol "trp" }}
     <div class="form-group">
-      <label class="form-label mb-1" for="trpTravelAddress">Travel Address</label>
+      <label class="form-label mb-1" for="routingTravelAddress">Travel Address</label>
       <small class="form-text text-body-secondary">
         TRP transfers require a travel address received from your account holder.
       </small>
-      <input type="text" class="form-control" id="trpTravelAddress" name="travel_address" placeholder="TRP Travel Address" required>
+      <input type="text" class="form-control" id="routingTravelAddress" name="routing_travel_address" placeholder="TRP Travel Address" required>
+    </div>
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="trp">
+    {{ else }}
+    <div class="alerts p-5">
+      <div class="alert alert-danger fade show" role="alert">
+        <strong>Unsupported Protocol!</strong> Unable to determine what protocol to use to select the counterparty.
+      </div>
     </div>
     {{ end}}
   </fieldset><!-- end choose counterparty -->
