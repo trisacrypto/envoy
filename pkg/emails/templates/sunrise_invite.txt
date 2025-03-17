@@ -20,3 +20,9 @@ Thank you,
 {{ .ComplianceName }}
 Powered by TRISA Envoy
 https://trisa.io
+
+This email and any attachments are intended solely for the Compliance & Travel Rule team of the designated CASP/VASP to which it is addressed and may contain confidential or privileged information.
+
+If you are not the intended recipient, please refrain from reading, copying, or distributing this message. Instead, notify the sender immediately and delete it from your system.
+
+Any unauthorized use or disclosure is strictly prohibited.
