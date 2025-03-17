@@ -1,8 +1,7 @@
 package scene
 
 import (
-	"fmt"
-
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"golang.org/x/text/cases"
@@ -36,7 +35,7 @@ func (s Scene) TransactionsList() *TransactionList {
 			for i, txn := range txns.Transactions {
 				out.Transactions[i] = &Transaction{
 					Transaction: *txn,
-					Status:      Status(txn.Status),
+					Status:      NewStatus(txn.Status),
 				}
 			}
 
@@ -51,7 +50,7 @@ func (s Scene) TransactionDetail() *Transaction {
 		if tx, ok := data.(*api.Transaction); ok {
 			return &Transaction{
 				Transaction: *tx,
-				Status:      Status(tx.Status),
+				Status:      NewStatus(tx.Status),
 			}
 		}
 	}
@@ -73,7 +72,12 @@ func (s Scene) TransactionCounts() *models.TransactionCounts {
 
 // Status wraps a Transaction status to provide additional information such as class,
 // tooltip, color, icons, etc for the UI.
-type Status string
+type Status struct {
+	text    string
+	value   enum.Status
+	Color   string
+	Tooltip string
+}
 
 const (
 	colorUnspecified   = "secondary"
@@ -101,68 +105,70 @@ const (
 	tooltipRejected = "The TRISA exchange is rejected and no on-chain transaction should proceed."
 )
 
+func NewStatus(text string) Status {
+	status := Status{
+		text: text,
+	}
+
+	var err error
+	if status.value, err = enum.ParseStatus(text); err != nil {
+		panic(err)
+	}
+
+	switch status.value {
+	case enum.StatusUnspecified:
+		status.Color = colorUnspecified
+		status.Tooltip = tooltipUnspecified
+	case enum.StatusDraft:
+		status.Color = colorDraft
+		status.Tooltip = tooltipDraft
+	case enum.StatusPending:
+		status.Color = colorPending
+		status.Tooltip = tooltipPending
+	case enum.StatusReview:
+		status.Color = colorReview
+		status.Tooltip = tooltipReview
+	case enum.StatusRepair:
+		status.Color = colorRepair
+		status.Tooltip = tooltipRepair
+	case enum.StatusAccepted:
+		status.Color = colorAccepted
+		status.Tooltip = tooltipAccepted
+	case enum.StatusCompleted:
+		status.Color = colorCompleted
+		status.Tooltip = tooltipCompleted
+	case enum.StatusRejected:
+		status.Color = colorRejected
+		status.Tooltip = tooltipRejected
+	}
+
+	return status
+}
+
 func (s Status) String() string {
-	return cases.Title(language.English).String(string(s))
+	return cases.Title(language.English).String(s.text)
 }
 
-func (s Status) Color() string {
-	switch s {
-	case models.StatusUnspecified, "":
-		return colorUnspecified
-	case models.StatusDraft:
-		return colorDraft
-	case models.StatusPending:
-		return colorPending
-	case models.StatusReview:
-		return colorReview
-	case models.StatusRepair:
-		return colorRepair
-	case models.StatusAccepted:
-		return colorAccepted
-	case models.StatusCompleted:
-		return colorCompleted
-	case models.StatusRejected:
-		return colorRejected
-	default:
-		panic(fmt.Errorf("unhandled color for status %q", s))
+func (s Status) Opacity() string {
+	if s.value == enum.StatusAccepted {
+		return "bg-opacity-75"
 	}
-}
-
-func (s Status) Tooltip() string {
-	switch s {
-	case models.StatusUnspecified, "":
-		return tooltipUnspecified
-	case models.StatusDraft:
-		return tooltipDraft
-	case models.StatusPending:
-		return tooltipPending
-	case models.StatusReview:
-		return tooltipReview
-	case models.StatusRepair:
-		return tooltipRepair
-	case models.StatusAccepted:
-		return tooltipAccepted
-	case models.StatusCompleted:
-		return tooltipCompleted
-	case models.StatusRejected:
-		return tooltipRejected
-	default:
-		panic(fmt.Errorf("unhandled tooltip for status %q", s))
-	}
+	return ""
 }
 
 func (s Status) Review() bool {
-	return s == models.StatusReview
+	return s.value == enum.StatusReview
 }
 
 func (s Status) Repair() bool {
-	return s == models.StatusRepair
+	return s.value == enum.StatusRepair
 }
 
 func (s Status) ActionRequired() bool {
-	return s == models.StatusReview || s == models.StatusRepair || s == models.StatusDraft
+	ok, _ := enum.CheckStatus(s, enum.StatusReview, enum.StatusRepair, enum.StatusDraft)
+	return ok
 }
 
 func (s Status) Wait() bool {
-	return s == models.StatusPending
+	return s.value == enum.StatusPending
 }

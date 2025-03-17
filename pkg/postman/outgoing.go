@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
 
@@ -77,7 +78,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 	if o.model == nil {
 		se := o.Proto()
 		o.model = &models.SecureEnvelope{
-			Direction:     models.DirectionOutgoing,
+			Direction:     enum.DirectionOutgoing,
 			Remote:        o.packet.Remote(),
 			ReplyTo:       ulid.NullULID{},
 			IsError:       o.Envelope.IsError(),
@@ -113,7 +114,7 @@ func (o *Outgoing) Model() *models.SecureEnvelope {
 		o.model.Timestamp, _ = o.Envelope.Timestamp()
 
 		// This assumes that the incoming model has already been created!
-		if o.packet.reply == DirectionOutgoing {
+		if o.packet.reply == enum.DirectionOutgoing {
 			o.model.ReplyTo = ulid.NullULID{
 				Valid: true, ULID: o.packet.In.Model().ID,
 			}
@@ -137,7 +138,7 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 	// If the transaction is new and being created by the local node add the
 	// counterparty and source; otherwise make sure the same counterparty is involved.
 	// TODO: make sure it's the same counterparty or return an error.
-	if o.packet.DB.Created() && o.packet.request == DirectionOutgoing {
+	if o.packet.DB.Created() && o.packet.request == enum.DirectionOutgoing {
 		// Add the transaction details from the payload of the outgoing message
 		if payload := o.Envelope.FindPayload(); payload != nil {
 			o.packet.Transaction = TransactionFromPayload(payload)
@@ -148,7 +149,7 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 		}
 
 		// Also update the transaction source as local if this is the request
-		o.packet.Transaction.Source = models.SourceLocal
+		o.packet.Transaction.Source = enum.SourceLocal
 	}
 
 	// Update the status and last update on the transaction
@@ -210,8 +211,8 @@ func (o *Outgoing) reseal(storageKey keys.PublicKey, sec crypto.Crypto) (err err
 // StatusFromTransferState determines what the status should be based on the outgoing
 // message transfer state. For example, if the outgoing transfer state is pending, then
 // the Transfer should be marked as needing review.
-func (o *Outgoing) StatusFromTransferState() string {
-	if o.packet.reply == DirectionOutgoing {
+func (o *Outgoing) StatusFromTransferState() enum.Status {
+	if o.packet.reply == enum.DirectionOutgoing {
 		// If this is a reply to an incoming packet and the response is Pending, then
 		// we need to determine what state the incoming message was in to determine
 		// what pending action needs to be completed.
@@ -225,11 +226,11 @@ func (o *Outgoing) StatusFromTransferState() string {
 			// If we were sent started or review, then review action needs to be taken.
 			// Also in the case of an unspecified transfer state, we will review.
 			case api.TransferStateUnspecified, api.TransferStarted, api.TransferReview:
-				return models.StatusReview
+				return enum.StatusReview
 
 			// If we were sent a repair request, then we need to make a repair.
 			case api.TransferRepair:
-				return models.StatusRepair
+				return enum.StatusRepair
 
 			// If the incoming message is pending, we should have sent back review.
 			// If the incoming messages is accepted, completed, or rejected, we should
@@ -240,15 +241,15 @@ func (o *Outgoing) StatusFromTransferState() string {
 
 		// If we're sending review or repair, we're waiting for the recipient to take action
 		case api.TransferReview, api.TransferRepair:
-			return models.StatusPending
+			return enum.StatusPending
 
 		// These are the echo back statuses; we assume the incoming message matches.
 		case api.TransferAccepted:
-			return models.StatusAccepted
+			return enum.StatusAccepted
 		case api.TransferCompleted:
-			return models.StatusCompleted
+			return enum.StatusCompleted
 		case api.TransferRejected:
-			return models.StatusRejected
+			return enum.StatusRejected
 		default:
 			panic(fmt.Errorf("unhandled outgoing transfer state %q for reply to incoming message", ts.String()))
 		}
@@ -258,21 +259,21 @@ func (o *Outgoing) StatusFromTransferState() string {
 	// then will be overridden depending on the state of the incoming reply to our message.
 	switch ts := o.Envelope.TransferState(); ts {
 	case api.TransferStateUnspecified:
-		return models.StatusUnspecified
+		return enum.StatusUnspecified
 	case api.TransferStarted:
-		return models.StatusDraft
+		return enum.StatusDraft
 	case api.TransferPending:
-		return models.StatusReview
+		return enum.StatusReview
 	case api.TransferReview:
-		return models.StatusPending
+		return enum.StatusPending
 	case api.TransferRepair:
-		return models.StatusPending
+		return enum.StatusPending
 	case api.TransferAccepted:
-		return models.StatusAccepted
+		return enum.StatusAccepted
 	case api.TransferCompleted:
-		return models.StatusCompleted
+		return enum.StatusCompleted
 	case api.TransferRejected:
-		return models.StatusRejected
+		return enum.StatusRejected
 	default:
 		panic(fmt.Errorf("unknown transfer state %s", ts.String()))
 	}

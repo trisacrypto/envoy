@@ -7,30 +7,25 @@ import (
 	"fmt"
 	"net/mail"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"go.rtnl.ai/ulid"
 )
 
 const (
-	SourceDirectorySync = "gds"
-	SourceUserEntry     = "user"
-	SourcePeer          = "peer"
-	ProtocolTRISA       = "trisa"
-	ProtocolTRP         = "trp"
-	ProtocolSunrise     = "sunrise"
-	FieldCommonName     = "common_name"
-	FieldName           = "name"
-	FieldLEI            = "lei"
+	FieldCommonName = "common_name"
+	FieldName       = "name"
+	FieldLEI        = "lei"
 )
 
 // TODO: how to incorporate the TRIXO form into this model?
 type Counterparty struct {
 	Model
-	Source              string               // either directory or locally created
+	Source              enum.Source          // either directory or locally created
 	DirectoryID         sql.NullString       // the directory ID associated with the counterparty (directory only)
 	RegisteredDirectory sql.NullString       // the registered directory of the counterparty (directory only)
-	Protocol            string               // either TRISA or TRP; the protocol to use to send travel rule information
+	Protocol            enum.Protocol        // either TRISA or TRP; the protocol to use to send travel rule information
 	CommonName          string               // common name - a unique name to identify the endpoint
 	Endpoint            string               // the full endpoint to connect to the counterparty on
 	Name                string               // the counterparty's legal entity name

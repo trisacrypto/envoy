@@ -7,6 +7,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -97,8 +98,8 @@ type SecureEnvelopeStore interface {
 	RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
 	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) error
 	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error
-	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
-	LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error)
+	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
+	LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
 }
 
 // AccountStore provides CRUD interactions with Account models.
@@ -128,7 +129,7 @@ type CryptoAddressStore interface {
 type CounterpartyStore interface {
 	SearchCounterparties(ctx context.Context, query *models.SearchQuery) (*models.CounterpartyPage, error)
 	ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)
-	ListCounterpartySourceInfo(ctx context.Context, source string) ([]*models.CounterpartySourceInfo, error)
+	ListCounterpartySourceInfo(ctx context.Context, source enum.Source) ([]*models.CounterpartySourceInfo, error)
 	CreateCounterparty(context.Context, *models.Counterparty) error
 	RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
 	LookupCounterparty(ctx context.Context, field, value string) (*models.Counterparty, error)

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -513,7 +514,7 @@ const (
 	latestSecEnvByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
 )
 
-func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
+func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, direction enum.Direction) (env *models.SecureEnvelope, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
@@ -521,7 +522,7 @@ func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, 
 	defer tx.Rollback()
 
 	var result *sql.Row
-	if direction == "" || direction == models.DirectionAny {
+	if direction == enum.DirectionUnknown || direction == enum.DirectionAny {
 		// Get the latest secure envelope regardless of the direction
 		result = tx.QueryRow(latestSecEnvSQL, sql.Named("envelopeID", envelopeID))
 	} else {
@@ -546,7 +547,7 @@ const (
 	latestPayloadByDirectionSQL = "SELECT * FROM secure_envelopes WHERE envelope_id=:envelopeID AND is_error=false AND direction=:direction ORDER BY timestamp DESC LIMIT 1"
 )
 
-func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID, direction string) (env *models.SecureEnvelope, err error) {
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID, direction enum.Direction) (env *models.SecureEnvelope, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
@@ -554,7 +555,7 @@ func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID,
 	defer tx.Rollback()
 
 	var result *sql.Row
-	if direction == "" || direction == models.DirectionAny {
+	if direction == enum.DirectionUnknown || direction == enum.DirectionAny {
 		// Get the latest secure envelope regardless of the direction
 		result = tx.QueryRow(latestPayload, sql.Named("envelopeID", envelopeID))
 	} else {
@@ -601,8 +602,8 @@ func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_
 		now := time.Now()
 		transaction := &models.Transaction{
 			ID:           envelopeID,
-			Source:       models.SourceUnknown,
-			Status:       models.StatusDraft,
+			Source:       enum.SourceUnknown,
+			Status:       enum.StatusDraft,
 			Counterparty: models.CounterpartyUnknown,
 			VirtualAsset: models.VirtualAssetUnknown,
 			Amount:       0.0,

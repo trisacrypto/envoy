@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -146,15 +147,15 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Set the source after validation
-	in.Source = models.SourceUserEntry
-
 	// Covert the API serializer into a database model
 	if counterparty, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
+
+	// The source of the counterparty created by the API is user entry
+	counterparty.Source = enum.SourceUserEntry
 
 	// Create the model in the database (which will update the pointer)
 	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty); err != nil {
@@ -290,6 +291,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	var (
 		err            error
 		counterpartyID ulid.ULID
+		original       *models.Counterparty
 		counterparty   *models.Counterparty
 		query          *api.EncodingQuery
 		in             *api.Counterparty
@@ -330,15 +332,12 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Validation
-	// TODO: can the user edit the peer source?
-	if in.Source != "" && in.Source != models.SourceUserEntry {
+	// Ensure that only user sourced entries can be edited.
+	if ok, _ := enum.CheckSource(in.Source, enum.SourceUnknown, enum.SourceUserEntry); !ok {
 		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
 		return
 	}
 
-	// Blank source for validation purposes
-	in.Source = ""
 	in.SetEncoding(query)
 	if err = in.Validate(); err != nil {
 		c.Error(err)
@@ -346,21 +345,31 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Replace source to update database
-	in.Source = models.SourceUserEntry
-
 	if counterparty, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
 		return
 	}
 
-	// Ensure the user is not trying to overwrite a directory entity
-	// TODO: can the user edit the peer source?
-	if counterparty.Source != in.Source {
+	// Ensure the user is not trying to overwrite an entity created by another source
+	if original, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if original.Source != counterparty.Source {
 		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
 		return
 	}
+
+	// Ensure that the source is always set to user entry for API updates (e.g. overwrite source unknown)
+	counterparty.Source = enum.SourceUserEntry
 
 	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
@@ -414,7 +423,7 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 	}
 
 	// Check the source to make sure it is a user record
-	if counterparty.Source != "" && counterparty.Source != models.SourceUserEntry {
+	if ok, _ := enum.CheckSource(counterparty.Source, enum.SourceUnknown, enum.SourceUserEntry); !ok {
 		c.JSON(http.StatusForbidden, api.Error("this record cannot be edited"))
 		return
 	}

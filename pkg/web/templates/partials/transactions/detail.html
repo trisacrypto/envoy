@@ -16,7 +16,7 @@
         </h1>
       </div>
       <div class="col-auto">
-        <span class='badge bg-{{ .Status.Color }}{{ if eq .Status "accepted" }}  bg-opacity-75{{ end }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ .Status }}</span>
+        <span class='badge bg-{{ .Status.Color }} {{ .Status.Opacity }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ .Status }}</span>
         {{- if .Archived }}
         <span class="badge bg-secondary">Archived</span>
         {{- end }}

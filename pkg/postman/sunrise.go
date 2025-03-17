@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/trisacrypto/envoy/pkg/emails"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/sunrise"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
@@ -53,8 +54,8 @@ func ReceiveSunriseAccept(envelopeID uuid.UUID, payload *trisa.Payload) (packet 
 		Packet: Packet{
 			In:      &Incoming{},
 			Out:     &Outgoing{},
-			request: DirectionIncoming,
-			reply:   DirectionOutgoing,
+			request: enum.DirectionIncoming,
+			reply:   enum.DirectionOutgoing,
 		},
 	}
 
@@ -84,8 +85,8 @@ func ReceiveSunriseReject(envelopeID uuid.UUID, reject *trisa.Error) (packet *Su
 		Packet: Packet{
 			In:      &Incoming{},
 			Out:     &Outgoing{},
-			request: DirectionIncoming,
-			reply:   DirectionOutgoing,
+			request: enum.DirectionIncoming,
+			reply:   enum.DirectionOutgoing,
 		},
 	}
 
@@ -142,7 +143,7 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 		EnvelopeID: uuid.MustParse(s.EnvelopeID()),
 		Email:      contact.Email,
 		Expiration: time.Now().Add(defaultSunriseExpiration),
-		Status:     models.StatusDraft,
+		Status:     enum.StatusDraft,
 	}
 
 	// Create the ID in the database of the sunrise record.
@@ -171,7 +172,7 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 
 	// Update the sunrise record in the database with the token and sent on timestamp
 	record.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
-	record.Status = models.StatusPending
+	record.Status = enum.StatusPending
 
 	if err = s.DB.UpdateSunrise(record); err != nil {
 		return err
@@ -294,8 +295,8 @@ func (s *SunrisePacket) Create(storageKey keys.PublicKey) (err error) {
 	}
 
 	// Set transaction values
-	s.Transaction.Source = models.SourceLocal
-	s.Transaction.Status = models.StatusPending
+	s.Transaction.Source = enum.SourceLocal
+	s.Transaction.Status = enum.StatusPending
 	s.Transaction.LastUpdate = sql.NullTime{Valid: true, Time: time.Now()}
 
 	// Update the transaction in the database
@@ -346,9 +347,9 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 	s.Transaction.LastUpdate = sql.NullTime{Valid: true, Time: time.Now()}
 
 	switch s.request {
-	case DirectionIncoming:
+	case enum.DirectionIncoming:
 		s.Transaction.Status = s.Out.StatusFromTransferState()
-	case DirectionOutgoing:
+	case enum.DirectionOutgoing:
 		s.Transaction.Status = s.In.StatusFromTransferState()
 	default:
 		panic(fmt.Errorf("unhandled request direction: %s", s.request))
@@ -371,7 +372,7 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 	}
 
 	// Add envelopes to the database in the reply to order
-	if s.reply == DirectionIncoming {
+	if s.reply == enum.DirectionIncoming {
 		if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
 			s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
 			return fmt.Errorf("could not store outgoing sunrise message: %w", err)

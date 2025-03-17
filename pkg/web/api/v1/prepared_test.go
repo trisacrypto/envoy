@@ -16,19 +16,19 @@ func TestPrepareValidate(t *testing.T) {
 	}{
 		{
 			// This is the case that created the original bug
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}}`,
 			ValidationError(nil, MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
 		},
 		{
 			`{}`,
-			ValidationError(nil, MissingField("travel_address"), MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
+			ValidationError(nil, MissingField("routing"), MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
 		},
 		{
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {}, "beneficiary": {}, "transfer": {}}`,
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}, "originator": {}, "beneficiary": {}, "transfer": {}}`,
 			ValidationError(nil, MissingField("originator.crypto_address"), MissingField("beneficiary.crypto_address")),
 		},
 		{
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}, "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
 			nil,
 		},
 	}

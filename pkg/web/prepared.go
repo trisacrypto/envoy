@@ -48,14 +48,15 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 
 	// Parse the TravelAddress to identify the beneficiary VASP and lookup the
 	// counterparty in the local database for IVMS101 information if any.
-	if beneficiaryVASP, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
+	// TODO: identify beneficiary VASP using routing mechanism
+	if beneficiaryVASP, err = s.CounterpartyFromTravelAddress(c, in.Routing.TravelAddress); err != nil {
 		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
 		return
 	}
 
 	// Convert the incoming data into the appropriate TRISA data structures
 	out = &api.Prepared{
-		TravelAddress: in.TravelAddress,
+		Routing: in.Routing,
 		Identity: &ivms101.IdentityPayload{
 			Originator: &ivms101.Originator{
 				OriginatorPersons: []*ivms101.Person{
@@ -143,7 +144,8 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the counterparty from the travel address in the request
-	if packet.Counterparty, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
+	// TODO: identify beneficiary VASP using routing mechanism
+	if packet.Counterparty, err = s.CounterpartyFromTravelAddress(c, in.Routing.TravelAddress); err != nil {
 		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
 		return
 	}

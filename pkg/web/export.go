@@ -66,7 +66,7 @@ transactionsIterator:
 		for i, transaction := range page.Transactions {
 			record := []string{
 				transaction.ID.String(),
-				transaction.Status,
+				transaction.Status.String(),
 				transaction.Counterparty,
 				transaction.Originator.String,
 				transaction.OriginatorAddress.String,

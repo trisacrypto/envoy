@@ -1,20 +1,20 @@
-package postman_test
+package enum_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/trisacrypto/envoy/pkg/postman"
+	"github.com/trisacrypto/envoy/pkg/enum"
 )
 
 func TestDirectionString(t *testing.T) {
 	tests := []struct {
-		direction postman.Direction
+		direction enum.Direction
 		expected  string
 	}{
-		{postman.DirectionUnknown, "unknown"},
-		{postman.DirectionIncoming, "incoming"},
-		{postman.DirectionOutgoing, "outgoing"},
+		{enum.DirectionUnknown, "unknown"},
+		{enum.DirectionIncoming, "in"},
+		{enum.DirectionOutgoing, "out"},
 	}
 
 	for _, test := range tests {

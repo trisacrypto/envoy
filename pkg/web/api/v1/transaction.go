@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
 	"github.com/trisacrypto/trisa/pkg/ivms101"
@@ -141,8 +142,8 @@ type EnvelopeListQuery struct {
 func NewTransaction(model *models.Transaction) (*Transaction, error) {
 	tx := &Transaction{
 		ID:                 model.ID,
-		Source:             model.Source,
-		Status:             model.Status,
+		Source:             model.Source.String(),
+		Status:             model.Status.String(),
 		Counterparty:       model.Counterparty,
 		CounterpartyID:     model.CounterpartyID.ULID,
 		Originator:         model.Originator.String,
@@ -198,14 +199,14 @@ func (c *Transaction) Validate() (err error) {
 		err = ValidationError(err, MissingField("source"))
 	}
 
-	if c.Source != models.SourceLocal && c.Source != models.SourceRemote {
+	if ok, perr := enum.CheckSource(c.Source, enum.SourceLocal, enum.SourceRemote); perr != nil || !ok {
 		err = ValidationError(err, IncorrectField("source", "source must either be local or remote"))
 	}
 
 	c.Status = strings.TrimSpace(strings.ToLower(c.Status))
 	if c.Status == "" {
 		err = ValidationError(err, MissingField("status"))
-	} else if !models.ValidStatus(c.Status) {
+	} else if !enum.ValidStatus(c.Status) {
 		err = ValidationError(err, IncorrectField("status", "status must be one of draft, pending, action required, completed, or archived"))
 	}
 
@@ -227,8 +228,6 @@ func (c *Transaction) Validate() (err error) {
 func (c *Transaction) Model() (model *models.Transaction, err error) {
 	model = &models.Transaction{
 		ID:                 c.ID,
-		Source:             c.Source,
-		Status:             c.Status,
 		Counterparty:       c.Counterparty,
 		CounterpartyID:     ulid.NullULID{ULID: c.CounterpartyID, Valid: !c.CounterpartyID.IsZero()},
 		Originator:         sql.NullString{String: c.Originator, Valid: c.Originator != ""},
@@ -237,6 +236,14 @@ func (c *Transaction) Model() (model *models.Transaction, err error) {
 		BeneficiaryAddress: sql.NullString{String: c.BeneficiaryAddress, Valid: c.BeneficiaryAddress != ""},
 		VirtualAsset:       c.VirtualAsset,
 		Amount:             c.Amount,
+	}
+
+	if model.Status, err = enum.ParseStatus(c.Status); err != nil {
+		return nil, err
+	}
+
+	if model.Source, err = enum.ParseSource(c.Source); err != nil {
+		return nil, err
 	}
 
 	if c.LastUpdate != nil {
@@ -254,7 +261,7 @@ func NewSecureEnvelope(model *models.SecureEnvelope) (out *SecureEnvelope, err e
 	out = &SecureEnvelope{
 		ID:                  model.ID,
 		EnvelopeID:          model.EnvelopeID,
-		Direction:           model.Direction,
+		Direction:           model.Direction.String(),
 		Remote:              model.Remote.String,
 		Payload:             model.Envelope.Payload,
 		EncryptionKey:       model.EncryptionKey,
@@ -315,7 +322,7 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 	out = &Envelope{
 		ID:                 model.ID,
 		EnvelopeID:         model.EnvelopeID.String(),
-		Direction:          model.Direction,
+		Direction:          model.Direction.String(),
 		Remote:             model.Remote.String,
 		Timestamp:          model.Timestamp,
 		PublicKeySignature: model.PublicKey.String,
@@ -603,7 +610,7 @@ func (q *TransactionListQuery) Validate() (err error) {
 	if len(q.Status) > 0 {
 		for i, status := range q.Status {
 			q.Status[i] = strings.ToLower(strings.TrimSpace(status))
-			if !models.ValidStatus(q.Status[i]) {
+			if !enum.ValidStatus(q.Status[i]) {
 				err = ValidationError(err, IncorrectField("status", "invalid status enum"))
 				break
 			}
@@ -637,12 +644,12 @@ func (q *TransactionListQuery) Query() (query *models.TransactionPageInfo) {
 
 func (q *EnvelopeQuery) Validate() (err error) {
 	// Handle parsing and default values
-	q.Direction = strings.ToLower(strings.TrimSpace(q.Direction))
+	q.Direction = strings.TrimSpace(q.Direction)
 	if q.Direction == "" {
-		q.Direction = models.DirectionAny
+		q.Direction = enum.DirectionAny.String()
 	}
 
-	if q.Direction != models.DirectionAny && q.Direction != models.DirectionIn && q.Direction != models.DirectionOut {
+	if _, perr := enum.ParseDirection(q.Direction); perr != nil {
 		err = ValidationError(err, IncorrectField("direction", "should either be 'in', 'out', or 'any'"))
 	}
 

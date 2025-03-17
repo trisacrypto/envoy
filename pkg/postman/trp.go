@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/openvasp/client"
 	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
@@ -32,8 +33,8 @@ func ReceiveTRPInquiry(inquiry *trp.Inquiry, mtls *tls.ConnectionState) (packet 
 		Packet: Packet{
 			In:      &Incoming{},
 			Out:     &Outgoing{},
-			request: DirectionIncoming,
-			reply:   DirectionOutgoing,
+			request: enum.DirectionIncoming,
+			reply:   enum.DirectionOutgoing,
 		},
 		info:    inquiry.Info,
 		mtls:    mtls,
@@ -242,8 +243,8 @@ func (p *TRPPacket) resolveCounterpartyHostname(hostnames ...string) (counterpar
 		// If the identity lookup was successful: create a new counterparty from the returned identity
 		p.Log.Debug().Str("host", host).Str("lei", identity.LEI).Str("name", identity.Name).Msg("trp counterparty identity resolved from peer hostname")
 		return &models.Counterparty{
-			Source:     models.SourcePeer,
-			Protocol:   models.ProtocolTRP,
+			Source:     enum.SourcePeer,
+			Protocol:   enum.ProtocolTRP,
 			Endpoint:   uri.String(),
 			CommonName: uri.Hostname(),
 			Name:       identity.Name,

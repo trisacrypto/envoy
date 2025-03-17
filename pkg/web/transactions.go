@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -91,10 +92,10 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 	}
 
 	// If the transaction is created by the API, it is considered local.
-	in.Source = models.SourceLocal
+	in.Source = enum.SourceLocal.String()
 
 	// Mark the transaction as a draft until a secure envelope is sent.
-	in.Status = models.StatusDraft
+	in.Status = enum.StatusDraft.String()
 
 	if err = in.Validate(); err != nil {
 		c.Error(err)
@@ -435,9 +436,12 @@ func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 		return
 	}
 
+	// Should be no error after validation.
+	direction, _ := enum.ParseDirection(in.Direction)
+
 	// Retrieve the latest secure envelope with a payload for the transaction from the database
 	ctx := c.Request.Context()
-	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, in.Direction); err != nil {
+	if env, err = s.store.LatestPayloadEnvelope(ctx, transactionID, direction); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -485,7 +489,7 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 
 	// Retrieve the latest secure envelope for the transaction from the database
 	ctx := c.Request.Context()
-	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, enum.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -782,7 +786,7 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	// Retrieve the latest secure envelope for the transaction from the database
 	// this should be the error envelope that contains the required repair info.
 	ctx := c.Request.Context()
-	if errorEnv, err = s.store.LatestSecureEnvelope(ctx, transactionID, models.DirectionIncoming); err != nil {
+	if errorEnv, err = s.store.LatestSecureEnvelope(ctx, transactionID, enum.DirectionIncoming); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -800,7 +804,7 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	}
 
 	// Retrieve the latest payload envelope from the database
-	if payloadEnv, err = s.store.LatestPayloadEnvelope(ctx, transactionID, models.DirectionAny); err != nil {
+	if payloadEnv, err = s.store.LatestPayloadEnvelope(ctx, transactionID, enum.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return

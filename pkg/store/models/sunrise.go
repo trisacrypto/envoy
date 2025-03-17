@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/sunrise"
 )
 
@@ -14,7 +15,7 @@ type Sunrise struct {
 	Email      string               // Email address of recipients the token is sent to (might be a comma separated list)
 	Expiration time.Time            // The timestamp that the sunrise verification token is no longer valid
 	Signature  *sunrise.SignedToken // The signed token produced by the sunrise package for verification purposes
-	Status     string               // The status of the sunrise message (should be similar to the status of the transaction)
+	Status     enum.Status          // The status of the sunrise message (should be similar to the status of the transaction)
 	SentOn     sql.NullTime         // The timestamp that the email message was sent
 	VerifiedOn sql.NullTime         // The last timestamp that the user verified the token
 }
@@ -68,5 +69,5 @@ func (s *Sunrise) Params() []any {
 // in a final state, then the message is not considered expired no matter the exiration
 // timestamp.
 func (s *Sunrise) IsExpired() bool {
-	return time.Now().After(s.Expiration) && s.Status != StatusCompleted && s.Status != StatusRejected
+	return time.Now().After(s.Expiration) && s.Status != enum.StatusCompleted && s.Status != enum.StatusRejected
 }

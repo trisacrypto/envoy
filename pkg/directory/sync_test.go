@@ -4,8 +4,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/directory"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store"
-	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 	mockgds "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
@@ -122,10 +122,10 @@ func TestSync(t *testing.T) {
 		require.NoError(t, err, "expected no error fetching counterparty")
 
 		require.True(t, vasp.ID.IsZero())
-		require.Equal(t, models.SourceDirectorySync, vasp.Source)
+		require.Equal(t, enum.SourceDirectorySync, vasp.Source)
 		require.Equal(t, "b5b20dc2-dc0c-4acf-9861-5b73f1ccc170", vasp.DirectoryID.String)
 		require.Equal(t, "trisatest.dev", vasp.RegisteredDirectory.String)
-		require.Equal(t, models.ProtocolTRISA, vasp.Protocol)
+		require.Equal(t, enum.ProtocolTRISA, vasp.Protocol)
 		require.Equal(t, "alice.vaspbot.net", vasp.CommonName)
 		require.Equal(t, "alice.vaspbot.net:443", vasp.Endpoint)
 		require.Equal(t, "AliceVASP", vasp.Name)

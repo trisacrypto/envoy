@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -26,11 +27,11 @@ func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) 
 	// to send the outgoing message (which might be updated during the send process) and to
 	// receive the incoming reply from the counterparty.
 	switch packet.Counterparty.Protocol {
-	case models.ProtocolTRISA:
+	case enum.ProtocolTRISA:
 		if err = s.SendTRISATransfer(ctx, packet); err != nil {
 			return err
 		}
-	case models.ProtocolTRP:
+	case enum.ProtocolTRP:
 		// TODO: handle TRP transfers
 		return errors.New("the outgoing TRP send protocol is not implemented yet but is coming soon")
 	default:
@@ -189,7 +190,7 @@ func (s *Server) Decrypt(in *models.SecureEnvelope) (out *envelope.Envelope, err
 	}
 
 	// If the direction is outgoing, update the keys on the envelope
-	if in.Direction == models.DirectionOutgoing {
+	if in.Direction == enum.DirectionOutgoing {
 		in.Envelope.EncryptionKey = in.EncryptionKey
 		in.Envelope.HmacSecret = in.HMACSecret
 	}

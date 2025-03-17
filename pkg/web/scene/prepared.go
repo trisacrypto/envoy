@@ -9,9 +9,9 @@ import (
 )
 
 type Prepared struct {
-	TravelAddress string
-	identity      *ivms101.IdentityPayload
-	transaction   *generic.Transaction
+	Routing     *api.Routing
+	identity    *ivms101.IdentityPayload
+	transaction *generic.Transaction
 }
 
 type Transfer struct {
@@ -27,9 +27,9 @@ type Transfer struct {
 func (s Scene) Prepared() Prepared {
 	if prepared, ok := s[APIData].(*api.Prepared); ok {
 		return Prepared{
-			TravelAddress: prepared.TravelAddress,
-			identity:      prepared.Identity,
-			transaction:   prepared.Transaction,
+			Routing:     prepared.Routing,
+			identity:    prepared.Identity,
+			transaction: prepared.Transaction,
 		}
 	}
 	return Prepared{}
@@ -76,6 +76,15 @@ func (s Prepared) BeneficiaryVASP() VASP {
 		return VASP{}
 	}
 	return makeVASP(s.identity.BeneficiaryVasp.BeneficiaryVasp.GetLegalPerson())
+}
+
+func (s Prepared) RoutingJSON() string {
+	if s.Routing == nil {
+		return ""
+	}
+
+	data, _ := json.Marshal(s.Routing)
+	return string(data)
 }
 
 func (s Prepared) IdentityJSON() string {

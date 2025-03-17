@@ -36,10 +36,12 @@ const (
 func makePrepare(travelAddress string) *api.Prepare {
 	network := networks[rand.Intn(len(networks))]
 	return &api.Prepare{
-		TravelAddress: travelAddress,
-		Originator:    makeRandPerson("US", network),
-		Beneficiary:   makeRandPerson("DE", network),
-		Transfer:      makeTransfer(network),
+		Routing: &api.Routing{
+			TravelAddress: travelAddress,
+		},
+		Originator:  makeRandPerson("US", network),
+		Beneficiary: makeRandPerson("DE", network),
+		Transfer:    makeTransfer(network),
 	}
 }
 

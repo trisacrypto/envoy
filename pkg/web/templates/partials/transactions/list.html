@@ -135,7 +135,7 @@
             <i class="fe fe-help-question has-tooltip" title="Unknown message source" data-bs-toggle="tooltip" data-bs-placement="right"></i>
             {{- end -}}
           </td>
-          <td><span class='item-status has-tooltip badge bg-{{ .Status.Color }}{{ if eq .Status "accepted" }}  bg-opacity-75{{ end }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="right">{{ .Status }}</span></td>
+          <td><span class='item-status has-tooltip badge bg-{{ .Status.Color }}  {{ .Status.Opacity }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="right">{{ .Status }}</span></td>
           <td><a class="item-counterparty text-reset" href="#">{{ .Counterparty }}</a></td>
           <td><a class="item-originator text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .OriginatorAddress }}">
             {{- if .Originator -}}

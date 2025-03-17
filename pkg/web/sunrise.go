@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/emails"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -20,11 +21,198 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"go.rtnl.ai/ulid"
+	"google.golang.org/protobuf/types/known/anypb"
 )
+
+//===========================================================================
+// Sunrise API
+//===========================================================================
+
+func (s *Server) SendSunrise(c *gin.Context) {
+	var (
+		err             error
+		in              *api.Prepare
+		out             *api.Transaction
+		beneficiaryVASP *models.Counterparty
+		originatorVASP  *models.Counterparty
+		payload         *trisa.Payload
+		packet          *postman.SunrisePacket
+	)
+
+	in = &api.Prepare{}
+	if err = c.BindJSON(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse sunrise transaction data"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	// Get originator VASP information from the database (e.g. the sending party)
+	if originatorVASP, err = s.Localparty(c.Request.Context()); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Get or create the counterparty for the associated email address
+	if beneficiaryVASP, err = s.store.GetOrCreateSunriseCounterparty(c.Request.Context(), in.Routing.EmailAddress, in.Routing.Counterparty); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
+		return
+	}
+
+	identity := &ivms101.IdentityPayload{
+		Originator: &ivms101.Originator{
+			OriginatorPersons: []*ivms101.Person{
+				in.Originator.NaturalPerson(),
+			},
+			AccountNumbers: []string{
+				in.Originator.CryptoAddress,
+			},
+		},
+		Beneficiary: &ivms101.Beneficiary{
+			BeneficiaryPersons: []*ivms101.Person{
+				in.Beneficiary.NaturalPerson(),
+			},
+			AccountNumbers: []string{
+				in.Beneficiary.CryptoAddress,
+			},
+		},
+		OriginatingVasp: &ivms101.OriginatingVasp{
+			OriginatingVasp: &ivms101.Person{
+				Person: &ivms101.Person_LegalPerson{
+					LegalPerson: originatorVASP.IVMSRecord,
+				},
+			},
+		},
+		BeneficiaryVasp: &ivms101.BeneficiaryVasp{
+			BeneficiaryVasp: &ivms101.Person{
+				Person: &ivms101.Person_LegalPerson{
+					LegalPerson: beneficiaryVASP.IVMSRecord,
+				},
+			},
+		},
+		TransferPath:    nil,
+		PayloadMetadata: nil,
+	}
+	transaction := in.Transaction()
+
+	// Convert the incoming data into the appropriate TRISA data structures
+	payload = &trisa.Payload{}
+	payload.Identity, _ = anypb.New(identity)
+	payload.Transaction, _ = anypb.New(transaction)
+	payload.SentAt = time.Now().Format(time.RFC3339)
+
+	// Create a packet to begin the sending process
+	envelopeID := uuid.New()
+	if packet, err = postman.SendSunrise(envelopeID, payload); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Create the log with the envelope ID for debugging
+	ctx := c.Request.Context()
+	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
+
+	// Associate the beneficiary VASP as the remote counterparty
+	packet.Counterparty = beneficiaryVASP
+
+	// Create the transaction in the database
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+	defer packet.DB.Rollback()
+
+	// Fetch the contacts from the counterparty and check that at least one exists.
+	var contacts []*models.Contact
+	if contacts, err = packet.Counterparty.Contacts(); err != nil {
+		c.Error(err)
+		if errors.Is(err, postman.ErrNoContacts) {
+			c.JSON(http.StatusBadRequest, api.Error(err))
+		} else {
+			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		}
+		return
+	}
+
+	// Prepare to send email
+	invite := emails.SunriseInviteData{
+		ComplianceName:  s.GetComplianceName(),
+		OriginatorName:  in.Originator.FullName(),
+		BeneficiaryName: in.Beneficiary.FullName(),
+		BaseURL:         s.conf.Sunrise.InviteURL(),
+		SupportEmail:    s.conf.Email.SupportEmail,
+		ComplianceEmail: s.conf.Email.ComplianceEmail,
+	}
+
+	// Create the sunrise tokens for all counterparty contacts and send emails
+	for _, contact := range contacts {
+		if err = packet.SendEmail(contact, invite); err != nil {
+			c.Error(fmt.Errorf("could not send sunrise message to %s: %w", contact.Email, err))
+			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+			return
+		}
+	}
+
+	// Fetch the storage key for the envelopes
+	var storageKey keys.PublicKey
+	if storageKey, err = s.trisa.StorageKey("", "sunrise"); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Save the secure envelopes and the transaction, and refresh the transaction.
+	if err = packet.Create(storageKey); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Commit the transaction to the database
+	if err = packet.DB.Commit(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Create the API response to send back to the user
+	if out, err = api.NewTransaction(packet.Transaction); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
+		return
+	}
+
+	// Send 200 or 201 depending on if the transaction was created or not.
+	var status int
+	if packet.DB.Created() {
+		status = http.StatusCreated
+	} else {
+		status = http.StatusOK
+	}
+
+	c.Negotiate(status, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "transaction_sent.html",
+	})
+}
+
+//===========================================================================
+// Sunrise Pages
+//===========================================================================
 
 const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"
 
@@ -161,7 +349,7 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 	}
 
 	// Retrieve the latest secure envelope from the database
-	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionOut); err != nil {
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionOutgoing); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 			return
@@ -248,7 +436,7 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 	}
 
 	// If the transaction state is not in pending, return an error (prevent multiple rejects)
-	if packet.Transaction.Status != models.StatusPending {
+	if packet.Transaction.Status != enum.StatusPending {
 		c.Error(err)
 		c.JSON(http.StatusConflict, api.Error("could not complete request"))
 		return
@@ -349,7 +537,7 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 
 	// Load the latest secure envelope from the database to populate the complete
 	// details since the incoming envelope will only have beneficiary info.
-	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionOut); err != nil {
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionOutgoing); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
 		return
@@ -405,7 +593,7 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 	}
 
 	// If the transaction state is not in pending, return an error (prevent multiple rejects)
-	if packet.Transaction.Status != models.StatusPending {
+	if packet.Transaction.Status != enum.StatusPending {
 		c.Error(err)
 		c.JSON(http.StatusConflict, api.Error("could not complete request"))
 		return
@@ -492,7 +680,7 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 
 	// Load the latest secure envelope from the database to populate the complete
 	// details since the incoming envelope will only have beneficiary info.
-	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, models.DirectionAny); err != nil {
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionAny); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
 		return
@@ -526,148 +714,6 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
 	c.Header("ACcept-Length", fmt.Sprintf("%d", len(data)))
 	c.Data(http.StatusOK, binding.MIMEJSON, data)
-}
-
-func (s *Server) SendSunrise(c *gin.Context) {
-	var (
-		err             error
-		in              *api.Sunrise
-		out             *api.Transaction
-		beneficiaryVASP *models.Counterparty
-		originatorVASP  *models.Counterparty
-		payload         *trisa.Payload
-		packet          *postman.SunrisePacket
-	)
-
-	in = &api.Sunrise{}
-	if err = c.BindJSON(in); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse sunrise transaction data"))
-		return
-	}
-
-	if err = in.Validate(); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
-		return
-	}
-
-	// Get originator VASP information from the database (e.g. the sending party)
-	if originatorVASP, err = s.Localparty(c.Request.Context()); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Get or create the counterparty for the associated email address
-	if beneficiaryVASP, err = s.store.GetOrCreateSunriseCounterparty(c.Request.Context(), in.Email, in.Counterparty); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
-		return
-	}
-
-	// Convert the incoming data into the appropriate TRISA data structures
-	if payload, err = in.Payload(originatorVASP, beneficiaryVASP); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not create payload for transfer"))
-		return
-	}
-
-	// Create a packet to begin the sending process
-	envelopeID := uuid.New()
-	if packet, err = postman.SendSunrise(envelopeID, payload); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Create the log with the envelope ID for debugging
-	ctx := c.Request.Context()
-	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
-	// Associate the beneficiary VASP as the remote counterparty
-	packet.Counterparty = beneficiaryVASP
-
-	// Create the transaction in the database
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-	defer packet.DB.Rollback()
-
-	// Fetch the contacts from the counterparty and check that at least one exists.
-	var contacts []*models.Contact
-	if contacts, err = packet.Counterparty.Contacts(); err != nil {
-		c.Error(err)
-		if errors.Is(err, postman.ErrNoContacts) {
-			c.JSON(http.StatusBadRequest, api.Error(err))
-		} else {
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		}
-		return
-	}
-
-	// Prepare to send email
-	invite := emails.SunriseInviteData{
-		ComplianceName:  s.GetComplianceName(),
-		OriginatorName:  in.Originator.FullName(),
-		BeneficiaryName: in.Beneficiary.FullName(),
-		BaseURL:         s.conf.Sunrise.InviteURL(),
-		SupportEmail:    s.conf.Email.SupportEmail,
-		ComplianceEmail: s.conf.Email.ComplianceEmail,
-	}
-
-	// Create the sunrise tokens for all counterparty contacts and send emails
-	for _, contact := range contacts {
-		if err = packet.SendEmail(contact, invite); err != nil {
-			c.Error(fmt.Errorf("could not send sunrise message to %s: %w", contact.Email, err))
-			c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-			return
-		}
-	}
-
-	// Fetch the storage key for the envelopes
-	var storageKey keys.PublicKey
-	if storageKey, err = s.trisa.StorageKey("", "sunrise"); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Save the secure envelopes and the transaction, and refresh the transaction.
-	if err = packet.Create(storageKey); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Commit the transaction to the database
-	if err = packet.DB.Commit(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Create the API response to send back to the user
-	if out, err = api.NewTransaction(packet.Transaction); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete sunrise request"))
-		return
-	}
-
-	// Send 200 or 201 depending on if the transaction was created or not.
-	var status int
-	if packet.DB.Created() {
-		status = http.StatusCreated
-	} else {
-		status = http.StatusOK
-	}
-
-	c.Negotiate(status, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "transaction_sent.html",
-	})
 }
 
 func (s *Server) GetComplianceName() string {

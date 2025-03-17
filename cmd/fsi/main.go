@@ -369,21 +369,27 @@ func sendSunrise(c *cli.Context) (err error) {
 	defer cancel()
 
 	network := networks[rand.Intn(len(networks))]
-
-	sunrise := &api.Sunrise{
-		Email:        c.String("email"),
-		Counterparty: c.String("counterparty"),
-		Originator:   makeRandPerson("US", network),
-		Beneficiary:  makeRandPerson("DE", network),
-		Transfer:     makeTransfer(network),
+	prepare := &api.Prepare{
+		Routing: &api.Routing{
+			EmailAddress: c.String("email"),
+			Counterparty: c.String("counterparty"),
+		},
+		Originator:  makeRandPerson("US", network),
+		Beneficiary: makeRandPerson("DE", network),
+		Transfer:    makeTransfer(network),
 	}
 
-	var txn *api.Transaction
-	if txn, err = envoyClient.SendSunrise(ctx, sunrise); err != nil {
-		return cli.Exit(fmt.Errorf("could not send sunrise transaction: %w", err), 1)
+	var prepared *api.Prepared
+	if prepared, err = envoyClient.Prepare(ctx, prepare); err != nil {
+		return cli.Exit(fmt.Errorf("could not prepare transaction: %w", err), 1)
 	}
 
-	fmt.Printf("sunrise transaction %s created\n", txn.ID)
+	var transaction *api.Transaction
+	if transaction, err = envoyClient.SendPrepared(ctx, prepared); err != nil {
+		return cli.Exit(fmt.Errorf("could not send prepared transaction: %w", err), 1)
+	}
+
+	fmt.Printf("sunrise transaction %s created\n", transaction.ID)
 	return nil
 }
 

@@ -27,6 +27,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -46,8 +47,8 @@ type Packet struct {
 	Log          zerolog.Logger             // The log context for more effective logging
 	Counterparty *models.Counterparty       // The remote identified counterparty
 	Transaction  *models.Transaction        // The associated transaction with the packet
-	request      Direction                  // Determines if the initial message was incoming or outgoing
-	reply        Direction                  // Determines if the reply was incoming or outgoing
+	request      enum.Direction             // Determines if the initial message was incoming or outgoing
+	reply        enum.Direction             // Determines if the reply was incoming or outgoing
 	resolver     ResolveRemote              // Helper for resolving remote information from TRISA and TRP
 }
 
@@ -55,8 +56,8 @@ func Send(envelopeID uuid.UUID, payload *api.Payload, transferState api.Transfer
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
-		request: DirectionOutgoing,
-		reply:   DirectionIncoming,
+		request: enum.DirectionOutgoing,
+		reply:   enum.DirectionIncoming,
 	}
 
 	// Add parent to submessages
@@ -80,8 +81,8 @@ func SendReject(envelopeID uuid.UUID, reject *api.Error) (packet *Packet, err er
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
-		request: DirectionOutgoing,
-		reply:   DirectionIncoming,
+		request: enum.DirectionOutgoing,
+		reply:   enum.DirectionIncoming,
 	}
 
 	// Add parent to submessages
@@ -100,8 +101,8 @@ func Receive(in *api.SecureEnvelope) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{original: in},
 		Out:     &Outgoing{},
-		request: DirectionIncoming,
-		reply:   DirectionOutgoing,
+		request: enum.DirectionIncoming,
+		reply:   enum.DirectionOutgoing,
 	}
 
 	// Add parent to submessages
@@ -125,9 +126,9 @@ func (p *Packet) RefreshTransaction() (err error) {
 // Returns the envelopeID from the request envelope (e.g. the first envelope in the packet)
 func (p *Packet) EnvelopeID() string {
 	switch p.request {
-	case DirectionIncoming:
+	case enum.DirectionIncoming:
 		return p.In.Envelope.ID()
-	case DirectionOutgoing:
+	case enum.DirectionOutgoing:
 		return p.Out.Envelope.ID()
 	default:
 		panic("request direction not set on packet")
@@ -153,11 +154,11 @@ func (p *Packet) Remote() sql.NullString {
 }
 
 // Returns the direction of the request.
-func (p *Packet) Request() Direction {
+func (p *Packet) Request() enum.Direction {
 	return p.request
 }
 
 // Returns the direction of the reply.
-func (p *Packet) Reply() Direction {
+func (p *Packet) Reply() enum.Direction {
 	return p.reply
 }
