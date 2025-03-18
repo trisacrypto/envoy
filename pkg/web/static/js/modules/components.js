@@ -173,8 +173,8 @@ export function createPageSizeSelect(elem, list) {
 }
 
 // Initializes a search select for TRISA VASPs, fetching the options from the backend.
-export function selectTRISATravelAddress(elem) {
-  const elementOptions = elem.dataset.travelAddress ? JSON.parse(elem.dataset.travelAddress) : {};
+export function selectTRISACounterparty(elem) {
+  const elementOptions = elem.dataset.counterpartyLookup ? JSON.parse(elem.dataset.counterpartyLookup) : {};
   const options = {
     ...elementOptions,
     ...choicesDefaultOptions(elem),
@@ -196,7 +196,7 @@ export function selectTRISATravelAddress(elem) {
       .then(response => response.json())
       .then(data => {
         return data.counterparties.map(counterparty => {
-          return { label: counterparty.name, value: counterparty.travel_address };
+          return { label: counterparty.name, value: counterparty.id };
         });
       });
   });

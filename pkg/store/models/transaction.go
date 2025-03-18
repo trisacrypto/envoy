@@ -2,9 +2,9 @@ package models
 
 import (
 	"database/sql"
-	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"go.rtnl.ai/ulid"
 
@@ -14,40 +14,14 @@ import (
 )
 
 const (
-	SourceUnknown       = "unknown"
-	SourceLocal         = "local"
-	SourceRemote        = "remote"
-	StatusUnspecified   = "unspecified"
-	StatusDraft         = "draft"
-	StatusPending       = "pending"
-	StatusReview        = "review"
-	StatusRepair        = "repair"
-	StatusAccepted      = "accepted"
-	StatusCompleted     = "completed"
-	StatusRejected      = "rejected"
-	DirectionOut        = "out"
-	DirectionOutgoing   = DirectionOut
-	DirectionIn         = "in"
-	DirectionIncoming   = DirectionIn
-	DirectionAny        = "any"
 	CounterpartyUnknown = "unknown"
 	VirtualAssetUnknown = "UNK"
 )
 
-func ValidStatus(status string) bool {
-	status = strings.TrimSpace(strings.ToLower(status))
-	switch status {
-	case StatusUnspecified, StatusDraft, StatusPending, StatusReview, StatusRepair, StatusAccepted, StatusCompleted, StatusRejected:
-		return true
-	default:
-		return false
-	}
-}
-
 type Transaction struct {
 	ID                 uuid.UUID         // Transaction IDs are UUIDs not ULIDs per the TRISA spec, this is also used for the envelope ID
-	Source             string            // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
-	Status             string            // Can be "unspecified", "started", "pending", "review", "repair", "accepted", "completed", or "rejected"
+	Source             enum.Source       // Either "local" meaning the transaction was created by the user, or "remote" meaning it is an incoming message
+	Status             enum.Status       // Can be "unspecified", "started", "pending", "review", "repair", "accepted", "completed", or "rejected"
 	Counterparty       string            // The name of the counterparty in the transaction
 	CounterpartyID     ulid.NullULID     // A reference to the counterparty in the database, if any
 	Originator         sql.NullString    // Full name of the originator natural person or account
@@ -80,7 +54,7 @@ type TransactionPageInfo struct {
 type SecureEnvelope struct {
 	Model
 	EnvelopeID    uuid.UUID           // Also a foreign key reference to the Transaction
-	Direction     string              // Either "out" outgoing or "in" incoming
+	Direction     enum.Direction      // Either "out" outgoing or "in" incoming
 	Remote        sql.NullString      // The common name of the remote peer this message was going to or coming from
 	ReplyTo       ulid.NullULID       // If this envelope is a response, a reference to the original request envelope
 	IsError       bool                // If the envelope contains an error/rejection rather than a payload
@@ -209,11 +183,11 @@ func (t *Transaction) SetSecureEnvelopes(envelopes []*SecureEnvelope) {
 // e.g. if a nullable field is valid or an empty string is empty. This method skips the
 // ID and Modified fields.
 func (t *Transaction) Update(other *Transaction) {
-	if other.Source != "" {
+	if other.Source != enum.SourceUnknown {
 		t.Source = other.Source
 	}
 
-	if other.Status != "" {
+	if other.Status != enum.StatusUnspecified {
 		t.Status = other.Status
 	}
 
@@ -263,7 +237,7 @@ func (t *Transaction) Update(other *Transaction) {
 // production work without testing and verification that the complete model is present.
 func FromEnvelope(env *envelope.Envelope) *SecureEnvelope {
 	model := &SecureEnvelope{
-		Direction: "",
+		Direction: enum.DirectionUnknown,
 		Remote:    sql.NullString{},
 		ReplyTo:   ulid.NullULID{},
 		IsError:   env.IsError(),

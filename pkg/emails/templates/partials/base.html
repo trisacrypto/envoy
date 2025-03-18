@@ -1,5 +1,4 @@
-{{ define "base" }}
-
+{{ define "base" -}}
 <!doctype html>
 <html
   lang="en"
@@ -45,7 +44,7 @@
       padding: 0 !important;
       mso-line-height-rule: exactly;
       background-color: #ffffff;
-      font-family: Montserrat, Open Sans, Helvetica, Arial,sans-serif; 
+      font-family: Montserrat, Open Sans, Helvetica, Arial,sans-serif;
       color: #1a2227;
     "
     class="email-bg"
@@ -113,8 +112,33 @@
           width="100%"
           style="margin: auto"
         >
+
+          {{ block "logo" . }}
+          <tr>
+            <td style="padding: 20px 0; text-align: center">
+              <img
+                src="https://trisa.io/wp-content/uploads/2021/04/trisa-logo@2x.jpg"
+                width="200"
+                height="auto"
+                alt="Logo"
+                border="0"
+                style="
+                  height: auto;
+                  background: #dddddd;
+                  font-family: sans-serif;
+                  font-size: 16px;
+                  line-height: 20px;
+                  color: #000000;
+                "
+              />
+            </td>
+          </tr>
+          {{ end }}
+
           {{ block "content" . }}{{ end }}
         </table>
+
+        {{ block "bottom" . }}{{ end }}
 
         {{ template "footer" . }}
 
@@ -133,4 +157,4 @@
     </center>
   </body>
 </html>
-{{ end }}
+{{- end }}

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 )
@@ -29,8 +30,8 @@ func TestSendTRISA(t *testing.T) {
 	require.NotNil(t, packet.Out, "the packet needs to have an instantiated outgoing message")
 	require.NotNil(t, packet.Out.Envelope, "the packet needs to have an instantiated envelope")
 	require.Equal(t, log, packet.Log, "expected the log to be set correctly")
-	require.Equal(t, postman.DirectionOutgoing, packet.Request(), "on send the request direction should be outgoing")
-	require.Equal(t, postman.DirectionIncoming, packet.Reply(), "on send the reply direction should be incoming")
+	require.Equal(t, enum.DirectionOutgoing, packet.Request(), "on send the request direction should be outgoing")
+	require.Equal(t, enum.DirectionIncoming, packet.Reply(), "on send the reply direction should be incoming")
 
 	require.Equal(t, envelopeID.String(), packet.Out.Envelope.ID())
 	require.Equal(t, transferState, packet.Out.Envelope.TransferState())
@@ -65,8 +66,8 @@ func TestSendTRISAReject(t *testing.T) {
 			require.NotNil(t, packet.Out, "the packet needs to have an instantiated outgoing message")
 			require.NotNil(t, packet.Out.Envelope, "the packet needs to have an instantiated envelope")
 			require.Equal(t, log, packet.Log, "expected the log to be set correctly")
-			require.Equal(t, postman.DirectionOutgoing, packet.Request(), "on send the request direction should be outgoing")
-			require.Equal(t, postman.DirectionIncoming, packet.Reply(), "on send the reply direction should be incoming")
+			require.Equal(t, enum.DirectionOutgoing, packet.Request(), "on send the request direction should be outgoing")
+			require.Equal(t, enum.DirectionIncoming, packet.Reply(), "on send the reply direction should be incoming")
 
 			require.Equal(t, envelopeID.String(), packet.Out.Envelope.ID())
 			require.Equal(t, expected, packet.Out.Envelope.TransferState())

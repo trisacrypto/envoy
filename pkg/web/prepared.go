@@ -3,8 +3,6 @@ package web
 import (
 	"net/http"
 
-	"github.com/google/uuid"
-	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -46,16 +44,17 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 		return
 	}
 
-	// Parse the TravelAddress to identify the beneficiary VASP and lookup the
+	// Parse the routing object to identify the beneficiary VASP and lookup the
 	// counterparty in the local database for IVMS101 information if any.
-	if beneficiaryVASP, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
+	// If this is a sunrise message, the counterparty is created if necessary.
+	if beneficiaryVASP, err = s.ResolveCounterparty(c, in.Routing); err != nil {
 		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
 		return
 	}
 
 	// Convert the incoming data into the appropriate TRISA data structures
 	out = &api.Prepared{
-		TravelAddress: in.TravelAddress,
+		Routing: in.Routing,
 		Identity: &ivms101.IdentityPayload{
 			Originator: &ivms101.Originator{
 				OriginatorPersons: []*ivms101.Person{
@@ -106,7 +105,7 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		err     error
 		in      *api.Prepared
 		payload *trisa.Payload
-		packet  *postman.TRISAPacket
+		packet  *postman.Packet
 		out     *api.Transaction
 	)
 
@@ -130,61 +129,11 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 		return
 	}
 
-	// Create a packet to begin the sending process
-	envelopeID := uuid.New()
-	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferStarted); err != nil {
+	// Send the transfer to the counterparty and get the secure envelope response
+	// NOTE: Send handles any error response that needs to be sent to the user.
+	// WARNING: Send commits/rollsback the database transaction from the packet.
+	if packet, err = s.Send(c, in.Routing, payload); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
-		return
-	}
-
-	// Add the log to the packet for debugging
-	ctx := c.Request.Context()
-	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
-
-	// Lookup the counterparty from the travel address in the request
-	if packet.Counterparty, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
-		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
-		return
-	}
-
-	// Create the transaction in the database
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
-		return
-	}
-	defer packet.DB.Rollback()
-
-	// Add the counterparty to the database associated with the transaction
-	if err = packet.Out.UpdateTransaction(); err != nil {
-		c.Error(err)
-	}
-
-	// Send the secure envelope and get secure envelope response
-	// NOTE: SendEnvelope handles storing the incoming and outgoing envelopes in the database
-	if err = s.SendEnvelope(ctx, packet); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("unable to send transfer to remote counterparty, please try again later"))
-		return
-	}
-
-	// Update transaction state based on response from counterparty
-	if err = packet.In.UpdateTransaction(); err != nil {
-		c.Error(err)
-	}
-
-	// Read the record from the database to return to the user
-	if err = packet.RefreshTransaction(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
-		return
-	}
-
-	// Commit the transaction to the database
-	if err = packet.DB.Commit(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
 		return
 	}
 

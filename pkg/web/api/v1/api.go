@@ -41,9 +41,6 @@ type Client interface {
 	SendPrepared(context.Context, *Prepared) (*Transaction, error)
 	Export(context.Context, io.Writer) error
 
-	// Temporary Sunrise Action
-	SendSunrise(context.Context, *Sunrise) (*Transaction, error)
-
 	// Transaction Detail Actions
 	SendEnvelope(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
 	LatestPayloadEnvelope(ctx context.Context, transactionID uuid.UUID) (*Envelope, error)

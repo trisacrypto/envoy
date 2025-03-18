@@ -234,12 +234,6 @@ func (s *Server) setupRoutes() (err error) {
 			}
 		}
 
-		// Sunrise Resource
-		sunrise := v1.Group("/sunrise", s.SunriseEnabled(), authenticate)
-		{
-			sunrise.POST("/send", authorize(permiss.TravelRuleManage), s.SendSunrise)
-		}
-
 		// Counterparties Resource
 		counterparties := v1.Group("/counterparties", authenticate)
 		{

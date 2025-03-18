@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -74,10 +75,10 @@ func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *
 
 	out = &Counterparty{
 		ID:                  model.ID,
-		Source:              model.Source,
+		Source:              model.Source.String(),
 		DirectoryID:         model.DirectoryID.String,
 		RegisteredDirectory: model.RegisteredDirectory.String,
-		Protocol:            model.Protocol,
+		Protocol:            model.Protocol.String(),
 		CommonName:          model.CommonName,
 		Endpoint:            model.Endpoint,
 		Name:                model.Name,
@@ -251,10 +252,8 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 			ID:      c.ID,
 			Created: c.Created,
 		},
-		Source:              c.Source,
 		DirectoryID:         sql.NullString{String: c.DirectoryID, Valid: c.DirectoryID != ""},
 		RegisteredDirectory: sql.NullString{String: c.RegisteredDirectory, Valid: c.RegisteredDirectory != ""},
-		Protocol:            c.Protocol,
 		CommonName:          c.CommonName,
 		Endpoint:            c.Endpoint,
 		Name:                c.Name,
@@ -263,6 +262,14 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 		BusinessCategory:    sql.NullString{String: c.BusinessCategory, Valid: c.BusinessCategory != ""},
 		VASPCategories:      models.VASPCategories(c.VASPCategories),
 		IVMSRecord:          nil,
+	}
+
+	if model.Source, err = enum.ParseSource(c.Source); err != nil {
+		return nil, err
+	}
+
+	if model.Protocol, err = enum.ParseProtocol(c.Protocol); err != nil {
+		return nil, err
 	}
 
 	if c.Modified != nil {
@@ -374,9 +381,8 @@ func (c *Contact) Validate(create bool) (err error) {
 
 func (c *CounterpartyQuery) Validate() (err error) {
 	if c.Source != "" {
-		c.Source = strings.ToLower(c.Source)
-		if c.Source != models.SourceDirectorySync && c.Source != models.SourceUserEntry {
-			err = ValidationError(err, IncorrectField("source", "source must be either gds or user"))
+		if ok, _ := enum.CheckSource(c.Source, enum.SourceUnknown, enum.SourceDirectorySync, enum.SourceUserEntry); !ok {
+			err = ValidationError(err, IncorrectField("source", "must be one of gds or user"))
 		}
 	}
 	return err
@@ -396,16 +402,16 @@ func (c *CounterpartyQuery) Query() (query *models.CounterpartyPageInfo) {
 // Helper Functions
 //===========================================================================
 
-func EndpointTravelAddress(endpoint, protocol string) (string, error) {
+func EndpointTravelAddress(endpoint string, protocol enum.Protocol) (string, error) {
 	// Cannot generate a travel address for a sunrise Counterparty
-	if protocol == models.ProtocolSunrise {
+	if protocol == enum.ProtocolSunrise {
 		return "", nil
 	}
 
 	params := make(url.Values)
 	params.Set("t", "i")
-	if protocol != "" {
-		params.Set("mode", protocol)
+	if protocol != enum.ProtocolUnknown {
+		params.Set("mode", protocol.String())
 	}
 
 	uri := &url.URL{Host: endpoint, RawQuery: params.Encode()}

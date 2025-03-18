@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -65,7 +66,7 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.Counterpart
 
 const listCounterpartySourceInfoSQL = "SELECT id, source, directory_id, registered_directory, protocol FROM counterparties WHERE source=:source"
 
-func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) (out []*models.CounterpartySourceInfo, err error) {
+func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Source) (out []*models.CounterpartySourceInfo, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err

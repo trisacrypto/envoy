@@ -1,0 +1,48 @@
+{{- template "base" . -}}
+{{- define "content" -}}
+
+  {{- block "modals" . }}{{ end }}
+  {{- block "alerts" . }}{{ end }}
+
+  <main class="main-content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+          {{- block "page-content" . }}
+          {{- block "header" . }}
+          <div class="header mt-md-5">
+            <div class="header-body">
+              <div class="row align-items-center">
+                <div class="col">
+
+                  <!-- Pretitle -->
+                  <h6 class="header-pretitle">
+                    {{ block "pretitle" . }}Sunrise{{ end }}
+                  </h6>
+
+                  <!-- Title -->
+                  <h1 class="header-title">
+                    {{ block "pagetitle" . }}Blank Page{{ end }}
+                  </h1>
+
+                </div>
+                {{- block "header-actions" . }}
+                <div class="col-auto">
+                  <a href="https://vaspdirectory.net/guide" class="btn btn-primary" target="_blank">
+                    <i class="fe fe-shield"></i>
+                    <span class="ms-1">Join TRISA Network</span>
+                  </a>
+                </div>
+                {{ end }}
+              </div> <!-- / .row -->
+              {{- block "tabs" . }}{{ end }}
+            </div>
+        </div>
+          {{- end }}
+          {{- block "main" . }}{{ end }}
+          {{- end }}
+        </div><!-- / center .col12 -->
+      </div><!-- / center .row -->
+    </div> <!-- / .container-fluid -->
+  </main>
+{{- end}}

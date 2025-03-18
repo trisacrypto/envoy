@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/webhook"
@@ -81,7 +82,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 	if i.model == nil {
 		// Create the incoming secure envelope model
 		i.model = &models.SecureEnvelope{
-			Direction:     models.DirectionIncoming,
+			Direction:     enum.DirectionIncoming,
 			Remote:        i.packet.Remote(),
 			ReplyTo:       ulid.NullULID{},
 			IsError:       i.Envelope.IsError(),
@@ -103,7 +104,7 @@ func (i *Incoming) Model() *models.SecureEnvelope {
 		i.model.Timestamp, _ = i.Envelope.Timestamp()
 
 		// This assumes that the outgoing model has already been created!
-		if i.packet.reply == DirectionIncoming {
+		if i.packet.reply == enum.DirectionIncoming {
 			i.model.ReplyTo = ulid.NullULID{
 				Valid: true, ULID: i.packet.Out.Model().ID,
 			}
@@ -127,13 +128,13 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	// If the transaction is new and being created by the remote, add the counterparty.
 	// Otherwise make sure it's the same counterparty or return an error.
 	// TODO: Make sure it's the same counterparty or return an error
-	if i.packet.DB.Created() && i.packet.request == DirectionIncoming {
+	if i.packet.DB.Created() && i.packet.request == enum.DirectionIncoming {
 		if err = i.packet.DB.AddCounterparty(i.packet.Counterparty); err != nil {
 			return fmt.Errorf("could not associate counterparty with transaction: %w", err)
 		}
 
 		// Also update the transaction source as remote if this is the request
-		i.packet.Transaction.Source = models.SourceRemote
+		i.packet.Transaction.Source = enum.SourceRemote
 	}
 
 	// Update the status and last update on the transaction.
@@ -174,24 +175,24 @@ func (i *Incoming) WebhookRequest() *webhook.Request {
 // StatusFromTransferState determines what the status should be based on the incoming
 // message transfer state. For example, if the incoming transfer state is accepted, then
 // the Transfer can be marked as completed.
-func (i *Incoming) StatusFromTransferState() string {
+func (i *Incoming) StatusFromTransferState() enum.Status {
 	switch ts := i.original.TransferState; ts {
 	case trisa.TransferStateUnspecified:
-		return models.StatusUnspecified
+		return enum.StatusUnspecified
 	case trisa.TransferStarted:
-		return models.StatusReview
+		return enum.StatusReview
 	case trisa.TransferPending:
-		return models.StatusPending
+		return enum.StatusPending
 	case trisa.TransferReview:
-		return models.StatusReview
+		return enum.StatusReview
 	case trisa.TransferRepair:
-		return models.StatusRepair
+		return enum.StatusRepair
 	case trisa.TransferAccepted:
-		return models.StatusAccepted
+		return enum.StatusAccepted
 	case trisa.TransferCompleted:
-		return models.StatusCompleted
+		return enum.StatusCompleted
 	case trisa.TransferRejected:
-		return models.StatusRejected
+		return enum.StatusRejected
 	default:
 		panic(fmt.Errorf("unknown transfer state %s", ts.String()))
 	}

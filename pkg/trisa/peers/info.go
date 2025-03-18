@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 )
@@ -54,10 +55,10 @@ func (i *Info) Counterparty() *api.Counterparty {
 // Returns a counterparty model data structure for TRISA interactions
 func (i *Info) Model() *models.Counterparty {
 	return &models.Counterparty{
-		Source:              models.SourcePeer,
+		Source:              enum.SourcePeer,
 		DirectoryID:         sql.NullString{Valid: i.ID != "", String: i.ID},
 		RegisteredDirectory: sql.NullString{Valid: i.RegisteredDirectory != "", String: i.RegisteredDirectory},
-		Protocol:            models.ProtocolTRISA,
+		Protocol:            enum.ProtocolTRISA,
 		CommonName:          i.CommonName,
 		Endpoint:            i.Endpoint,
 		Name:                i.Name,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 )
@@ -60,8 +61,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 
 	// Should be able to update the transaction record
 	record := &models.Transaction{
-		Source:             "local",
-		Status:             "pending",
+		Source:             enum.SourceLocal,
+		Status:             enum.StatusPending,
 		Originator:         sql.NullString{Valid: true, String: "Alessia Cremonesi"},
 		OriginatorAddress:  sql.NullString{Valid: true, String: "mrfAEzGzK23kU23FxrToDRPmV1ReNfX43G"},
 		Beneficiary:        sql.NullString{Valid: true, String: "Alesia Sosa Calvillo"},

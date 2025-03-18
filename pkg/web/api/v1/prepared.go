@@ -1,28 +1,37 @@
 package api
 
 import (
-	"encoding/json"
+	"net/mail"
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
+	"go.rtnl.ai/ulid"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type Prepare struct {
-	TravelAddress string    `json:"travel_address"`
-	Originator    *Person   `json:"originator"`
-	Beneficiary   *Person   `json:"beneficiary"`
-	Transfer      *Transfer `json:"transfer"`
+	Routing     *Routing  `json:"routing"`
+	Originator  *Person   `json:"originator"`
+	Beneficiary *Person   `json:"beneficiary"`
+	Transfer    *Transfer `json:"transfer"`
 }
 
 type Prepared struct {
-	TravelAddress string                   `json:"travel_address"`
-	Identity      *ivms101.IdentityPayload `json:"identity"`
-	Transaction   *generic.Transaction     `json:"transaction"`
+	Routing     *Routing                 `json:"routing"`
+	Identity    *ivms101.IdentityPayload `json:"identity"`
+	Transaction *generic.Transaction     `json:"transaction"`
+}
+
+type Routing struct {
+	Protocol       string    `json:"protocol"`
+	TravelAddress  string    `json:"travel_address,omitempty"`
+	CounterpartyID ulid.ULID `json:"counterparty_id,omitempty"`
+	Counterparty   string    `json:"counterparty,omitempty"`
+	EmailAddress   string    `json:"email,omitempty"`
 }
 
 type Person struct {
@@ -57,18 +66,90 @@ type Transfer struct {
 	Tag       string  `json:"tag"`
 }
 
-func (p *Prepared) Dump() string {
-	data, err := json.Marshal(p)
-	if err != nil {
-		log.Warn().Err(err).Msg("could not marshal prepared data")
-		return ""
+//===========================================================================
+// Validation
+//===========================================================================
+
+func (r *Routing) Validate() (err error) {
+	// NOTE: this check must be first because of the use of the shadowed err variable.
+	var protocol enum.Protocol
+	if protocol, err = enum.ParseProtocol(r.Protocol); err != nil || protocol == enum.ProtocolUnknown {
+		err = ValidationError(nil, IncorrectField("routing.protocol", "unknown protocol"))
 	}
-	return string(data)
+
+	// Trim whitespace in strings
+	r.TravelAddress = strings.TrimSpace(r.TravelAddress)
+	r.EmailAddress = strings.TrimSpace(r.EmailAddress)
+	r.Counterparty = strings.TrimSpace(r.Counterparty)
+
+	switch protocol {
+	case enum.ProtocolTRISA:
+		// For TRISA either the travel address or the counterparty ID must be set
+		if r.TravelAddress == "" && r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfMissing("routing.travel_address", "routing.counterparty_id"))
+		}
+
+		if r.TravelAddress != "" && !r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfTooMany("routing.travel_address", "routing.counterparty_id"))
+		}
+
+		if r.Counterparty != "" {
+			err = ValidationError(err, IncorrectField("routing.counterparty", "not used for trisa protocol"))
+		}
+
+		if r.EmailAddress != "" {
+			err = ValidationError(err, IncorrectField("routing.email", "not used for trisa protocol"))
+		}
+	case enum.ProtocolTRP:
+		// For TRP the travel address is required
+		if r.TravelAddress == "" {
+			err = ValidationError(err, MissingField("routing.travel_address"))
+		}
+
+		if !r.CounterpartyID.IsZero() {
+			err = ValidationError(err, IncorrectField("routing.counterparty_id", "not used for trp protocol"))
+		}
+
+		if r.Counterparty != "" {
+			err = ValidationError(err, IncorrectField("routing.counterparty", "not used for trp protocol"))
+		}
+
+		if r.EmailAddress != "" {
+			err = ValidationError(err, IncorrectField("routing.email", "not used for trp protocol"))
+		}
+	case enum.ProtocolSunrise:
+		// For Sunrise the email address or counterparty ID is required
+		if r.EmailAddress == "" && r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfMissing("routing.email", "routing.counterparty_id"))
+		}
+
+		if r.EmailAddress != "" && !r.CounterpartyID.IsZero() {
+			err = ValidationError(err, OneOfTooMany("routing.email", "routing.counterparty_id"))
+		}
+
+		// Validate the email address can be parsed correctly
+		if r.EmailAddress != "" {
+			if _, perr := mail.ParseAddress(r.EmailAddress); perr != nil {
+				err = ValidationError(err, IncorrectField("routing.email", perr.Error()))
+			}
+		}
+
+		if r.TravelAddress != "" {
+			err = ValidationError(err, IncorrectField("routing.travel_address", "not used for sunrise protocol"))
+		}
+
+	}
+
+	return err
 }
 
 func (p *Prepare) Validate() (err error) {
-	if strings.TrimSpace(p.TravelAddress) == "" {
-		err = ValidationError(err, MissingField("travel_address"))
+	if p.Routing == nil {
+		err = ValidationError(err, MissingField("routing"))
+	} else {
+		if verr := p.Routing.Validate(); verr != nil {
+			err = ValidationError(err, verr.(ValidationErrors)...)
+		}
 	}
 
 	if p.Originator == nil {
@@ -102,9 +183,29 @@ func (p *Prepare) Validate() (err error) {
 	return err
 }
 
-func (p *Prepared) Validate() error {
-	return nil
+func (p *Prepared) Validate() (err error) {
+	if p.Routing == nil {
+		err = ValidationError(err, MissingField("routing"))
+	} else {
+		if err = p.Routing.Validate(); err != nil {
+			err = ValidationError(err, err.(ValidationErrors)...)
+		}
+	}
+
+	if p.Identity == nil {
+		err = ValidationError(err, MissingField("identity"))
+	}
+
+	if p.Transaction == nil {
+		err = ValidationError(err, MissingField("transaction"))
+	}
+
+	return err
 }
+
+//===========================================================================
+// Data Handling
+//===========================================================================
 
 func (p *Prepare) Transaction() *generic.Transaction {
 	return &generic.Transaction{

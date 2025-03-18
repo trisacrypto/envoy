@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -79,11 +80,11 @@ func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID 
 	return nil
 }
 
-func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+func (s *Store) LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error) {
 	return nil, nil
 }
 
-func (s *Store) LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction string) (*models.SecureEnvelope, error) {
+func (s *Store) LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error) {
 	return nil, nil
 }
 
@@ -139,7 +140,7 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.Counterpart
 	return nil, nil
 }
 
-func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source string) ([]*models.CounterpartySourceInfo, error) {
+func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Source) ([]*models.CounterpartySourceInfo, error) {
 	return nil, nil
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"go.rtnl.ai/ulid"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 )
@@ -232,8 +233,8 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 	if counterpartyID.IsZero() {
 		// Create the counterparty
 		out = &models.Counterparty{
-			Source:     models.SourceUserEntry,
-			Protocol:   models.ProtocolSunrise,
+			Source:     enum.SourceUserEntry,
+			Protocol:   enum.ProtocolSunrise,
 			CommonName: domainFromEmail(email),
 			Endpoint:   fmt.Sprintf("mailto:%s", email),
 			Name:       name,

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/config"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
@@ -203,7 +204,7 @@ func (s *Sync) Sync() (err error) {
 
 func (s *Sync) MakeSourceMap() (local map[string]ulid.ULID, err error) {
 	var srcInfo []*models.CounterpartySourceInfo
-	if srcInfo, err = s.store.ListCounterpartySourceInfo(context.Background(), models.SourceDirectorySync); err != nil {
+	if srcInfo, err = s.store.ListCounterpartySourceInfo(context.Background(), enum.SourceDirectorySync); err != nil {
 		return nil, err
 	}
 
@@ -229,10 +230,10 @@ func (s *Sync) Counterparty(vaspID string) (vasp *models.Counterparty, err error
 
 	// Create counterparty from detail reply
 	vasp = &models.Counterparty{
-		Source:              models.SourceDirectorySync,
+		Source:              enum.SourceDirectorySync,
 		DirectoryID:         sql.NullString{Valid: true, String: detail.MemberSummary.Id},
 		RegisteredDirectory: sql.NullString{Valid: true, String: detail.MemberSummary.RegisteredDirectory},
-		Protocol:            models.ProtocolTRISA,
+		Protocol:            enum.ProtocolTRISA,
 		CommonName:          detail.MemberSummary.CommonName,
 		Endpoint:            detail.MemberSummary.Endpoint,
 		Name:                detail.MemberSummary.Name,

@@ -9,26 +9,117 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
 
+func TestRoutingValidate(t *testing.T) {
+	t.Run("Invalid", func(t *testing.T) {
+		tests := []struct {
+			input string
+			err   error
+		}{
+			{
+				`{"protocol": "foo"}`,
+				ValidationError(nil, IncorrectField("routing.protocol", "unknown protocol")),
+			},
+			{
+				`{"protocol": "trisa"}`,
+				ValidationError(nil, OneOfMissing("routing.travel_address", "routing.counterparty_id")),
+			},
+			{
+				`{"protocol": "trisa", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+				ValidationError(nil, OneOfTooMany("routing.travel_address", "routing.counterparty_id")),
+			},
+			{
+				`{"protocol": "trisa", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7", "counterparty": "Alice VASP"}`,
+				ValidationError(nil, IncorrectField("routing.counterparty", "not used for trisa protocol")),
+			},
+			{
+				`{"protocol": "trisa", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7", "email": "test@example.com"}`,
+				ValidationError(nil, IncorrectField("routing.email", "not used for trisa protocol")),
+			},
+			{
+				`{"protocol": "trp"}`,
+				ValidationError(nil, MissingField("routing.travel_address")),
+			},
+			{
+				`{"protocol": "trp", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+				ValidationError(nil, IncorrectField("routing.counterparty_id", "not used for trp protocol")),
+			},
+			{
+				`{"protocol": "trp", "counterparty": "Alice VASP", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+				ValidationError(nil, IncorrectField("routing.counterparty", "not used for trp protocol")),
+			},
+			{
+				`{"protocol": "trp", "email": "test@example.com", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+				ValidationError(nil, IncorrectField("routing.email", "not used for trp protocol")),
+			},
+			{
+				`{"protocol": "sunrise"}`,
+				ValidationError(nil, OneOfMissing("routing.email", "routing.counterparty_id")),
+			},
+			{
+				`{"protocol": "sunrise", "email": "test@example.com", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7"}`,
+				ValidationError(nil, OneOfTooMany("routing.email", "routing.counterparty_id")),
+			},
+			{
+				`{"protocol": "sunrise", "email": "invalid"}`,
+				ValidationError(nil, IncorrectField("routing.email", "mail: missing '@' or angle-addr")),
+			},
+			{
+				`{"protocol": "sunrise", "email": "test@example.com", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+				ValidationError(nil, IncorrectField("routing.travel_address", "not used for sunrise protocol")),
+			},
+		}
+
+		for i, tc := range tests {
+			routing := &Routing{}
+			require.NoError(t, json.Unmarshal([]byte(tc.input), routing), "could not unmarshal test input for test %d", i)
+			err := routing.Validate()
+			require.EqualError(t, err, tc.err.Error(), "did not match expected error for test case %d", i)
+		}
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		tests := []string{
+			`{"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+			`{"protocol": "trisa", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7"}`,
+			`{"protocol": "trp", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+			`{"protocol": "sunrise", "email": "test@example.com"}`,
+			`{"protocol": "sunrise", "email": "John Doe <test@example.com>"}`,
+			`{"protocol": "sunrise", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7"}`,
+			`{"protocol": "sunrise", "email": "test@example.com", "counterparty": "Alice VASP"}`,
+			`{"protocol": "sunrise", "counterparty_id": "01JPJ1R8RXACZ1FQNQK5M62SD7", "counterparty": "Alice VASP"}`,
+		}
+
+		for i, tc := range tests {
+			routing := &Routing{}
+			require.NoError(t, json.Unmarshal([]byte(tc), routing), "could not unmarshal test input for test %d", i)
+			require.NoError(t, routing.Validate(), "was expecting no error for test case %d", i)
+		}
+	})
+}
+
 func TestPrepareValidate(t *testing.T) {
 	testCases := []struct {
 		input string
 		err   error
 	}{
 		{
-			// This is the case that created the original bug
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}`,
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}}`,
 			ValidationError(nil, MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
 		},
 		{
 			`{}`,
-			ValidationError(nil, MissingField("travel_address"), MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
+			ValidationError(nil, MissingField("routing"), MissingField("originator"), MissingField("beneficiary"), MissingField("transfer")),
 		},
 		{
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {}, "beneficiary": {}, "transfer": {}}`,
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}, "originator": {}, "beneficiary": {}, "transfer": {}}`,
 			ValidationError(nil, MissingField("originator.crypto_address"), MissingField("beneficiary.crypto_address")),
 		},
 		{
-			`{"travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC", "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
+			`{"routing": {"protocol": "trisa"}, "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
+			ValidationError(nil, OneOfMissing("routing.travel_address", "routing.counterparty_id")),
+		},
+		{
+			`{"routing": {"protocol": "trisa", "travel_address": "ta2CdjAHciVXahu8sPNTbtGkD6BnaVq4WKcHG6ks2RB4nN4YEvtGMviaNXxsgFWEPV58HtC"}, "originator": {"crypto_address": "n1fKM7ZdxiwnnYWg3r4c1RKw7CqSVS5R8k"}, "beneficiary": {"crypto_address": "mxJmGucUxscdaWhhXNKvRuRoCoTpVzZ5uj"}, "transfer": {}}`,
 			nil,
 		},
 	}
