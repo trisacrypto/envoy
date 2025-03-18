@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -13,22 +12,16 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
-// SendEnvelope performs the bulk of the work to send a TRISA or TRP transaction to the
-// counterparty specified and storing both the outgoing and incoming secure envelopes in
-// the database. This method is used to send the prepared transaction, to send envelopes
-// for a transaction, and in the accept/reject workflows.
+// Deprecated: callers should be updated to use SendPacket instead.
 func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) (err error) {
 	// Step 1: Determine if this is a TRISA or TRP transaction and use the correct handler
 	// to send the outgoing message (which might be updated during the send process) and to
 	// receive the incoming reply from the counterparty.
 	switch packet.Counterparty.Protocol {
 	case enum.ProtocolTRISA:
-		if err = s.SendTRISATransfer(ctx, packet); err != nil {
+		if err = s.SendTRISA(ctx, packet); err != nil {
 			return err
 		}
-	case enum.ProtocolTRP:
-		// TODO: handle TRP transfers
-		return errors.New("the outgoing TRP send protocol is not implemented yet but is coming soon")
 	default:
 		return fmt.Errorf("could not send secure envelope: unknown protocol %q", packet.Counterparty.Protocol)
 	}
@@ -53,7 +46,7 @@ func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) 
 	return nil
 }
 
-func (s *Server) SendTRISATransfer(ctx context.Context, p *postman.TRISAPacket) (err error) {
+func (s *Server) SendTRISA(ctx context.Context, p *postman.TRISAPacket) (err error) {
 	// Get the peer from the specified counterparty
 	if p.Peer, err = s.trisa.LookupPeer(ctx, p.Counterparty.CommonName, ""); err != nil {
 		return fmt.Errorf("could not lookup peer for counterparty %q (%s): %w", p.Counterparty.CommonName, p.Counterparty.ID, err)

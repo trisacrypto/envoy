@@ -29,7 +29,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
+	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 )
 
@@ -52,7 +52,7 @@ type Packet struct {
 	resolver     ResolveRemote              // Helper for resolving remote information from TRISA and TRP
 }
 
-func Send(envelopeID uuid.UUID, payload *api.Payload, transferState api.TransferState) (packet *Packet, err error) {
+func Send(envelopeID uuid.UUID, payload *trisa.Payload, transferState trisa.TransferState) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
@@ -77,7 +77,7 @@ func Send(envelopeID uuid.UUID, payload *api.Payload, transferState api.Transfer
 	return packet, nil
 }
 
-func SendReject(envelopeID uuid.UUID, reject *api.Error) (packet *Packet, err error) {
+func SendReject(envelopeID uuid.UUID, reject *trisa.Error) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{},
 		Out:     &Outgoing{},
@@ -97,7 +97,7 @@ func SendReject(envelopeID uuid.UUID, reject *api.Error) (packet *Packet, err er
 	return packet, nil
 }
 
-func Receive(in *api.SecureEnvelope) (packet *Packet, err error) {
+func Receive(in *trisa.SecureEnvelope) (packet *Packet, err error) {
 	packet = &Packet{
 		In:      &Incoming{original: in},
 		Out:     &Outgoing{},
@@ -114,6 +114,39 @@ func Receive(in *api.SecureEnvelope) (packet *Packet, err error) {
 	}
 
 	return packet, nil
+}
+
+func (p *Packet) TRISA() *TRISAPacket {
+	packet := &TRISAPacket{
+		Packet: *p,
+	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	packet.Packet.resolver = packet
+	return packet
+}
+
+func (p *Packet) Sunrise() *SunrisePacket {
+	packet := &SunrisePacket{
+		Packet: *p,
+	}
+
+	// Add parent to submessages
+	packet.In.packet = &packet.Packet
+	packet.Out.packet = &packet.Packet
+
+	// Keep track of the original payload
+	payload, _ := packet.Out.Envelope.Payload()
+	packet.payload = payload
+
+	return packet
+}
+
+func (p *Packet) TRP() *TRPPacket {
+	return nil
 }
 
 func (p *Packet) RefreshTransaction() (err error) {

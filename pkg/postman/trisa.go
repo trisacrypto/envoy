@@ -94,7 +94,7 @@ func (p *TRISAPacket) Receive(in *api.SecureEnvelope) (err error) {
 	return nil
 }
 
-// Creates a TRISA payload envelope to as the outgoing message in order to send a
+// Creates a TRISA payload envelope in the outgoing message to send a
 // response back to the remote that initiated the transfer.
 func (p *TRISAPacket) Send(payload *api.Payload, state api.TransferState) (err error) {
 	if p.Out.Envelope, err = p.In.Envelope.Update(payload, envelope.WithTransferState(state)); err != nil {
