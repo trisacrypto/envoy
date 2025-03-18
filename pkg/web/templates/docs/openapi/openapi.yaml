@@ -83,6 +83,33 @@ components:
         - success
       example:
         success: true
+    StatusReply:
+      title: StatusReply
+      description: A status response that describes the current state of the server.
+      type: object
+      properties:
+        status:
+          type: string
+          description: The current health status of the server.
+          enum:
+            - ok
+            - not ready
+            - unhealthy
+            - maintenance
+          example: ok
+        version:
+          type: string
+          format: semver
+          description: The current version of the Envoy node.
+          example: 1.0.0
+        uptime:
+          type: string
+          description: The amount of time that has passed since the server started.
+          example: 537h4m32.628679622s
+      example:
+        status: ok
+        uptime: 537h4m32.628679622s
+        version: 1.0.0
     ErrorReply:
       title: ErrorReply
       type: object
@@ -931,13 +958,48 @@ components:
         country: GB
         verified_on: 2024-02-06T13:51:43-05:00
         created: 2024-08-28T10:14:43-05:00
+    CounterpartyPageInfo:
+      title: CounterpartyPageInfo
+      type: object
+      description: Paginated information for the counterparty list including any query
+        filters.
+      properties:
+        source:
+          type: string
+          description: The counterparty list filtered by the source/directory of the
+            counterparty.
+          enum:
+            - gds
+            - user
+          example: gds
+        page_size:
+          type: integer
+          example: 50
+          description: The number of counterparties on the current page, defaults to the
+            page size requested in the page query.
+        next_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            next page of counterparties after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+        prev_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            previous page of counterparties after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+      example:
+        role: compliance
+        page_size: 50
+        next_page_token: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
     CounterpartyList:
       title: CounterpartyList
       type: object
       description: A list of Counterparty objects, returned in a paginated fashion.
       properties:
         page:
-          $ref: "#/components/schemas/PageInfo"
+          $ref: "#/components/schemas/CounterpartyPageInfo"
         counterparties:
           type: array
           items:
@@ -965,6 +1027,7 @@ components:
               created: 2024-08-29T17:15:54-05:00
       example:
         page:
+          source: gds
           page_size: 50
         counterparties:
           - id: 01J6DJ9F691CF8E9H0V3ET0M0E
@@ -987,6 +1050,90 @@ components:
             country: US
             verified_on: 2024-02-06T13:51:43-05:00
             created: 2024-08-29T17:15:54-05:00
+    Contact:
+      title: Contact
+      type: object
+      description: The contact officer of a compliance officer or technical support
+        representative at a counterparty VASP. This information is used to send
+        emails to the recipient.
+      properties:
+        id:
+          type: string
+          format: ULID
+          description: The unique identifier of the contact on your Envoy node.
+          example: 01JDQDM9QG9056TS0B7YXSDP0K
+        name:
+          type: string
+          description: The full name of the compliance officer (first last).
+          example: James Duffy
+        email:
+          type: string
+          format: email
+          description: The professional email address of the contact (must be unique and
+            associated with only one counterparty).
+          example: jduffy@alice.vaspbot.net
+        role:
+          type: string
+          description: The type of role or responsibilities the contact has at the
+            counterparty.
+          example: Compliance Officer
+        created:
+          type: string
+          format: date-time
+          description: The date and time when the contact record was created.
+          example: 2024-11-27T12:21:08-06:00
+        modified:
+          type: string
+          format: date-time
+          description: The date and time when the contact record was last modified.
+          example: 2024-11-27T12:21:08-06:00
+      example:
+        id: 01JDQDM9QG9056TS0B7YXSDP0K
+        name: James Duffy
+        email: jduffy@alice.vaspbot.net
+        role: Compliance Officer
+        created: 2024-11-27T12:21:08-06:00
+        modified: 2024-11-27T12:21:08-06:00
+    ContactList:
+      title: ContactList
+      type: object
+      description: A list of Contact objects, returned in a paginated fashion.
+      properties:
+        page:
+          $ref: "#/components/schemas/PageInfo"
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+          example:
+            - id: 01JDQDM9QG9056TS0B7YXSDP0K
+              name: James Duffy
+              email: jduffy@alice.vaspbot.net
+              role: Compliance Officer
+              created: 2024-11-27T12:21:08-06:00
+              modified: 2024-11-27T12:21:08-06:00
+            - id: 01JDQDPEC3KWSW4FMFEHPETS00
+              name: Alice Barnes
+              email: alice@alice.vaspbot.net
+              role: Technical Support
+              created: 2024-08-28T10:14:43-05:00
+              modified: 2024-08-28T12:23:24-05:00
+      example:
+        page:
+          page_size: 50
+        contacts:
+          - id: 01JDQDM9QG9056TS0B7YXSDP0K
+            name: James Duffy
+            email: jduffy@alice.vaspbot.net
+            role: Compliance Officer
+            created: 2024-11-27T12:21:08-06:00
+            modified: 2024-11-27T12:21:08-06:00
+          - id: 01JDQDPEC3KWSW4FMFEHPETS00
+            name: Alice Barnes
+            email: alice@alice.vaspbot.net
+            role: Technical Support
+            created: 2024-08-28T10:14:43-05:00
+            modified: 2024-08-28T12:23:24-05:00
     Transaction:
       title: Transaction
       type: object
@@ -1187,13 +1334,62 @@ components:
         beneficiary_address: mtWVpHEcFcCGG9cuj1rUxhTGQZ1gEazxs6
         virtual_asset: BTC
         amount: 0.00000123
+    TransactionPageInfo:
+      title: TransactionPageInfo
+      type: object
+      description: Paginated information for the transaction list including any query
+        filters.
+      properties:
+        status:
+          type: string
+          description: The status value(s) that the transaction list is filtered on.
+          enum:
+            - draft
+            - pending
+            - review
+            - repair
+            - accepted
+            - rejected
+            - completed
+          example: pending
+        asset:
+          type: string
+          description: The SLIP-0044 or DTI of the virtual asset(s) that the transaction
+            list is being filtered on.
+          example: BTC
+        archives:
+          type: boolean
+          description: Set to true if the transaction list contains only archived
+            transactions.
+          example: false
+        page_size:
+          type: integer
+          example: 50
+          description: The number of transactions on the current page, defaults to the page
+            size requested in the page query.
+        next_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            next page of transactions after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+        prev_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            previous page of transactions after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+      example:
+        status: pending
+        page_size: 50
+        next_page_token: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
     TransactionList:
       title: TransactionList
       type: object
       description: A list of transaction objects, returned in a paginated fashion.
       properties:
         page:
-          $ref: "#/components/schemas/PageInfo"
+          $ref: "#/components/schemas/TransactionPageInfo"
         transactions:
           type: array
           items:
@@ -2053,6 +2249,53 @@ components:
             public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
             transfer_state: STARTED
             original: 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
+    Routing:
+      title: Routing
+      type: object
+      description: Specifies the counterparty to send the travel rule transfer to and the
+        protocol to use to send it.
+      properties:
+        protocol:
+          type: string
+          description: The protocol used to identify the counterparty and send the travel
+            rule transfer. The required fields for the routing object depend on
+            the protocol.
+          enum:
+            - trisa
+            - trp
+            - sunrise
+          example: trp
+        counterparty_id:
+          type: string
+          format: ulid
+          description: For the TRISA protocol, submit either the travel address or the VASP
+            counterparty ID to identify the VASP (mutually exclusive with all
+            non-protocol fields).
+          example: 01JPMJG3ZFSX753ZAKRWRZPWVC
+        travel_address:
+          type: string
+          format: TravelAddress
+          description: Optional for TRISA and required for TRP, the travel address of the
+            recipient or counterparty VASP.
+          example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        counterparty:
+          type: string
+          description: Optional for the Sunrise protocol, the legal name of the
+            counterparty VASP being emailed. If the counterparty does not exist,
+            it is created in the database with this name. If it does exist, it
+            is better not to specify the name or the lookup may not work.
+          example: AliceCoin, LLC
+        email:
+          type: string
+          description: Required for the Sunrise protocol, the email address of the
+            compliance contact at the counterparty to send the Sunrise message
+            to. May contain a name and bracketed email.
+          example: Jane Smith <jane@alicecoin.com>
+      required:
+        - protocol
+      example:
+        protocol: trisa
+        counterparty_id: 01JPMJG3ZFSX753ZAKRWRZPWVC
     Prepare:
       title: Prepare
       type: object
@@ -2061,13 +2304,8 @@ components:
         to the counterparty. This object is used to more easily create a travel
         rule transaction using the prepare endpoint.
       properties:
-        travel_address:
-          type: string
-          format: TravelAddress
-          description: The travel address of the receipient or counterparty VASP -- used to
-            identify the counterparty to add their IVMS101 legal person
-            information.
-          example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        routing:
+          $ref: "#/components/schemas/Routing"
         originator:
           type: object
           description: The personal identity information of the originator account holder
@@ -2307,6 +2545,9 @@ components:
                       (e.g. street name and number, city, post code)
                     items:
                       type: string
+                      example:
+                        - 123 Main Street
+                        - Casper, WY 82604
                     example:
                       - 123 Main Street
                       - Casper, WY 82604
@@ -2316,6 +2557,12 @@ components:
                     description: The country of the geographic address (e.g. home address)
                       of the beneficiary person.
                     example: GB
+                example:
+                  address_type: HOME
+                  address_lines:
+                    - 123 Main Street
+                    - Casper, WY 82604
+                  country: US
               example:
                 - address_type: HOME
                   address_lines:
@@ -2381,12 +2628,15 @@ components:
             amount: 0.0007
             network: BTC
       required:
-        - travel_address
+        - routing
         - originator
         - beneficiary
         - transfer
       example:
-        travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        routing:
+          protocol: sunrise
+          counterparty: AliceCoin, LLC
+          email: Jane Smith <jane@alicecoin.com>
         originator:
           crypto_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
           forename: James
@@ -2436,23 +2686,20 @@ components:
         travel rule transfer by creating a transaction and sending a secure
         envelope with the payload to the counterparty.
       properties:
-        travel_address:
-          type: string
-          format: TravelAddress
-          description: The travel address of the receipient or counterparty VASP -- used to
-            identify the counterparty and route the travel rule
-            transfer/inquiry.
-          example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        routing:
+          $ref: "#/components/schemas/Routing"
         identity:
           $ref: "#/components/schemas/IdentityPayload"
         transaction:
           $ref: "#/components/schemas/TransactionPayload"
       required:
-        - travel_address
+        - routing
         - identity
         - transaction
       example:
-        travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+        routing:
+          protocol: trisa
+          counterparty_id: 01JPMJG3ZFSX753ZAKRWRZPWVC
         identity:
           originator:
             originatorPersons:
@@ -3855,17 +4102,52 @@ components:
         name: John Nolan
         email: jnolan@example.com
         role: Compliance
+    UserPageInfo:
+      title: UserPageInfo
+      type: object
+      description: Paginated information for the users list including any query filters.
+      properties:
+        role:
+          type: string
+          description: If a role filter is present in the query, it will be returned with
+            the pagination information.
+          enum:
+            - admin
+            - compliance
+            - observer
+          example: compliance
+        page_size:
+          type: integer
+          example: 50
+          description: The number of users on the current page, defaults to the page size
+            requested in the page query.
+        next_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            next page of users after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+        prev_page_token:
+          type: string
+          format: base64
+          description: An encrypted handle that can be used in a page query to return the
+            previous page of users after this current page.
+          example: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
+      example:
+        role: compliance
+        page_size: 50
+        next_page_token: eyJjIjogIjAxSjZESjlGNjkxQ0Y4RTlIMFYzRVQwTTBFIiwgInMiOiA1MCwgImUiOiAxNzI0ODgyOTU4fQ==
     UserList:
       title: UserList
       description: A list of User objects, returned in a paginated fashion.
       type: object
       properties:
         page:
-          $ref: "#/components/schemas/PageInfo"
+          $ref: "#/components/schemas/UserPageInfo"
         users:
           type: array
           items:
-            $ref: "#/components/schemas/AccountSummary"
+            $ref: "#/components/schemas/User"
           example:
             - id: 01J6TFMSS0P5FWH8MVZDH23D5A
               name: Delores Clark
@@ -3883,12 +4165,13 @@ components:
               modified: 2024-08-28T12:23:24-05:00
       example:
         page:
+          role: compliance
           page_size: 50
         users:
           - id: 01J6TFMSS0P5FWH8MVZDH23D5A
             name: Delores Clark
             email: dclark@example.com
-            role: Observer
+            role: Compliance
             last_login: null
             created: 2024-09-02T18:03:55-05:00
             modified: 2024-09-02T18:03:55-05:00
@@ -4184,33 +4467,6 @@ components:
             last_seen: 2024-09-02T19:23:28-05:00
             created: 2024-08-28T10:14:43-05:00
             modified: 2024-08-28T12:23:24-05:00
-    StatusReply:
-      title: StatusReply
-      description: A status response that describes the current state of the server.
-      type: object
-      properties:
-        status:
-          type: string
-          description: The current health status of the server.
-          enum:
-            - ok
-            - not ready
-            - unhealthy
-            - maintenance
-          example: ok
-        version:
-          type: string
-          format: semver
-          description: The current version of the Envoy node.
-          example: 1.0.0
-        uptime:
-          type: string
-          description: The amount of time that has passed since the server started.
-          example: 537h4m32.628679622s
-      example:
-        status: ok
-        uptime: 537h4m32.628679622s
-        version: 1.0.0
     TravelAddress:
       title: TravelAddress
       description: Used as a request and a response to the travel address utility.
@@ -4230,90 +4486,6 @@ components:
       example:
         encoded: ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v
         decoded: beneficiary.com?t=i
-    Contact:
-      title: Contact
-      type: object
-      description: The contact officer of a compliance officer or technical support
-        representative at a counterparty VASP. This information is used to send
-        emails to the recipient.
-      properties:
-        id:
-          type: string
-          format: ULID
-          description: The unique identifier of the contact on your Envoy node.
-          example: 01JDQDM9QG9056TS0B7YXSDP0K
-        name:
-          type: string
-          description: The full name of the compliance officer (first last).
-          example: James Duffy
-        email:
-          type: string
-          format: email
-          description: The professional email address of the contact (must be unique and
-            associated with only one counterparty).
-          example: jduffy@alice.vaspbot.net
-        role:
-          type: string
-          description: The type of role or responsibilities the contact has at the
-            counterparty.
-          example: Compliance Officer
-        created:
-          type: string
-          format: date-time
-          description: The date and time when the contact record was created.
-          example: 2024-11-27T12:21:08-06:00
-        modified:
-          type: string
-          format: date-time
-          description: The date and time when the contact record was last modified.
-          example: 2024-11-27T12:21:08-06:00
-      example:
-        id: 01JDQDM9QG9056TS0B7YXSDP0K
-        name: James Duffy
-        email: jduffy@alice.vaspbot.net
-        role: Compliance Officer
-        created: 2024-11-27T12:21:08-06:00
-        modified: 2024-11-27T12:21:08-06:00
-    ContactList:
-      title: ContactList
-      type: object
-      description: A list of Contact objects, returned in a paginated fashion.
-      properties:
-        page:
-          $ref: "#/components/schemas/PageInfo"
-        contacts:
-          type: array
-          items:
-            $ref: "#/components/schemas/Contact"
-          example:
-            - id: 01JDQDM9QG9056TS0B7YXSDP0K
-              name: James Duffy
-              email: jduffy@alice.vaspbot.net
-              role: Compliance Officer
-              created: 2024-11-27T12:21:08-06:00
-              modified: 2024-11-27T12:21:08-06:00
-            - id: 01JDQDPEC3KWSW4FMFEHPETS00
-              name: Alice Barnes
-              email: alice@alice.vaspbot.net
-              role: Technical Support
-              created: 2024-08-28T10:14:43-05:00
-              modified: 2024-08-28T12:23:24-05:00
-      example:
-        page:
-          page_size: 50
-        contacts:
-          - id: 01JDQDM9QG9056TS0B7YXSDP0K
-            name: James Duffy
-            email: jduffy@alice.vaspbot.net
-            role: Compliance Officer
-            created: 2024-11-27T12:21:08-06:00
-            modified: 2024-11-27T12:21:08-06:00
-          - id: 01JDQDPEC3KWSW4FMFEHPETS00
-            name: Alice Barnes
-            email: alice@alice.vaspbot.net
-            role: Technical Support
-            created: 2024-08-28T10:14:43-05:00
-            modified: 2024-08-28T12:23:24-05:00
   securitySchemes:
     bearerAuth:
       type: http
@@ -5311,6 +5483,7 @@ paths:
                 $ref: "#/components/schemas/CounterpartyList"
               example:
                 page:
+                  source: gds
                   page_size: 50
                 counterparties:
                   - id: 01J6DJ9F691CF8E9H0V3ET0M0E
@@ -6056,7 +6229,7 @@ paths:
           description: If true, archived transactions are queried
           required: false
           schema:
-            type: bool
+            type: boolean
             example: true
           example: true
         - name: status
@@ -6069,11 +6242,11 @@ paths:
             type: string
             enum:
               - draft
-              - started
               - pending
               - repair
               - review
               - rejected
+              - accepted
               - completed
             example: pending
           example: pending
@@ -6501,7 +6674,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Prepare"
             example:
-              travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+              routing:
+                travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
               originator:
                 first_name: James
                 last_name: Bond
@@ -6544,7 +6718,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Prepared"
               example:
-                travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+                routing:
+                  travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
                 identity:
                   originator:
                     originatorPersons:
@@ -6691,7 +6866,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Prepared"
             example:
-              travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+              routing:
+                counterparty_id: 01JPMJG3ZFSX753ZAKRWRZPWVC
               identity:
                 originator:
                   originatorPersons:
@@ -6800,318 +6976,55 @@ paths:
                         registrationAuthority: RA777777
                       countryOfRegistration: JP
               transaction:
-                txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
                 originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
                 beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
                 amount: 0.46602501
                 network: BTC
-                timestamp: 2024-09-01T16:22:41-05:00
-                extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
       responses:
         "200":
           description: Succesfully Sent IVMS101 Payload for Existing Transaction
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Envelope"
+                $ref: "#/components/schemas/Transaction"
               example:
-                id: 01J6S9G7GDGNKETY6YDJQC3Z47
-                envelope_id: cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe
-                direction: in
-                remote: trisa.example.jp
-                reply_to: 01J6S9RJ2APF7C6M10C8NTYVGX
-                is_error: false
-                identity:
-                  originator:
-                    originatorPersons:
-                      - naturalPerson:
-                          name:
-                            nameIdentifier:
-                              - primaryIdentifier: Bond
-                                secondaryIdentifier: James
-                                nameIdentifierType: LEGL
-                          geographicAddress:
-                            - addressType: HOME
-                              streetName: High Street
-                              buildingNumber: 7b
-                              townName: London
-                              postCode: SE1 2QH
-                              country: GB
-                          nationalIdentification:
-                            nationalIdentifierType: DRLC
-                            nationalIdentifier: BOND9211110JA9OB
-                            countryOfIssue: GB
-                          customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
-                          dateAndPlaceOfBirth:
-                            dateOfBirth: 1920-11-11
-                            placeOfBirth: Wattenscheid, Germany
-                          countryOfResidence: GB
-                    accountNumber:
-                      - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-                  beneficiary:
-                    beneficiaryPersons:
-                      - naturalPerson:
-                          name:
-                            nameIdentifier:
-                              - primaryIdentifier: Miura
-                                secondaryIdentifier: Kentaro
-                                nameIdentifierType: LEGL
-                            localNameIdentifier:
-                              - primaryIdentifier: 三浦
-                                secondaryIdentifier: 建太郎
-                                nameIdentifierType: LEGL
-                          geographicAddress:
-                            - addressType: HOME
-                              streetName: Shimohirakawa
-                              buildingNumber: 1536-2
-                              townName: 菊川市
-                              countrySubDivision: 静岡県
-                              postCode: 437-1514
-                              country: JP
-                          nationalIdentification:
-                            nationalIdentifierType: SOCS
-                            nationalIdentifier: 0537-73-2271
-                            countryOfIssue: JP
-                          customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
-                          dateAndPlaceOfBirth:
-                            dateOfBirth: 1979-02-14
-                            placeOfBirth: Tokyo, Japan
-                          countryOfResidence: JP
-                    accountNumber:
-                      - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
-                  originatingVASP:
-                    originatingVASP:
-                      legalPerson:
-                        name:
-                          nameIdentifier:
-                            - legalPersonName: High Street Capital Management, LTD
-                              legalPersonNameIdentifierType: LEGL
-                            - legalPersonName: PubCoin
-                              legalPersonNameIdentifierType: TRAD
-                        geographicAddress:
-                          - addressType: BIZZ
-                            streetName: Abbey St.
-                            buildingNumber: "51"
-                            townName: Nottingham
-                            postCode: NG7 2NZ
-                            country: GB
-                        nationalIdentification:
-                          nationalIdentifier: GKUH00AIM6DCRXGXVU75
-                          nationalIdentifierType: LEIX
-                        countryOfRegistration: GB
-                  beneficiaryVASP:
-                    beneficiaryVASP:
-                      legalPerson:
-                        name:
-                          nameIdentifier:
-                            - legalPersonName: Nippon Crypto Exchange, KK
-                              legalPersonNameIdentifierType: LEGL
-                          localNameIdentifier:
-                            - legalPersonName: 日本仮想通貨取引所株式会社
-                              legalPersonNameIdentifierType: LEGL
-                          phoneticNameIdentifier:
-                            - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
-                              legalPersonNameIdentifierType: LEGL
-                        geographicAddress:
-                          - addressType: BIZZ
-                            addressLine:
-                              - 滋賀県大津市水明１－３４－２
-                              - 520-0531
-                            country: JP
-                          - addressType: BIZZ
-                            addressLine:
-                              - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
-                              - 520-0531 JAPAN
-                            country: JP
-                        nationalIdentification:
-                          nationalIdentifier: 84-1234567
-                          nationalIdentifierType: TXID
-                          registrationAuthority: RA777777
-                        countryOfRegistration: JP
-                transaction:
-                  txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
-                  originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-                  beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
-                  amount: 0.46602501
-                  network: BTC
-                  timestamp: 2024-09-01T16:22:41-05:00
-                  extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
-                sent_at: 2024-09-01T16:22:41-05:00
-                received_at: 2024-09-06T07:14:29-05:00
-                timestamp: 2024-09-06T07:14:30-05:00
-                public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
-                transfer_state: STARTED
-                secure_envelope:
-                  id: 01J6S9G7GDGNKETY6YDJQC3Z47
-                  envelope_id: cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe
-                  direction: out
-                  remote: api.alice.vaspbot.net
-                  reply_to: 01J6S9RJ2APF7C6M10C8NTYVGX
-                  payload: Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW
-                  encryption_key: vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=
-                  encryption_algorithm: AES256-GCM
-                  valid_hmac: true
-                  hmac: HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=
-                  hmac_secret: KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=
-                  hmac_algorithm: HMAC-SHA256
-                  is_error: false
-                  timestamp: 2024-09-02T07:12:34-05:00
-                  sealed: true
-                  public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
-                  transfer_state: STARTED
-                  original: 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
+                id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                source: local
+                status: pending
+                counterparty: Nippon Crypto Exchange, KK
+                counterparty_id: 01JPMJG3ZFSX753ZAKRWRZPWVC
+                originator: James Bond
+                originator_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                beneficiary: Kentaro Miura
+                beneficiary_address: mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                virtual_asset: BTC
+                amount: 0.46602501
+                last_update: 2024-08-30T12:41:14-05:00
+                envelope_count: 4
+                created: 2024-08-30T11:14:55-05:00
+                modified: 2024-08-30T12:41:14-05:00
         "201":
           description: Succesfully Created Transaction and Sent IVMS101 Payload
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Envelope"
+                $ref: "#/components/schemas/Transaction"
               example:
-                id: 01J6S9G7GDGNKETY6YDJQC3Z47
-                envelope_id: cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe
-                direction: in
-                remote: trisa.example.jp
-                reply_to: 01J6S9RJ2APF7C6M10C8NTYVGX
-                is_error: false
-                identity:
-                  originator:
-                    originatorPersons:
-                      - naturalPerson:
-                          name:
-                            nameIdentifier:
-                              - primaryIdentifier: Bond
-                                secondaryIdentifier: James
-                                nameIdentifierType: LEGL
-                          geographicAddress:
-                            - addressType: HOME
-                              streetName: High Street
-                              buildingNumber: 7b
-                              townName: London
-                              postCode: SE1 2QH
-                              country: GB
-                          nationalIdentification:
-                            nationalIdentifierType: DRLC
-                            nationalIdentifier: BOND9211110JA9OB
-                            countryOfIssue: GB
-                          customerIdentification: 01J6DJ9F691CF8E9H0V3ET0M0E
-                          dateAndPlaceOfBirth:
-                            dateOfBirth: 1920-11-11
-                            placeOfBirth: Wattenscheid, Germany
-                          countryOfResidence: GB
-                    accountNumber:
-                      - mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-                  beneficiary:
-                    beneficiaryPersons:
-                      - naturalPerson:
-                          name:
-                            nameIdentifier:
-                              - primaryIdentifier: Miura
-                                secondaryIdentifier: Kentaro
-                                nameIdentifierType: LEGL
-                            localNameIdentifier:
-                              - primaryIdentifier: 三浦
-                                secondaryIdentifier: 建太郎
-                                nameIdentifierType: LEGL
-                          geographicAddress:
-                            - addressType: HOME
-                              streetName: Shimohirakawa
-                              buildingNumber: 1536-2
-                              townName: 菊川市
-                              countrySubDivision: 静岡県
-                              postCode: 437-1514
-                              country: JP
-                          nationalIdentification:
-                            nationalIdentifierType: SOCS
-                            nationalIdentifier: 0537-73-2271
-                            countryOfIssue: JP
-                          customerIdentification: 01J6QNPGSKN2HZGC2F33F3QQRF
-                          dateAndPlaceOfBirth:
-                            dateOfBirth: 1979-02-14
-                            placeOfBirth: Tokyo, Japan
-                          countryOfResidence: JP
-                    accountNumber:
-                      - mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
-                  originatingVASP:
-                    originatingVASP:
-                      legalPerson:
-                        name:
-                          nameIdentifier:
-                            - legalPersonName: High Street Capital Management, LTD
-                              legalPersonNameIdentifierType: LEGL
-                            - legalPersonName: PubCoin
-                              legalPersonNameIdentifierType: TRAD
-                        geographicAddress:
-                          - addressType: BIZZ
-                            streetName: Abbey St.
-                            buildingNumber: "51"
-                            townName: Nottingham
-                            postCode: NG7 2NZ
-                            country: GB
-                        nationalIdentification:
-                          nationalIdentifier: GKUH00AIM6DCRXGXVU75
-                          nationalIdentifierType: LEIX
-                        countryOfRegistration: GB
-                  beneficiaryVASP:
-                    beneficiaryVASP:
-                      legalPerson:
-                        name:
-                          nameIdentifier:
-                            - legalPersonName: Nippon Crypto Exchange, KK
-                              legalPersonNameIdentifierType: LEGL
-                          localNameIdentifier:
-                            - legalPersonName: 日本仮想通貨取引所株式会社
-                              legalPersonNameIdentifierType: LEGL
-                          phoneticNameIdentifier:
-                            - legalPersonName: Nihon kasō tsūka torihikisho kabushikigaisha
-                              legalPersonNameIdentifierType: LEGL
-                        geographicAddress:
-                          - addressType: BIZZ
-                            addressLine:
-                              - 滋賀県大津市水明１－３４－２
-                              - 520-0531
-                            country: JP
-                          - addressType: BIZZ
-                            addressLine:
-                              - 1-34-2 SUIMEI OTSU SHI SHIGA KEN
-                              - 520-0531 JAPAN
-                            country: JP
-                        nationalIdentification:
-                          nationalIdentifier: 84-1234567
-                          nationalIdentifierType: TXID
-                          registrationAuthority: RA777777
-                        countryOfRegistration: JP
-                transaction:
-                  txid: 44e25bc0ed840f9bf0e58d6227db15192d5b89e79ba4304da16b09703f68ceaf
-                  originator: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
-                  beneficiary: mtCoa72PhLznu2dw639xXfBjC8SUCpyrTv
-                  amount: 0.46602501
-                  network: BTC
-                  timestamp: 2024-09-01T16:22:41-05:00
-                  extra_json: eyJ2YWx1ZV93aGVuX3RyYW5zYWN0ZWQiOiAiVVNEICQzMiwzODYuNjEifQ==
-                sent_at: 2024-09-01T16:22:41-05:00
-                received_at: 2024-09-06T07:14:29-05:00
-                timestamp: 2024-09-06T07:14:30-05:00
-                public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
-                transfer_state: STARTED
-                secure_envelope:
-                  id: 01J6S9G7GDGNKETY6YDJQC3Z47
-                  envelope_id: cb9a92a3-dfa6-4ecc-a4cc-c1f8fa94d3fe
-                  direction: out
-                  remote: api.alice.vaspbot.net
-                  reply_to: 01J6S9RJ2APF7C6M10C8NTYVGX
-                  payload: Omjx7x69RRFOcheWgESMKph5befzbENJoFXjgno74FCrCeZx5EoR3w515lR76X0pOqghaXErNir14/GisfSKuyZnwD4re7hbFrQn3nIjqqirKvkFRKf4QIOQv/0DfK/ofc8/3+OLN5YP9Js/5vMp3DcFWqYzB8AvCDGC6AtcNh+7Y6arHlCCXzQfxeI1BZeMN5QGeMSL8Ad3od6Nqy92KVCeSksNv858x7XDiYKTh72Rn/z+11UVw5wc4cKdf536vZQ87v38SNV3k7ASfmT+a8+19HnE2aPy/bYtmEQd94Q2w0+JPF4lB9C8DooMS7ctnOUDSIiY++v4xX4Ty40iOFQOns77E9itfAYQwYyVHoLXJVA9SR5aBYDJse0mhRlJ5KHf0cY7CPQlvtcCRu+rwdYu7U2XFXYXCjYS2a6mB+ozUaZMepcPst1XPqQRW2ZMKP8Q9sCa/0r2XIO9yHksaPt3AbbjfHczEvl44f2NkdpfBAtTYYGUfO441EBieO3NhE6XTWbAHaj8Sxo4DUpvibaENbIuMNksme3WCM6ZJRHJ70us+9PJSA9VEiGRHR64YbZn95iBcH7HAVWPJdPAmfSuRQ0i4LbdFdq33LZG33uJWLP0sK6ncFM+0e1G1S6hRN3hXEEdFhHxuOOq90Vq29mQHbgzrZiHgIKqasutXYU/Tbxcqi1oUZdRAMXIySfAVFVT9672DsQpAoFalKGeSu3kbNTfYTYBpvDFVFxJI/cvn/D64AOzg8feo/9KtJgSPG9QijCyD1hbkii75/ssu1Z8X9mj0Y4kRxS41EimihmQzTE47dxYjGy+W3X9s0H8AMyDmlvTU++5x8qyxLht9s6R83L8sXH+J9/4mLebgIccaaKYqJQZ7pWJoqrujuO1InYBWCUGPdRpHPlKmuMHjhc13j8PhGOrc4ylanOfdxUumUI4nLNlluKpijAZ/lwpNnixNbAu/ZpZUXLGcpgOZgqgBljcLOWq+PKteLhH2SIxt9+bIO8HoWzfpkVRWumuTi1xKQmkrOHW140uYez831Mz0ZDwB4u6aiHouSAu+MAGp/VzA0DmfjTGqD8KccxYZg+Cxye2e2CXJe6xw+AgUTg5bSeAIgwEafZU56BlV5tjdYMrXlcchS4ORGUV1ysMGBc0KIxYuvmciV17aD7R6wUbvgntvSGfvPvcbFqTY06sECgcWVVs8QB5avB7v4nYCDYnTay6Zc6ETE6EO9t+94bKljvAto3RefiFQeCfDnkbFWKHY37ofsTn3Crc+iesMmAzGJvOPkzgcxEjhpoFV7XYPiG0ke31dNFOrb9cZpTZJfi80XZjE6Z/ugQYWrfKjXauPYRbJWAts7TAaz28PxpjTjbdCO3wMCzKlYKnk+yCYwZe2c1Hdz4VEmNFNe30Uf7AH3dW2Q5tjKzn/ghj/zVeVI2bQLwfSKaEQI78Sqg5gXETwgkMCuzjp2850AMndNaep5W1JQ4PcWkLEonMPcdZF9CMIX7WaYFHRkbOuJC5ncC3icnyD0qEC/XWsvEQTR6rzY4vTIIZOgDMbKoZDK4C5kOj5pewohNOuYySQwB6A5hcNtW6Z/uJ4V9vGX+EPzwjTaHbe8GDj++NlzG+FQi1GozS+6vqJU5FCTdhTMzelg5blkozihiUGkkABFsMcn8R2uMvjJ/WebjkeQC3pkRkc+qfyAH+Q2uhSASfVAsKkalBFh3Y9uwwuY1Tl4aHMvmAWvBpbIpP/PI90JhW
-                  encryption_key: vSdEaKmbQUA4hUfbpx2LAi7rfYK3YwVPMt7w0M0wHWI6sPTlLI863Bgagja7pP3TAq6dTuwXnT0jxbW/I6i2LYshvUbkHJIl/6nddGbJiJzJNboFvVZNFlNYCRDm2T/lOx0PPcuuficHQpVrqZUTT8g9jB3gwkSvCQMVt41g4aKnNGmxze1nVLi3LlmILNfownTxWRkPP4ASbBVZ204qi4c/1EA3AKI0vuSB1I4Sjk2D77/Ui67QTVc5xqdk+AGUON/hkFAa4RSC0DXmNqKBLobPkY3RhK1n1SqmCifjGBsqMdpXPnfAZlibxeB5UssZKK+1Lcj2viKY3FUPZFCNm5GgUhzxyXH5BCHgpgbpS4JQ9+8uyiUxyG5MpRZrdRowz252b1QiZ12u5lnxDO6RKQGcwRvs2mEst6ikkTHIIoZ13q4aZHsW7VWP3+ogZj/o3EnLxcYJO2PNkoHhLcQya6NSvxxgA8x6oRDObOLnzspavNw7tHf2LwORrd3PYJylNgllpoFK1qUIIdYulESkLuE6jqURIgP8WYUZ3nhMEAaHJbB4G66KoDGam0cmxTKiHGG11QU8SUNVdU8w/eb1NmR5ZSQIJdQA7RyREklZdjsW+mmcHgygxynHjzBe7kiXBNYBWz2CVQxGE+TySIi4ZHE2rxLpSCFAKl3KtLIVG4o=
-                  encryption_algorithm: AES256-GCM
-                  valid_hmac: true
-                  hmac: HBzhe6ltfH0cfJ4rQCl8G6LX/eD6aJShh+9mYJ4ExHU=
-                  hmac_secret: KxPZDbLAu7c5ASYiuOLWQwnQi2r7L7925x0MBuNaNQs1vcGa79y3+IF6uprD9MwwYIqZ/5CBaAJusUuVXJ9KXSWVu4SD8yGv6M1HkEPzic7pvywcH6zqjBYupjhWGcit9IfB1oWGMPG7T7s7Ctl7eBLpVyfSI2veXLFYViFoXlUPNovcQ1MgnPNAVaIuAlmHsEC6JIeSsHb1uhpYxapBWvZPYT9g/QKWggyCZDQWohYrscRq+iPa1YpMuJJ77R6Bb3hJzDwE9onZwz8Vnl3V2uY7JNw1WSyGu/chpBO4yMrTvYcvThsoo+lWbnoSmImWX3jHbVK/6+hxlyEnQJ+9YnZHk7a7b21UXOB/lmm58InK5FEaB2wotDSlrwJB7wLT5Y2PtqyamqRYlOtc14owfrfbHcSWe7RoGOhKzRILqgV8zFZv0sg/+uZU5dYm5ef/mRDeLBpfs4qbOHSsNm1CVQSK64SrEyv0wdFL+OSS5l9Vq/CEEgYG7Q7qz+m/ahCurI2o6GoIDvkEfA+5TfoJ3ZUU/l1DGlUiJx5YxQClktVoWfL2W790D5u5uHrI+Qzy00lJ/o/ffx4cgCZiJF+E4xuxNi7ZPByiftciNpXk2a1nyTE9HuB90UULBLwnr8mVzFrwfgkMbof4XlgAxOIsTv6PUPkyOq7Ol4H6B4zY27s=
-                  hmac_algorithm: HMAC-SHA256
-                  is_error: false
-                  timestamp: 2024-09-02T07:12:34-05:00
-                  sealed: true
-                  public_key_signature: SHA256:n/iTnE9b0sP1DQkaDMricHqPKYj0n00IjiaJ7lUmcAs
-                  transfer_state: STARTED
-                  original: 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
+                id: f653bae7-79c9-45c2-87ae-eb5d1090dbf5
+                source: local
+                status: pending
+                counterparty: Nippon Crypto Exchange, KK
+                counterparty_id: 01JPMJG3ZFSX753ZAKRWRZPWVC
+                originator: James Bond
+                originator_address: mvr5YZBdAuV8sgexCHL4CRkbCvTV7odT1i
+                beneficiary: Kentaro Miura
+                beneficiary_address: mtLmjWt1DDxjGhMRmnxcgQqPNGPUzXuDHw
+                virtual_asset: BTC
+                amount: 0.46602501
+                last_update: 2024-08-30T12:41:14-05:00
+                envelope_count: 2
+                created: 2024-08-30T11:14:55-05:00
+                modified: 2024-08-30T12:41:14-05:00
         "400":
           description: Bad Prepared IVMS101 Payload
           content:

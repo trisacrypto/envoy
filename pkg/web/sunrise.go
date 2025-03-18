@@ -28,7 +28,7 @@ import (
 )
 
 //===========================================================================
-// Sunrise API
+// Sunrise Utilities
 //===========================================================================
 
 func (s *Server) SendSunrise(ctx context.Context, packet *postman.SunrisePacket) (err error) {
@@ -232,7 +232,7 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "review_message.html", scene.New(c).WithAPIData(out))
+	c.HTML(http.StatusOK, "sunrise/review/review.html", scene.New(c).WithAPIData(out))
 }
 
 func (s *Server) SunriseMessageReject(c *gin.Context) {
