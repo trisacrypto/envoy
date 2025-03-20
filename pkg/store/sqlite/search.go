@@ -14,7 +14,7 @@ import (
 
 const (
 	counterpartySearchSQL       = "SELECT id, name FROM counterparties ORDER BY name ASC"
-	counterparytSearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, created FROM counterparties WHERE id=:id"
+	counterparytSearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE id=:id"
 )
 
 type counterpartyStub struct {
