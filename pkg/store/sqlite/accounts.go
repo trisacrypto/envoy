@@ -13,7 +13,7 @@ import (
 	"go.rtnl.ai/ulid"
 )
 
-const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created, modified FROM accounts"
+const listAccountsSQL = "SELECT a.id, a.customer_id, a.first_name, a.last_name, a.travel_address, a.ivms101 != :null, count(ca.id), a.created, a.modified FROM accounts a LEFT JOIN crypto_addresses ca ON a.id = ca.account_id GROUP BY a.id"
 
 // Retrieve summary information for all accounts for the specified page, omitting
 // crypto addresses and any other irrelevant information.
@@ -31,7 +31,7 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listAccountsSQL); err != nil {
+	if rows, err = tx.Query(listAccountsSQL, sql.Named("null", []byte("null"))); err != nil {
 		// TODO: handle database specific errors
 		return nil, err
 	}
