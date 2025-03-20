@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"go.rtnl.ai/ulid"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -127,6 +128,23 @@ func (s *Server) AccountsListPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/accounts/list.html", scene.New(c))
 }
 
+func (s *Server) AccountDetailPage(c *gin.Context) {
+	// Get the account ID from the URL path and make available to the template.
+	// The account detail is loaded using htmx.
+	accountID := c.Param("id")
+
+	// Validate that the account ID is a valid UUID.
+	if _, err := ulid.Parse(accountID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = accountID
+
+	c.HTML(http.StatusOK, "pages/accounts/detail.html", ctx)
+}
+
 //===========================================================================
 // Counterparty VASP Pages
 //===========================================================================
@@ -135,6 +153,23 @@ func (s *Server) CounterpartiesListPage(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["Source"] = strings.ToLower(c.Query("source"))
 	c.HTML(http.StatusOK, "dashboard/counterparties/list.html", ctx)
+}
+
+func (s *Server) CounterpartyDetailPage(c *gin.Context) {
+	// Get the counterparty ID from the URL path and make available to the template.
+	// The counterparty detail is loaded using htmx.
+	counterpartyID := c.Param("id")
+
+	// Validate that the counterparty ID is a valid UUID.
+	if _, err := ulid.Parse(counterpartyID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = counterpartyID
+
+	c.HTML(http.StatusOK, "pages/counterparties/detail.html", ctx)
 }
 
 //===========================================================================

@@ -27,6 +27,8 @@ type Account struct {
 	LastName        string           `json:"last_name"`
 	TravelAddress   string           `json:"travel_address,omitempty"`
 	IVMSRecord      string           `json:"ivms101,omitempty"`
+	NumAddresses    int64            `json:"num_addresses"`
+	HasIVMSRecord   bool             `json:"has_ivms_record"`
 	CryptoAddresses []*CryptoAddress `json:"crypto_addresses,omitempty"`
 	Created         time.Time        `json:"created,omitempty"`
 	Modified        time.Time        `json:"modified,omitempty"`
@@ -71,6 +73,8 @@ func NewAccount(model *models.Account, encoding *EncodingQuery) (out *Account, e
 		FirstName:     model.FirstName.String,
 		LastName:      model.LastName.String,
 		TravelAddress: model.TravelAddress.String,
+		HasIVMSRecord: model.HasIVMSRecord(),
+		NumAddresses:  model.NumAddresses(),
 		Created:       model.Created,
 		Modified:      model.Modified,
 		encoding:      encoding,
@@ -221,6 +225,14 @@ func (a *Account) Validate(create bool) (err error) {
 				err = ValidationError(err, IncorrectField("ivms101", verr.Error()))
 			}
 		}
+	}
+
+	if a.HasIVMSRecord {
+		err = ValidationError(err, ReadOnlyField("has_ivms_record"))
+	}
+
+	if a.NumAddresses > 0 {
+		err = ValidationError(err, ReadOnlyField("num_addresses"))
 	}
 
 	if len(a.CryptoAddresses) > 0 {

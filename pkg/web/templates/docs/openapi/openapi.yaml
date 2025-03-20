@@ -304,6 +304,16 @@ components:
           description: The customer account travel address that allows counterparties to
             send this account travel rule inquiries.
           example: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        num_addresses:
+          type: integer
+          description: The number of registered crypto wallet addresses associated with
+            this account.
+          example: 8
+        has_ivms_record:
+          type: boolean
+          description: If the account has an IVMS101 record or not; note this does not
+            determine if the record is empty, just if it is set.
+          example: true
         crypto_addresses:
           type: array
           description: A list of crypto addresses associated with the account.
@@ -327,6 +337,8 @@ components:
         last_name: Bond
         travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
         ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+        num_addresses: 2
+        has_ivms_record: true
         crypto_addresses:
           - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
             crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
@@ -409,6 +421,16 @@ components:
           description: A travel address that the customer can send to request payment using
             virtual assets.
           example: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        num_addresses:
+          type: integer
+          description: The number of registered crypto wallet addresses associated with
+            this account.
+          example: 8
+        has_ivms_record:
+          type: boolean
+          description: If the account has an IVMS101 record or not; note this does not
+            determine if the record is empty, just if it is set.
+          example: true
         created:
           type: string
           format: date-time
@@ -427,6 +449,8 @@ components:
         first_name: James
         last_name: Bond
         travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+        num_addresses: 2
+        has_ivms_record: true
         created: 2024-08-28T10:14:43-05:00
         modified: 2024-08-28T12:23:24-05:00
     AccountList:
@@ -446,6 +470,8 @@ components:
               first_name: James
               last_name: Bond
               travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+              num_addresses: 2
+              has_ivms_record: true
               created: 2024-08-28T10:14:43-05:00
               modified: 2024-08-28T12:23:24-05:00
             - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
@@ -453,6 +479,8 @@ components:
               first_name: Twilda
               last_name: Swansong
               travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+              num_addresses: 0
+              has_ivms_record: false
               created: 2024-08-29T14:09:21-05:00
               modified: 2024-08-29T14:10:50-05:00
       example:
@@ -464,6 +492,8 @@ components:
             first_name: James
             last_name: Bond
             travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+            num_addresses: 2
+            has_ivms_record: true
             created: 2024-08-28T10:14:43-05:00
             modified: 2024-08-28T12:23:24-05:00
           - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
@@ -471,6 +501,8 @@ components:
             first_name: Twilda
             last_name: Swansong
             travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+            num_addresses: 0
+            has_ivms_record: false
             created: 2024-08-29T14:09:21-05:00
             modified: 2024-08-29T14:10:50-05:00
     CryptoAddress:
@@ -4731,6 +4763,8 @@ paths:
                     first_name: James
                     last_name: Bond
                     travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
+                    num_addreses: 2
+                    has_ivms_record: true
                     created: 2024-08-28T10:14:43-05:00
                     modified: 2024-08-28T12:23:24-05:00
                   - id: 01J6FRR2NSTQ0TC7DDMAR91MG7
@@ -4738,6 +4772,8 @@ paths:
                     first_name: Twilda
                     last_name: Swansong
                     travel_address: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
+                    num_addreses: 0
+                    has_ivms_record: false
                     created: 2024-08-29T14:09:21-05:00
                     modified: 2024-08-29T14:10:50-05:00
         "400":
@@ -4796,6 +4832,8 @@ paths:
                 last_name: Bond
                 travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
                 ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                num_addreses: 0
+                has_ivms_record: true
                 crypto_addresses: []
                 created: 2024-08-28T10:14:43-05:00
                 modified: 2024-08-28T12:23:24-05:00
@@ -4866,6 +4904,8 @@ paths:
                 last_name: Bond
                 travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
                 ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                num_addreses: 2
+                has_ivms_record: true
                 crypto_addresses:
                   - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
                     crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
@@ -4934,6 +4974,8 @@ paths:
                 last_name: Bond
                 travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
                 ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                num_addreses: 2
+                has_ivms_record: true
                 crypto_addresses:
                   - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
                     crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"
@@ -5014,6 +5056,8 @@ paths:
                 last_name: Bond
                 travel_address: taLg4sBFp3cWhB9wN7qqPwDzq32bWwhibhFvADbiYp5fMR7asAxbqNrPuUyT4VzZa98oPk6dHcdKhov9jiraNrcZ7yQdikXcwbv
                 ivms101: CjwKEQoPCgRCb25kEgVKYW1lcxgCKiMKCjE5MjAtMTEtMTESFVdhdHRlbnNjaGVpZCwgR2VybWFueTICR0I
+                num_addreses: 2
+                has_ivms_record: true
                 crypto_addresses:
                   - id: 01J6FRB1EGJCEZXRMQGW1FM0BR
                     crypto_address: "0x9268102451DE47C536C3AD92203D4E9692941E06"

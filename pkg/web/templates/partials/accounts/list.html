@@ -1,7 +1,7 @@
 {{- $canEditAccounts := not .IsViewOnly -}}
 {{- with .AccountsList -}}
 {{ if .Accounts }}
-<div class="card" id="accountList" data-list='{"valueNames": ["item-customer-id", "item-first-name", "item-last-name", "item-date-updated"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+<div class="card" id="accountList" data-list='{"valueNames": ["item-customer-id", "item-first-name", "item-last-name", "item-travel-address", "item-has-ivms-record", "item-num-addresses", "item-date-updated"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
@@ -44,6 +44,15 @@
           <th>
             <a class="list-sort text-muted" data-sort="item-last-name" href="#">Last Name</a>
           </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-travel-address" href="#">Travel Address</a>
+          </th>
+          <th class="text-center">
+            <a class="list-sort text-muted" data-sort="item-has-ivms-record" href="#">IVMS 101</a>
+          </th>
+          <th class="text-center">
+            <a class="list-sort text-muted" data-sort="item-num-addresses" href="#">Wallets</a>
+          </th>
           <th colspan="2">
             <a class="list-sort text-muted" data-sort="item-date-updated" href="#">Last Update</a>
           </th>
@@ -55,6 +64,9 @@
           <td><span class="item-customer-id">{{ .CustomerID }}</span></td>
           <td><span class="item-first-name">{{ .FirstName }}</span></td>
           <td><span class="item-last-name">{{ .LastName }}</span></td>
+          <td class="text-truncate font-monospace" style="max-width: 128px"><span class="item-travel-address">{{ .TravelAddress }}</span></td>
+          <td class="text-center"><span class="item-has-ivms-record">{{ if .HasIVMSRecord }}<i class="fe fe-check-circle text-success"></i>{{ else }}<i class="fe fe-x-circle text-danger"></i>{{ end }}</span></td>
+          <td class="text-center"><span class="item-num-addresses badge rounded-pill {{ if .NumAddresses }}text-bg-primary{{ else }}text-bg-secondary{{ end }}">{{ .NumAddresses }}</span></td>
           <td>
             <span class="item-date-updated d-none">{{ rfc3339 .Modified }}</span>
             <time datetime="{{ rfc3339 .Modified }}">
@@ -68,17 +80,14 @@
                 <i class="fe fe-more-vertical"></i>
               </a>
               <div class="dropdown-menu dropdown-menu-end">
-                <a href="#!" class="dropdown-item">
-                  View
+                <a href="/accounts/{{ .ID }}" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View
                 </a>
                 {{ if $canEditAccounts }}
                 <a href="#!" class="dropdown-item">
-                  Edit
+                  <i class="fe fe-edit"></i> Edit
                 </a>
                 {{ end }}
-                <a href="#!" class="dropdown-item">
-                  Copy Travel Address
-                </a>
               </div>
             </div>
           </td>
