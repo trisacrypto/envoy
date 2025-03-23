@@ -146,7 +146,7 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 
 	// If this is a UI request, then redirect the user to the transaction detail page
 	if htmx.IsHTMXRequest(c) {
-		htmx.Redirect(c, http.StatusFound, "/transactions/"+packet.Transaction.ID.String())
+		htmx.Redirect(c, http.StatusSeeOther, "/transactions/"+packet.Transaction.ID.String())
 		return
 	}
 

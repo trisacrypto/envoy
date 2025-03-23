@@ -1,14 +1,18 @@
 {{ template "dashboard.html" . }}
 {{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Customer Accounts{{ end }}
-{{ define "pagetitle" }}Manage Wallet Accounts{{ end }}
+{{ define "pagetitle" }}Manage Customer Accounts{{ end }}
 
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
-<a href="#!" class="btn btn-primary ms-2">
-  Create Customer Account
-</a>
+<button class="btn btn-primary ms-2 lift" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+  Create Account
+</button>
 {{- end }}
+{{- end }}
+
+{{- define "modals" }}
+  {{ template "createAccountModal" . }}
 {{- end }}
 
 {{- define "tabs" }}
@@ -39,5 +43,6 @@
 
 {{- define "appcode" }}
 <script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/modules/networks.js"></script>
 <script type="module" src="/static/js/accounts/index.js"></script>
 {{- end }}

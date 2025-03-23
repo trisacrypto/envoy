@@ -8,6 +8,7 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
@@ -109,19 +110,20 @@ func (s *Server) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	// Convert the model back to an API response
+	// If this is an HTMX request, redirect to the account detail page
+	if htmx.IsHTMXRequest(c) {
+		htmx.Redirect(c, http.StatusSeeOther, "/accounts/"+account.ID.String())
+		return
+	}
+
+	// Otherwise, convert the model back to an API response
 	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(fmt.Errorf("serialization failed: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) LookupAccount(c *gin.Context) {

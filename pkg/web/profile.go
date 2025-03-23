@@ -155,7 +155,7 @@ func (s *Server) DeleteProfile(c *gin.Context) {
 
 	// Send the user to the login page if this is an HTMX request
 	if htmx.IsHTMXRequest(c) {
-		htmx.Redirect(c, http.StatusFound, "/login")
+		htmx.Redirect(c, http.StatusSeeOther, "/login")
 		return
 	}
 
@@ -236,7 +236,7 @@ func (s *Server) ChangeProfilePassword(c *gin.Context) {
 
 	// Send the user to the login page if this is an HTMX request
 	if htmx.IsHTMXRequest(c) {
-		htmx.Redirect(c, http.StatusFound, "/login")
+		htmx.Redirect(c, http.StatusSeeOther, "/login")
 		return
 	}
 

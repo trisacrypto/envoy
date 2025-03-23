@@ -105,10 +105,10 @@ func (s *Server) Login(c *gin.Context) {
 		c.JSON(http.StatusOK, out)
 	case binding.MIMEHTML:
 		if in.Next != "" {
-			htmx.Redirect(c, http.StatusFound, in.Next)
+			htmx.Redirect(c, http.StatusSeeOther, in.Next)
 			return
 		}
-		htmx.Redirect(c, http.StatusFound, "/")
+		htmx.Redirect(c, http.StatusSeeOther, "/")
 	default:
 		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
 	}
@@ -119,7 +119,7 @@ func (s *Server) Logout(c *gin.Context) {
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
 	// Send the user to the login page
-	htmx.Redirect(c, http.StatusFound, "/login")
+	htmx.Redirect(c, http.StatusSeeOther, "/login")
 }
 
 func (s *Server) Authenticate(c *gin.Context) {
@@ -290,7 +290,7 @@ func (s *Server) Reauthenticate(c *gin.Context) {
 	case binding.MIMEJSON:
 		c.JSON(http.StatusOK, out)
 	case binding.MIMEHTML:
-		htmx.Redirect(c, http.StatusFound, "/")
+		htmx.Redirect(c, http.StatusSeeOther, "/")
 	default:
 		c.AbortWithError(http.StatusNotAcceptable, ErrNotAccepted)
 	}
@@ -452,5 +452,5 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
 	// Redirect to reset-password success page
-	htmx.Redirect(c, http.StatusFound, "/reset-password/success")
+	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
 }

@@ -638,7 +638,7 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
 		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 
-		htmx.Redirect(c, http.StatusFound, detailURL)
+		htmx.Redirect(c, http.StatusSeeOther, detailURL)
 		return
 	}
 
@@ -957,7 +957,7 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		detailURL, _ := url.JoinPath("/transactions", packet.Transaction.ID.String(), "info")
 		setToastCookie(c, "transaction_send_success", "true", detailURL, s.conf.Web.Auth.CookieDomain)
 
-		htmx.Redirect(c, http.StatusFound, detailURL)
+		htmx.Redirect(c, http.StatusSeeOther, detailURL)
 		return
 	}
 
