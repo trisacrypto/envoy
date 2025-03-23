@@ -69,6 +69,19 @@ document.addEventListener("htmx:afterSettle", function(e) {
 });
 
 /*
+Post-event handling when the accounts-updated event is fired.
+*/
+document.body.addEventListener("accounts-updated", function(e) {
+  const elt = e.detail?.elt;
+  if (elt) {
+    if (elt.id === 'deleteBtn') {
+      const deleteAccountModal = Modal.getInstance(document.getElementById("deleteAccountModal"));
+      deleteAccountModal.hide();
+    }
+  }
+});
+
+/*
 Handle any htmx errors that are not swapped by the htmx config.
 */
 document.body.addEventListener("htmx:responseError", function(e) {
@@ -87,6 +100,16 @@ document.body.addEventListener("htmx:responseError", function(e) {
     }
     return;
   }
+
+  // Handle errors for delete user by showing a toast alert.
+  if (isRequestMatch(e, "/v1/accounts/[0-7][0-9A-HJKMNP-TV-Z]{25}", "delete")) {
+    const error = JSON.parse(e.detail.xhr.response);
+    alertError("pageAlerts", "Delete Account Error:", error.error);
+    return;
+  }
+
+  // If the error is unhandled; throw it
+  throw new Error(`unhandled htmx error: status ${e.detail.xhr.status}`);
 });
 
 /*
@@ -95,3 +118,32 @@ Ensure that when the create account form gets reset, so do the wallet rows in th
 document.getElementById('createAccountForm').addEventListener('reset', function(e) {
   walletRows.reset(e);
 });
+
+/*
+When the delete button is pressed in the list, show the modal and pouplate the modal
+contents with the data attributes from the row in the table. When hiddden, make sure
+the modal is reset to its previous ready state.
+*/
+const deleteAccountModal = document.getElementById("deleteAccountModal");
+if (deleteAccountModal) {
+  deleteAccountModal.addEventListener("show.bs.modal", function(event) {
+    const button = event.relatedTarget;
+    deleteAccountModal.querySelector("#customerID").textContent = button.dataset.bsCustomerId || "—";
+    deleteAccountModal.querySelector("#firstName").textContent = button.dataset.bsFirstName || "—";
+    deleteAccountModal.querySelector("#lastName").textContent = button.dataset.bsLastName || "—";
+
+    const deleteBtn = deleteAccountModal.querySelector("#deleteBtn");
+    deleteBtn.setAttribute("hx-delete", "/v1/accounts/" + button.dataset.bsAccountId);
+    htmx.process(deleteBtn);
+  });
+
+  deleteAccountModal.addEventListener("hidden.bs.modal", function(event) {
+    deleteAccountModal.querySelector("#customerID").textContent = "";
+    deleteAccountModal.querySelector("#firstName").textContent = "";
+    deleteAccountModal.querySelector("#lastName").textContent = "";
+
+    const deleteBtn = confirmRevokeModal.querySelector("#deleteBtn")
+    deleteBtn.removeAttribute("hx-delete");
+    htmx.process(deleteBtn);
+  });
+}

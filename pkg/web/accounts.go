@@ -397,13 +397,12 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"AccountID": accountID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "account_delete.html",
-	})
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.AccountsUpdated)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
 }
 
 func (s *Server) ListCryptoAddresses(c *gin.Context) {

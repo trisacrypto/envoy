@@ -1,0 +1,32 @@
+{{ define "deleteAccountModal" }}
+<div id="deleteAccountModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete Account?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light">
+          Deleting a customer account will <strong>not</strong> delete any associated
+          transfers that contain the customer account PII data. It <em>will</em> delete
+          all associated crypto wallet addresses and any IVMS101 data.
+        </div>
+        <p class="px-3 text-danger"><strong>Are you sure you want to delete the following customer account?</strong></p>
+        <dl class="row px-3">
+          <dt class="col-5">Customer ID:</dt>
+          <dd class="col-7" id="customerID"></dd>
+          <dt class="col-5">First Name:</dt>
+          <dd class="col-7" id="firstName"></dd>
+          <dt class="col-5">Last Name:</dt>
+          <dd class="col-7" id="lastName"></dd>
+        </dl>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteBtn" type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

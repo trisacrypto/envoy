@@ -309,10 +309,10 @@ func (s *Server) DeleteAPIKey(c *gin.Context) {
 		return
 	}
 
-	switch c.NegotiateFormat(binding.MIMEJSON, binding.MIMEHTML) {
-	case binding.MIMEJSON:
-		c.JSON(http.StatusOK, api.Reply{Success: true})
-	case binding.MIMEHTML:
+	if htmx.IsHTMXRequest(c) {
 		htmx.Trigger(c, htmx.APIKeysUpdated)
+		return
 	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
 }
