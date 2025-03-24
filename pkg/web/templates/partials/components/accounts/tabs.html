@@ -1,0 +1,25 @@
+{{ define "accountTabs" -}}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/accounts/{{ .ID }}" class='nav-link{{ if eq .Tab "detail" }} active{{ end }}'>
+          Detail
+        </a>
+      </li>
+      {{ if .CanEdit }}
+      <li class="nav-item">
+        <a href="/accounts/{{ .ID }}/edit" class='nav-link{{ if eq .Tab "edit" }} active{{ end }}'>
+          Edit
+        </a>
+      </li>
+      {{ end }}
+      <li class="nav-item">
+        <a href="/accounts/{{ .ID }}/transfers" class='nav-link{{ if eq .Tab "transfers" }} active{{ end }}'>
+          Transfers
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}

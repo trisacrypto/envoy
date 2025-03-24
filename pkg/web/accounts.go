@@ -233,61 +233,6 @@ func (s *Server) AccountDetail(c *gin.Context) {
 	})
 }
 
-func (s *Server) UpdateAccountPreview(c *gin.Context) {
-	var (
-		err       error
-		accountID ulid.ULID
-		query     *api.EncodingQuery
-		account   *models.Account
-		out       *api.Account
-	)
-
-	// Parse the accountID passed in from the URL
-	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
-	query = &api.EncodingQuery{}
-	if err = c.BindQuery(query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
-		return
-	}
-
-	if err = query.Validate(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
-		return
-	}
-
-	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Convert the model into an API response
-	if out, err = api.NewAccount(account, query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_preview.html",
-	})
-}
-
 func (s *Server) UpdateAccount(c *gin.Context) {
 	var (
 		err       error
@@ -403,6 +348,118 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
+func (s *Server) UpdateAccountPreview(c *gin.Context) {
+	// Account preview requests are only UI requests (Accept: text/html).
+	// JSON API requests return a 406 error (JSON users should use AccountDetail).
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
+
+	var (
+		err       error
+		accountID ulid.ULID
+		query     *api.EncodingQuery
+		account   *models.Account
+		out       *api.Account
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Fetch the model from the database
+	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model into an API response
+	if out, err = api.NewAccount(account, query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.HTML(http.StatusOK, "partials/accounts/edit.html", scene.New(c).WithAPIData(out))
+}
+
+func (s *Server) AccountTransfers(c *gin.Context) {
+	var (
+		err       error
+		accountID ulid.ULID
+		query     *api.EncodingQuery
+		account   *models.Account
+		out       *api.Account
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	query = &api.EncodingQuery{}
+	if err = c.BindQuery(query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		return
+	}
+
+	if err = query.Validate(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Fetch the model from the database
+	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Convert the model into an API response
+	if out, err = api.NewAccount(account, query); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Content negotiation
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/accounts/transfers.html",
+	})
 }
 
 func (s *Server) ListCryptoAddresses(c *gin.Context) {

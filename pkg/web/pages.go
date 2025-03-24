@@ -145,6 +145,40 @@ func (s *Server) AccountDetailPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "pages/accounts/detail.html", ctx)
 }
 
+func (s *Server) AccountEditPage(c *gin.Context) {
+	// Get the account ID from the URL path and make available to the template.
+	// The account detail is loaded using htmx.
+	accountID := c.Param("id")
+
+	// Validate that the account ID is a valid UUID.
+	if _, err := ulid.Parse(accountID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = accountID
+
+	c.HTML(http.StatusOK, "pages/accounts/edit.html", ctx)
+}
+
+func (s *Server) AccountTransfersPage(c *gin.Context) {
+	// Get the account ID from the URL path and make available to the template.
+	// The account detail is loaded using htmx.
+	accountID := c.Param("id")
+
+	// Validate that the account ID is a valid UUID.
+	if _, err := ulid.Parse(accountID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = accountID
+
+	c.HTML(http.StatusOK, "pages/accounts/transfers.html", ctx)
+}
+
 //===========================================================================
 // Counterparty VASP Pages
 //===========================================================================

@@ -1,0 +1,30 @@
+{{ template "page.html" . }}
+{{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Customer Accounts{{ end }}
+{{ define "pagetitle" }}Customer Account Detail{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "page-content" }}
+<section id="transaction" hx-get="/v1/accounts/{{ .ID }}/transfers" hx-trigger="load, accounts-updated from:body">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}

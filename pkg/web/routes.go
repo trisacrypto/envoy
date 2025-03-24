@@ -104,13 +104,20 @@ func (s *Server) setupRoutes() (err error) {
 		ui.GET("/", s.Home)
 		ui.GET("/about", s.AboutPage)
 		ui.GET("/settings", s.SettingsPage)
-		ui.GET("/accounts", s.AccountsListPage)
-		ui.GET("/accounts/:id", s.AccountDetailPage)
 		ui.GET("/counterparties", s.CounterpartiesListPage)
 		ui.GET("/counterparties/:id", s.CounterpartyDetailPage)
 		ui.GET("/users", s.UsersListPage)
 		ui.GET("/apikeys", s.APIKeysListPage)
 		ui.GET("/utilities/travel-address", s.TravelAddressUtility)
+
+		// Accounts Pages
+		accounts := ui.Group("/accounts")
+		{
+			accounts.GET("", s.AccountsListPage)
+			accounts.GET("/:id", s.AccountDetailPage)
+			accounts.GET("/:id/edit", s.AccountEditPage)
+			accounts.GET("/:id/transfers", s.AccountTransfersPage)
+		}
 
 		// Profile Pages
 		profile := ui.Group("/profile")
@@ -186,9 +193,12 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.POST("", authorize(permiss.AccountsManage), s.CreateAccount)
 			accounts.GET("/lookup", authorize(permiss.AccountsView), s.LookupAccount)
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
-			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
 			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
 			accounts.DELETE("/:id", authorize(permiss.AccountsManage), s.DeleteAccount)
+
+			// Account specific actions
+			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
+			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfers)
 
 			// CryptoAddress Resource (nested on Accounts)
 			ca := accounts.Group("/:id/crypto-addresses")
