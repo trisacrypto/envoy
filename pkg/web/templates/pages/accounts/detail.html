@@ -38,5 +38,72 @@
     </div> <!-- / .row -->
     {{ template "accountTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditAccounts) }}
   </div>
+</div><!-- header ends -->
+
+<div class="card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col">
+        <h4 class="card-title">
+          Customer Number:
+          <span class="text-muted font-monospace ms-1">{{ .CustomerNumber }}</span>
+          <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="Identify your account holder in transfers by an application-specific ID or, by default, the Envoy ID." data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
+        </h4>
+      </div>
+      <div class="col-auto">
+        {{- if .HasIVMSRecord }}
+        <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+        {{- else }}
+        <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-6 col-md-4">
+        <h3>Travel Address</h3>
+        <img class="img-thumbnail img-fluid" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAM0AAADNAQAAAAAzx8nEAAABv0lEQVR4nO2XMc6DMAyFjRgycoTcJFwMiUpcrL1JjsCYAcX/ew7lR626mqHNkNJ8GSzbz3ZEP60iP/T1aBWRbp2idLrkMuqG/zL7o1n1oZrDA1zrsEU7c0eT4LTXAjOlNFsvQxKLtHUlgqMkDQjV+GahF2K8YCG2OfPmSyi90J69ljbc3hPbA9lqFjJow6vMvRAUDJNyUN1iSTCvPOPljJgs9JZE28rhKEdEGctwi+GO7A3aLl2AEKoKR5UOtRWX4K3xqPOOCFqGcdFk3IrLeJK5G8JPkl5l1FuUJMb9EQ7MrlClz0oto+eoO0JJCeR6byUe/DQDuCEoGKewsHEW++4CxP7CUMFHMM5mgCOUnqjX9t1R1SN7ThV/pIsiZ6W1G7Weo6s/wrdVNgStV57m8LgAYYU6bG0cKonxquKPmCx3fDfUNW/5IzbfBEQ5YTDjlp7VxhFRRNZkqGD4iBXmpC8v9JyIrO9a+w9V/NE+H4oFzZT07yhPNKspmI2nzWThaAGeyN4Oi8mYG+J1dD1vhAN72SJe04XIHtgoamx4nFpnf2TxsrLaZ75eTuOBJ2L2ovmW3biJVdYffVg/9O3oD5hi+Ap8G5SnAAAAAElFTkSuQmCC" />
+      </div>
+      <div class="col-6 col-md-8">
+        <h3>Account Details</h3>
+        <dl class="row">
+          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Envoy ID</dt>
+          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .ID }}</dd>
+          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Customer ID</dt>
+          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ if .CustomerID }}{{ .CustomerID }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">First Name</dt>
+          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ if .FirstName }}{{ .FirstName }}{{ else }}&mdash;{{ end }}</dd>
+          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Last Name</dt>
+          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .LastName }}</dd>
+          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Travel Address</dt>
+          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .TravelAddress }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card"
+  hx-get="/v1/accounts/{{ .ID }}/crypto-addresses"
+  hx-trigger="load, crypto-addresses-updated from:body"
+  hx-target="#crypto-addresses"
+  hx-swap="outerHTML"
+>
+  <div class="card-header">
+    <h4 class="card-header-title">Crypto Addresses</h4>
+    <a href="#!" class="btn btn-sm btn-white">Add</a>
+  </div>
+  <div id="crypto-addresses" class="card-body">
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{- end }}
 {{- end }}

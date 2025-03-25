@@ -160,6 +160,15 @@ func (s Scene) AccountPerson() Person {
 	return Person{}
 }
 
+func (s Scene) CryptoAddressList() *api.CryptoAddressList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.CryptoAddressList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) UserList() *api.UserList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.UserList); ok {

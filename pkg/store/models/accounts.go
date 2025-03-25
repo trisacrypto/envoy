@@ -107,7 +107,7 @@ func (a *Account) NumAddresses() int64 {
 // itself is checked. This returns true if the record is not nil/null but does not
 // inspect the record to determine if it is zero valued.
 func (a *Account) HasIVMSRecord() bool {
-	if a.IVMSRecord != nil {
+	if a.IVMSRecord != nil && a.IVMSRecord.GetNaturalPerson() != nil {
 		return true
 	}
 	return a.hasIVMSRecord

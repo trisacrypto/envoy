@@ -468,7 +468,8 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "crypto_address_list.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/accounts/cryptoAddresses.html",
 	})
 }
 

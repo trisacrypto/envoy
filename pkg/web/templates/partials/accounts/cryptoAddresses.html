@@ -1,0 +1,57 @@
+{{ $canEditAccounts := not .IsViewOnly }}
+{{ with .CryptoAddressList -}}
+{{- if .CryptoAddresses }}
+<div id="crypto-addresses" class="table-responsive mb-0" data-list='{"valueNames": ["crypto-address", "network", "travel-address", "asset-type", "tag"]}'>
+  <table class="table table-sm table-nowrap table-hover card-table">
+    <thead>
+      <tr>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="crypto-address">Address</a></th>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="network">Network</a></th>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="travel-address">Travel Address</a></th>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="asset-type">Asset Type</a></th>
+        <th colspan="2"><a href="#" class="list-sort text-body-secondary" data-sort="tag">Tag</a></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .CryptoAddresses }}
+      <tr>
+        <td class="crypto-address font-monospace">{{ .CryptoAddress }}</td>
+        <td class="network">{{ .Network }}</td>
+        <td class="travel-address text-truncate font-monospace" style="max-width: 256px">{{ .TravelAddress }}</td>
+        <td class="asset-type">{{ .AssetType }}</td>
+        <td class="tag">{{ .Tag }}</td>
+        <td class="text-end">
+          <div class="dropdown">
+            <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fe fe-more-vertical"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end">
+              <a href="#!" class="dropdown-item">
+                <i class="fe fe-download-cloud"></i> QR Code
+              </a>
+              {{- if $canEditAccounts }}
+              <a href="#!" class="dropdown-item">
+                <i class="fe fe-edit"></i> Edit
+              </a>
+              <a href="#!" class="dropdown-item">
+                <i class="fe fe-trash"></i> Delete
+              </a>
+              {{- end }}
+            </div>
+          </div>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{- else }}
+<div id="crypto-addresses" class="card-body">
+  <div class="row">
+    <div class="col-12 text-center">
+      <p>There are no crypto addresses associated with this account.</p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}
