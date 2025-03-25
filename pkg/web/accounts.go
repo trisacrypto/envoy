@@ -369,22 +369,23 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 func (s *Server) AccountTransfers(c *gin.Context) {
 	var (
 		err     error
-		query   *api.EncodingQuery
+		in      *api.TransactionListQuery
 		account *models.Account
-		out     *api.Account
+		page    *models.TransactionPage
+		out     *api.TransactionsList
 	)
 
-	// Parse the query parameters from the input request
-	query = &api.EncodingQuery{}
-	if err = c.BindQuery(query); err != nil {
+	// Parse the URL parameters from the input request
+	in = &api.TransactionListQuery{}
+	if err = c.BindQuery(in); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
+		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
 		return
 	}
 
-	if err = query.Validate(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
+	// Validate the incoming parameters from the query
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -400,16 +401,24 @@ func (s *Server) AccountTransfers(c *gin.Context) {
 		return
 	}
 
-	// Convert the model into an API response
-	if out, err = api.NewAccount(account, query); err != nil {
+	// Fetch the list of transactions from the database
+	if page, err = s.store.ListAccountTransactions(c.Request.Context(), account.ID, in.Query()); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not process account transaction list request"))
+		return
+	}
+
+	// Convert the transactions page into a transaction list object
+	if out, err = api.NewTransactionList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process transaction list request"))
 		return
 	}
 
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		JSONData: out,
 		HTMLData: scene.New(c).WithAPIData(out),
 		HTMLName: "partials/accounts/transfers.html",
 	})

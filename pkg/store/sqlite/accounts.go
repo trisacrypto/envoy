@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -219,6 +220,82 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 		return err
 	}
 	return nil
+}
+
+const listAccountTxnsSQL = `
+	WITH wallet AS (SELECT crypto_address FROM crypto_addresses WHERE account_id=:accountID)
+	SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes
+		FROM transactions t
+		LEFT JOIN secure_envelopes e ON t.id=e.envelope_id
+		WHERE t.archived=:archives AND (
+			t.originator_address IN (SELECT * FROM wallet) OR
+			t.beneficiary_address IN (SELECT * FROM wallet)
+		)
+		GROUP BY t.id
+		ORDER BY t.created DESC`
+
+// List all transactions that have one of the account wallet addresses in either the
+// originator or beneficiary wallet address fields.
+func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	out = &models.TransactionPage{
+		Transactions: make([]*models.Transaction, 0),
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
+	}
+
+	// Create the base query and the query parameters list.
+	query := listAccountTxnsSQL
+	params := []interface{}{
+		sql.Named("accountID", accountID),
+		sql.Named("archives", page.Archives),
+	}
+
+	// If there are filters in the page query, then modify the SQL query with them.
+	if len(page.Status) > 0 || len(page.VirtualAsset) > 0 {
+		filters := make([]string, 0, 2)
+		if len(page.Status) > 0 {
+			inquery, inparams := listParametrize(page.Status, "s")
+			filters = append(filters, "status IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		if len(page.VirtualAsset) > 0 {
+			inquery, inparams := listParametrize(page.VirtualAsset, "a")
+			filters = append(filters, "virtual_asset IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		query = "WITH txns AS (" + listAccountTxnsSQL + ") SELECT * FROM txns WHERE "
+		query += strings.Join(filters, " AND ")
+	}
+
+	var rows *sql.Rows
+	if rows, err = tx.Query(query, params...); err != nil {
+		// TODO: handle database specific errors
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		transaction := &models.Transaction{}
+		if err = transaction.ScanWithCount(rows); err != nil {
+			return nil, err
+		}
+		out.Transactions = append(out.Transactions, transaction)
+	}
+
+	tx.Commit()
+	return out, nil
 }
 
 const listCryptoAddressesSQL = "SELECT * FROM crypto_addresses WHERE account_id=:accountID"

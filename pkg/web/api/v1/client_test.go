@@ -17,7 +17,7 @@ import (
 
 var (
 	ctx     = context.Background()
-	page    = &api.PageQuery{PageSize: 50}
+	page    = &api.TransactionListQuery{PageQuery: api.PageQuery{PageSize: 50}}
 	success = map[string]interface{}{"success": true}
 )
 

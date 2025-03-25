@@ -171,9 +171,6 @@ func (s *Server) setupRoutes() (err error) {
 		// Status/Heartbeat endpoint
 		v1.GET("/status", s.Status)
 
-		// NOTE: uncomment this for debugging only
-		// v1.POST("/debug", s.Debug)
-
 		// Database Statistics
 		v1.GET("/dbinfo", authenticate, authorize(permiss.ConfigView), s.DBInfo)
 
@@ -181,9 +178,9 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/login", s.Login)
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
-		v1.POST("/reset-password", s.ResetPassword)
 
 		// User Profile Management
+		v1.POST("/reset-password", s.ResetPassword)
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource
