@@ -1,7 +1,5 @@
 {{ template "page.html" . }}
 {{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
-{{ define "pretitle" }}Customer Accounts{{ end }}
-{{ define "pagetitle" }}Customer Account Detail{{ end }}
 
 {{ define "htmxConfig" }}
 <meta
@@ -17,14 +15,28 @@
 />
 {{ end }}
 
-{{ define "page-content" }}
-<section id="transaction" hx-get="/v1/accounts/{{ .ID }}" hx-trigger="load, accounts-updated from:body">
-  <div class="card">
-    <div class="card-body text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+{{ define "page-content" -}}
+{{- $canEditAccounts := not .IsViewOnly -}}
+{{ with .AccountDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+
+        <!-- Pretitle -->
+        <h6 class="header-pretitle"><a href="/accounts">Customer Accounts</a></h6>
+
+        <!-- Title -->
+        <h1 class="header-title">{{ .FirstName }} {{ .LastName }}</h1>
+
       </div>
-    </div>
+      <div class="col-auto">
+        <a href="/accounts" class="btn btn-white lift" title="Back to Customer Accounts List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div> <!-- / .row -->
+    {{ template "accountTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditAccounts) }}
   </div>
-</section>
-{{ end }}
+{{- end }}
+{{- end }}

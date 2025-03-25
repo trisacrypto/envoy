@@ -179,19 +179,13 @@ func (s *Server) LookupAccount(c *gin.Context) {
 
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
-		err       error
-		query     *api.EncodingQuery
-		accountID ulid.ULID
-		account   *models.Account
-		out       *api.Account
+		err     error
+		query   *api.EncodingQuery
+		account *models.Account
+		out     *api.Account
 	)
 
-	// Parse the accountID passed in from the URL
-	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
+	// Parse the query parameters from the input request
 	query = &api.EncodingQuery{}
 	if err = c.BindQuery(query); err != nil {
 		c.Error(err)
@@ -205,15 +199,15 @@ func (s *Server) AccountDetail(c *gin.Context) {
 		return
 	}
 
-	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
 		}
 
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
 		return
 	}
 
@@ -224,13 +218,33 @@ func (s *Server) AccountDetail(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "partials/accounts/detail.html",
-		HTMLData: scene.New(c).WithAPIData(out),
-	})
+	// Currently there are no HTMX endpoints that use the account detail, so this is
+	// a JSON only endpoint that does not need a partial template for rendering.
+	c.JSON(http.StatusOK, out)
+}
+
+// Helper function to retrieve an account detail for the accounts UI pages and the API.
+func (s *Server) RetrieveAccount(c *gin.Context) (*models.Account, error) {
+	var (
+		err       error
+		accountID ulid.ULID
+		account   *models.Account
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		return nil, ErrNotFound
+	}
+
+	// Fetch the model from the database
+	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return account, nil
 }
 
 func (s *Server) UpdateAccount(c *gin.Context) {
@@ -348,63 +362,6 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.Reply{Success: true})
-}
-
-func (s *Server) UpdateAccountPreview(c *gin.Context) {
-	// Account preview requests are only UI requests (Accept: text/html).
-	// JSON API requests return a 406 error (JSON users should use AccountDetail).
-	if IsAPIRequest(c) {
-		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
-		return
-	}
-
-	var (
-		err       error
-		accountID ulid.ULID
-		query     *api.EncodingQuery
-		account   *models.Account
-		out       *api.Account
-	)
-
-	// Parse the accountID passed in from the URL
-	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
-	query = &api.EncodingQuery{}
-	if err = c.BindQuery(query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
-		return
-	}
-
-	if err = query.Validate(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
-		return
-	}
-
-	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Convert the model into an API response
-	if out, err = api.NewAccount(account, query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	c.HTML(http.StatusOK, "partials/accounts/edit.html", scene.New(c).WithAPIData(out))
 }
 
 func (s *Server) AccountTransfers(c *gin.Context) {

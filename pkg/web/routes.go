@@ -113,10 +113,10 @@ func (s *Server) setupRoutes() (err error) {
 		// Accounts Pages
 		accounts := ui.Group("/accounts")
 		{
-			accounts.GET("", s.AccountsListPage)
-			accounts.GET("/:id", s.AccountDetailPage)
-			accounts.GET("/:id/edit", s.AccountEditPage)
-			accounts.GET("/:id/transfers", s.AccountTransfersPage)
+			accounts.GET("", authorize(permiss.AccountsView), s.AccountsListPage)
+			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetailPage)
+			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.AccountEditPage)
+			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfersPage)
 		}
 
 		// Profile Pages
@@ -195,9 +195,6 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
 			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
 			accounts.DELETE("/:id", authorize(permiss.AccountsManage), s.DeleteAccount)
-
-			// Account specific actions
-			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
 			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfers)
 
 			// CryptoAddress Resource (nested on Accounts)

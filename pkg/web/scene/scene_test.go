@@ -161,7 +161,7 @@ func TestAPIData(t *testing.T) {
 
 	out := base.WithAPIData(&api.AccountsList{})
 	require.NotNil(t, out.AccountsList(), "expected accounts list to be returned")
-	require.Nil(t, out.AccountDetail(), "expected account detail to be nil")
+	require.Nil(t, out.UserList(), "expected account detail to be nil")
 
 }
 
