@@ -1,10 +1,12 @@
 package web
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/skip2/go-qrcode"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -366,19 +368,13 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 
 func (s *Server) AccountTransfers(c *gin.Context) {
 	var (
-		err       error
-		accountID ulid.ULID
-		query     *api.EncodingQuery
-		account   *models.Account
-		out       *api.Account
+		err     error
+		query   *api.EncodingQuery
+		account *models.Account
+		out     *api.Account
 	)
 
-	// Parse the accountID passed in from the URL
-	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
+	// Parse the query parameters from the input request
 	query = &api.EncodingQuery{}
 	if err = c.BindQuery(query); err != nil {
 		c.Error(err)
@@ -392,15 +388,15 @@ func (s *Server) AccountTransfers(c *gin.Context) {
 		return
 	}
 
-	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
 		}
 
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
 		return
 	}
 
@@ -417,6 +413,48 @@ func (s *Server) AccountTransfers(c *gin.Context) {
 		HTMLData: scene.New(c).WithAPIData(out),
 		HTMLName: "partials/accounts/transfers.html",
 	})
+}
+
+func (s *Server) AccountQRCode(c *gin.Context) {
+	var (
+		err     error
+		account *models.Account
+		qrc     *qrcode.QRCode
+	)
+
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
+		return
+	}
+
+	if !account.TravelAddress.Valid || account.TravelAddress.String == "" {
+		c.JSON(http.StatusNotFound, api.Error("account does not have a travel address"))
+		return
+	}
+
+	if qrc, err = qrcode.New(account.TravelAddress.String, qrcode.Medium); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if err = qrc.Write(512, buf); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not write QR code"))
+		return
+	}
+
+	filename := account.ID.String() + ".png"
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "image/png", buf.Bytes())
 }
 
 func (s *Server) ListCryptoAddresses(c *gin.Context) {

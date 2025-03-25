@@ -6352,6 +6352,149 @@
         }
       }
     },
+    "/v1/accounts/{accountID}/transfers": {
+      "get": {
+        "summary": "Account Transfers",
+        "description": "Search for all transfers related to the account by matching the associated crypto wallet addresses.",
+        "operationId": "accountTransfers",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account to list transfers for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "ULID",
+              "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account Transfers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": "boolean",
+                  "example": true
+                },
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to View Account Transfers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No Account to List Transfers For",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "account not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{accountID}/qrcode": {
+      "get": {
+        "summary": "Account QR Code",
+        "description": "Generate and download a QR code for the account travel address.",
+        "operationId": "accountQRCode",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "accountID",
+            "in": "path",
+            "description": "The ID of the account to generate a QR Code for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "ULID",
+              "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+            },
+            "example": "01J6DJ9F691CF8E9H0V3ET0M0E"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "QR Code Generated",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized to Generate Account QR Code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "this endpoint requires authentication"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No Travel Address for Account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                },
+                "example": {
+                  "success": false,
+                  "error": "account not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/accounts/{accountID}/crypto-addresses": {
       "get": {
         "summary": "List Crypto Addresses",

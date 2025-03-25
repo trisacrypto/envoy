@@ -195,7 +195,9 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
 			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
 			accounts.DELETE("/:id", authorize(permiss.AccountsManage), s.DeleteAccount)
+
 			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfers)
+			accounts.GET("/:id/qrcode", authorize(permiss.AccountsView), s.AccountQRCode)
 
 			// CryptoAddress Resource (nested on Accounts)
 			ca := accounts.Group("/:id/crypto-addresses")
