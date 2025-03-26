@@ -47,7 +47,7 @@ document.body.addEventListener("crypto-addresses-updated", function(e) {
   console.log(e);
   const elt = e.detail?.elt;
   if (elt) {
-    if (elt.id === 'editCryptoAddressBtn') {
+    if (elt.id === 'editCryptoAddressForm') {
       const modal = Modal.getInstance(document.getElementById("editCryptoAddressModal"));
       modal.hide();
     }

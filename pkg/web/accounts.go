@@ -760,3 +760,59 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 
 	c.JSON(http.StatusOK, api.Reply{Success: true})
 }
+
+func (s *Server) CryptoAddressQRCode(c *gin.Context) {
+	var (
+		err             error
+		accountID       ulid.ULID
+		cryptoAddressID ulid.ULID
+		model           *models.CryptoAddress
+		qrc             *qrcode.QRCode
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	// Parse the cryptoAddressID passed in from the URL
+	if cryptoAddressID, err = ulid.Parse(c.Param("cryptoAddressID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("crypto address not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if model, err = s.store.RetrieveCryptoAddress(c.Request.Context(), accountID, cryptoAddressID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("crypto address or account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if !model.TravelAddress.Valid || model.TravelAddress.String == "" {
+		c.JSON(http.StatusNotFound, api.Error("account does not have a travel address"))
+		return
+	}
+
+	if qrc, err = qrcode.New(model.TravelAddress.String, qrcode.Medium); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if err = qrc.Write(512, buf); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not write QR code"))
+		return
+	}
+
+	filename := model.ID.String() + ".png"
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "image/png", buf.Bytes())
+}

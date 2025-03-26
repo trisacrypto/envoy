@@ -204,6 +204,7 @@ func (s *Server) setupRoutes() (err error) {
 				ca.GET("/:cryptoAddressID", authorize(permiss.AccountsView), s.CryptoAddressDetail)
 				ca.PUT("/:cryptoAddressID", authorize(permiss.AccountsManage), s.UpdateCryptoAddress)
 				ca.DELETE("/:cryptoAddressID", authorize(permiss.AccountsManage), s.DeleteCryptoAddress)
+				ca.GET("/:cryptoAddressID/qrcode", authorize(permiss.AccountsView), s.CryptoAddressQRCode)
 			}
 		}
 

@@ -5640,6 +5640,66 @@ paths:
               example:
                 success: false
                 error: crypto address not found
+  "/v1/accounts/{accountID}/crypto-addresses/{cryptoAddressID}/qrcode":
+    get:
+      summary: Crypto Address QR Code
+      description: Generate and download a QR code for the travel address associated with
+        the crypto wallet address.
+      operationId: cryptoAddressesQRCode
+      tags:
+        - Crypto Addresses
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: accountID
+          in: path
+          description: The ID of the account associated with the crypto address the QR code
+            is being generated for.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6DJ9F691CF8E9H0V3ET0M0E
+          example: 01J6DJ9F691CF8E9H0V3ET0M0E
+        - name: cryptoAddressID
+          in: path
+          description: The ID of the crypto address to generate a QR code for.
+          required: true
+          schema:
+            type: string
+            format: ULID
+            example: 01J6FRB1EGJCEZXRMQGW1FM0BR
+          example: 01J6FRB1EGJCEZXRMQGW1FM0BR
+      responses:
+        "200":
+          description: Crypto Address QR Code Generated
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+                description: PNG image data of qr code returned for embedding into a
+                  website or to download.
+                example: iVBORw0KGgoAAAANSUhEUgAAADEAAAAxAQMAAABJUtNfAAAABlBMVEX///8AAABVwtN+AAABU0lEQVR42oSQT4sScQCGH1PHX430EwnyUDAQlhGR0Tco6BBBhhJSh/4cqoMHkSALiy6lSInYIQkiEaVhDJLY1b3swgr7j4VlkL2sJ/GwDO7KzlEWhGU+ge/lOb3wvg/zIq1m7/sUxLWx/UKAWp9drlig6tlHRYd/bob6FogrEy0oQI4NozUF/LP/MUDNnN8bJMEdWuz+NsE1yg2utoGnd1ZKAZBvrf1PGii76VovCsr7ybCTBa/7dsYTc/rGm5wNnvi7wxTgW3gczmvgT9wwUxE4262e2tCBL5vrpQIolxJBtQxn7qu+dgyU6N1XD9PgLXWer2rgazQb56ogCy6zYoIyHOkTZ8/Frf7pAIh/v+T1Z+D2LN/6+BqUlztPHiwB4ocd0kEeFX+OayAiHy7oZee/1pMO/35rrRVANfL17SSI8L34VxPkwef0sT1X80kAAAD//7BKaXx8kl/OAAAAAElFTkSuQmCC
+              example: iVBORw0KGgoAAAANSUhEUgAAADEAAAAxAQMAAABJUtNfAAAABlBMVEX///8AAABVwtN+AAABU0lEQVR42oSQT4sScQCGH1PHX430EwnyUDAQlhGR0Tco6BBBhhJSh/4cqoMHkSALiy6lSInYIQkiEaVhDJLY1b3swgr7j4VlkL2sJ/GwDO7KzlEWhGU+ge/lOb3wvg/zIq1m7/sUxLWx/UKAWp9drlig6tlHRYd/bob6FogrEy0oQI4NozUF/LP/MUDNnN8bJMEdWuz+NsE1yg2utoGnd1ZKAZBvrf1PGii76VovCsr7ybCTBa/7dsYTc/rGm5wNnvi7wxTgW3gczmvgT9wwUxE4262e2tCBL5vrpQIolxJBtQxn7qu+dgyU6N1XD9PgLXWer2rgazQb56ogCy6zYoIyHOkTZ8/Frf7pAIh/v+T1Z+D2LN/6+BqUlztPHiwB4ocd0kEeFX+OayAiHy7oZee/1pMO/35rrRVANfL17SSI8L34VxPkwef0sT1X80kAAAD//7BKaXx8kl/OAAAAAElFTkSuQmCC
+        "401":
+          description: Not Authorized to Generate Crypto Address QR Code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: this endpoint requires authentication
+        "404":
+          description: No Travel Address for Crypto Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorReply"
+              example:
+                success: false
+                error: account not found
   /v1/counterparties:
     get:
       summary: List Counterparties
