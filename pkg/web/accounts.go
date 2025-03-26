@@ -106,7 +106,11 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	// Create the model in the database (which will update the pointer)
 	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
-		// TODO: are there other error types that we need to handle to return a 400?
+		if errors.Is(err, dberr.ErrAlreadyExists) {
+			c.JSON(http.StatusConflict, api.Error("account or crypto address already exists"))
+			return
+		}
+
 		c.Error(fmt.Errorf("could not create account: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
@@ -308,14 +312,21 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 
 	// Update the model in the database (which will update the pointer).
 	if err = s.store.UpdateAccount(c.Request.Context(), account); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
+		case errors.Is(err, dberr.ErrAlreadyExists):
+			c.JSON(http.StatusConflict, api.Error("account or crypto address already exists"))
+		default:
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
 		}
+		return
+	}
 
-		// TODO: are there other error types that we need to handle to return a 400?
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+	// If this is an HTMX request, trigger the accounts updated event and return a 204.
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.AccountsUpdated)
 		return
 	}
 
@@ -326,12 +337,8 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_update.html",
-	})
+	// Render the response back as JSON
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) DeleteAccount(c *gin.Context) {
@@ -560,16 +567,13 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 
 	// Create the model in the database
 	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
-		switch {
-		case errors.Is(err, dberr.ErrNotFound):
-			c.JSON(http.StatusNotFound, api.Error("account not found"))
-		case errors.Is(err, dberr.ErrAlreadyExists):
+		if errors.Is(err, dberr.ErrAlreadyExists) {
 			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
-		default:
-			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
 		}
 
+		c.Error(fmt.Errorf("could not create crypto address: %w", err))
+		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 

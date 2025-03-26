@@ -170,6 +170,15 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 		return dberr.ErrMissingID
 	}
 
+	// If the travel address is not set, then generate it (mirroring create behavior).
+	if !a.TravelAddress.Valid && s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(a); err != nil {
+			log.Warn().Err(err).Str("type", "account").Str("id", a.ID.String()).Msg("could not assign travel address")
+		}
+		a.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err

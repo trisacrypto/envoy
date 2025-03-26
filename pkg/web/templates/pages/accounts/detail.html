@@ -33,7 +33,7 @@
           <p class="px-3 text-danger">Are you sure you want to delete <strong id="deleteCryptoAddress"></strong>?</p>
         </div>
         <div class="modal-footer">
-          <button id="deleteCryptoAddressBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}/crypto-addresses/">Delete</button>
+          <button id="deleteBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}/crypto-addresses/">Delete</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>

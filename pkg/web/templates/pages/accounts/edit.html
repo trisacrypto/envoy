@@ -15,6 +15,28 @@
 />
 {{ end }}
 
+{{ define "modals" }}
+  {{ with .AccountDetail }}
+  <div id="confirmDeleteModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Customer Account?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="lead">Are you sure you want to delete this customer account?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+{{ end }}
+
 {{ define "page-content" -}}
 {{- $canEditAccounts := not .IsViewOnly -}}
 {{ with .AccountDetail -}}
@@ -39,5 +61,64 @@
     {{ template "accountTabs" (dict "ID" .ID "Tab" "edit" "CanEdit" $canEditAccounts) }}
   </div>
 </div><!-- header ends -->
+
+<div id="alerts"></div>
+<form id="editAccountForm" hx-put="/v1/accounts/{{ .ID }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  <div class="row">
+    <div class="col-12">
+      <div class="form-group">
+        <label class="form-label mb-1" for="customer_id">Customer ID</label>
+        <small class="form-text text-body-secondary">
+          An optional, internal customer ID to link back to your accounts database.
+        </small>
+        <input type="text" id="customer_id" name="customer_id" class="form-control" value="{{ .CustomerID }}">
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="first_name">First Name</label>
+        <small class="form-text text-body-secondary">
+          Identify accounts holders by forename (optional).
+        </small>
+        <input type="text" class="form-control" name="first_name" id="first_name" value="{{ .FirstName }}">
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="last_name">Last Name</label>
+        <small class="form-text mt-1">
+          Identify accounts holders by surname.
+        </small>
+        <input type="text" class="form-control" name="last_name" id="last_name" value="{{ .LastName }}" required>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" name="id" value="{{ .ID }}" />
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+</form>
+
+<hr class="mt-4 mb-5">
+
+<div class="row justify-content-between">
+  <div class="col-12 col-md-6">
+    <h4>Delete Customer Account</h4>
+
+    <p class="small text-body-secondary mb-md-0">
+      Will delete customer account and related crypto addresses but will not delete
+      any transfers associated with the customer account.
+    </p>
+
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+  </div>
+</div>
+
 {{- end }}
+{{- end }}
+
+{{- define "appcode" -}}
+<script type="module" src="/static/js/accounts/edit.js"></script>
 {{- end }}

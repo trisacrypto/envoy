@@ -92,11 +92,14 @@ document.body.addEventListener("htmx:responseError", function(e) {
       case 400:
         alertError("createAccountAlerts", "Error:", error.error);
         break;
+      case 409:
+        alertError("createAccountAlerts", "Conflict:", error.error);
+        break;
       case 422:
         alertError("createAccountAlerts", "Validation error:", error.error);
         break;
       default:
-        break;
+        throw new Error(`unhandled htmx error: ${error.error}`);
     }
     return;
   }
