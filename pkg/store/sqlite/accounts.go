@@ -436,6 +436,15 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 		return dberr.ErrMissingReference
 	}
 
+	// If the travel address is not set, then generate it (mirroring create behavior).
+	if !addr.TravelAddress.Valid && s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(addr); err != nil {
+			log.Warn().Err(err).Str("type", "crypto_address").Str("id", addr.ID.String()).Msg("could not assign travel address")
+		}
+		addr.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err

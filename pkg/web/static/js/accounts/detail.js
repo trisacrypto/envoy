@@ -44,7 +44,6 @@ document.addEventListener("htmx:afterSettle", function(e) {
 Post-event handling when the crypto-addresses-updated event is fired.
 */
 document.body.addEventListener("crypto-addresses-updated", function(e) {
-  console.log(e);
   const elt = e.detail?.elt;
   if (elt) {
     if (elt.id === 'editCryptoAddressForm') {
@@ -64,7 +63,7 @@ Handle any htmx errors that are not swapped by the htmx config.
 */
 document.body.addEventListener("htmx:responseError", function(e) {
   // Handle errors for create API key modal
-  if (isRequestMatch(e, "/v1/accounts/[0-7][0-9A-HJKMNP-TV-Z]{25}/crypto-addresses", "post")) {
+  if (isRequestMatch(e, "/v1/accounts/[0-7][0-9A-HJKMNP-TV-Z]{25}/crypto-addresses", "post") || isRequestMatch(e, "/v1/accounts/[0-7][0-9A-HJKMNP-TV-Z]{25}/crypto-addresses/[0-7][0-9A-HJKMNP-TV-Z]{25}", "put")) {
     const error = JSON.parse(e.detail.xhr.response);
     switch (e.detail.xhr.status) {
       case 400:
