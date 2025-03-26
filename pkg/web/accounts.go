@@ -114,7 +114,7 @@ func (s *Server) CreateAccount(c *gin.Context) {
 
 	// If this is an HTMX request, redirect to the account detail page
 	if htmx.IsHTMXRequest(c) {
-		htmx.Redirect(c, http.StatusSeeOther, "/accounts/"+account.ID.String())
+		htmx.Redirect(c, http.StatusSeeOther, "/accounts/"+account.ID.String()+"/edit")
 		return
 	}
 

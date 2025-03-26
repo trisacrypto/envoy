@@ -40,45 +40,113 @@
   </div>
 </div><!-- header ends -->
 
-<div class="card">
-  <div class="card-header">
-    <div class="row">
-      <div class="col">
-        <h4 class="card-title">
-          Customer Number:
-          <span class="text-muted font-monospace ms-1">{{ .CustomerNumber }}</span>
-          <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="Identify your account holder in transfers by an application-specific ID or, by default, the Envoy ID." data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
-        </h4>
+<div class="row">
+  <div class="col-12 col-lg-4">
+
+    <!-- QR Code -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-header-title">Travel Address</h4>
+          </div>
+          <div class="col-auto">
+            <i class="fe fe-help-circle has-tooltip" title="The travel address must be sent to counterparties so they can begin TRP requests to your Envoy node." data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          </div>
+        </div>
       </div>
-      <div class="col-auto">
-        {{- if .HasIVMSRecord }}
-        <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
-        {{- else }}
-        <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
-        {{- end }}
+      <div class="card-body">
+        <img class="img-fluid" src="/v1/accounts/{{ .ID }}/qrcode" />
+        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ .TravelAddress }}</p>
       </div>
     </div>
+
   </div>
-  <div class="card-body">
-    <div class="row">
-      <div class="col-6 col-md-4">
-        <h3>Travel Address</h3>
-        <img class="img-thumbnail img-fluid" src="/v1/accounts/{{ .ID }}/qrcode" />
+
+  <div class="col-12 col-lg-8">
+    <!-- Customer Account Info -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-title">
+              Customer Number:
+              <span class="text-muted font-monospace ms-1">{{ .CustomerNumber }}</span>
+              <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="Identify your account holder in transfers by an application-specific ID or, by default, the Envoy ID." data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
+            </h4>
+          </div>
+          <div class="col-auto">
+            {{- if .HasIVMSRecord }}
+            <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- else }}
+            <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- end }}
+          </div>
+        </div>
       </div>
-      <div class="col-6 col-md-8">
-        <h3>Account Details</h3>
-        <dl class="row">
-          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Envoy ID</dt>
-          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .ID }}</dd>
-          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Customer ID</dt>
-          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ if .CustomerID }}{{ .CustomerID }}{{ else }}&mdash;{{ end }}</dd>
-          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">First Name</dt>
-          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ if .FirstName }}{{ .FirstName }}{{ else }}&mdash;{{ end }}</dd>
-          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Last Name</dt>
-          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .LastName }}</dd>
-          <dt class="col-6 col-sm-4 col-md-6 col-lg-4 col-xl-3">Travel Address</dt>
-          <dd class="col-6 col-sm-8 col-md-6 col-lg-8 col-xl-9">{{ .TravelAddress }}</dd>
-        </dl>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Envoy ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ .ID }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Customer ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .CustomerID }}{{ .CustomerID }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">First Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .FirstName }}{{ .FirstName }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Last Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ .LastName }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Created</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Modified</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
