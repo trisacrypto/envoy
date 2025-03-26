@@ -39,5 +39,30 @@
     {{ template "accountTabs" (dict "ID" .ID "Tab" "transfers" "CanEdit" $canEditAccounts) }}
   </div>
 </div><!-- header ends -->
+
+<div class="card"
+  hx-get="/v1/accounts/{{ .ID }}/transfers"
+  hx-trigger="load, transactions-updated from:body"
+  hx-target="#related-transfers"
+  hx-swap="outerHTML"
+>
+  <div class="card-header">
+    <h4 class="card-header-title">Related Transfers</h4>
+  </div>
+  <div id="related-transfers" class="card-body">
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {{- end }}
 {{- end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/accounts/transfers.js"></script>
+{{ end }}
