@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"go.rtnl.ai/ulid"
 )
 
 var (
@@ -31,6 +32,7 @@ const (
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
 	APIData         = "APIData"
+	Parent          = "Parent"
 	SunriseEnabled  = "SunriseEnabled"
 )
 
@@ -77,6 +79,11 @@ func (s Scene) Update(o Scene) Scene {
 
 func (s Scene) WithAPIData(data interface{}) Scene {
 	s[APIData] = data
+	return s
+}
+
+func (s Scene) WithParent(parent ulid.ULID) Scene {
+	s[Parent] = parent.String()
 	return s
 }
 

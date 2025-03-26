@@ -49,7 +49,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(counterpartySearchSQL); err != nil {
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 

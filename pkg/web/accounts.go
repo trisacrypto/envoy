@@ -515,7 +515,7 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(accountID),
 		HTMLName: "partials/accounts/cryptoAddresses.html",
 	})
 }
@@ -559,16 +559,23 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Create the model in the database
-	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
+		case errors.Is(err, dberr.ErrAlreadyExists):
+			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
+		default:
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
 		}
 
-		// TODO: handle constraint violations
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
 		return
 	}
 
@@ -579,12 +586,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) CryptoAddressDetail(c *gin.Context) {
@@ -630,8 +632,9 @@ func (s *Server) CryptoAddressDetail(c *gin.Context) {
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_detail.html",
+		JSONData: out,
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(accountID),
+		HTMLName: "partials/accounts/cryptoAddressDetail.html",
 	})
 }
 
@@ -689,14 +692,22 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 
 	// Update the model in the database (which will update the pointer).
 	if err = s.store.UpdateCryptoAddress(c.Request.Context(), model); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("crypto address or account not found"))
-			return
+		case errors.Is(err, dberr.ErrAlreadyExists):
+			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
+		default:
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
 		}
 
-		// TODO: are there other error types that we need to handle to return a 400?
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
 		return
 	}
 
@@ -707,12 +718,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_update.html",
-	})
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) DeleteCryptoAddress(c *gin.Context) {
@@ -746,11 +752,11 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"AccountID": accountID, "CryptoAddressID": cryptoAddressID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "crypto_address_delete.html",
-	})
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
 }

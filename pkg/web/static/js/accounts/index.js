@@ -120,8 +120,8 @@ document.getElementById('createAccountForm').addEventListener('reset', function(
 });
 
 /*
-When the delete button is pressed in the list, show the modal and pouplate the modal
-contents with the data attributes from the row in the table. When hiddden, make sure
+When the delete button is pressed in the list, show the modal and populate the modal
+contents with the data attributes from the row in the table. When hidden, make sure
 the modal is reset to its previous ready state.
 */
 const deleteAccountModal = document.getElementById("deleteAccountModal");
@@ -142,7 +142,7 @@ if (deleteAccountModal) {
     deleteAccountModal.querySelector("#firstName").textContent = "";
     deleteAccountModal.querySelector("#lastName").textContent = "";
 
-    const deleteBtn = confirmRevokeModal.querySelector("#deleteBtn")
+    const deleteBtn = deleteAccountModal.querySelector("#deleteBtn")
     deleteBtn.removeAttribute("hx-delete");
     htmx.process(deleteBtn);
   });

@@ -15,6 +15,41 @@
 />
 {{ end }}
 
+{{ define "modals" }}
+  {{ with .AccountDetail }}
+  {{ template "editCryptoAddressModal" . }}
+
+  <div id="deleteCryptoAddressModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Crypto Address?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light">
+            Deleting a crypto address will not delete any transfers associated with it.
+          </div>
+          <p class="px-3 text-danger">Are you sure you want to delete <strong id="deleteCryptoAddress"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteCryptoAddressBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}/crypto-addresses/">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{ end }}
+{{ end }}
+
+{{ define "alerts" }}
+  <div class="pageAlerts"></div>
+{{ end }}
+
+{{ define "tabs" }}
+{{ end }}
+
 {{ define "page-content" -}}
 {{- $canEditAccounts := not .IsViewOnly -}}
 {{ with .AccountDetail -}}
@@ -160,7 +195,7 @@
 >
   <div class="card-header">
     <h4 class="card-header-title">Crypto Addresses</h4>
-    <a href="#!" class="btn btn-sm btn-white">Add</a>
+    <button class="btn btn-sm btn-white" data-bs-toggle="modal" data-bs-target="#editCryptoAddressModal"><i class="fe fe-plus-circle"></i> Add</button>
   </div>
   <div id="crypto-addresses" class="card-body">
     <div class="row">
@@ -175,3 +210,8 @@
 
 {{- end }}
 {{- end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/accounts/detail.js"></script>
+{{ end }}

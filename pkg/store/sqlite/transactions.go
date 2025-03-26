@@ -64,8 +64,7 @@ func (s *Store) ListTransactions(ctx context.Context, page *models.TransactionPa
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(query, params...); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -102,8 +101,7 @@ func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Trans
 
 	// Insert the transaction into the database
 	if _, err = tx.Exec(createTransactionSQL, transaction.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	return tx.Commit()
@@ -134,10 +132,7 @@ func (s *Store) RetrieveTransaction(ctx context.Context, id uuid.UUID) (transact
 func (s *Store) retrieveTransaction(tx *sql.Tx, transactionID uuid.UUID) (transaction *models.Transaction, err error) {
 	transaction = &models.Transaction{}
 	if err = transaction.Scan(tx.QueryRow(retrieveTransactionSQL, sql.Named("id", transactionID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 	return transaction, nil
 }
@@ -164,8 +159,7 @@ func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (e
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateTransactionSQL, t.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -186,7 +180,7 @@ func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error)
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteTransactionSQL, sql.Named("id", id)); err != nil {
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -224,7 +218,7 @@ func (s *Store) archiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err err
 
 	var result sql.Result
 	if result, err = tx.Exec(archiveTransactionSQL, params...); err != nil {
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -259,7 +253,7 @@ func (s *Store) unarchiveTransaction(tx *sql.Tx, transactionID uuid.UUID) (err e
 
 	var result sql.Result
 	if result, err = tx.Exec(archiveTransactionSQL, params...); err != nil {
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -298,7 +292,7 @@ func (s *Store) CountTransactions(ctx context.Context) (counts *models.Transacti
 func (s *Store) countTransactions(tx *sql.Tx, counts *models.TransactionCounts, archived bool) (err error) {
 	var rows *sql.Rows
 	if rows, err = tx.Query(countTransactionsSQL, sql.Named("archived", archived)); err != nil {
-		return err
+		return dbe(err)
 	}
 	defer rows.Close()
 
@@ -345,7 +339,7 @@ func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *m
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(listSecureEnvelopesSQL, sql.Named("envelopeID", txID)); err != nil {
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -370,7 +364,7 @@ func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *m
 func (s *Store) listSecureEnvelopes(tx *sql.Tx, transaction *models.Transaction) (err error) {
 	var rows *sql.Rows
 	if rows, err = tx.Query(listSecureEnvelopesSQL, sql.Named("envelopeID", transaction.ID)); err != nil {
-		return err
+		return dbe(err)
 	}
 	defer rows.Close()
 
@@ -412,12 +406,7 @@ func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnve
 	defer tx.Rollback()
 
 	if _, err = tx.Exec(createSecureEnvelopeSQL, env.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	return tx.Commit()
@@ -434,10 +423,7 @@ func (s *Store) RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envI
 
 	env = &models.SecureEnvelope{}
 	if err = env.Scan(tx.QueryRow(retrieveSecureEnvelopeSQL, sql.Named("envID", envID), sql.Named("txID", txID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	tx.Commit()
@@ -466,12 +452,7 @@ func (s *Store) UpdateSecureEnvelope(ctx context.Context, env *models.SecureEnve
 
 	var result sql.Result
 	if result, err = tx.Exec(updateSecureEnvelopeSQL, env.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -492,10 +473,7 @@ func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID 
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteSecureEnvelopeSQL, sql.Named("txID", txID), sql.Named("envID", envID)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-		return err
+		return dbe(err)
 	}
 
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
@@ -532,10 +510,7 @@ func (s *Store) LatestSecureEnvelope(ctx context.Context, envelopeID uuid.UUID, 
 
 	env = &models.SecureEnvelope{}
 	if err = env.Scan(result); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	tx.Commit()
@@ -565,10 +540,7 @@ func (s *Store) LatestPayloadEnvelope(ctx context.Context, envelopeID uuid.UUID,
 
 	env = &models.SecureEnvelope{}
 	if err = env.Scan(result); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	tx.Commit()
@@ -612,9 +584,8 @@ func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_
 		}
 
 		if _, err = tx.Exec(createTransactionSQL, transaction.Params()...); err != nil {
-			// TODO: handle constraint violations
 			tx.Rollback()
-			return nil, fmt.Errorf("create transaction failed: %w", err)
+			return nil, fmt.Errorf("create transaction failed: %w", dbe(err))
 		}
 	}
 
@@ -635,10 +606,7 @@ func (p *PreparedTransaction) Created() bool {
 func (p *PreparedTransaction) Fetch() (transaction *models.Transaction, err error) {
 	transaction = &models.Transaction{}
 	if err = transaction.Scan(p.tx.QueryRow(retrieveTransactionSQL, sql.Named("id", p.envelopeID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 	return transaction, nil
 }
@@ -660,8 +628,7 @@ func (p *PreparedTransaction) Update(in *models.Transaction) (err error) {
 	orig.Modified = time.Now()
 
 	if _, err = p.tx.Exec(updateTransactionSQL, orig.Params()...); err != nil {
-		// TODO: handle constraint violations specially
-		return fmt.Errorf("could not update transaction: %w", err)
+		return fmt.Errorf("could not update transaction: %w", dbe(err))
 	}
 	return nil
 }
@@ -696,11 +663,10 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 				in.Modified = in.Created
 
 				if _, err = p.tx.Exec(createCounterpartySQL, in.Params()...); err != nil {
-					// TODO: handle constraints specifically
-					return fmt.Errorf("unable to create counterparty with directory id: %w", err)
+					return fmt.Errorf("unable to create counterparty with directory id: %w", dbe(err))
 				}
 			} else {
-				return fmt.Errorf("unable to lookup counterparty by directory id: %w", err)
+				return fmt.Errorf("unable to lookup counterparty by directory id: %w", dbe(err))
 			}
 		}
 	case in.CommonName != "":
@@ -719,8 +685,7 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 		in.Modified = in.Created
 
 		if _, err = p.tx.Exec(createCounterpartySQL, in.Params()...); err != nil {
-			// TODO: handle constraints specifically
-			return fmt.Errorf("unable to create counterparty: %w", err)
+			return fmt.Errorf("unable to create counterparty: %w", dbe(err))
 		}
 	}
 
@@ -732,8 +697,7 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 	}
 
 	if _, err = p.tx.Exec(updateTransferCounterpartySQL, params...); err != nil {
-		// TODO: handle constraint violations if necessary
-		return fmt.Errorf("could not update transaction with counterparty info: %w", err)
+		return fmt.Errorf("could not update transaction with counterparty info: %w", dbe(err))
 	}
 	return nil
 }
@@ -761,8 +725,7 @@ func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error)
 	in.Modified = in.Created
 
 	if _, err = p.tx.Exec(createSecureEnvelopeSQL, in.Params()...); err != nil {
-		// TODO: handle constraint violations specially
-		return fmt.Errorf("could not add secure envelope: %w", err)
+		return fmt.Errorf("could not add secure envelope: %w", dbe(err))
 	}
 	return nil
 }

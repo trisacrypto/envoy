@@ -2,8 +2,12 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/mattn/go-sqlite3"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 )
 
 // Used to parameterize a list of values for an IN clause in a SQLite query.
@@ -21,4 +25,23 @@ func listParametrize(values []string, prefix string) (query string, params []int
 		params = append(params, sql.Named(placeholder, param))
 	}
 	return "(" + strings.Join(placeholders, ", ") + ")", params
+}
+
+func dbe(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return dberr.ErrNotFound
+	}
+
+	var sqliteErr sqlite3.Error
+	if errors.As(err, &sqliteErr) {
+		if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
+			return dberr.ErrAlreadyExists
+		}
+	}
+
+	return fmt.Errorf("sqlite3 error: %w", err)
 }

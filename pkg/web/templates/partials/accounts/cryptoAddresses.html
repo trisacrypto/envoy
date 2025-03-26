@@ -1,8 +1,9 @@
 {{ $canEditAccounts := not .IsViewOnly }}
+{{ $accountID := .Parent }}
 {{ with .CryptoAddressList -}}
 {{- if .CryptoAddresses }}
-<div id="crypto-addresses" class="table-responsive mb-0" data-list='{"valueNames": ["crypto-address", "network", "travel-address", "asset-type", "tag"]}'>
-  <table class="table table-sm table-nowrap table-hover card-table">
+<div id="crypto-addresses" class="table-responsive mb-0">
+  <table id="cryptoAddressList" class="table table-sm table-nowrap table-hover card-table" data-list='{"valueNames": ["crypto-address", "network", "travel-address", "asset-type", "tag"]}'>
     <thead>
       <tr>
         <th><a href="#" class="list-sort text-body-secondary" data-sort="crypto-address">Address</a></th>
@@ -12,7 +13,7 @@
         <th colspan="2"><a href="#" class="list-sort text-body-secondary" data-sort="tag">Tag</a></th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="list fs-base">
       {{ range .CryptoAddresses }}
       <tr>
         <td class="crypto-address font-monospace">{{ .CryptoAddress }}</td>
@@ -26,14 +27,14 @@
               <i class="fe fe-more-vertical"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-end">
-              <a href="#!" class="dropdown-item">
+              <a href="/v1/accounts/{{ $accountID }}/crypto-addresses/{{ .ID }}/qrcode" class="dropdown-item">
                 <i class="fe fe-download-cloud"></i> QR Code
               </a>
               {{- if $canEditAccounts }}
-              <a href="#!" class="dropdown-item">
+              <a href="#!" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editCryptoAddressModal" data-bs-crypto-address-id="{{ .ID }}" data-bs-crypto-address="{{ .CryptoAddress }}" data-bs-network="{{ .Network }}" data-bs-asset-type="{{ .AssetType }}" data-bs-tag="{{ .Tag }}">
                 <i class="fe fe-edit"></i> Edit
               </a>
-              <a href="#!" class="dropdown-item">
+              <a href="#!" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteCryptoAddressModal" data-bs-crypto-address-id="{{ .ID }}" data-bs-crypto-address="{{ .CryptoAddress }}">
                 <i class="fe fe-trash"></i> Delete
               </a>
               {{- end }}

@@ -33,8 +33,7 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(listAccountsSQL, sql.Named("null", []byte("null"))); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -87,8 +86,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 
 	// Execute the insert into the database
 	if _, err = tx.Exec(createAccountSQL, account.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	// Insert the associated crypto addresses into the database
@@ -116,10 +114,7 @@ func (s *Store) LookupAccount(ctx context.Context, cryptoAddress string) (accoun
 
 	var accountID ulid.ULID
 	if err = tx.QueryRow(lookupAccountSQL, sql.Named("cryptoAddress", cryptoAddress)).Scan(&accountID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	if account, err = retrieveAccount(tx, accountID); err != nil {
@@ -161,10 +156,7 @@ func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (account *mod
 func retrieveAccount(tx *sql.Tx, accountID ulid.ULID) (account *models.Account, err error) {
 	account = &models.Account{}
 	if err = account.Scan(tx.QueryRow(retreiveAccountSQL, sql.Named("id", accountID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 	return account, nil
 }
@@ -190,8 +182,7 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -211,7 +202,7 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteAccountSQL, sql.Named("id", id)); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -281,8 +272,7 @@ func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(query, params...); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -408,12 +398,7 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 	}
 
 	if _, err = tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 	return nil
 }
@@ -429,10 +414,7 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 
 	addr = &models.CryptoAddress{}
 	if err = addr.Scan(tx.QueryRow(retrieveCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	// TODO: retrieve account and associate it with the crypto address.
@@ -466,12 +448,7 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -490,10 +467,7 @@ func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
