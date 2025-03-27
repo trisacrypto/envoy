@@ -4,22 +4,11 @@ Application code for the transaction detail page.
 
 import { isRequestMatch } from '../htmx/helpers.js';
 import { createChoices } from '../modules/components.js';
+import Alerts from '../modules/alerts.js';
 
 
-/*
-Specialized add alerts function for the transfer detail page.
-
-TODO: consider refactoring this into a more general alerts class.
-*/
-function alertError(id, title, message) {
-  const alerts = document.getElementById(id);
-  alerts.insertAdjacentHTML('beforeend', `
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <strong>${title}</strong> ${message}.
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  `);
-}
+// Initialize the alerts component.
+const rejectAlerts = new Alerts("#rejectAlerts");
 
 
 /*
@@ -56,7 +45,7 @@ document.addEventListener("htmx:afterSettle", function(e) {
       });
 
       const select = document.querySelector("select[name='code']");
-      createChoices(select);
+      if (select) createChoices(select);
     }
 });
 
@@ -79,6 +68,6 @@ Handle any htmx errors that are not swapped by the htmx config.
 document.body.addEventListener("htmx:responseError", function(e) {
   if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/reject/, "post")) {
     const error = JSON.parse(e.detail.xhr.response);
-    alertError("rejectAlerts", "Error:", error.error);
+    rejectAlerts.danger("Error:", error.error);
   }
 });

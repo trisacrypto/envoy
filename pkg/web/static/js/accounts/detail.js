@@ -5,6 +5,8 @@ Application code for the customer account management detail page.
 import { createList } from '../modules/components.js';
 import { isRequestMatch } from '../htmx/helpers.js';
 import EditWallet from './editwallet.js';
+import Alerts from '../modules/alerts.js';
+
 
 /*
 When the edit button is pressed in the crypto addresses list, show the edit crypto
@@ -14,20 +16,9 @@ it can also be used as the create crypto address modal.
 */
 const editCryptoAddressModal = new EditWallet("#editCryptoAddressModal");
 
-/*
-Specialized add alerts function for the create account modal.
 
-TODO: consider refactoring this into a more general alerts class.
-*/
-function alertError(id, title, message) {
-  const alerts = document.getElementById(id);
-  alerts.insertAdjacentHTML('beforeend', `
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <strong>${title}</strong> ${message}.
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  `);
-}
+// Create alert managers for the page
+const editCryptoAddressAlerts = new Alerts("#editCryptoAddressAlerts");
 
 /*
 Post-event handling after htmx has settled the DOM.
@@ -67,13 +58,13 @@ document.body.addEventListener("htmx:responseError", function(e) {
     const error = JSON.parse(e.detail.xhr.response);
     switch (e.detail.xhr.status) {
       case 400:
-        alertError("editCryptoAddressAlerts", "Error:", error.error);
+        editCryptoAddressAlerts.danger("Error:", error.error);
         break;
       case 409:
-        alertError("editCryptoAddressAlerts", "Conflict:", error.error);
+        editCryptoAddressAlerts.danger("Conflict:", error.error);
         break;
       case 422:
-        alertError("editCryptoAddressAlerts", "Validation error:", error.error);
+        editCryptoAddressAlerts.danger("Validation error:", error.error);
         break;
       default:
         break;

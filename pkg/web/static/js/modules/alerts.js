@@ -78,6 +78,37 @@ class Alerts {
     return alert;
   }
 
+  content(innerHTML, options) {
+    options = options || {};
+    const config = {
+      ...this.config,
+      ...options,
+    }
+
+    const alert = document.createElement('div');
+    alert.setAttribute('role', 'alert');
+    alert.classList.add('alert', `alert-${config.level}`);
+    if (config.fade) alert.classList.add('fade');
+    if (config.show) alert.classList.add('show');
+
+    alert.innerHTML = innerHTML;
+
+    if (config.dismissible) {
+      alert.classList.add('alert-dismissible');
+      alert.insertAdjacentHTML('beforeend', `<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`);
+    }
+
+    this.container.appendChild(alert);
+
+    if (config.autoClose) {
+      setTimeout(() => {
+        alert.remove();
+      }, config.closeTime);
+    }
+
+    return alert;
+  }
+
   primary(title, message, options) {
     return this.alert(title, message, { ...options, level: 'primary' });
   }

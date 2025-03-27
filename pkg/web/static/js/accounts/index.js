@@ -4,25 +4,15 @@ Application code for the customer account management dashboard page.
 import WalletRows from './walletrows.js';
 import { createList, createPageSizeSelect } from '../modules/components.js';
 import { isRequestFor } from '../htmx/helpers.js';
+import Alerts from '../modules/alerts.js';
 
 
 // Create the WalletRows manager for the create account form.
 const walletRows = new WalletRows();
 
-/*
-Specialized add alerts function for the create account modal.
-
-TODO: consider refactoring this into a more general alerts class.
-*/
-function alertError(id, title, message) {
-  const alerts = document.getElementById(id);
-  alerts.insertAdjacentHTML('beforeend', `
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <strong>${title}</strong> ${message}.
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  `);
-}
+// Create the alert managers for the page.
+const createAccountAlerts = new Alerts(document.getElementById("createAccountAlerts"));
+const pageAlerts = new Alerts(document.getElementById("pageAlerts"));
 
 /*
 Pre-flight request configuration for htmx requests.
@@ -90,13 +80,13 @@ document.body.addEventListener("htmx:responseError", function(e) {
     const error = JSON.parse(e.detail.xhr.response);
     switch (e.detail.xhr.status) {
       case 400:
-        alertError("createAccountAlerts", "Error:", error.error);
+        createAccountAlerts.danger("Error:", error.error);
         break;
       case 409:
-        alertError("createAccountAlerts", "Conflict:", error.error);
+        createAccountAlerts.danger("Conflict:", error.error);
         break;
       case 422:
-        alertError("createAccountAlerts", "Validation error:", error.error);
+        createAccountAlerts.danger("Validation error:", error.error);
         break;
       default:
         throw new Error(`unhandled htmx error: ${error.error}`);
@@ -107,7 +97,7 @@ document.body.addEventListener("htmx:responseError", function(e) {
   // Handle errors for delete user by showing a toast alert.
   if (isRequestMatch(e, "/v1/accounts/[0-7][0-9A-HJKMNP-TV-Z]{25}", "delete")) {
     const error = JSON.parse(e.detail.xhr.response);
-    alertError("pageAlerts", "Delete Account Error:", error.error);
+    pageAlerts.danger("Delete Account Error:", error.error);
     return;
   }
 
