@@ -64,37 +64,73 @@
 
 <div id="alerts"></div>
 <form id="editAccountForm" hx-put="/v1/accounts/{{ .ID }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
-  <div class="row">
-    <div class="col-12">
-      <div class="form-group">
-        <label class="form-label mb-1" for="customer_id">Customer ID</label>
-        <small class="form-text text-body-secondary">
-          An optional, internal customer ID to link back to your accounts database.
-        </small>
-        <input type="text" id="customer_id" name="customer_id" class="form-control" value="{{ .CustomerID }}">
+  <fieldset id="fieldsetAccount">
+    <input type="hidden" name="id" value="{{ .ID }}" />
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label mb-1" for="customer_id">Customer ID</label>
+          <small class="form-text text-body-secondary">
+            An optional, internal customer ID to link back to your accounts database.
+          </small>
+          <input type="text" id="customer_id" name="customer_id" class="form-control" value="{{ .CustomerID }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="first_name">First Name</label>
+          <small class="form-text text-body-secondary">
+            Identify accounts holders by forename (optional).
+          </small>
+          <input type="text" class="form-control" name="first_name" id="first_name" value="{{ .FirstName }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="last_name">Last Name</label>
+          <small class="form-text text-body-secondary">
+            Identify accounts holders by surname.
+          </small>
+          <input type="text" class="form-control" name="last_name" id="last_name" value="{{ .LastName }}" required>
+        </div>
       </div>
     </div>
-    <div class="col-12 col-md-6">
-      <div class="form-group">
-        <label class="form-label mb-1" for="first_name">First Name</label>
-        <small class="form-text text-body-secondary">
-          Identify accounts holders by forename (optional).
-        </small>
-        <input type="text" class="form-control" name="first_name" id="first_name" value="{{ .FirstName }}">
-      </div>
-    </div>
-    <div class="col-12 col-md-6">
-      <div class="form-group">
-        <label class="form-label mb-1" for="last_name">Last Name</label>
-        <small class="form-text mt-1">
-          Identify accounts holders by surname.
-        </small>
-        <input type="text" class="form-control" name="last_name" id="last_name" value="{{ .LastName }}" required>
-      </div>
-    </div>
-  </div>
+  </fieldset>
 
-  <input type="hidden" name="id" value="{{ .ID }}" />
+  <hr class="mt-4 mb-5">
+
+  <h3 class="mb-1">IVMS 101 Record</h3>
+  <small class="form-text text-body-secondary">
+    Add an IVMS101 record so that you can easily populate customer information into the
+    identity payloads of transfers by crypto wallet address.
+  </small>
+
+  {{ with .IVMSRecord -}}
+  <fieldset id="fieldsetIVMS101" class="mt-4">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="name_name_identifiers_0_secondary_identifier">Legal First or Given Name</label>
+          <small class="form-text text-body-secondary">
+            Forenames, familiar names, given names, or initials.
+          </small>
+          <input type="text" class="form-control" name="name_name_identifiers_0_secondary_identifier" value="{{ .Forename }}" />
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="name_name_identifiers_0_primary_identifier">Legal Last or Family Name</label>
+          <small class="form-text text-body-secondary">
+            Family, maiden, or surname excluding suffixes or titles.
+          </small>
+          <input type="text" class="form-control" name="name_name_identifiers_0_primary_identifier" value="{{ .Surname }}" />
+        </div>
+      </div>
+      <input type="hidden" name="name_name_identifiers_0_name_identifier_type" value="LEGL" />
+    </div>
+  </fieldset>
+  {{- end }}
+
   <button type="submit" class="btn btn-primary">Save Changes</button>
   <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 </form>
