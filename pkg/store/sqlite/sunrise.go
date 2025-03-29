@@ -34,8 +34,7 @@ func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (out *mo
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(listSunriseSQL); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -94,8 +93,7 @@ func createSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 
 	// Execute the insert into the database
 	if _, err = tx.Exec(createSunriseSQL, msg.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 	return nil
 }
@@ -121,10 +119,7 @@ func (s *Store) RetrieveSunrise(ctx context.Context, id ulid.ULID) (msg *models.
 func retrieveSunrise(tx *sql.Tx, sunriseID ulid.ULID) (msg *models.Sunrise, err error) {
 	msg = &models.Sunrise{}
 	if err = msg.Scan(tx.QueryRow(retrieveSunriseSQL, sql.Named("id", sunriseID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 	return msg, nil
 }
@@ -168,8 +163,7 @@ func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 	// Execute the sunrise message into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateSunriseSQL, msg.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -189,7 +183,7 @@ func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteSunriseSQL, sql.Named("id", id)); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}

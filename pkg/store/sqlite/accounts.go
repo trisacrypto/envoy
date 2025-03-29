@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -13,7 +14,7 @@ import (
 	"go.rtnl.ai/ulid"
 )
 
-const listAccountsSQL = "SELECT id, customer_id, first_name, last_name, travel_address, created, modified FROM accounts"
+const listAccountsSQL = "SELECT a.id, a.customer_id, a.first_name, a.last_name, a.travel_address, a.ivms101 != :null, count(ca.id), a.created, a.modified FROM accounts a LEFT JOIN crypto_addresses ca ON a.id = ca.account_id GROUP BY a.id"
 
 // Retrieve summary information for all accounts for the specified page, omitting
 // crypto addresses and any other irrelevant information.
@@ -31,9 +32,8 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listAccountsSQL); err != nil {
-		// TODO: handle database specific errors
-		return nil, err
+	if rows, err = tx.Query(listAccountsSQL, sql.Named("null", []byte("null"))); err != nil {
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -86,8 +86,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 
 	// Execute the insert into the database
 	if _, err = tx.Exec(createAccountSQL, account.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	// Insert the associated crypto addresses into the database
@@ -115,10 +114,7 @@ func (s *Store) LookupAccount(ctx context.Context, cryptoAddress string) (accoun
 
 	var accountID ulid.ULID
 	if err = tx.QueryRow(lookupAccountSQL, sql.Named("cryptoAddress", cryptoAddress)).Scan(&accountID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	if account, err = retrieveAccount(tx, accountID); err != nil {
@@ -160,10 +156,7 @@ func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (account *mod
 func retrieveAccount(tx *sql.Tx, accountID ulid.ULID) (account *models.Account, err error) {
 	account = &models.Account{}
 	if err = account.Scan(tx.QueryRow(retreiveAccountSQL, sql.Named("id", accountID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 	return account, nil
 }
@@ -175,6 +168,15 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 	// Basic validation
 	if a.ID.IsZero() {
 		return dberr.ErrMissingID
+	}
+
+	// If the travel address is not set, then generate it (mirroring create behavior).
+	if !a.TravelAddress.Valid && s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(a); err != nil {
+			log.Warn().Err(err).Str("type", "account").Str("id", a.ID.String()).Msg("could not assign travel address")
+		}
+		a.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
 	}
 
 	var tx *sql.Tx
@@ -189,8 +191,7 @@ func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -210,7 +211,7 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteAccountSQL, sql.Named("id", id)); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -219,6 +220,81 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 		return err
 	}
 	return nil
+}
+
+const listAccountTxnsSQL = `
+	WITH wallet AS (SELECT crypto_address FROM crypto_addresses WHERE account_id=:accountID)
+	SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes
+		FROM transactions t
+		LEFT JOIN secure_envelopes e ON t.id=e.envelope_id
+		WHERE t.archived=:archives AND (
+			t.originator_address IN (SELECT * FROM wallet) OR
+			t.beneficiary_address IN (SELECT * FROM wallet)
+		)
+		GROUP BY t.id
+		ORDER BY t.created DESC`
+
+// List all transactions that have one of the account wallet addresses in either the
+// originator or beneficiary wallet address fields.
+func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	out = &models.TransactionPage{
+		Transactions: make([]*models.Transaction, 0),
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
+	}
+
+	// Create the base query and the query parameters list.
+	query := listAccountTxnsSQL
+	params := []interface{}{
+		sql.Named("accountID", accountID),
+		sql.Named("archives", page.Archives),
+	}
+
+	// If there are filters in the page query, then modify the SQL query with them.
+	if len(page.Status) > 0 || len(page.VirtualAsset) > 0 {
+		filters := make([]string, 0, 2)
+		if len(page.Status) > 0 {
+			inquery, inparams := listParametrize(page.Status, "s")
+			filters = append(filters, "status IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		if len(page.VirtualAsset) > 0 {
+			inquery, inparams := listParametrize(page.VirtualAsset, "a")
+			filters = append(filters, "virtual_asset IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		query = "WITH txns AS (" + listAccountTxnsSQL + ") SELECT * FROM txns WHERE "
+		query += strings.Join(filters, " AND ")
+	}
+
+	var rows *sql.Rows
+	if rows, err = tx.Query(query, params...); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		transaction := &models.Transaction{}
+		if err = transaction.ScanWithCount(rows); err != nil {
+			return nil, err
+		}
+		out.Transactions = append(out.Transactions, transaction)
+	}
+
+	tx.Commit()
+	return out, nil
 }
 
 const listCryptoAddressesSQL = "SELECT * FROM crypto_addresses WHERE account_id=:accountID"
@@ -331,12 +407,7 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 	}
 
 	if _, err = tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 	return nil
 }
@@ -352,10 +423,7 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 
 	addr = &models.CryptoAddress{}
 	if err = addr.Scan(tx.QueryRow(retrieveCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	// TODO: retrieve account and associate it with the crypto address.
@@ -377,6 +445,15 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 		return dberr.ErrMissingReference
 	}
 
+	// If the travel address is not set, then generate it (mirroring create behavior).
+	if !addr.TravelAddress.Valid && s.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = s.mkta(addr); err != nil {
+			log.Warn().Err(err).Str("type", "crypto_address").Str("id", addr.ID.String()).Msg("could not assign travel address")
+		}
+		addr.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -389,12 +466,7 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 	// Execute the update into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -413,10 +485,7 @@ func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return dberr.ErrNotFound
-		}
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}

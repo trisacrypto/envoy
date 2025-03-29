@@ -154,7 +154,7 @@ func (s *APIv1) authenticate(ctx context.Context, endpoint string, in any) (out 
 
 const transactionsEP = "/v1/transactions"
 
-func (s *APIv1) ListTransactions(ctx context.Context, in *PageQuery) (out *TransactionsList, err error) {
+func (s *APIv1) ListTransactions(ctx context.Context, in *TransactionListQuery) (out *TransactionsList, err error) {
 	if err = s.List(ctx, transactionsEP, in, &out); err != nil {
 		return nil, err
 	}
@@ -335,6 +335,23 @@ func (s *APIv1) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID)
 	return nil
 }
 
+const unarchiveEP = "unarchive"
+
+func (s *APIv1) UnarchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), unarchiveEP)
+
+	// Perform a POST request but expect a 204 No Content response
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodPost, endpoint, nil, nil); err != nil {
+		return err
+	}
+
+	if _, err = s.Do(req, nil, true); err != nil {
+		return err
+	}
+	return nil
+}
+
 //===========================================================================
 // Secure and Decrypted Envelopes Resource
 //===========================================================================
@@ -408,8 +425,10 @@ func (s *APIv1) DeleteSecureEnvelope(ctx context.Context, transactionID uuid.UUI
 //===========================================================================
 
 const (
-	accountsEP       = "/v1/accounts"
-	accountsLookupEP = "/v1/accounts/lookup"
+	accountsEP         = "/v1/accounts"
+	accountsLookupEP   = "/v1/accounts/lookup"
+	accountTransfersEP = "transfers"
+	accountQRCodeEP    = "qrcode"
 )
 
 func (s *APIv1) ListAccounts(ctx context.Context, in *PageQuery) (out *AccountsList, err error) {
@@ -463,6 +482,62 @@ func (s *APIv1) UpdateAccount(ctx context.Context, in *Account) (out *Account, e
 func (s *APIv1) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
 	endpoint, _ := url.JoinPath(accountsEP, id.String())
 	return s.Delete(ctx, endpoint)
+}
+
+func (s *APIv1) AccountTransfers(ctx context.Context, id ulid.ULID, in *TransactionListQuery) (out *TransactionsList, err error) {
+	endpoint, _ := url.JoinPath(accountsEP, id.String(), accountTransfersEP)
+	if err = s.List(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) AccountQRCode(ctx context.Context, id ulid.ULID) (_ []byte, err error) {
+	endpoint, _ := url.JoinPath(accountsEP, id.String(), accountQRCodeEP)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return nil, err
+	}
+
+	var rep *http.Response
+	if rep, err = s.client.Do(req); err != nil {
+		return nil, fmt.Errorf("could not execute qrcode request: %w", err)
+	}
+	defer rep.Body.Close()
+
+	if rep.StatusCode < 200 || rep.StatusCode >= 300 {
+		// Attempt to read the error response from JSON, if available
+		serr := &StatusError{
+			StatusCode: rep.StatusCode,
+		}
+
+		if err = json.NewDecoder(rep.Body).Decode(&serr.Reply); err == nil {
+			return nil, serr
+		}
+
+		// If we can't read a reply from JSON return a generic response
+		serr.Reply = Reply{
+			Success: false,
+			Error:   http.StatusText(rep.StatusCode),
+		}
+		return nil, serr
+	}
+
+	if ct := rep.Header.Get("Content-Type"); ct != "" {
+		if mt, _, err := mime.ParseMediaType(ct); err != nil {
+			return nil, fmt.Errorf("malformed content-type header: %w", err)
+		} else if mt != "image/png" {
+			return nil, fmt.Errorf("unexpected content type: %q", mt)
+		}
+	}
+
+	buf := bytes.NewBuffer(make([]byte, 0, rep.ContentLength))
+	if _, err = io.Copy(buf, rep.Body); err != nil {
+		return nil, fmt.Errorf("could not read qrcode response: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 //===========================================================================
@@ -654,6 +729,13 @@ func (s *APIv1) DeleteUser(ctx context.Context, id ulid.ULID) error {
 	return s.Delete(ctx, endpoint)
 }
 
+const changePasswordEP = "password"
+
+func (s *APIv1) ChangeUserPassword(ctx context.Context, id ulid.ULID, in *UserPassword) error {
+	endpoint, _ := url.JoinPath(usersEP, id.String(), changePasswordEP)
+	return s.Create(ctx, endpoint, in, nil)
+}
+
 //===========================================================================
 // APIKeys Resource
 //===========================================================================
@@ -797,7 +879,7 @@ func (s *APIv1) WaitForReady(ctx context.Context) (err error) {
 // REST Resource Methods
 //===========================================================================
 
-func (s *APIv1) List(ctx context.Context, endpoint string, in *PageQuery, out interface{}) (err error) {
+func (s *APIv1) List(ctx context.Context, endpoint string, in interface{}, out interface{}) (err error) {
 	var params url.Values
 	if params, err = query.Values(in); err != nil {
 		return fmt.Errorf("could not encode page query: %w", err)

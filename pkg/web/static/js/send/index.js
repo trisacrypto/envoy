@@ -2,6 +2,7 @@
 Application code for the send TRISA/TRP forms.
 */
 
+import Alerts from '../modules/alerts.js';
 import { isRequestFor } from '../htmx/helpers.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
@@ -9,25 +10,7 @@ import { selectTRISACounterparty, createFlatpickr } from '../modules/components.
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
 const previewModal = document.getElementById('previewModal');
-
-/*
-Create pop up toast alerts for errors or info when the form is being handled.
-*/
-const alerts = document.getElementById("alerts");
-function alert(level, title, message) {
-  if (alerts) {
-    alerts.insertAdjacentHTML('beforeend', `
-      <div class="alert alert-${level} alert-dismissible fade show" role="alert">
-          <strong>${title}</strong>: <span>${message}</span>.
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    `);
-
-    setTimeout(() => {
-      document.querySelector('.alert').remove()
-    }, 3000);
-  }
-}
+const alerts = new Alerts("#alerts", {autoClose: true, closeTime: 3000});
 
 /*
 Initialize the select elements with choices.js in the form element.
@@ -222,23 +205,23 @@ document.body.addEventListener("htmx:responseError", (e) => {
   switch (e.detail.xhr.status) {
     case 400:
       if (isRequestFor(e, "/v1/transactions/send-prepared", "post")) {
-        alert("danger", "Transfer failed", error.error);
+        alerts.danger("Transfer failed", error.error);
       } else {
-        alert("warning", "Bad request", error.error);
+        alerts.warning("Bad request", error.error);
       }
       break;
     case 404:
       if (isRequestFor(e, "/v1/accounts/lookup", "get")) {
-        alert("info", "No account found", "crypto address not registered");
+        alerts.info("No account found", "crypto address not registered");
         break;
       }
-      alert("info", "Not Found", error.error);
+      alerts.info("Not Found", error.error);
       break;
     case 409:
-      alert("warning", "Conflict", error.error);
+      alerts.warning("Conflict", error.error);
       break;
     case 422:
-      alert("warning", "Validation error", error.error);
+      alerts.warning("Validation error", error.error);
       break;
     case 500:
       window.location.href = "/error";

@@ -112,6 +112,7 @@ type AccountStore interface {
 	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
 	UpdateAccount(context.Context, *models.Account) error
 	DeleteAccount(ctx context.Context, id ulid.ULID) error
+	ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 }
 
 // CryptoAddressStore provides CRUD interactions with CryptoAddress models and their

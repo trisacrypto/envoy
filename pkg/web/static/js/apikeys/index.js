@@ -4,21 +4,13 @@ Application code for the apikey management dashboard page.
 
 import { createList, createPageSizeSelect, activateCopyButtons } from '../modules/components.js';
 import { isRequestFor, isRequestMatch } from '../htmx/helpers.js';
+import Alerts from '../modules/alerts.js';
 
-/*
-Specialized add alerts function for the API key modals.
 
-TODO: consider refactoring this into a more general alerts class.
-*/
-function alertError(id, title, message) {
-  const alerts = document.getElementById(id);
-  alerts.insertAdjacentHTML('beforeend', `
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <strong>${title}</strong> ${message}.
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  `);
-}
+// Add the alerts manager for the page.
+const createAPIKeyAlerts = new Alerts("#createAPIKeyAlerts");
+const editAPIKeyAlerts = new Alerts("#editAPIKeyAlerts");
+
 
 /*
 In the create apikey modal form, toggle all permissions checkboxes on or off depending
@@ -147,10 +139,10 @@ document.body.addEventListener("htmx:responseError", function(e) {
     const error = JSON.parse(e.detail.xhr.response);
     switch (e.detail.xhr.status) {
       case 400:
-        alertError("createAPIKeyAlerts", "Error:", error.error);
+        createAPIKeyAlerts.danger("Error:", error.error);
         break;
       case 422:
-        alertError("createAPIKeyAlerts", "Validation error:", error.error);
+        createAPIKeyAlerts.danger("Validation error:", error.error);
         break;
       default:
         break;
@@ -163,10 +155,10 @@ document.body.addEventListener("htmx:responseError", function(e) {
     const error = JSON.parse(e.detail.xhr.response);
     switch (e.detail.xhr.status) {
       case 400:
-        alertError("editAPIKeyAlerts", "Error:", error.error);
+        editAPIKeyAlerts.danger("Error:", error.error);
         break;
       case 422:
-        alertError("editAPIKeyAlerts", "Validation error:", error.error);
+        editAPIKeyAlerts.danger("Validation error:", error.error);
         break;
       default:
         break;

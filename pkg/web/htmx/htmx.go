@@ -37,11 +37,12 @@ const HXTrigger = "HX-Trigger" // the id of the triggered element if it exists i
 
 // Envoy-specific HTMX events
 const (
-	TransactionsUpdated   = "transactions-updated"
-	AccountsUpdated       = "accounts-updated"
-	CounterpartiesUpdated = "counterparties-updated"
-	UsersUpdated          = "users-updated"
-	APIKeysUpdated        = "apikeys-updated"
+	TransactionsUpdated    = "transactions-updated"
+	AccountsUpdated        = "accounts-updated"
+	CryptoAddressesUpdated = "crypto-addresses-updated"
+	CounterpartiesUpdated  = "counterparties-updated"
+	UsersUpdated           = "users-updated"
+	APIKeysUpdated         = "apikeys-updated"
 )
 
 // Redirect determines if the request is an HTMX request, if so, it sets the HX-Redirect

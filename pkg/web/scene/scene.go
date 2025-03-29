@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"go.rtnl.ai/ulid"
 )
 
 var (
@@ -31,6 +32,7 @@ const (
 	IsAuthenticated = "IsAuthenticated"
 	User            = "User"
 	APIData         = "APIData"
+	Parent          = "Parent"
 	SunriseEnabled  = "SunriseEnabled"
 )
 
@@ -77,6 +79,11 @@ func (s Scene) Update(o Scene) Scene {
 
 func (s Scene) WithAPIData(data interface{}) Scene {
 	s[APIData] = data
+	return s
+}
+
+func (s Scene) WithParent(parent ulid.ULID) Scene {
+	s[Parent] = parent.String()
 	return s
 }
 
@@ -137,15 +144,6 @@ func (s Scene) AccountsList() *api.AccountsList {
 	return nil
 }
 
-func (s Scene) AccountDetail() *api.Account {
-	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.Account); ok {
-			return out
-		}
-	}
-	return nil
-}
-
 func (s Scene) AccountPerson() Person {
 	if data, ok := s[APIData]; ok {
 		if account, ok := data.(*api.Account); ok {
@@ -167,6 +165,15 @@ func (s Scene) AccountPerson() Person {
 
 	// Return an empty person so no checking has to be done.
 	return Person{}
+}
+
+func (s Scene) CryptoAddressList() *api.CryptoAddressList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.CryptoAddressList); ok {
+			return out
+		}
+	}
+	return nil
 }
 
 func (s Scene) UserList() *api.UserList {

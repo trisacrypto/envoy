@@ -30,7 +30,7 @@ type Client interface {
 	Reauthenticate(context.Context, *ReauthenticateRequest) (*LoginReply, error)
 
 	// Transactions Resource
-	ListTransactions(context.Context, *PageQuery) (*TransactionsList, error)
+	ListTransactions(context.Context, *TransactionListQuery) (*TransactionsList, error)
 	CreateTransaction(context.Context, *Transaction) (*Transaction, error)
 	TransactionDetail(context.Context, uuid.UUID) (*Transaction, error)
 	UpdateTransaction(context.Context, *Transaction) (*Transaction, error)
@@ -50,6 +50,7 @@ type Client interface {
 	RepairPreview(ctx context.Context, transactionID uuid.UUID) (*Repair, error)
 	Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
 	ArchiveTransaction(context.Context, uuid.UUID) error
+	UnarchiveTransaction(context.Context, uuid.UUID) error
 
 	// SecureEnvelopes Resource
 	ListSecureEnvelopes(ctx context.Context, transactionID uuid.UUID, in *EnvelopeListQuery) (*EnvelopesList, error)
@@ -64,6 +65,8 @@ type Client interface {
 	AccountDetail(context.Context, ulid.ULID) (*Account, error)
 	UpdateAccount(context.Context, *Account) (*Account, error)
 	DeleteAccount(context.Context, ulid.ULID) error
+	AccountTransfers(context.Context, ulid.ULID, *TransactionListQuery) (*TransactionsList, error)
+	AccountQRCode(context.Context, ulid.ULID) ([]byte, error)
 
 	// CryptoAddress Resource
 	ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, in *PageQuery) (*CryptoAddressList, error)
@@ -93,6 +96,7 @@ type Client interface {
 	UserDetail(context.Context, ulid.ULID) (*User, error)
 	UpdateUser(context.Context, *User) (*User, error)
 	DeleteUser(context.Context, ulid.ULID) error
+	ChangeUserPassword(context.Context, ulid.ULID, *UserPassword) error
 
 	// APIKey Resource
 	ListAPIKeys(context.Context, *PageQuery) (*APIKeyList, error)

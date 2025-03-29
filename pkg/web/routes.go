@@ -104,11 +104,20 @@ func (s *Server) setupRoutes() (err error) {
 		ui.GET("/", s.Home)
 		ui.GET("/about", s.AboutPage)
 		ui.GET("/settings", s.SettingsPage)
-		ui.GET("/accounts", s.AccountsListPage)
 		ui.GET("/counterparties", s.CounterpartiesListPage)
+		ui.GET("/counterparties/:id", s.CounterpartyDetailPage)
 		ui.GET("/users", s.UsersListPage)
 		ui.GET("/apikeys", s.APIKeysListPage)
 		ui.GET("/utilities/travel-address", s.TravelAddressUtility)
+
+		// Accounts Pages
+		accounts := ui.Group("/accounts")
+		{
+			accounts.GET("", authorize(permiss.AccountsView), s.AccountsListPage)
+			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetailPage)
+			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.AccountEditPage)
+			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfersPage)
+		}
 
 		// Profile Pages
 		profile := ui.Group("/profile")
@@ -162,9 +171,6 @@ func (s *Server) setupRoutes() (err error) {
 		// Status/Heartbeat endpoint
 		v1.GET("/status", s.Status)
 
-		// NOTE: uncomment this for debugging only
-		// v1.POST("/debug", s.Debug)
-
 		// Database Statistics
 		v1.GET("/dbinfo", authenticate, authorize(permiss.ConfigView), s.DBInfo)
 
@@ -172,9 +178,9 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/login", s.Login)
 		v1.POST("/authenticate", s.Authenticate)
 		v1.POST("/reauthenticate", s.Reauthenticate)
-		v1.POST("/reset-password", s.ResetPassword)
 
 		// User Profile Management
+		v1.POST("/reset-password", s.ResetPassword)
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource
@@ -184,9 +190,11 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.POST("", authorize(permiss.AccountsManage), s.CreateAccount)
 			accounts.GET("/lookup", authorize(permiss.AccountsView), s.LookupAccount)
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetail)
-			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.UpdateAccountPreview)
 			accounts.PUT("/:id", authorize(permiss.AccountsManage), s.UpdateAccount)
 			accounts.DELETE("/:id", authorize(permiss.AccountsManage), s.DeleteAccount)
+
+			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfers)
+			accounts.GET("/:id/qrcode", authorize(permiss.AccountsView), s.AccountQRCode)
 
 			// CryptoAddress Resource (nested on Accounts)
 			ca := accounts.Group("/:id/crypto-addresses")
@@ -196,6 +204,7 @@ func (s *Server) setupRoutes() (err error) {
 				ca.GET("/:cryptoAddressID", authorize(permiss.AccountsView), s.CryptoAddressDetail)
 				ca.PUT("/:cryptoAddressID", authorize(permiss.AccountsManage), s.UpdateCryptoAddress)
 				ca.DELETE("/:cryptoAddressID", authorize(permiss.AccountsManage), s.DeleteCryptoAddress)
+				ca.GET("/:cryptoAddressID/qrcode", authorize(permiss.AccountsView), s.CryptoAddressQRCode)
 			}
 		}
 

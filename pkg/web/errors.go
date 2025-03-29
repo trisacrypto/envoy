@@ -20,6 +20,7 @@ var (
 	ErrSunriseSubject    = errors.New("invalid subject type for sunrise review")
 	ErrMissingID         = errors.New("id required for this resource")
 	ErrIDMismatch        = errors.New("resource id does not match target")
+	ErrNotFound          = errors.New("resource not found")
 )
 
 // Logs the error with c.Error and negotiates the response. If HTML is requested by the

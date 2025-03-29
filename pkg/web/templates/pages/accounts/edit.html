@@ -1,0 +1,260 @@
+{{ template "page.html" . }}
+{{ define "title" }}Edit Customer Account | TRISA Envoy{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "modals" }}
+  {{ with .AccountDetail }}
+  <div id="confirmDeleteModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Customer Account?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="lead">Are you sure you want to delete this customer account?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+{{ end }}
+
+{{ define "page-content" -}}
+{{- $canEditAccounts := not .IsViewOnly -}}
+{{ with .AccountDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+
+        <!-- Pretitle -->
+        <h6 class="header-pretitle">Customer Accounts</h6>
+
+        <!-- Title -->
+        <h1 class="header-title">{{ .FirstName }} {{ .LastName }}</h1>
+
+      </div>
+      <div class="col-auto">
+        <a href="/accounts" class="btn btn-white lift" title="Back to Customer Accounts List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div> <!-- / .row -->
+    {{ template "accountTabs" (dict "ID" .ID "Tab" "edit" "CanEdit" $canEditAccounts) }}
+  </div>
+</div><!-- header ends -->
+
+<div id="alerts"></div>
+<form id="editAccountForm" hx-put="/v1/accounts/{{ .ID }}?encoding=base64&format=json" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  <fieldset id="fieldsetAccount">
+    <input type="hidden" name="id" value="{{ .ID }}" />
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label mb-1" for="customer_id">Customer ID</label>
+          <small class="form-text text-body-secondary">
+            An optional, internal customer ID to link back to your accounts database.
+          </small>
+          <input type="text" id="customer_id" name="customer_id" class="form-control" value="{{ .CustomerID }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="first_name">First Name</label>
+          <small class="form-text text-body-secondary">
+            Identify accounts holders by forename (optional).
+          </small>
+          <input type="text" class="form-control" name="first_name" id="first_name" value="{{ .FirstName }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="last_name">Last Name</label>
+          <small class="form-text text-body-secondary">
+            Identify accounts holders by surname.
+          </small>
+          <input type="text" class="form-control" name="last_name" id="last_name" value="{{ .LastName }}" required>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <hr class="mt-4 mb-5">
+
+  <h3 class="mb-1">IVMS 101 Record</h3>
+  <small class="form-text text-body-secondary">
+    Add an IVMS101 record so that you can easily populate customer information into the
+    identity payloads of transfers by crypto wallet address.
+  </small>
+
+  {{ with .IVMSRecord -}}
+  <fieldset id="fieldsetIVMS101" class="mt-4">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_name_nameIdentifier_0_secondaryIdentifier">Legal First or Given Name</label>
+          <small class="form-text text-body-secondary">
+            Forenames, familiar names, given names, or initials.
+          </small>
+          <input type="text" class="form-control" name="ivms_name_nameIdentifier_0_secondaryIdentifier" value="{{ .Forename }}" />
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_name_nameIdentifier_0_primaryIdentifier">Legal Last or Family Name</label>
+          <small class="form-text text-body-secondary">
+            Family, maiden, or surname excluding suffixes or titles.
+          </small>
+          <input type="text" class="form-control" name="ivms_name_nameIdentifier_0_primaryIdentifier" value="{{ .Surname }}" />
+        </div>
+      </div>
+
+      <input type="hidden" name="ivms_name_nameIdentifier_0_nameIdentifierType" value="LEGL" />
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_countryOfResidence">Country of Residence</label>
+          <small class="form-text text-body-secondary">
+            The country where virtual asset(s) would be transferred to.
+          </small>
+          <select class="form-control" name="ivms_countryOfResidence" data-countries='{"searchEnabled": true}' data-selected="{{ .CountryOfResidence }}"></select>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_customerIdentification">Internal Customer Identifier</label>
+          <small class="form-text text-body-secondary">
+            Optional, an internal identifier for the account holder.
+          </small>
+          <input type="text" class="form-control" name="ivms_customerIdentification" value="{{ .CustomerNumber }}" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_dateAndPlaceOfBirth_dateOfBirth">Date of Birth</label>
+          <input type="date" class="form-control" name="ivms_dateAndPlaceOfBirth_dateOfBirth" value="{{ .DateOfBirth }}" data-flatpickr placeholder="YYYY-MM-DD" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_dateAndPlaceOfBirth_placeOfBirth">Place of Birth</label>
+          <input type="text" class="form-control" name="ivms_dateAndPlaceOfBirth_placeOfBirth" value="{{ .PlaceOfBirth }}" placeholder="City, Province, Country" />
+        </div>
+      </div>
+
+      <div class="col-12 mb-2">
+        <h4 class="mb-1">National Identification</h4>
+        <small class="form-text text-body-secondary">
+          National identifiers assist with verifying the account holder's identity and should be issued by a government entity.
+        </small>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_nationalIdentifier">Identification Number</label>
+          <input type="text" class="form-control" name="ivms_nationalIdentification_nationalIdentifier" value="{{ .NationalIdentifier.Identifier }}" />
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_nationalIdentifierType">Type</label>
+          <select class="form-control" name="ivms_nationalIdentification_nationalIdentifierType" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .NationalIdentifier.TypeCode }}"></select>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_countryOfIssue">Country of Issue</label>
+          <select class="form-control" name="ivms_nationalIdentification_countryOfIssue"  data-countries='{"searchEnabled": true}' data-selected="{{ .NationalIdentifier.CountryOfIssue }}"></select>
+        </div>
+      </div>
+
+      <div class="col-12 mb-2">
+        <h4 class="mb-1">Geographic Address</h4>
+        <small class="form-text text-body-secondary">
+          A physical or mailing address for the account holder for identification purposes.
+        </small>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_0">Address Line 1</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_0" value="{{ .AddressLine0 }}" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_1">Address Line 2</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_1" value="{{ .AddressLine1 }}" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_2">Address Line 3</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_2" value="{{ .AddressLine2 }}" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressType">Address Type</label>
+          <select class="form-control" name="ivms_geographicAddress_0_addressType" data-address-type='{"searchEnabled": false}' data-selected="{{ .AddressType }}"></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_country">Country</label>
+          <select class="form-control" name="ivms_geographicAddress_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .AddressCountry }}"></select>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+  {{- end }}
+
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+</form>
+
+<hr class="mt-4 mb-5">
+
+<div class="row justify-content-between mb-7">
+  <div class="col-12 col-md-6">
+    <h4>Delete Customer Account</h4>
+
+    <p class="small text-body-secondary mb-md-0">
+      Will delete customer account and related crypto addresses but will not delete
+      any transfers associated with the customer account.
+    </p>
+
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+  </div>
+</div>
+
+{{- end }}
+{{- end }}
+
+{{- define "appcode" -}}
+<script type="module" src="/static/js/modules/alerts.js"></script>
+<script type="module" src="/static/js/accounts/edit.js"></script>
+{{- end }}

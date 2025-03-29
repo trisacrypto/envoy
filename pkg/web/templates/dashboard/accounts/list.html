@@ -1,14 +1,23 @@
 {{ template "dashboard.html" . }}
 {{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Customer Accounts{{ end }}
-{{ define "pagetitle" }}Manage Wallet Accounts{{ end }}
+{{ define "pagetitle" }}Manage Customer Accounts{{ end }}
 
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
-<a href="#!" class="btn btn-primary ms-2">
-  Register Wallet
-</a>
+<button class="btn btn-primary ms-2 lift" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+  Create Account
+</button>
 {{- end }}
+{{- end }}
+
+{{- define "modals" }}
+  {{ template "createAccountModal" . }}
+  {{ template "deleteAccountModal" . }}
+{{- end }}
+
+{{- define "alerts" }}
+  <div class="pageAlerts"></div>
 {{- end }}
 
 {{- define "tabs" }}
@@ -26,7 +35,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="accounts" hx-get="/v1/accounts" hx-trigger="load">
+<section id="accounts" hx-get="/v1/accounts" hx-trigger="load, accounts-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">
@@ -39,5 +48,6 @@
 
 {{- define "appcode" }}
 <script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/modules/networks.js"></script>
 <script type="module" src="/static/js/accounts/index.js"></script>
 {{- end }}

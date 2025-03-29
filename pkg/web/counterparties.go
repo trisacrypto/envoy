@@ -229,7 +229,7 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "counterparty_detail.html",
+		HTMLName: "partials/counterparties/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

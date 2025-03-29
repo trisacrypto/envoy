@@ -65,7 +65,7 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 			// If this is an HTMX query to an API endpoint, redirect to login without
 			// the path as next because it's likely an API endpoint.
 			if htmx.IsHTMXRequest(c) {
-				htmx.Redirect(c, http.StatusFound, "/login")
+				htmx.Redirect(c, http.StatusSeeOther, "/login")
 				c.Abort()
 			}
 
@@ -81,7 +81,7 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 				params.Set("next", c.Request.URL.Path)
 				redirect := &url.URL{Path: "/login", RawQuery: params.Encode()}
 
-				htmx.Redirect(c, http.StatusFound, redirect.String())
+				htmx.Redirect(c, http.StatusSeeOther, redirect.String())
 				c.Abort()
 				return
 			default:

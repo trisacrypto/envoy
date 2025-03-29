@@ -112,6 +112,10 @@ func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) error {
 	return nil
 }
 
+func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error) {
+	return nil, nil
+}
+
 func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error) {
 	return nil, nil
 }

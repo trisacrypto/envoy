@@ -1,15 +1,18 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"go.rtnl.ai/ulid"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -127,6 +130,41 @@ func (s *Server) AccountsListPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/accounts/list.html", scene.New(c))
 }
 
+func (s *Server) AccountDetailPage(c *gin.Context) {
+	s.AccountDetailTemplate(c, "pages/accounts/detail.html")
+}
+
+func (s *Server) AccountEditPage(c *gin.Context) {
+	s.AccountDetailTemplate(c, "pages/accounts/edit.html")
+}
+
+func (s *Server) AccountTransfersPage(c *gin.Context) {
+	s.AccountDetailTemplate(c, "pages/accounts/transfers.html")
+}
+
+func (s *Server) AccountDetailTemplate(c *gin.Context, template string) {
+	var (
+		err     error
+		account *models.Account
+		ctx     scene.Scene
+	)
+
+	// Retrieve the account from the database and handle errors
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			s.NotFound(c)
+			return
+		}
+
+		s.Error(c, err)
+		return
+	}
+
+	// Create a scene with the account model
+	ctx = scene.New(c).WithAPIData(account)
+	c.HTML(http.StatusOK, template, ctx)
+}
+
 //===========================================================================
 // Counterparty VASP Pages
 //===========================================================================
@@ -135,6 +173,23 @@ func (s *Server) CounterpartiesListPage(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["Source"] = strings.ToLower(c.Query("source"))
 	c.HTML(http.StatusOK, "dashboard/counterparties/list.html", ctx)
+}
+
+func (s *Server) CounterpartyDetailPage(c *gin.Context) {
+	// Get the counterparty ID from the URL path and make available to the template.
+	// The counterparty detail is loaded using htmx.
+	counterpartyID := c.Param("id")
+
+	// Validate that the counterparty ID is a valid UUID.
+	if _, err := ulid.Parse(counterpartyID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = counterpartyID
+
+	c.HTML(http.StatusOK, "pages/counterparties/detail.html", ctx)
 }
 
 //===========================================================================

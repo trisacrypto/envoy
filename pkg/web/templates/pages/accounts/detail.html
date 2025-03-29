@@ -1,0 +1,217 @@
+{{ template "page.html" . }}
+{{ define "title" }}Customer Accounts | TRISA Envoy{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "modals" }}
+  {{ with .AccountDetail }}
+  {{ template "editCryptoAddressModal" . }}
+
+  <div id="deleteCryptoAddressModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Crypto Address?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light">
+            Deleting a crypto address will not delete any transfers associated with it.
+          </div>
+          <p class="px-3 text-danger">Are you sure you want to delete <strong id="deleteCryptoAddress"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteCryptoAddressBtn" type="button" class="btn btn-danger" hx-delete="/v1/accounts/{{ .ID }}/crypto-addresses/">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{ end }}
+{{ end }}
+
+{{ define "alerts" }}
+  <div class="pageAlerts"></div>
+{{ end }}
+
+{{ define "tabs" }}
+{{ end }}
+
+{{ define "page-content" -}}
+{{- $canEditAccounts := not .IsViewOnly -}}
+{{ with .AccountDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+
+        <!-- Pretitle -->
+        <h6 class="header-pretitle"><a href="/accounts">Customer Accounts</a></h6>
+
+        <!-- Title -->
+        <h1 class="header-title">{{ .FirstName }} {{ .LastName }}</h1>
+
+      </div>
+      <div class="col-auto">
+        <a href="/accounts" class="btn btn-white lift" title="Back to Customer Accounts List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div> <!-- / .row -->
+    {{ template "accountTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditAccounts) }}
+  </div>
+</div><!-- header ends -->
+
+<div class="row">
+  <div class="col-12 col-lg-4">
+
+    <!-- QR Code -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-header-title">Travel Address</h4>
+          </div>
+          <div class="col-auto">
+            <i class="fe fe-help-circle has-tooltip" title="The travel address must be sent to counterparties so they can begin TRP requests to your Envoy node." data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <img class="img-fluid" src="/v1/accounts/{{ .ID }}/qrcode" alt="Update to Regenerate Travel Address" />
+        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ .TravelAddress }}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-12 col-lg-8">
+    <!-- Customer Account Info -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-title">
+              Customer Number:
+              <span class="text-muted font-monospace ms-1">{{ .CustomerNumber }}</span>
+              <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="Identify your account holder in transfers by an application-specific ID or, by default, the Envoy ID." data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
+            </h4>
+          </div>
+          <div class="col-auto">
+            {{- if .HasIVMSRecord }}
+            <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- else }}
+            <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- end }}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Envoy ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ .ID }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Customer ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .CustomerID }}{{ .CustomerID }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">First Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .FirstName }}{{ .FirstName }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Last Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ .LastName }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Created</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Modified</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card"
+  hx-get="/v1/accounts/{{ .ID }}/crypto-addresses"
+  hx-trigger="load, crypto-addresses-updated from:body"
+  hx-target="#crypto-addresses"
+  hx-swap="outerHTML"
+>
+  <div class="card-header">
+    <h4 class="card-header-title">Crypto Addresses</h4>
+    <button id="createCryptoAddressBtn" class="btn btn-sm btn-white" data-bs-toggle="modal" data-bs-target="#editCryptoAddressModal"><i class="fe fe-plus-circle"></i> Add</button>
+  </div>
+  <div id="crypto-addresses" class="card-body">
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{- end }}
+{{- end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/accounts/detail.js"></script>
+{{ end }}

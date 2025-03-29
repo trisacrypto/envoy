@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -46,13 +45,11 @@ func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (out *
 	var rows *sql.Rows
 	if page.Role != "" {
 		if rows, err = tx.Query(filterUsersSQL, sql.Named("role", page.Role)); err != nil {
-			// TODO: handle database specific errors
-			return nil, err
+			return nil, dbe(err)
 		}
 	} else {
 		if rows, err = tx.Query(listUsersSQL); err != nil {
-			// TODO: handle database specific errors
-			return nil, err
+			return nil, dbe(err)
 		}
 	}
 	defer rows.Close()
@@ -104,8 +101,7 @@ func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
 	}
 
 	if _, err = tx.Exec(createUserSQL, user.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	return tx.Commit()
@@ -142,10 +138,7 @@ func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (user *mode
 	// Fetch user details
 	user = &models.User{}
 	if err = user.Scan(tx.QueryRow(query, param)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	// Fetch user role information
@@ -181,8 +174,7 @@ func (s *Store) UpdateUser(ctx context.Context, user *models.User) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(updateUserSQL, user.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -207,8 +199,7 @@ func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password 
 
 	var result sql.Result
 	if result, err = tx.Exec(setUserPasswordSQL, params...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -233,8 +224,7 @@ func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogi
 
 	var result sql.Result
 	if result, err = tx.Exec(setUserLastLoginSQL, params...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -253,7 +243,7 @@ func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteUserSQL, sql.Named("id", userID)); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -276,10 +266,7 @@ func (s *Store) LookupRole(ctx context.Context, role string) (model *models.Role
 	// Fetch role details
 	model = &models.Role{}
 	if err = model.Scan(tx.QueryRow(lookupRoleSQL, sql.Named("role", role))); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	tx.Commit()
@@ -304,7 +291,7 @@ func (s *Store) fetchRoles(tx *sql.Tx) (roles map[int64]*models.Role, err error)
 		roles[role.ID] = role
 	}
 
-	return roles, rows.Err()
+	return roles, dbe(rows.Err())
 }
 
 const fetchRoleSQL = "SELECT * FROM roles WHERE id=:roleID"
@@ -312,7 +299,7 @@ const fetchRoleSQL = "SELECT * FROM roles WHERE id=:roleID"
 func (s *Store) fetchRole(tx *sql.Tx, roleID int64) (role *models.Role, err error) {
 	role = &models.Role{}
 	if err = role.Scan(tx.QueryRow(fetchRoleSQL, sql.Named("roleID", roleID))); err != nil {
-		return nil, err
+		return nil, dbe(err)
 	}
 	return role, nil
 }
@@ -322,7 +309,7 @@ const userPermissionsSQL = "SELECT permission FROM user_permissions WHERE user_i
 func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions []string, err error) {
 	var rows *sql.Rows
 	if rows, err = tx.Query(userPermissionsSQL, sql.Named("userID", userID)); err != nil {
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -335,7 +322,7 @@ func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions 
 		permissions = append(permissions, permission)
 	}
 
-	return permissions, rows.Err()
+	return permissions, dbe(rows.Err())
 }
 
 //===========================================================================
@@ -358,7 +345,7 @@ func (s *Store) ListAPIKeys(ctx context.Context, page *models.PageInfo) (out *mo
 
 	var rows *sql.Rows
 	if rows, err = tx.Query(listAPIKeysSQL); err != nil {
-		return nil, err
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 
@@ -395,8 +382,7 @@ func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error
 	key.Modified = key.Created
 
 	if _, err = tx.Exec(createKeySQL, key.Params()...); err != nil {
-		// TODO: handle constraint violations
-		return err
+		return dbe(err)
 	}
 
 	// Add permissions to API key (can only be set on create)
@@ -410,7 +396,7 @@ func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error
 		}
 
 		if _, err = tx.Exec(createKeyPermSQL, params...); err != nil {
-			return err
+			return dbe(err)
 		}
 	}
 
@@ -448,10 +434,7 @@ func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (key *m
 	// Fetch api key details
 	key = &models.APIKey{}
 	if err = key.Scan(tx.QueryRow(query, param)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, dberr.ErrNotFound
-		}
-		return nil, err
+		return nil, dbe(err)
 	}
 
 	// Fetch api key permissions
@@ -478,7 +461,7 @@ func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey) (err error
 	key.Modified = time.Now()
 	var result sql.Result
 	if result, err = tx.Exec(updateKeySQL, key.Params()...); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -497,7 +480,7 @@ func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) (err error) {
 
 	var result sql.Result
 	if result, err = tx.Exec(deleteKeySQL, sql.Named("id", keyID)); err != nil {
-		return err
+		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
@@ -523,5 +506,5 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 		permissions = append(permissions, permission)
 	}
 
-	return permissions, rows.Err()
+	return permissions, dbe(rows.Err())
 }

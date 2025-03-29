@@ -22,6 +22,8 @@ type Account struct {
 	TravelAddress sql.NullString   // Generated TravelAddress for this user
 	IVMSRecord    *ivms101.Person  // IVMS101 record for the account
 	addresses     []*CryptoAddress // Associated crypto addresses
+	hasIVMSRecord bool             // Whether the account has an IVMS101 record
+	numAddresses  int64            // Number of associated crypto addresses
 }
 
 type CryptoAddress struct {
@@ -57,6 +59,8 @@ func (a *Account) ScanSummary(scanner Scanner) error {
 		&a.FirstName,
 		&a.LastName,
 		&a.TravelAddress,
+		&a.hasIVMSRecord,
+		&a.numAddresses,
 		&a.Created,
 		&a.Modified,
 	)
@@ -88,6 +92,25 @@ func (a *Account) CryptoAddresses() ([]*CryptoAddress, error) {
 // Used by store implementations to cache associated crypto addresses on the account.
 func (a *Account) SetCryptoAddresses(addresses []*CryptoAddress) {
 	a.addresses = addresses
+}
+
+// ScanSummary counts the number of crypto addresses associated with the account,
+// otherwise the length of the internal addresses list is returned.
+func (a *Account) NumAddresses() int64 {
+	if len(a.addresses) > 0 {
+		return int64(len(a.addresses))
+	}
+	return a.numAddresses
+}
+
+// ScanSummary returns whether the account has an IVMS101 record, otherwise the record
+// itself is checked. This returns true if the record is not nil/null but does not
+// inspect the record to determine if it is zero valued.
+func (a *Account) HasIVMSRecord() bool {
+	if a.IVMSRecord != nil && a.IVMSRecord.GetNaturalPerson() != nil {
+		return true
+	}
+	return a.hasIVMSRecord
 }
 
 // Scans a complete SELECT into the CryptoAddress model

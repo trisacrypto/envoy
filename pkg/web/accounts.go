@@ -1,13 +1,16 @@
 package web
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/skip2/go-qrcode"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
@@ -103,25 +106,30 @@ func (s *Server) CreateAccount(c *gin.Context) {
 	// Create the model in the database (which will update the pointer)
 	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
-		// TODO: are there other error types that we need to handle to return a 400?
+		if errors.Is(err, dberr.ErrAlreadyExists) {
+			c.JSON(http.StatusConflict, api.Error("account or crypto address already exists"))
+			return
+		}
+
 		c.Error(fmt.Errorf("could not create account: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
-	// Convert the model back to an API response
+	// If this is an HTMX request, redirect to the account detail page
+	if htmx.IsHTMXRequest(c) {
+		htmx.Redirect(c, http.StatusSeeOther, "/accounts/"+account.ID.String()+"/edit")
+		return
+	}
+
+	// Otherwise, convert the model back to an API response
 	if out, err = api.NewAccount(account, query); err != nil {
 		c.Error(fmt.Errorf("serialization failed: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) LookupAccount(c *gin.Context) {
@@ -177,19 +185,13 @@ func (s *Server) LookupAccount(c *gin.Context) {
 
 func (s *Server) AccountDetail(c *gin.Context) {
 	var (
-		err       error
-		query     *api.EncodingQuery
-		accountID ulid.ULID
-		account   *models.Account
-		out       *api.Account
+		err     error
+		query   *api.EncodingQuery
+		account *models.Account
+		out     *api.Account
 	)
 
-	// Parse the accountID passed in from the URL
-	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
+	// Parse the query parameters from the input request
 	query = &api.EncodingQuery{}
 	if err = c.BindQuery(query); err != nil {
 		c.Error(err)
@@ -203,15 +205,15 @@ func (s *Server) AccountDetail(c *gin.Context) {
 		return
 	}
 
-	// Fetch the model from the database
-	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
 		}
 
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
 		return
 	}
 
@@ -222,68 +224,33 @@ func (s *Server) AccountDetail(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_detail.html",
-		HTMLData: scene.New(c).WithAPIData(out),
-	})
+	// Currently there are no HTMX endpoints that use the account detail, so this is
+	// a JSON only endpoint that does not need a partial template for rendering.
+	c.JSON(http.StatusOK, out)
 }
 
-func (s *Server) UpdateAccountPreview(c *gin.Context) {
+// Helper function to retrieve an account detail for the accounts UI pages and the API.
+func (s *Server) RetrieveAccount(c *gin.Context) (*models.Account, error) {
 	var (
 		err       error
 		accountID ulid.ULID
-		query     *api.EncodingQuery
 		account   *models.Account
-		out       *api.Account
 	)
 
 	// Parse the accountID passed in from the URL
 	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("account not found"))
-		return
-	}
-
-	query = &api.EncodingQuery{}
-	if err = c.BindQuery(query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
-		return
-	}
-
-	if err = query.Validate(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
-		return
+		return nil, ErrNotFound
 	}
 
 	// Fetch the model from the database
 	if account, err = s.store.RetrieveAccount(c.Request.Context(), accountID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
+			return nil, ErrNotFound
 		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
+		return nil, err
 	}
 
-	// Convert the model into an API response
-	if out, err = api.NewAccount(account, query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_preview.html",
-	})
+	return account, nil
 }
 
 func (s *Server) UpdateAccount(c *gin.Context) {
@@ -345,14 +312,21 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 
 	// Update the model in the database (which will update the pointer).
 	if err = s.store.UpdateAccount(c.Request.Context(), account); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
-			return
+		case errors.Is(err, dberr.ErrAlreadyExists):
+			c.JSON(http.StatusConflict, api.Error("account or crypto address already exists"))
+		default:
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
 		}
+		return
+	}
 
-		// TODO: are there other error types that we need to handle to return a 400?
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+	// If this is an HTMX request, trigger the accounts updated event and return a 204.
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.AccountsUpdated)
 		return
 	}
 
@@ -363,12 +337,8 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "account_update.html",
-	})
+	// Render the response back as JSON
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) DeleteAccount(c *gin.Context) {
@@ -395,13 +365,112 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 		return
 	}
 
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.AccountsUpdated)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
+func (s *Server) AccountTransfers(c *gin.Context) {
+	var (
+		err     error
+		in      *api.TransactionListQuery
+		account *models.Account
+		page    *models.TransactionPage
+		out     *api.TransactionsList
+	)
+
+	// Parse the URL parameters from the input request
+	in = &api.TransactionListQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
+		return
+	}
+
+	// Validate the incoming parameters from the query
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
+		return
+	}
+
+	// Fetch the list of transactions from the database
+	if page, err = s.store.ListAccountTransactions(c.Request.Context(), account.ID, in.Query()); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process account transaction list request"))
+		return
+	}
+
+	// Convert the transactions page into a transaction list object
+	if out, err = api.NewTransactionList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process transaction list request"))
+		return
+	}
+
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"AccountID": accountID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "account_delete.html",
+		JSONData: out,
+		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLName: "partials/accounts/transfers.html",
 	})
+}
+
+func (s *Server) AccountQRCode(c *gin.Context) {
+	var (
+		err     error
+		account *models.Account
+		qrc     *qrcode.QRCode
+	)
+
+	// Retrieve the account from the database
+	if account, err = s.RetrieveAccount(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve account"))
+		return
+	}
+
+	if !account.TravelAddress.Valid || account.TravelAddress.String == "" {
+		c.JSON(http.StatusNotFound, api.Error("account does not have a travel address"))
+		return
+	}
+
+	if qrc, err = qrcode.New(account.TravelAddress.String, qrcode.Medium); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if err = qrc.Write(512, buf); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not write QR code"))
+		return
+	}
+
+	filename := account.ID.String() + ".png"
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "image/png", buf.Bytes())
 }
 
 func (s *Server) ListCryptoAddresses(c *gin.Context) {
@@ -453,7 +522,8 @@ func (s *Server) ListCryptoAddresses(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "crypto_address_list.html",
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(accountID),
+		HTMLName: "partials/accounts/cryptoAddresses.html",
 	})
 }
 
@@ -496,16 +566,20 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Create the model in the database
-	// NOTE: creating the account will also create an associated travel address
 	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("account not found"))
+		if errors.Is(err, dberr.ErrAlreadyExists) {
+			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
 			return
 		}
 
-		// TODO: handle constraint violations
-		c.Error(err)
+		c.Error(fmt.Errorf("could not create crypto address: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
 		return
 	}
 
@@ -516,12 +590,7 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) CryptoAddressDetail(c *gin.Context) {
@@ -567,8 +636,9 @@ func (s *Server) CryptoAddressDetail(c *gin.Context) {
 	// Content negotiation
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_detail.html",
+		JSONData: out,
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(accountID),
+		HTMLName: "partials/accounts/cryptoAddressDetail.html",
 	})
 }
 
@@ -626,14 +696,22 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 
 	// Update the model in the database (which will update the pointer).
 	if err = s.store.UpdateCryptoAddress(c.Request.Context(), model); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("crypto address or account not found"))
-			return
+		case errors.Is(err, dberr.ErrAlreadyExists):
+			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
+		default:
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
 		}
 
-		// TODO: are there other error types that we need to handle to return a 400?
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
 		return
 	}
 
@@ -644,12 +722,7 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "crypto_address_update.html",
-	})
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) DeleteCryptoAddress(c *gin.Context) {
@@ -683,11 +756,67 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 		return
 	}
 
-	// Content negotiation
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"AccountID": accountID, "CryptoAddressID": cryptoAddressID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "crypto_address_delete.html",
-	})
+	// If this is an HTMX request, trigger the crypto addresses updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CryptoAddressesUpdated)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
+func (s *Server) CryptoAddressQRCode(c *gin.Context) {
+	var (
+		err             error
+		accountID       ulid.ULID
+		cryptoAddressID ulid.ULID
+		model           *models.CryptoAddress
+		qrc             *qrcode.QRCode
+	)
+
+	// Parse the accountID passed in from the URL
+	if accountID, err = ulid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("account not found"))
+		return
+	}
+
+	// Parse the cryptoAddressID passed in from the URL
+	if cryptoAddressID, err = ulid.Parse(c.Param("cryptoAddressID")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("crypto address not found"))
+		return
+	}
+
+	// Fetch the model from the database
+	if model, err = s.store.RetrieveCryptoAddress(c.Request.Context(), accountID, cryptoAddressID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("crypto address or account not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if !model.TravelAddress.Valid || model.TravelAddress.String == "" {
+		c.JSON(http.StatusNotFound, api.Error("account does not have a travel address"))
+		return
+	}
+
+	if qrc, err = qrcode.New(model.TravelAddress.String, qrcode.Medium); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if err = qrc.Write(512, buf); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not write QR code"))
+		return
+	}
+
+	filename := model.ID.String() + ".png"
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "image/png", buf.Bytes())
 }
