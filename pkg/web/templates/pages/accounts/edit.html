@@ -63,7 +63,7 @@
 </div><!-- header ends -->
 
 <div id="alerts"></div>
-<form id="editAccountForm" hx-put="/v1/accounts/{{ .ID }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+<form id="editAccountForm" hx-put="/v1/accounts/{{ .ID }}?encoding=base64&format=json" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
   <fieldset id="fieldsetAccount">
     <input type="hidden" name="id" value="{{ .ID }}" />
     <div class="row">
@@ -110,23 +110,122 @@
     <div class="row">
       <div class="col-12 col-md-6">
         <div class="form-group">
-          <label class="form-label mb-1" for="name_name_identifiers_0_secondary_identifier">Legal First or Given Name</label>
+          <label class="form-label mb-1" for="ivms_name_nameIdentifier_0_secondaryIdentifier">Legal First or Given Name</label>
           <small class="form-text text-body-secondary">
             Forenames, familiar names, given names, or initials.
           </small>
-          <input type="text" class="form-control" name="name_name_identifiers_0_secondary_identifier" value="{{ .Forename }}" />
+          <input type="text" class="form-control" name="ivms_name_nameIdentifier_0_secondaryIdentifier" value="{{ .Forename }}" />
         </div>
       </div>
       <div class="col-12 col-md-6">
         <div class="form-group">
-          <label class="form-label mb-1" for="name_name_identifiers_0_primary_identifier">Legal Last or Family Name</label>
+          <label class="form-label mb-1" for="ivms_name_nameIdentifier_0_primaryIdentifier">Legal Last or Family Name</label>
           <small class="form-text text-body-secondary">
             Family, maiden, or surname excluding suffixes or titles.
           </small>
-          <input type="text" class="form-control" name="name_name_identifiers_0_primary_identifier" value="{{ .Surname }}" />
+          <input type="text" class="form-control" name="ivms_name_nameIdentifier_0_primaryIdentifier" value="{{ .Surname }}" />
         </div>
       </div>
-      <input type="hidden" name="name_name_identifiers_0_name_identifier_type" value="LEGL" />
+
+      <input type="hidden" name="ivms_name_nameIdentifier_0_nameIdentifierType" value="LEGL" />
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_countryOfResidence">Country of Residence</label>
+          <small class="form-text text-body-secondary">
+            The country where virtual asset(s) would be transferred to.
+          </small>
+          <select class="form-control" name="ivms_countryOfResidence" data-countries='{"searchEnabled": true}' data-selected="{{ .CountryOfResidence }}"></select>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_customerIdentification">Internal Customer Identifier</label>
+          <small class="form-text text-body-secondary">
+            Optional, an internal identifier for the account holder.
+          </small>
+          <input type="text" class="form-control" name="ivms_customerIdentification" value="{{ .CustomerNumber }}" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_dateAndPlaceOfBirth_dateOfBirth">Date of Birth</label>
+          <input type="date" class="form-control" name="ivms_dateAndPlaceOfBirth_dateOfBirth" value="{{ .DateOfBirth }}" data-flatpickr placeholder="YYYY-MM-DD" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_dateAndPlaceOfBirth_placeOfBirth">Place of Birth</label>
+          <input type="text" class="form-control" name="ivms_dateAndPlaceOfBirth_placeOfBirth" value="{{ .PlaceOfBirth }}" placeholder="City, Province, Country" />
+        </div>
+      </div>
+
+      <div class="col-12 mb-2">
+        <h4 class="mb-1">National Identification</h4>
+        <small class="form-text text-body-secondary">
+          National identifiers assist with verifying the account holder's identity and should be issued by a government entity.
+        </small>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_nationalIdentifier">Identification Number</label>
+          <input type="text" class="form-control" name="ivms_nationalIdentification_nationalIdentifier" value="{{ .NationalIdentifier.Identifier }}" />
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_nationalIdentifierType">Type</label>
+          <select class="form-control" name="ivms_nationalIdentification_nationalIdentifierType" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .NationalIdentifier.TypeCode }}"></select>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="form-group">
+          <label class="form-label" for="ivms_nationalIdentification_countryOfIssue">Country of Issue</label>
+          <select class="form-control" name="ivms_nationalIdentification_countryOfIssue"  data-countries='{"searchEnabled": true}' data-selected="{{ .NationalIdentifier.CountryOfIssue }}"></select>
+        </div>
+      </div>
+
+      <div class="col-12 mb-2">
+        <h4 class="mb-1">Geographic Address</h4>
+        <small class="form-text text-body-secondary">
+          A physical or mailing address for the account holder for identification purposes.
+        </small>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_0">Address Line 1</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_0" value="{{ .AddressLine0 }}" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_1">Address Line 2</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_1" value="{{ .AddressLine1 }}" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressLines_2">Address Line 3</label>
+          <input type="text" class="form-control" name="ivms_geographicAddress_0_addressLines_2" value="{{ .AddressLine2 }}" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_addressType">Address Type</label>
+          <select class="form-control" name="ivms_geographicAddress_0_addressType" data-address-type='{"searchEnabled": false}' data-selected="{{ .AddressType }}"></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ivms_geographicAddress_0_country">Country</label>
+          <select class="form-control" name="ivms_geographicAddress_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .AddressCountry }}"></select>
+        </div>
+      </div>
     </div>
   </fieldset>
   {{- end }}
@@ -137,7 +236,7 @@
 
 <hr class="mt-4 mb-5">
 
-<div class="row justify-content-between">
+<div class="row justify-content-between mb-7">
   <div class="col-12 col-md-6">
     <h4>Delete Customer Account</h4>
 

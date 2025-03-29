@@ -37,7 +37,7 @@ func (s Scene) AccountDetail() *Account {
 				Modified:      model.Modified,
 			}
 
-			if model.IVMSRecord != nil {
+			if model.IVMSRecord != nil && model.IVMSRecord.GetNaturalPerson() != nil {
 				account.IVMSRecord = makePerson(model.IVMSRecord.GetNaturalPerson())
 			} else {
 				account.IVMSRecord = Person{

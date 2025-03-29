@@ -19,7 +19,7 @@ export function selectAddressType(elem) {
 }
 
 const NATIONAL_IDENTIFIER_TYPE = [
-  { value: '', label: 'Select Type of National Identification' },
+  { value: '', label: 'Select Type of Identification' },
   { value: 'ARNU', label: 'Alien Residential Number' },
   { value: 'CCPT', label: 'Passport Number' },
   { value: 'RAID', label: 'Registration Authority ID' },
@@ -35,4 +35,13 @@ const NATIONAL_IDENTIFIER_TYPE = [
 export function selectNationalIdentifierType(elem) {
   const elementOptions = elem.dataset.nationalIdentifierType ? JSON.parse(elem.dataset.nationalIdentifierType) : {};
   return createChoicesWithArray(elem, elementOptions, NATIONAL_IDENTIFIER_TYPE);
+}
+
+/*
+Encodes a JSON object as a base64 encoded JSON string.
+*/
+export function encode(obj) {
+  const textEncoder = new TextEncoder();
+  const bytes = textEncoder.encode(JSON.stringify(obj));
+  return btoa(String.fromCharCode(...bytes));
 }
