@@ -64,6 +64,10 @@ document.body.addEventListener("htmx:configRequest", function(e) {
       }
     }
 
+    var hasNationalIdentifier = false;
+    var hasDateAndPlaceOfBirth = false;
+    var hasGeographicAddress = false;
+
     formData.entries().forEach(([key, value]) => {
       // Filter choices.js search terms
       if (key === "search_terms") {
@@ -94,6 +98,10 @@ document.body.addEventListener("htmx:configRequest", function(e) {
           }
 
           obj = obj.nameIdentifier[idx];
+
+          if (key === "nationalIdentifier" && value !== "") {
+            hasNationalIdentifier = true;
+          }
         }
 
       } else if (key.startsWith("geographicAddress_")) {
@@ -110,6 +118,10 @@ document.body.addEventListener("htmx:configRequest", function(e) {
         if (key.startsWith("addressLines")) {
           key = parseInt(key.replace("addressLines_", ""));
           obj = obj.addressLines;
+
+          if (value !== "") {
+            hasGeographicAddress = true;
+          }
         }
 
       } else if (key.startsWith("nationalIdentification_")) {
@@ -119,10 +131,27 @@ document.body.addEventListener("htmx:configRequest", function(e) {
       } else if (key.startsWith("dateAndPlaceOfBirth_")) {
         key = key.replace("dateAndPlaceOfBirth_", "");
         obj = obj.dateAndPlaceOfBirth;
+
+        if (value !== "") {
+          hasDateAndPlaceOfBirth = true;
+        }
       }
 
       obj[key]  = value;
     });
+
+    // Remove empty values from optional objects.
+    if (!hasGeographicAddress) {
+      data.ivms101.naturalPerson.geographicAddress = [];
+    }
+
+    if (!hasNationalIdentifier) {
+      data.ivms101.naturalPerson.nationalIdentification = null;
+    }
+
+    if (!hasDateAndPlaceOfBirth) {
+      data.ivms101.naturalPerson.dateAndPlaceOfBirth = null;
+    }
 
     // Prepare the parameters to send via HTMX as string data
     e.detail.parameters = new FormData();
