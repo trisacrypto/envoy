@@ -6,7 +6,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"database/sql"
+	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,9 +16,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
@@ -173,6 +177,21 @@ func main() {
 					Aliases: []string{"s"},
 					Usage:   "number of bits for the generated keys",
 					Value:   4096,
+				},
+			},
+		},
+		{
+			Name:     "daybreak:import",
+			Usage:    "import Daybreak counterparties from a JSON file that contains a list of Counterparty objects",
+			Category: "admin",
+			Before:   openDB,
+			Action:   daybreakImport,
+			After:    closeDB,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "in",
+					Aliases: []string{"i"},
+					Usage:   "specify the path to a JSON file that contains a list of Counterparty objects",
 				},
 			},
 		},
@@ -527,6 +546,81 @@ func generateTokenKey(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("RSA key id: %s -- saved with PEM encoding to %s\n", keyid, out)
+	return nil
+}
+
+func daybreakImport(c *cli.Context) (err error) {
+	//TODO: add more logging, and ignore or handle some of the errors we just throw up currently
+
+	// Load the JSON file into Counterparty objects
+	var in string
+	if in = c.String("in"); in == "" {
+		return cli.Exit("Must pass argument 'in' as a path to a JSON file with a list of Counterparty objects", 1)
+	}
+
+	var jb []byte
+	if jb, err = os.ReadFile(in); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	var cpartyImports []*models.Counterparty
+	if err = json.Unmarshal(jb, &cpartyImports); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	// Load counterparty IDs currently in the DB and put into a map
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var srcInfo []*models.CounterpartySourceInfo
+	if srcInfo, err = db.ListCounterpartySourceInfo(ctx, enum.SourceDaybreak); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	srcMap := make(map[string]*models.CounterpartySourceInfo)
+	for _, cSrc := range srcInfo {
+		if cSrc.DirectoryID.Valid {
+			srcMap[cSrc.DirectoryID.String] = cSrc
+		}
+	}
+
+	// Create or update each counterparty
+	for _, cparty := range cpartyImports {
+		if cparty.DirectoryID.Valid {
+			cSrc, pres := srcMap[cparty.DirectoryID.String]
+			if pres {
+				// counterparty is present in DB, so we update it
+				cparty.ID = cSrc.ID
+				if err = db.UpdateCounterparty(ctx, cparty); err != nil {
+					return cli.Exit(err, 1)
+				}
+
+				//get contacts
+				var contacts []*models.Contact
+				if contacts, err = cparty.Contacts(); err != nil {
+					return cli.Exit(err, 1)
+				}
+
+				// update or create each contact
+				for _, contact := range contacts {
+					contact.CounterpartyID = cparty.ID
+					if err = db.UpdateContact(ctx, contact); err != nil {
+						if errors.Is(err, dberr.ErrNotFound) {
+							if err = db.CreateContact(ctx, contact); err != nil {
+								return cli.Exit(err, 1)
+							}
+						}
+					}
+				}
+			} else {
+				// create the counterparty and all contacts together
+				if err = db.CreateCounterparty(ctx, cparty); err != nil {
+					return cli.Exit(err, 1)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
