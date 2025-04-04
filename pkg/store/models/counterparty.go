@@ -25,7 +25,7 @@ type Counterparty struct {
 	Source              enum.Source          // either directory or locally created
 	DirectoryID         sql.NullString       // the directory ID associated with the counterparty (directory only)
 	RegisteredDirectory sql.NullString       // the registered directory of the counterparty (directory only)
-	Protocol            enum.Protocol        // either TRISA or TRP; the protocol to use to send travel rule information
+	Protocol            enum.Protocol        // the protocol to use to send travel rule information (TRISA, TRP, Sunrise, etc.)
 	CommonName          string               // common name - a unique name to identify the endpoint
 	Endpoint            string               // the full endpoint to connect to the counterparty on
 	Name                string               // the counterparty's legal entity name
@@ -195,7 +195,7 @@ type CounterpartySourceInfo struct {
 	Source              string         // either directory or locally created
 	DirectoryID         sql.NullString // the directory ID associated with the counterparty (directory only)
 	RegisteredDirectory sql.NullString // the registered directory of the counterparty (directory only)
-	Protocol            string         // either TRISA or TRP; the protocol to use to send travel rule information
+	Protocol            string         // the protocol to use to send travel rule information (TRISA, TRP, Sunrise, etc.)
 }
 
 func (c *CounterpartySourceInfo) Scan(scanner Scanner) error {
