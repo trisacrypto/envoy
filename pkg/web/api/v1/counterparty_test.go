@@ -14,7 +14,7 @@ const legalPersonEncoded = "CowBCiUKIUJpdENoYWluWCBGaW5hbmNpYWwgU2VydmljZXMsIExM
 func TestCounterpartyValidate(t *testing.T) {
 	t.Run("Source", func(t *testing.T) {
 		counterparty := &Counterparty{
-			Source:     "user",
+			Source:     "bob",
 			Protocol:   "trp",
 			CommonName: "trisa.example.com",
 			Endpoint:   "https://trisa.example.com",
@@ -72,7 +72,7 @@ func TestCounterpartyValidate(t *testing.T) {
 				Country:    "FR",
 			}
 
-			require.EqualError(t, counterparty.Validate(), "invalid field protocol: protocol must be either trisa or trp")
+			require.EqualError(t, counterparty.Validate(), "invalid field protocol: use trisa, trp, or sunrise")
 		})
 	})
 
@@ -179,7 +179,7 @@ func TestCounterpartyValidate(t *testing.T) {
 		require.NoError(t, err, "could not load testdata/invalid_person.json fixture")
 
 		counterparty := &Counterparty{
-			Source:              "gds",
+			Source:              "bob",
 			DirectoryID:         "123",
 			RegisteredDirectory: "trisatest.dev",
 			Protocol:            "foo",

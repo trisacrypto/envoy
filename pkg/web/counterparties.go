@@ -364,7 +364,11 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	}
 
 	if counterparty.Source != enum.SourceUnknown && original.Source != counterparty.Source {
-		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
+		if original.Source != enum.SourceUserEntry {
+			c.JSON(http.StatusConflict, api.Error("only user created records can be edited"))
+		} else {
+			c.JSON(http.StatusConflict, api.Error("the source of a counterparty record cannot be changed"))
+		}
 		return
 	}
 

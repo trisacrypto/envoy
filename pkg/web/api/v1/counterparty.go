@@ -184,7 +184,7 @@ func (c *Counterparty) Validate() (err error) {
 	}
 
 	if protocol, perr := enum.ParseProtocol(c.Protocol); perr != nil {
-		err = ValidationError(err, IncorrectField("protocol", "invalid protocol, use trisa, trp, or sunrise"))
+		err = ValidationError(err, IncorrectField("protocol", "use trisa, trp, or sunrise"))
 	} else if protocol == enum.ProtocolUnknown {
 		err = ValidationError(err, MissingField("protocol"))
 	}
