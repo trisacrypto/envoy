@@ -653,7 +653,6 @@ func daybreakImport(c *cli.Context) (err error) {
 		}
 
 		importCnt++
-		log.Debug().Msg(fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt))
 	}
 
 	log.Info().Msg(fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt))
