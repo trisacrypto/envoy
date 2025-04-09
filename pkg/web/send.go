@@ -57,6 +57,11 @@ func (s *Server) Send(c *gin.Context, routing *api.Routing, payload *trisa.Paylo
 	protocol, _ := enum.ParseProtocol(routing.Protocol)
 	if packet, err = s.SendPacket(c, protocol, packet); err != nil {
 		c.Error(err)
+		if errors.Is(err, ErrUnavailable) {
+			c.JSON(http.StatusBadGateway, api.Error(err))
+			return nil, err
+		}
+
 		c.JSON(http.StatusInternalServerError, api.Error("could not send transfer message to counterparty"))
 		return nil, err
 	}

@@ -65,8 +65,8 @@ func (s *Server) SendTRISA(ctx context.Context, p *postman.TRISAPacket) (err err
 	if p.Out.SealingKey, err = s.trisa.SealingKey(p.Peer.Name()); err != nil {
 		p.Log.Debug().Msg("conducting key exchange prior to transer")
 		if p.Out.SealingKey, err = s.trisa.KeyExchange(ctx, p.Peer); err != nil {
-			p.Log.Error().Err(err).Msg("cannot complete transfer without remote sealing keys")
-			return fmt.Errorf("remote sealing keys unavailable, key exchange failed: %w", err)
+			p.Log.Error().Err(err).Msg("remote sealing keys unavailable, key exchange failed")
+			return ErrUnavailable
 		}
 	}
 	// Prepare outgoing envelope
@@ -80,7 +80,7 @@ func (s *Server) SendTRISA(ctx context.Context, p *postman.TRISAPacket) (err err
 	var reply *trisa.SecureEnvelope
 	if reply, err = p.Peer.Transfer(ctx, p.Out.Proto()); err != nil {
 		p.Log.Error().Err(err).Msg("unable to send trisa transfer to remote peer")
-		return fmt.Errorf("unexpected error returned from remote peer on transfer: %w", err)
+		return ErrUnavailable
 	}
 
 	if err = p.Receive(reply); err != nil {
