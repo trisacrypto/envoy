@@ -133,7 +133,6 @@ func (s *Server) SendPreparedTransaction(c *gin.Context) {
 	// NOTE: Send handles any error response that needs to be sent to the user.
 	// WARNING: Send commits/rollsback the database transaction from the packet.
 	if packet, err = s.Send(c, in.Routing, payload); err != nil {
-		c.Error(err)
 		return
 	}
 

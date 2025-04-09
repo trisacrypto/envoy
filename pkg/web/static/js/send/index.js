@@ -194,13 +194,23 @@ document.body.addEventListener("htmx:afterSettle", function(e) {
 Handle htmx errors as JSON responses from the backend.
 */
 document.body.addEventListener("htmx:responseError", (e) => {
-  const error = JSON.parse(e.detail.xhr.response);
-  console.error(e.detail.requestConfig.path, error.error);
+  var error;
+  try {
+    error = JSON.parse(e.detail.xhr.response);
+    console.error(e.detail.requestConfig.path, error.error);
+  } catch (e) {
+    console.error(e.detail.requestConfig.path, e);
+    error = {
+      error: "an unknown error occurred"
+    }
+  }
 
   const modal = Modal.getInstance(previewModal);
   if (modal) {
     modal.hide();
   }
+
+  window.scrollTo(0, 0);
 
   switch (e.detail.xhr.status) {
     case 400:
@@ -226,8 +236,11 @@ document.body.addEventListener("htmx:responseError", (e) => {
     case 500:
       window.location.href = "/error";
       break;
-    default:
+    case 502:
+      alerts.danger("Counterparty unavailable", error.error);
       break;
+    default:
+      throw new Error("Unhandled error code: " + e.detail.xhr.status + " - " + error.error);
   }
 });
 
