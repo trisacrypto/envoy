@@ -171,7 +171,7 @@ func (c *Counterparty) IVMS101() (p *ivms101.LegalPerson, err error) {
 }
 
 func (c *Counterparty) Validate() (err error) {
-	if c.Source != "" {
+	if c.Source != "" && !enum.ValidSource(c.Source) {
 		err = ValidationError(err, ReadOnlyField("source"))
 	}
 
@@ -183,13 +183,10 @@ func (c *Counterparty) Validate() (err error) {
 		err = ValidationError(err, ReadOnlyField("registered_directory"))
 	}
 
-	c.Protocol = strings.TrimSpace(strings.ToLower(c.Protocol))
-	if c.Protocol == "" {
+	if protocol, perr := enum.ParseProtocol(c.Protocol); perr != nil {
+		err = ValidationError(err, IncorrectField("protocol", "invalid protocol, use trisa, trp, or sunrise"))
+	} else if protocol == enum.ProtocolUnknown {
 		err = ValidationError(err, MissingField("protocol"))
-	} else {
-		if c.Protocol != "trisa" && c.Protocol != "trp" {
-			err = ValidationError(err, IncorrectField("protocol", "protocol must be either trisa or trp"))
-		}
 	}
 
 	if c.CommonName == "" {
@@ -276,7 +273,7 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 		model.Modified = *c.Modified
 	}
 
-	if !c.VerifiedOn.IsZero() {
+	if c.VerifiedOn != nil && !c.VerifiedOn.IsZero() {
 		model.VerifiedOn = sql.NullTime{Time: *c.VerifiedOn, Valid: true}
 	}
 
