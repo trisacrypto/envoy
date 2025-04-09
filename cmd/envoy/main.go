@@ -629,16 +629,13 @@ func daybreakImport(c *cli.Context) (err error) {
 						continue
 					}
 
-					// try to update any existing contact
-					if err = db.UpdateContact(ctx, modelContact); err != nil {
-						if errors.Is(err, dberr.ErrNotFound) {
-							// Contact was not found in DB so we need to create it
-							if err = db.CreateContact(ctx, modelContact); err != nil {
-								log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
-								continue
-							}
+					// create the contact, updating any already-existing contacts
+					if err = db.CreateContact(ctx, modelContact); err != nil {
+						if errors.Is(err, dberr.ErrAlreadyExists) {
+							//TODO: get the contact's ID and update the contact (for now we ignore updates for simplicity)
+							continue
 						} else {
-							log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
+							log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
 							continue
 						}
 					}
