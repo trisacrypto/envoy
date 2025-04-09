@@ -94,16 +94,18 @@ func (s *Server) TransactionsAcceptPreview(c *gin.Context) {
 	// Get the transaction ID from the URL path and make available to the template.
 	ctx := scene.New(c)
 	ctx["ID"] = c.Param("id")
+	ctx["EditMode"] = "accept"
 
-	c.HTML(http.StatusOK, "transactions_accept.html", ctx)
+	c.HTML(http.StatusOK, "pages/transactions/edit.html", ctx)
 }
 
 func (s *Server) TransactionsRepairPreview(c *gin.Context) {
 	// Get the transaction ID from the URL path and make available to the template.
 	ctx := scene.New(c)
 	ctx["ID"] = c.Param("id")
+	ctx["EditMode"] = "repair"
 
-	c.HTML(http.StatusOK, "transactions_repair.html", ctx)
+	c.HTML(http.StatusOK, "pages/transactions/edit.html", ctx)
 }
 
 func (s *Server) TransactionDetailPage(c *gin.Context) {

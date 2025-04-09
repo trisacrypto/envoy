@@ -88,13 +88,17 @@
       <div class="col">
         {{- if not .Archived }}
         {{- if and .Status.Review $canEditTransfers }}
-        <button class="btn btn-success"><i class="fe fe-check-square"></i> Accept</button>
+        <a href="/transactions/{{ .ID }}/accept" class="btn btn-success"><i class="fe fe-check-square"></i> Accept</a>
         <a href="#!" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectTransferModal"><i class="fe fe-x-square"></i> Reject</a>
         {{- end }}
         {{- if and .Status.Repair $canEditTransfers }}
-        <button class="btn btn-warning"><i class="fe fe-tool"></i> Repair</button>
+        <a href="/transactions/{{ .ID }}/repair" class="btn btn-warning"><i class="fe fe-tool"></i> Repair</a>
+        <a href="#!" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#cancelTransferModal"><i class="fe fe-x-square"></i> Cancel</a>
         {{- end }}
-        {{- end}}
+        {{- if and .Status.Accepted $canEditTransfers }}
+        <a href="#!" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#completeTransferModal"><i class="fe fe-check-square"></i> Complete</a>
+        {{- end }}
+        {{- end }}
       </div>
       <div class="col-auto">
         {{- if $canEditTransfers }}
@@ -116,4 +120,13 @@
 {{- if and (not .Archived) (and .Status.Review $canEditTransfers) }}
   {{- template "rejectTransferModal" . }}
 {{- end }}
+
+{{- if and (not .Archived) (and .Status.Repair $canEditTransfers) }}
+  {{- template "cancelTransferModal" . }}
+{{- end }}
+
+{{- if and (not .Archived) (and .Status.Accepted $canEditTransfers) }}
+  {{- template "completeTransferModal" . }}
+{{- end }}
+
 {{ end }}
