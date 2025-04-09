@@ -334,7 +334,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 
 	// Ensure that only user sourced entries can be edited.
 	if ok, _ := enum.CheckSource(in.Source, enum.SourceUnknown, enum.SourceUserEntry); !ok {
-		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
+		c.JSON(http.StatusConflict, api.Error("only user entered records can be updated"))
 		return
 	}
 
@@ -363,13 +363,18 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	if original.Source != counterparty.Source {
-		c.JSON(http.StatusConflict, api.Error("this record cannot be edited"))
+	if counterparty.Source != enum.SourceUnknown && original.Source != counterparty.Source {
+		if original.Source != enum.SourceUserEntry {
+			c.JSON(http.StatusConflict, api.Error("only user created records can be edited"))
+		} else {
+			c.JSON(http.StatusConflict, api.Error("the source of a counterparty record cannot be changed"))
+		}
 		return
 	}
 
-	// Ensure that the source is always set to user entry for API updates (e.g. overwrite source unknown)
-	counterparty.Source = enum.SourceUserEntry
+	// Ensure that the source is always set to the original source for API updates
+	// (e.g. overwrite source unknown)
+	counterparty.Source = original.Source
 
 	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
