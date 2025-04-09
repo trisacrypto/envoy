@@ -569,10 +569,11 @@ func daybreakImport(c *cli.Context) (err error) {
 		return cli.Exit(err, 1)
 	}
 
-	// Load counterparty IDs currently in the DB and put into a map
+	// db context
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Load counterparty IDs currently in the DB and put into a map
 	var srcInfo []*models.CounterpartySourceInfo
 	if srcInfo, err = db.ListCounterpartySourceInfo(ctx, enum.SourceDaybreak); err != nil {
 		return cli.Exit(err, 1)
@@ -583,9 +584,11 @@ func daybreakImport(c *cli.Context) (err error) {
 		if cSrc.DirectoryID.Valid {
 			srcMap[cSrc.DirectoryID.String] = cSrc
 		} else {
-			return cli.Exit("There was a problem with a CounterpartySourceInfo object which was unexpected.", 1)
+			log.Warn().Msg(fmt.Sprintf("CounterpartySourceInfo was missing a DirectoryId (ID: %s)", cSrc.ID))
 		}
 	}
+
+	log.Info().Msg(fmt.Sprintf("Starting to import %d Daybreak Counterparties...", len(cpartyImports)))
 
 	// Create or update each counterparty
 	var importCnt int = 0
@@ -593,20 +596,17 @@ func daybreakImport(c *cli.Context) (err error) {
 		//convert the api.Counterparty to a model.Counterparty
 		var modelCounterparty *models.Counterparty
 		if modelCounterparty, err = apiCounterparty.Model(); err != nil {
-			errmsg := fmt.Sprintf("Error when converting Counterparty to a model: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID)
-			log.Warn().Err(err).Msg(errmsg)
+			log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Counterparty to a model: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
 
 		//validate that this counterparty is meant for Daybreak
 		if modelCounterparty.Source != enum.SourceDaybreak {
-			errmsg := fmt.Sprintf("Source must be 'daybreak' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID)
-			log.Warn().Msg(errmsg)
+			log.Warn().Msg(fmt.Sprintf("Source must be 'daybreak' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
 		if modelCounterparty.Protocol != enum.ProtocolSunrise {
-			errmsg := fmt.Sprintf("Protocol must be 'sunrise' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID)
-			log.Warn().Msg(errmsg)
+			log.Warn().Msg(fmt.Sprintf("Protocol must be 'sunrise' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
 
@@ -616,8 +616,7 @@ func daybreakImport(c *cli.Context) (err error) {
 				// counterparty is present in DB, so we update it
 				modelCounterparty.ID = cSrc.ID
 				if err = db.UpdateCounterparty(ctx, modelCounterparty); err != nil {
-					errmsg := fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID)
-					log.Warn().Err(err).Msg(errmsg)
+					log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
 					continue
 				}
 
@@ -626,8 +625,7 @@ func daybreakImport(c *cli.Context) (err error) {
 					// convert the api.Contact to a model.Contact
 					var modelContact *models.Contact
 					if modelContact, err = apiContact.Model(modelCounterparty); err != nil {
-						errmsg := fmt.Sprintf("Error when converting Contact to a model: '%s'", apiContact.Name)
-						log.Warn().Err(err).Msg(errmsg)
+						log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Contact to a model: '%s'", apiContact.Name))
 						continue
 					}
 
@@ -636,13 +634,11 @@ func daybreakImport(c *cli.Context) (err error) {
 						if errors.Is(err, dberr.ErrNotFound) {
 							// Contact was not found in DB so we need to create it
 							if err = db.CreateContact(ctx, modelContact); err != nil {
-								errmsg := fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID)
-								log.Warn().Err(err).Msg(errmsg)
+								log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
 								continue
 							}
 						} else {
-							errmsg := fmt.Sprintf("Error when updating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID)
-							log.Warn().Err(err).Msg(errmsg)
+							log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
 							continue
 						}
 					}
@@ -650,22 +646,20 @@ func daybreakImport(c *cli.Context) (err error) {
 			} else {
 				// create the counterparty and all contacts together
 				if err = db.CreateCounterparty(ctx, modelCounterparty); err != nil {
-					errmsg := fmt.Sprintf("Error when creating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID)
-					log.Warn().Err(err).Msg(errmsg)
+					log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
 					continue
 				}
 			}
 		} else {
-			errmsg := fmt.Sprintf("The DirectoryID of the model Counterparty was not valid: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID)
-			log.Warn().Msg(errmsg)
+			log.Warn().Msg(fmt.Sprintf("The DirectoryID of the model Counterparty was not valid: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
 
 		importCnt++
+		log.Debug().Msg(fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt))
 	}
 
-	infoMsg := fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt)
-	log.Info().Msg(infoMsg)
+	log.Info().Msg(fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt))
 	return nil
 }
 
