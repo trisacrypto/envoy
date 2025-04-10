@@ -1,0 +1,35 @@
+{{ template "page.html" . }}
+{{ define "title" }}Travel Rule Transfer Message | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Travel Rule{{ end }}
+{{ define "pagetitle" }}Transfer Message{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "page-content" }}
+<section id="transaction" hx-get="/v1/transactions/{{ .ID }}/{{ .EditMode }}" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/transactions/edit.js"></script>
+{{- end }}
