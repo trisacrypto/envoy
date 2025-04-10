@@ -24,7 +24,7 @@ var sourceNames [7]string = [...]string{
 }
 
 func ValidSource(s interface{}) bool {
-	if p, err := ParseSource(s); err != nil || p > SourceRemote {
+	if p, err := ParseSource(s); err != nil || p > SourceDaybreak {
 		return false
 	}
 	return true
