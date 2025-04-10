@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug `go run envoy daybreak:import`",
+            "name": "Debug `go run envoy daybreak:import --in daybreak.json`",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -15,7 +15,7 @@
             "args": [
                 "daybreak:import",
                 "--in",
-                "daybreak_1743372149.json"
+                "daybreak.json"
             ]
         }
     ]
