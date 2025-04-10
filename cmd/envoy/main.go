@@ -6,7 +6,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"database/sql"
+	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,11 +16,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
 
@@ -173,6 +179,22 @@ func main() {
 					Aliases: []string{"s"},
 					Usage:   "number of bits for the generated keys",
 					Value:   4096,
+				},
+			},
+		},
+		{
+			Name:     "daybreak:import",
+			Usage:    "Import Daybreak counterparties from a JSON file that contains a list of Counterparty objects",
+			Category: "admin",
+			Before:   openDB,
+			Action:   daybreakImport,
+			After:    closeDB,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "in",
+					Aliases:  []string{"i"},
+					Usage:    "Specify the path to a JSON file that contains a list of Counterparty objects",
+					Required: true,
 				},
 			},
 		},
@@ -527,6 +549,113 @@ func generateTokenKey(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("RSA key id: %s -- saved with PEM encoding to %s\n", keyid, out)
+	return nil
+}
+
+func daybreakImport(c *cli.Context) (err error) {
+	// Load the JSON file into Counterparty objects
+	var in string
+	if in = c.String("in"); in == "" {
+		return cli.Exit("Must pass argument 'in' as a path to a JSON file with a list of Counterparty objects", 1)
+	}
+
+	var jb []byte
+	if jb, err = os.ReadFile(in); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	var cpartyImports []*api.Counterparty
+	if err = json.Unmarshal(jb, &cpartyImports); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	// db context
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Load counterparty IDs currently in the DB and put into a map
+	var srcInfo []*models.CounterpartySourceInfo
+	if srcInfo, err = db.ListCounterpartySourceInfo(ctx, enum.SourceDaybreak); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	srcMap := make(map[string]*models.CounterpartySourceInfo)
+	for _, cSrc := range srcInfo {
+		if cSrc.DirectoryID.Valid {
+			srcMap[cSrc.DirectoryID.String] = cSrc
+		} else {
+			log.Warn().Msg(fmt.Sprintf("CounterpartySourceInfo was missing a DirectoryId (ID: %s)", cSrc.ID))
+		}
+	}
+
+	log.Info().Msg(fmt.Sprintf("Starting to import %d Daybreak Counterparties...", len(cpartyImports)))
+
+	// Create or update each counterparty
+	var importCnt int = 0
+	for _, apiCounterparty := range cpartyImports {
+		//convert the api.Counterparty to a model.Counterparty
+		var modelCounterparty *models.Counterparty
+		if modelCounterparty, err = apiCounterparty.Model(); err != nil {
+			log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Counterparty to a model: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			continue
+		}
+
+		//validate that this counterparty is meant for Daybreak
+		if modelCounterparty.Source != enum.SourceDaybreak {
+			log.Warn().Msg(fmt.Sprintf("Source must be 'daybreak' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			continue
+		}
+		if modelCounterparty.Protocol != enum.ProtocolSunrise {
+			log.Warn().Msg(fmt.Sprintf("Protocol must be 'sunrise' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			continue
+		}
+
+		if modelCounterparty.DirectoryID.Valid {
+			cSrc, ok := srcMap[modelCounterparty.DirectoryID.String]
+			if ok {
+				// counterparty is present in DB, so we update it
+				modelCounterparty.ID = cSrc.ID
+				if err = db.UpdateCounterparty(ctx, modelCounterparty); err != nil {
+					log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
+					continue
+				}
+
+				// update or create contacts (not performed in `UpdateCounterparty()`)
+				for _, apiContact := range apiCounterparty.Contacts {
+					// convert the api.Contact to a model.Contact
+					var modelContact *models.Contact
+					if modelContact, err = apiContact.Model(modelCounterparty); err != nil {
+						log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Contact to a model: '%s'", apiContact.Name))
+						continue
+					}
+
+					// create the contact, updating any already-existing contacts
+					if err = db.CreateContact(ctx, modelContact); err != nil {
+						if errors.Is(err, dberr.ErrAlreadyExists) {
+							//TODO: get the contact's ID and update the contact (for now we ignore updates for simplicity)
+							continue
+						} else {
+							log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
+							continue
+						}
+					}
+				}
+			} else {
+				// create the counterparty and all contacts together
+				if err = db.CreateCounterparty(ctx, modelCounterparty); err != nil {
+					log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
+					continue
+				}
+			}
+		} else {
+			log.Warn().Msg(fmt.Sprintf("The DirectoryID of the model Counterparty was not valid: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			continue
+		}
+
+		importCnt++
+	}
+
+	log.Info().Msg(fmt.Sprintf("Imported %d Counterparties to the Daybreak directory (%d total, %d errors)", importCnt, len(cpartyImports), len(cpartyImports)-importCnt))
 	return nil
 }
 

@@ -10,10 +10,12 @@ Complete documentation for Envoy can be found at [https://trisa.dev/envoy](https
 
 **NOTE**: Development is happening rapidly on the node right now; if these instructions don't work correctly, please open an issue on GitHub so we can review the docs.
 
-Step 1: Generate localhost self-signed certificates:
+Step 1: Generate localhost self-signed certificates (ensure that you run the script from within the `.secret` directory):
 
 ```
-$ ./.secret/generate.sh
+$ cd .secret
+$ ./generate.sh
+$ cd..
 ```
 
 This will use `openssl` to create a fake certificate authority (localhost.pem) and certificates for a development server, a development counterparty, and a client. You will need `openssl` installed on your computer for this command to work and you'll need the execute permission set on the `generate.sh` script. The secrets are stored in the `.secret` directory and should not be committed to GitHub.

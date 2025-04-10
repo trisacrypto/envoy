@@ -30,3 +30,6 @@ tmp
 .DS_Store
 
 *.db
+
+# Daybreak directory JSON files (when importing using `go run ./cmd/envoy daybreak:import --in JSON_FILE`)
+daybreak*.json

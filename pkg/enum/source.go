@@ -16,14 +16,15 @@ const (
 	SourcePeer
 	SourceLocal
 	SourceRemote
+	SourceDaybreak
 )
 
-var sourceNames [6]string = [...]string{
-	"unknown", "gds", "user", "peer", "local", "remote",
+var sourceNames [7]string = [...]string{
+	"unknown", "gds", "user", "peer", "local", "remote", "daybreak",
 }
 
 func ValidSource(s interface{}) bool {
-	if p, err := ParseSource(s); err != nil || p > SourceRemote {
+	if p, err := ParseSource(s); err != nil || p > SourceDaybreak {
 		return false
 	}
 	return true
