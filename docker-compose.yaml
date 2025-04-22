@@ -44,6 +44,7 @@ services:
       - TRISA_TRP_USE_MTLS=false
       - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
       - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
+      - TRISA_DAYBREAK_ENABLED=true
 
   counterparty.local:
     image: trisa/envoy

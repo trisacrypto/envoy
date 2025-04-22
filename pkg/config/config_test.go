@@ -66,6 +66,7 @@ var testEnv = map[string]string{
 	"REGION_INFO_COUNTRY":                   "US",
 	"REGION_INFO_CLOUD":                     "GCP",
 	"REGION_INFO_CLUSTER":                   "rotational-testing-gke-9",
+	"TRISA_DAYBREAK_ENABLED":                "false",
 }
 
 func TestConfig(t *testing.T) {
