@@ -22,14 +22,14 @@ go.work
 
 .env
 .secret
+.vscode
 
 node_modules
 tmp
+*.db
 
 # OS Droppings
 .DS_Store
-
-*.db
 
 # Daybreak directory JSON files (when importing using `go run ./cmd/envoy daybreak:import --in JSON_FILE`)
 daybreak*.json
