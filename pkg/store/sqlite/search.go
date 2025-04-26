@@ -59,6 +59,8 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 
 	// Perform a fuzzy search on all the countparty names in the database.
 	stubs := make(stubs, 0, query.Limit)
+	stubIDs := make(map[ulid.ULID]struct{}, query.Limit)
+
 	for rows.Next() {
 		stub := counterpartyStub{}
 		if err = rows.Scan(&stub.id, &stub.name); err != nil {
@@ -68,6 +70,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 		stub.distance = fuzzy.RankMatchNormalizedFold(query.Query, stub.name)
 		if stub.distance >= 0 {
 			stubs = append(stubs, stub)
+			stubIDs[stub.id] = struct{}{}
 		}
 	}
 
@@ -91,16 +94,15 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 			}
 
 			// Check if the stub is already in the list of stubs
-			for _, s := range stubs {
-				if s.id == stub.id {
-					continue domainScan // already in the list, skip it
-				}
+			if _, ok := stubIDs[stub.id]; ok {
+				continue domainScan // already in the list, skip it
 			}
 
 			// If not, add it to the list of stubs
 			stub.distance = fuzzy.RankMatchNormalizedFold(domainParam, stub.name)
 			if stub.distance >= 0 {
 				stubs = append(stubs, stub)
+				stubIDs[stub.id] = struct{}{}
 			}
 		}
 	}
