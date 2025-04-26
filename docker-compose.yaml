@@ -87,7 +87,7 @@ services:
       - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
 
   gds.local:
-    image: trisa/gds:v1.9.0
+    image: trisa/gds:v1.10.0
     init: true
     ports:
       - 4433:4433
