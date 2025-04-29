@@ -953,7 +953,7 @@
             "enum": [
               "trisa",
               "trp",
-              "email"
+              "sunrise"
             ],
             "description": "Specify the travel rule protocol used to connect to the counterparty with; this will likely be TRP or email since TRISA counterparties are fetched from the GDS.",
             "example": "trp"
