@@ -86,6 +86,7 @@ type Envelope struct {
 	Transaction        *generic.Transaction     `json:"transaction,omitempty"`
 	Pending            *generic.Pending         `json:"pending,omitempty"`
 	Sunrise            *generic.Sunrise         `json:"sunrise,omitempty"`
+	TRP                *generic.TRP             `json:"trp,omitempty"`
 	SentAt             *time.Time               `json:"sent_at"`
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
 	Timestamp          time.Time                `json:"timestamp,omitempty"`
@@ -381,6 +382,11 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		if err = payload.Transaction.UnmarshalTo(out.Sunrise); err != nil {
 			return nil, err
 		}
+	case "type.googleapis.com/trisa.data.generic.v1beta1.TRP":
+		out.TRP = &generic.TRP{}
+		if err = payload.Transaction.UnmarshalTo(out.TRP); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unknown transaction protobuf type: %q", payload.Transaction.TypeUrl)
 	}
@@ -419,6 +425,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 		env.Transaction = nil
 		env.Pending = nil
 		env.Sunrise = nil
+		env.TRP = nil
 		env.SecureEnvelope = nil
 
 		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)

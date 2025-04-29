@@ -1,3 +1,5 @@
 {{ define "editTransferPayload" -}}
-
+{{ with .EnvelopeDetail }}
+{{ .EnvelopeID }}
+{{- end }}}
 {{- end }}

@@ -18,6 +18,23 @@
 {{ end }}
 
 {{ define "page-content" }}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Transfer Detail</h6>
+        <h1 class="header-title">{{ .EditMode | titlecase }} Transfer</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/transactions/{{ .ID }}" class="btn btn-primary btn-sm">
+          <i class="fe fe-arrow-left"></i>
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <section id="transaction" hx-get="/v1/transactions/{{ .ID }}/{{ .EditMode }}" hx-trigger="load">
   <div class="card">
     <div class="card-body text-center">
