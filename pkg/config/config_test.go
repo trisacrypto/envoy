@@ -23,6 +23,7 @@ var testEnv = map[string]string{
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
 	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
+	"TRISA_SEARCH_THRESHOLD":                "0.75",
 	"TRISA_WEB_ENABLED":                     "false",
 	"TRISA_WEB_API_ENABLED":                 "false",
 	"TRISA_WEB_UI_ENABLED":                  "false",
@@ -79,6 +80,7 @@ func TestConfig(t *testing.T) {
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
 	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.WebhookURL)
+	require.Equal(t, 0.75, conf.SearchThreshold)
 	require.True(t, conf.Web.Maintenance)
 	require.False(t, conf.Web.Enabled)
 	require.False(t, conf.Web.APIEnabled)

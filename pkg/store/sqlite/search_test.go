@@ -60,6 +60,7 @@ func TestNormURL(t *testing.T) {
 		{"envoy.local:8100", "envoy.local:8100"},
 		{"https://envoy.local:8100", "envoy.local:8100"},
 		{"foo", ""},
+		{"test.com://test.com", ""},
 	}
 
 	for _, test := range tests {
