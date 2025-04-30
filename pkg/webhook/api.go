@@ -55,6 +55,10 @@ type Reply struct {
 }
 
 const (
+	DefaultTransferAction = "default"
+)
+
+const (
 	transactionPBType = "type.googleapis.com/trisa.data.generic.v1beta1.Transaction"
 	pendingPBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Pending"
 	sunrisePBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Sunrise"
@@ -105,6 +109,11 @@ func (r *Request) AddPayload(payload *trisa.Payload) (err error) {
 
 // Determine the API transfer state based on the reply
 func (r *Reply) TransferState() trisa.TransferState {
+	// Ignore the default transfer action.
+	if r.TransferAction == DefaultTransferAction {
+		return trisa.TransferStateUnspecified
+	}
+
 	// If the callback specifies "accepted" or "completed" then send that state on.
 	if r.TransferAction != "" {
 		if state, _ := trisa.ParseTransferState(r.TransferAction); state != trisa.TransferStateUnspecified {

@@ -2,10 +2,14 @@ package webhook
 
 import (
 	"bytes"
+	"compress/gzip"
+	"compress/lzw"
+	"compress/zlib"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -47,11 +51,15 @@ type Webhook struct {
 }
 
 const (
-	userAgent    = "Envoy Webhook Client/v1"
-	contentType  = "application/json; charset=utf-8"
-	accept       = "application/json"
-	acceptLang   = "en-US,en"
-	acceptEncode = "gzip;q=1.0, deflate;q=0.5, br;q=0.5, *;q=0.1"
+	userAgent      = "Envoy Webhook Client/v1"
+	contentType    = "application/json; charset=utf-8"
+	accept         = "application/json"
+	acceptLang     = "en-US,en"
+	acceptEncode   = "gzip;q=1.0, deflate;q=0.8, identity;q=0.5, compress;q=0.1, *;q=0"
+	gzipEncode     = "gzip"
+	zlibEncode     = "deflate"
+	lzwEncode      = "compress"
+	identityEncode = "identity"
 )
 
 func (h *Webhook) Callback(ctx context.Context, out *Request) (in *Reply, err error) {
@@ -100,9 +108,33 @@ func (h *Webhook) Callback(ctx context.Context, out *Request) (in *Reply, err er
 		return nil, fmt.Errorf("could not make webhook callback: received status %s", rep.Status)
 	}
 
+	// Check for non-content 204 response for default handling.
+	if rep.StatusCode == http.StatusNoContent {
+		return &Reply{TransferAction: DefaultTransferAction}, nil
+	}
+
+	// Handle encoding of the response body
+	var body io.Reader
+	switch rep.Header.Get("Content-Encoding") {
+	case gzipEncode:
+		if body, err = gzip.NewReader(rep.Body); err != nil {
+			return nil, fmt.Errorf("could not create gzip reader: %s", err)
+		}
+	case zlibEncode:
+		if body, err = zlib.NewReader(rep.Body); err != nil {
+			return nil, fmt.Errorf("could not create zlib reader: %s", err)
+		}
+	case "", identityEncode:
+		body = rep.Body
+	case lzwEncode:
+		body = lzw.NewReader(rep.Body, lzw.MSB, 8)
+	default:
+		return nil, fmt.Errorf("unsupported content encoding %q", rep.Header.Get("Content-Encoding"))
+	}
+
 	// Deserialize reply to the webhook POST call
 	in = &Reply{}
-	if err = json.NewDecoder(rep.Body).Decode(in); err != nil {
+	if err = json.NewDecoder(body).Decode(in); err != nil {
 		return nil, fmt.Errorf("could not unmarshal reply: %s", err)
 	}
 
