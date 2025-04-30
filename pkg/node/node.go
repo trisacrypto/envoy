@@ -14,6 +14,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/metrics"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/trisa"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/trp"
@@ -69,6 +70,9 @@ func New(conf config.Config) (node *Node, err error) {
 	if node.store, err = store.Open(conf.DatabaseURL); err != nil {
 		return nil, err
 	}
+
+	// Set the search threshold for fuzzy searching
+	sqlite.SetThreshold(conf.SearchThreshold)
 
 	// Configure the store with travel address generators
 	if factory, err := models.NewTravelAddressFactory(conf.Node.Endpoint, "trisa"); err != nil {

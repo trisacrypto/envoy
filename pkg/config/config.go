@@ -25,21 +25,22 @@ const Prefix = "trisa"
 // values that are omitted. The Config should be validated in preparation for running
 // the server to ensure that all server operations work as expected.
 type Config struct {
-	Maintenance   bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
-	Organization  string              `default:"Envoy" desc:"specify the name of the organization of the Envoy node for display purposes"`
-	Mode          string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
-	LogLevel      logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
-	ConsoleLog    bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
-	DatabaseURL   string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
-	WebhookURL    string              `split_words:"true" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
-	Web           WebConfig           `split_words:"true"`
-	Node          TRISAConfig         `split_words:"true"`
-	DirectorySync DirectorySyncConfig `split_words:"true"`
-	TRP           TRPConfig           `split_words:"true"`
-	Sunrise       SunriseConfig       `split_words:"true"`
-	Email         emails.Config       `split_words:"true"`
-	RegionInfo    RegionInfo          `split_words:"true"`
-	processed     bool
+	Maintenance     bool                `default:"false" desc:"if true, the node will start in maintenance mode"`
+	Organization    string              `default:"Envoy" desc:"specify the name of the organization of the Envoy node for display purposes"`
+	Mode            string              `default:"release" desc:"specify the mode of the server (release, debug, testing)"`
+	LogLevel        logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
+	ConsoleLog      bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
+	DatabaseURL     string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
+	WebhookURL      string              `split_words:"true" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
+	SearchThreshold float64             `split_words:"true" default:"0.0" desc:"specify the threshold for fuzzy search (0.0 to 1.0)"`
+	Web             WebConfig           `split_words:"true"`
+	Node            TRISAConfig         `split_words:"true"`
+	DirectorySync   DirectorySyncConfig `split_words:"true"`
+	TRP             TRPConfig           `split_words:"true"`
+	Sunrise         SunriseConfig       `split_words:"true"`
+	Email           emails.Config       `split_words:"true"`
+	RegionInfo      RegionInfo          `split_words:"true"`
+	processed       bool
 }
 
 // WebConfig specifies the configuration for the web UI to manage the TRISA node and
