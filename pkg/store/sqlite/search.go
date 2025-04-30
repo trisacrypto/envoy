@@ -15,32 +15,44 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 )
 
+//===========================================================================
+// Similarity Threshold
+//===========================================================================
+
+var threshold float64 = 0.0
+
+// SetThreshold sets the threshold for the fuzzy search. The threshold must be a number
+// between 0.0 and 1.0 where a higher threshold requires stricter matching. Setting a
+// threshold of 0.0 will allow any rank fold matches.
+func SetThreshold(t float64) {
+	if t < 0.0 || t > 1.0 {
+		panic("threshold must be between 0.0 and 1.0")
+	}
+	threshold = t
+}
+
+// GetThreshold returns the current threshold for the fuzzy search.
+func GetThreshold() float64 {
+	return threshold
+}
+
+//===========================================================================
+// Counterparty Fuzzy Search
+//===========================================================================
+
 const (
 	counterpartySearchSQL       = "SELECT id, name FROM counterparties ORDER BY name ASC"
 	counterpartyDomainSearchSQL = "SELECT id, website FROM counterparties WHERE website LIKE :domainParam UNION select id, endpoint FROM counterparties WHERE endpoint LIKE :domainParam"
-	counterparytSearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE id=:id"
+	counterpartySearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE id=:id"
 )
 
-type counterpartyStub struct {
-	id       ulid.ULID
-	name     string
-	distance int
-}
-
-type stubs []counterpartyStub
-
-func (r stubs) Len() int {
-	return len(r)
-}
-
-func (r stubs) Swap(i, j int) {
-	r[i], r[j] = r[j], r[i]
-}
-
-func (r stubs) Less(i, j int) bool {
-	return r[i].distance < r[j].distance
-}
-
+// SearchCounterparties uses an in-memory fuzzy search to find counterparties whose name
+// matches the query using a unicode normalization, case-insensitive method. Additionally,
+// if the query looks like a URL, it will also search for counterparties whose website or
+// endpoint matches the query. The results are sorted by the distance of the match, with
+// the closest matches first. The results are limited to the number of results specified
+// in the query. Note that this in-memory fuzzy search is required for SQLite since there
+// is no native search in SQLite without an extension.
 func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQuery) (out *models.CounterpartyPage, err error) {
 	log := logger.Tracing(ctx)
 	log.Debug().Str("query", query.Query).Int("limit", query.Limit).Msg("counterparty search")
@@ -51,27 +63,10 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	}
 	defer tx.Rollback()
 
-	var rows *sql.Rows
-	if rows, err = tx.Query(counterpartySearchSQL); err != nil {
-		return nil, dbe(err)
-	}
-	defer rows.Close()
-
 	// Perform a fuzzy search on all the countparty names in the database.
-	stubs := make(stubs, 0, query.Limit)
-	stubIDs := make(map[ulid.ULID]struct{}, query.Limit)
-
-	for rows.Next() {
-		stub := counterpartyStub{}
-		if err = rows.Scan(&stub.id, &stub.name); err != nil {
-			return nil, err
-		}
-
-		stub.distance = fuzzy.RankMatchNormalizedFold(query.Query, stub.name)
-		if stub.distance >= 0 {
-			stubs = append(stubs, stub)
-			stubIDs[stub.id] = struct{}{}
-		}
+	rank := NewSearchRank(query.Query, query.Limit)
+	if err = s.fuzzySearchCounterparties(tx, rank); err != nil {
+		return nil, err
 	}
 
 	// If the query is a URL candidate, then check if it matches a website or endpoint
@@ -80,53 +75,24 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	// website and the name of the counterparty.
 	if domainParam := NormURL(query.Query); domainParam != "" {
 		log.Debug().Str("domain", domainParam).Msg("counterparty search website/endpoint match")
-		var domainRows *sql.Rows
-		if domainRows, err = tx.Query(counterpartyDomainSearchSQL, sql.Named("domainParam", "%"+domainParam+"%")); err != nil {
-			return nil, dbe(err)
+		if err = s.domainSearchCounterparties(tx, domainParam, rank); err != nil {
+			return nil, err
 		}
-		defer domainRows.Close()
-
-	domainScan:
-		for domainRows.Next() {
-			stub := counterpartyStub{}
-			if err = domainRows.Scan(&stub.id, &stub.name); err != nil {
-				return nil, err
-			}
-
-			// Check if the stub is already in the list of stubs
-			if _, ok := stubIDs[stub.id]; ok {
-				continue domainScan // already in the list, skip it
-			}
-
-			// If not, add it to the list of stubs
-			stub.distance = fuzzy.RankMatchNormalizedFold(domainParam, stub.name)
-			if stub.distance >= 0 {
-				stubs = append(stubs, stub)
-				stubIDs[stub.id] = struct{}{}
-			}
-		}
-	}
-
-	// Sort by rank so only the lowest distance values are included
-	sort.Sort(stubs)
-
-	// Apply the limit
-	if len(stubs) > query.Limit {
-		stubs = stubs[:query.Limit]
 	}
 
 	// Now fetch the values for the entire search results list
+	results := rank.Results()
 	out = &models.CounterpartyPage{
 		Page:           &models.CounterpartyPageInfo{PageInfo: models.PageInfo{PageSize: uint32(query.Limit)}},
-		Counterparties: make([]*models.Counterparty, 0, len(stubs)),
+		Counterparties: make([]*models.Counterparty, 0, len(results)),
 	}
 
 	// Expand the results to include the complete required payload.
-	for _, stub := range stubs {
-		log.Trace().Str("name", stub.name).Int("rank", stub.distance).Msg("counterparty search")
+	for _, item := range results {
+		log.Trace().Str("name", item.Name).Int("rank", item.Distance).Float64("similarity", item.Similarity).Msg("counterparty search")
 
 		cp := &models.Counterparty{}
-		if err = cp.ScanSummary(tx.QueryRow(counterparytSearchExpandSQL, sql.Named("id", stub.id))); err != nil {
+		if err = cp.ScanSummary(tx.QueryRow(counterpartySearchExpandSQL, sql.Named("id", item.ID))); err != nil {
 			return nil, err
 		}
 		out.Counterparties = append(out.Counterparties, cp)
@@ -134,6 +100,48 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 
 	return out, nil
 }
+
+func (s *Store) fuzzySearchCounterparties(tx *sql.Tx, rank *SearchRank) (err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(counterpartySearchSQL); err != nil {
+		return dbe(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := &RankItem{}
+		if err = rows.Scan(&item.ID, &item.Name); err != nil {
+			return err
+		}
+
+		rank.Append(item)
+	}
+
+	return rows.Err()
+}
+
+func (s *Store) domainSearchCounterparties(tx *sql.Tx, domain string, rank *SearchRank) (err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(counterpartyDomainSearchSQL, sql.Named("domainParam", "%"+domain+"%")); err != nil {
+		return dbe(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := &RankItem{}
+		if err = rows.Scan(&item.ID, &item.Name); err != nil {
+			return err
+		}
+
+		rank.Append(item)
+	}
+
+	return rows.Err()
+}
+
+//===========================================================================
+// URL/Domain Search Helpers
+//===========================================================================
 
 var (
 	urlCandidate = regexp.MustCompile(`^(https?://)?([a-z0-9][a-z0-9-]{0,61}[a-z0-9]\.)+[a-z]{2,}(:\d{1,5})?(/.*)?$`)
@@ -163,4 +171,107 @@ func NormURL(query string) string {
 	}
 
 	return ""
+}
+
+//===========================================================================
+// Ranking Search Results
+//===========================================================================
+
+type SearchRank struct {
+	query string
+	limit int
+	items RankList
+	idset map[ulid.ULID]struct{}
+}
+
+func NewSearchRank(query string, limit int) *SearchRank {
+	return &SearchRank{
+		query: query,
+		limit: limit,
+		items: make(RankList, 0, limit+1),
+		idset: make(map[ulid.ULID]struct{}, limit+1),
+	}
+}
+
+func (s *SearchRank) Add(id ulid.ULID, name string) bool {
+	return s.Append(&RankItem{ID: id, Name: name})
+}
+
+func (s *SearchRank) Append(item *RankItem) bool {
+	if _, ok := s.idset[item.ID]; ok {
+		return false // already in the list
+	}
+
+	item.Distance, item.Similarity = Rank(item.Name, s.query)
+	if item.Distance < 0 {
+		return false // not a match
+	}
+
+	if item.Similarity < threshold {
+		return false // not within the similarity threshold
+	}
+
+	s.idset[item.ID] = struct{}{}
+	s.items = append(s.items, *item)
+
+	if len(s.items) > s.limit {
+		// Sort the items by distance to get the closest matches first
+		sort.Sort(s.items)
+
+		// Remove any IDs from any items that are not in the limit
+		for _, item := range s.items[s.limit:] {
+			delete(s.idset, item.ID)
+		}
+
+		// Trim the list to the limit
+		s.items = s.items[:s.limit]
+	}
+
+	return true
+}
+
+func (s *SearchRank) Results() RankList {
+	sort.Sort(s.items)
+	return s.items
+}
+
+// Rank attempts to perform a substring match of the term on the query using unicode
+// normalized case-insensitive fuzzy search. If the term is longer than the query then
+// the query is matched to the term to find similarity regardless of substring
+// containment. E.g. a query for example.com should match the example and a query for
+// ample should match the same term. The distance and the similarity is returned.
+func Rank(term, query string) (int, float64) {
+	if len(term) > len(query) {
+		return Rank(query, term)
+	}
+
+	// Attempt to match term to query then query to term.
+	distance := fuzzy.RankMatchNormalizedFold(term, query)
+	if distance < 0 {
+		return -1, 0.0
+	}
+
+	similarity := 1.0 - float64(distance)/float64(len(query))
+	return distance, similarity
+}
+
+type RankItem struct {
+	ID         ulid.ULID
+	Name       string
+	Distance   int
+	Similarity float64
+}
+
+type RankList []RankItem
+
+func (r RankList) Len() int {
+	return len(r)
+}
+
+func (r RankList) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RankList) Less(i, j int) bool {
+	return r[i].Distance < r[j].Distance
 }
