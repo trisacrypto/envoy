@@ -1,9 +1,11 @@
 package webhook_test
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -24,7 +26,26 @@ func TestWebhook(t *testing.T) {
 	require.NoError(t, err, "could not load request fixture with transaction payload")
 
 	t.Run("PendingReply", func(t *testing.T) {
-		srv := httptest.NewServer(makeWebhookHandler("pending_payload.json"))
+		srv := httptest.NewServer(makeWebhookHandler("pending_payload.json", ""))
+		defer srv.Close()
+
+		endpoint, _ := url.Parse(srv.URL)
+		endpoint.Path = "/"
+
+		cb := webhook.New(endpoint)
+		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
+
+		rep, err := cb.Callback(ctx, req)
+		require.NoError(t, err, "could not execute callback request")
+		require.NotNil(t, rep, "a reply was not returned by the server")
+		require.Equal(t, req.TransactionID, rep.TransactionID, "response was not correctly parsed")
+
+		require.Nil(t, rep.Error, "expected a non-nil error returned")
+		require.NotNil(t, rep.Payload, "expoected a nil payload returned")
+	})
+
+	t.Run("EncodedReply", func(t *testing.T) {
+		srv := httptest.NewServer(makeWebhookHandler("pending_payload.json", "gzip"))
 		defer srv.Close()
 
 		endpoint, _ := url.Parse(srv.URL)
@@ -43,7 +64,7 @@ func TestWebhook(t *testing.T) {
 	})
 
 	t.Run("ErrorReply", func(t *testing.T) {
-		srv := httptest.NewServer(makeWebhookHandler("error.json"))
+		srv := httptest.NewServer(makeWebhookHandler("error.json", ""))
 		defer srv.Close()
 
 		endpoint, _ := url.Parse(srv.URL)
@@ -75,18 +96,38 @@ func TestWebhook(t *testing.T) {
 		require.EqualError(t, err, "could not make webhook callback: received status 503 Service Unavailable")
 		require.Nil(t, rep)
 	})
+
+	t.Run("NoContentReply", func(t *testing.T) {
+		srv := httptest.NewServer(makeWebhookNoContent())
+		defer srv.Close()
+
+		endpoint, _ := url.Parse(srv.URL)
+		endpoint.Path = "/"
+
+		cb := webhook.New(endpoint)
+		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
+
+		rep, err := cb.Callback(ctx, req)
+		require.NoError(t, err, "could not execute callback request")
+		require.NotNil(t, rep, "a reply was not returned by the callback")
+		require.Equal(t, rep.TransferAction, webhook.DefaultTransferAction, "expected the default transfer action")
+
+		require.Nil(t, rep.Error, "expected a nil error returned")
+		require.Nil(t, rep.Payload, "expoected a nil payload returned")
+	})
 }
 
 //===========================================================================
 // Test Server Helpers
 //===========================================================================
 
-func makeWebhookHandler(reply string) http.HandlerFunc {
+func makeWebhookHandler(reply, encoding string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			err error
 			req *webhook.Request
 			rep *webhook.Reply
+			out io.Writer
 		)
 
 		// Ensure the request is valid and can be decoded.
@@ -102,14 +143,30 @@ func makeWebhookHandler(reply string) http.HandlerFunc {
 			return
 		}
 
+		switch encoding {
+		case "gzip":
+			w.Header().Set("Content-Encoding", "gzip")
+			cw := gzip.NewWriter(w)
+			out = cw
+			defer cw.Close()
+		default:
+			out = w
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(rep)
+		json.NewEncoder(out).Encode(rep)
 	}
 }
 
 func makeWebhookError(msg string, code int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, code)
+	}
+}
+
+func makeWebhookNoContent() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
