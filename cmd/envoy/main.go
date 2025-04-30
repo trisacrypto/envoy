@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -179,6 +180,25 @@ func main() {
 					Aliases: []string{"s"},
 					Usage:   "number of bits for the generated keys",
 					Value:   4096,
+				},
+			},
+		},
+		{
+			Name:     "hmackey",
+			Usage:    "generate an HMAC key and keyID for webhook authentication",
+			Category: "admin",
+			Action:   generateHMACKey,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "out",
+					Aliases: []string{"o"},
+					Usage:   "path to write json file with key and keyID out to",
+				},
+				&cli.IntFlag{
+					Name:    "size",
+					Aliases: []string{"s"},
+					Usage:   "number of bytes for the generated key",
+					Value:   32,
 				},
 			},
 		},
@@ -549,6 +569,38 @@ func generateTokenKey(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("RSA key id: %s -- saved with PEM encoding to %s\n", keyid, out)
+	return nil
+}
+
+func generateHMACKey(c *cli.Context) (err error) {
+	key := make([]byte, c.Int("size"))
+	if _, err = rand.Read(key); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	keyid := ulid.Make()
+	keys := hex.EncodeToString(key)
+
+	if out := c.String("out"); out != "" {
+		data := map[string]string{
+			"key":   keys,
+			"keyID": keys,
+		}
+
+		var f *os.File
+		if f, err = os.Create(out); err != nil {
+			return cli.Exit(err, 1)
+		}
+		defer f.Close()
+
+		if err = json.NewEncoder(f).Encode(data); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+	} else {
+		fmt.Printf("Key ID: %s\nKey: %s\n", keyid, keys)
+	}
+
 	return nil
 }
 

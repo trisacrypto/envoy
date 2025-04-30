@@ -21,7 +21,6 @@ var testEnv = map[string]string{
 	"TRISA_LOG_LEVEL":                       "debug",
 	"TRISA_CONSOLE_LOG":                     "true",
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
-	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
 	"TRISA_SEARCH_THRESHOLD":                "0.75",
 	"TRISA_WEB_ENABLED":                     "false",
@@ -37,6 +36,7 @@ var testEnv = map[string]string{
 	"TRISA_WEB_AUTH_ACCESS_TOKEN_TTL":       "24h",
 	"TRISA_WEB_AUTH_REFRESH_TOKEN_TTL":      "48h",
 	"TRISA_WEB_AUTH_TOKEN_OVERLAP":          "-12h",
+	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
 	"TRISA_NODE_ENABLED":                    "true",
 	"TRISA_NODE_BIND_ADDR":                  ":556",
 	"TRISA_NODE_POOL":                       "fixtures/certs/pool.gz",
@@ -79,7 +79,6 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
-	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.WebhookURL)
 	require.Equal(t, 0.75, conf.SearchThreshold)
 	require.True(t, conf.Web.Maintenance)
 	require.False(t, conf.Web.Enabled)
@@ -96,6 +95,8 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, 24*time.Hour, conf.Web.Auth.AccessTokenTTL)
 	require.Equal(t, 48*time.Hour, conf.Web.Auth.RefreshTokenTTL)
 	require.Equal(t, -12*time.Hour, conf.Web.Auth.TokenOverlap)
+	require.True(t, conf.Webhook.Enabled())
+	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.Webhook.URL)
 	require.True(t, conf.Node.Maintenance)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Node.Endpoint)
 	require.Equal(t, testEnv["TRISA_NODE_BIND_ADDR"], conf.Node.BindAddr)
@@ -363,22 +364,18 @@ func TestDirectoryConfig(t *testing.T) {
 }
 
 func TestWebhookConfig(t *testing.T) {
-	conf := config.Config{
-		Mode:       "test",
-		WebhookURL: "",
-		Web:        config.WebConfig{Enabled: false},
-		Node:       config.TRISAConfig{Enabled: false},
-		TRP:        config.TRPConfig{Enabled: false},
+	conf := config.WebhookConfig{
+		URL: "",
 	}
 	require.NoError(t, conf.Validate(), "expected no error when no webhook is specified")
-	require.False(t, conf.WebhookEnabled(), "expected webhook enabled to be false with no webhook specified")
-	require.Nil(t, conf.Webhook())
+	require.False(t, conf.Enabled(), "expected webhook enabled to be false with no webhook specified")
+	require.Nil(t, conf.Endpoint())
 
-	conf.WebhookURL = "https://example.com/callback"
+	conf.URL = "https://example.com/callback"
 	require.NoError(t, conf.Validate(), "expected no error when webhook is specified")
-	require.True(t, conf.WebhookEnabled(), "expected webhook enabled to be true with webhook specified")
-	require.NotNil(t, conf.Webhook())
-	require.Equal(t, conf.WebhookURL, conf.Webhook().String())
+	require.True(t, conf.Enabled(), "expected webhook enabled to be true with webhook specified")
+	require.NotNil(t, conf.Endpoint())
+	require.Equal(t, conf.URL, conf.Endpoint().String())
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified
