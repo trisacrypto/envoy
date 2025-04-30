@@ -202,12 +202,11 @@ func (s *SearchRank) Append(item *RankItem) bool {
 		return false // already in the list
 	}
 
-	item.Distance = fuzzy.RankMatchNormalizedFold(s.query, item.Name)
+	item.Distance, item.Similarity = Rank(item.Name, s.query)
 	if item.Distance < 0 {
 		return false // not a match
 	}
 
-	item.Similarity = s.similarity(item.Distance, item.Name)
 	if item.Similarity < threshold {
 		return false // not within the similarity threshold
 	}
@@ -231,27 +230,29 @@ func (s *SearchRank) Append(item *RankItem) bool {
 	return true
 }
 
-func (s *SearchRank) similarity(d int, term string) float64 {
-	if len(term) > len(s.query) {
-		return 1.0 - float64(d)/float64(len(term))
-	} else {
-		return 1.0 - float64(d)/float64(len(s.query))
-	}
+func (s *SearchRank) Results() RankList {
+	sort.Sort(s.items)
+	return s.items
 }
 
-func (s *SearchRank) Results() RankList {
-	// Sort the items by distance to get the closest matches first
-	sort.Sort(s.items)
-
-	if len(s.items) > s.limit {
-		for _, item := range s.items[s.limit:] {
-			delete(s.idset, item.ID)
-		}
-
-		s.items = s.items[:s.limit]
+// Rank attempts to perform a substring match of the term on the query using unicode
+// normalized case-insensitive fuzzy search. If the term is longer than the query then
+// the query is matched to the term to find similarity regardless of substring
+// containment. E.g. a query for example.com should match the example and a query for
+// ample should match the same term. The distance and the similarity is returned.
+func Rank(term, query string) (int, float64) {
+	if len(term) > len(query) {
+		return Rank(query, term)
 	}
 
-	return s.items
+	// Attempt to match term to query then query to term.
+	distance := fuzzy.RankMatchNormalizedFold(term, query)
+	if distance < 0 {
+		return -1, 0.0
+	}
+
+	similarity := 1.0 - float64(distance)/float64(len(query))
+	return distance, similarity
 }
 
 type RankItem struct {
