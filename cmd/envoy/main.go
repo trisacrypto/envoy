@@ -91,27 +91,6 @@ func main() {
 			},
 		},
 		{
-			Name:     "regentraveladdresses",
-			Usage:    "regenerate travel addresses for accounts and crypto addresses",
-			Category: "admin",
-			Before:   openDB,
-			Action:   regenerateTravelAddresses,
-			After:    closeDB,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "endpoint",
-					Aliases: []string{"e"},
-					Usage:   "specify an endpoint to generate the addresses with",
-				},
-				&cli.StringFlag{
-					Name:    "protocol",
-					Aliases: []string{"p"},
-					Usage:   "specify the default protocol for the travel addresses",
-					Value:   "trisa",
-				},
-			},
-		},
-		{
 			Name:     "createuser",
 			Usage:    "create a new user to access Envoy with",
 			Category: "admin",
@@ -380,72 +359,6 @@ func remigrate(c *cli.Context) (err error) {
 // Administrative Commands
 //===========================================================================
 
-func regenerateTravelAddresses(c *cli.Context) (err error) {
-	var endpoint string
-	if endpoint = c.String("endpoint"); endpoint == "" {
-		endpoint = conf.Node.Endpoint
-	}
-
-	var factory models.TravelAddressFactory
-	if factory, err = models.NewTravelAddressFactory(endpoint, c.String("protocol")); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	updateAccount := func(account *models.Account) (err error) {
-		if account.TravelAddress.String, err = factory(account); err != nil {
-			return fmt.Errorf("could not update travel address for account %s: %w", account.ID, err)
-		}
-		account.TravelAddress.Valid = account.TravelAddress.String != ""
-
-		if err = db.UpdateAccount(context.Background(), account); err != nil {
-			return fmt.Errorf("could not update account %s: %w", account.ID, err)
-		}
-
-		return nil
-	}
-
-	updateCryptoAddress := func(addr *models.CryptoAddress) (err error) {
-		if addr.TravelAddress.String, err = factory(addr); err != nil {
-			return fmt.Errorf("could not update travel address for crypto address %s: %w", addr.ID, err)
-		}
-
-		addr.TravelAddress.Valid = addr.TravelAddress.String != ""
-
-		if err = db.UpdateCryptoAddress(context.Background(), addr); err != nil {
-			return fmt.Errorf("could not update crypto address %s: %w", addr.ID, err)
-		}
-
-		return nil
-	}
-
-	// Go through all accounts and update their travel addresses
-	// TODO: handle pagination
-	var accounts *models.AccountsPage
-	if accounts, err = db.ListAccounts(context.Background(), nil); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	for _, account := range accounts.Accounts {
-		if err = updateAccount(account); err != nil {
-			fmt.Println(err)
-		}
-
-		var addrs *models.CryptoAddressPage
-		if addrs, err = db.ListCryptoAddresses(context.Background(), account.ID, nil); err != nil {
-			return cli.Exit(err, 1)
-		}
-
-		// TODO: handle pagination
-		for _, addr := range addrs.CryptoAddresses {
-			if err = updateCryptoAddress(addr); err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-
-	return nil
-}
-
 var roles = map[string]int64{
 	"admin":      1,
 	"compliance": 2,
@@ -578,13 +491,13 @@ func generateHMACKey(c *cli.Context) (err error) {
 		return cli.Exit(err, 1)
 	}
 
-	keyid := ulid.Make()
+	keyID := ulid.Make()
 	keys := hex.EncodeToString(key)
 
 	if out := c.String("out"); out != "" {
 		data := map[string]string{
 			"key":   keys,
-			"keyID": keys,
+			"keyID": keyID.String(),
 		}
 
 		var f *os.File
@@ -598,7 +511,7 @@ func generateHMACKey(c *cli.Context) (err error) {
 		}
 
 	} else {
-		fmt.Printf("Key ID: %s\nKey: %s\n", keyid, keys)
+		fmt.Printf("Key ID: %s\nKey: %s\n", keyID, keys)
 	}
 
 	return nil
