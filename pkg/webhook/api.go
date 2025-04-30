@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -55,6 +56,10 @@ type Reply struct {
 }
 
 const (
+	DefaultTransferAction = "default"
+)
+
+const (
 	transactionPBType = "type.googleapis.com/trisa.data.generic.v1beta1.Transaction"
 	pendingPBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Pending"
 	sunrisePBType     = "type.googleapis.com/trisa.data.generic.v1beta1.Sunrise"
@@ -106,6 +111,11 @@ func (r *Request) AddPayload(payload *trisa.Payload) (err error) {
 // Determine the API transfer state based on the reply
 func (r *Reply) TransferState() trisa.TransferState {
 	// If the callback specifies "accepted" or "completed" then send that state on.
+	r.TransferAction = strings.ToLower(strings.TrimSpace(r.TransferAction))
+	if r.TransferAction == DefaultTransferAction {
+		return trisa.TransferStateUnspecified
+	}
+
 	if r.TransferAction != "" {
 		if state, _ := trisa.ParseTransferState(r.TransferAction); state != trisa.TransferStateUnspecified {
 			return state
