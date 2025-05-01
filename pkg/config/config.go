@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
@@ -120,7 +121,10 @@ type SunriseConfig struct {
 }
 
 type WebhookConfig struct {
-	URL string `required:"false" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
+	URL               string `required:"false" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
+	AuthKeyID         string `required:"false" split_words:"true" desc:"used to identify the shared secret key used for hmac authorization"`
+	AuthKeySecret     string `required:"false" split_words:"true" desc:"specify a shared secret key to use for hmac authorization"`
+	RequireServerAuth bool   `default:"false" split_words:"true" desc:"if true, the webhook server will require a valid hmac authorization header in webhook responses"`
 }
 
 // Optional region and deployment information associated with the node.
@@ -200,12 +204,30 @@ func (c WebhookConfig) Validate() (err error) {
 		if _, err = url.Parse(c.URL); err != nil {
 			return fmt.Errorf("invalid configuration: could not parse webhook url: %w", err)
 		}
+
+		if c.AuthKeySecret != "" {
+			if _, err := hex.DecodeString(strings.ToLower(c.AuthKeySecret)); err != nil {
+				return fmt.Errorf("invalid configuration: could not decode webhook auth key: %w", err)
+			}
+
+			if c.AuthKeyID == "" {
+				return errors.New("invalid configuration: webhook auth key id is required when auth key secret is set")
+			}
+		}
+
+		if c.RequireServerAuth && (c.AuthKeySecret == "" || c.AuthKeyID == "") {
+			return errors.New("invalid configuration: webhook server auth is enabled but no auth key is specified")
+		}
 	}
 	return nil
 }
 
 func (c WebhookConfig) Enabled() bool {
 	return c.URL != ""
+}
+
+func (c WebhookConfig) RequireClientAuth() bool {
+	return c.AuthKeySecret != "" || c.AuthKeyID != ""
 }
 
 func (c WebhookConfig) Endpoint() *url.URL {
@@ -215,6 +237,15 @@ func (c WebhookConfig) Endpoint() *url.URL {
 
 	u, _ := url.Parse(c.URL)
 	return u
+}
+
+func (c WebhookConfig) DecodeAuthKey() []byte {
+	if c.AuthKeySecret == "" {
+		return nil
+	}
+
+	key, _ := hex.DecodeString(strings.ToLower(c.AuthKeySecret))
+	return key
 }
 
 // Validate that the TRISA config has mTLS certificates for operation.

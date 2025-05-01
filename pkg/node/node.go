@@ -83,7 +83,7 @@ func New(conf config.Config) (node *Node, err error) {
 
 	// Configure the webhook if it's enabled
 	if conf.Webhook.Enabled() {
-		node.webhook = webhook.New(conf.Webhook.Endpoint())
+		node.webhook = webhook.New(conf.Webhook)
 	}
 
 	// Configure email if it's available

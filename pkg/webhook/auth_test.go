@@ -19,9 +19,8 @@ func TestHMAC(t *testing.T) {
 	headers.Set("X-Transaction-ID", "f17c9693-c280-4836-b544-245d832a11e0")
 
 	mac := webhook.NewHMAC(keyID, key)
-	for header := range headers {
-		mac.Append(header, headers.Get(header))
-	}
+	mac.Append("Host", headers.Get("Host"))
+	mac.Append("X-Transaction-ID", headers.Get("X-Transaction-ID"))
 
 	sig, err := mac.Signature()
 	require.NoError(t, err, "could not create signature")

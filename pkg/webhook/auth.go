@@ -171,6 +171,10 @@ func (h *HMACToken) KeyID() string {
 	return h.keyID
 }
 
+func (h *HMACToken) Headers() []string {
+	return h.headers
+}
+
 func (h *HMACToken) Collect(headers http.Header) {
 	for _, header := range h.headers {
 		if value := headers.Get(header); value != "" {
