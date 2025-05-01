@@ -275,6 +275,6 @@ func WithConf(conf *config.Config) {
 	sunriseEnabled = &enabled
 
 	// Compute the daybreakEnabled boolean
-	enabled = conf.Web.Daybreak.Enabled //XXX && conf.Sunrise.Enabled && conf.Email.Available()
+	enabled = conf.Web.Daybreak.Enabled
 	daybreakEnabled = &enabled
 }
