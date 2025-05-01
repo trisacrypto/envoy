@@ -57,6 +57,7 @@ func TestNew(t *testing.T) {
 		t.Run("None", func(t *testing.T) {
 			data := scene.New(CreateContext())
 			require.NotContains(t, data, scene.SunriseEnabled, "expected no config info without it being explicitly set")
+			require.NotContains(t, data, scene.DaybreakEnabled, "expected no config info without it being explicitly set")
 		})
 
 		t.Run("WithConf", func(t *testing.T) {
