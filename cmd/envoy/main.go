@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -90,27 +91,6 @@ func main() {
 			},
 		},
 		{
-			Name:     "regentraveladdresses",
-			Usage:    "regenerate travel addresses for accounts and crypto addresses",
-			Category: "admin",
-			Before:   openDB,
-			Action:   regenerateTravelAddresses,
-			After:    closeDB,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "endpoint",
-					Aliases: []string{"e"},
-					Usage:   "specify an endpoint to generate the addresses with",
-				},
-				&cli.StringFlag{
-					Name:    "protocol",
-					Aliases: []string{"p"},
-					Usage:   "specify the default protocol for the travel addresses",
-					Value:   "trisa",
-				},
-			},
-		},
-		{
 			Name:     "createuser",
 			Usage:    "create a new user to access Envoy with",
 			Category: "admin",
@@ -179,6 +159,25 @@ func main() {
 					Aliases: []string{"s"},
 					Usage:   "number of bits for the generated keys",
 					Value:   4096,
+				},
+			},
+		},
+		{
+			Name:     "hmackey",
+			Usage:    "generate an HMAC key and keyID for webhook authentication",
+			Category: "admin",
+			Action:   generateHMACKey,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "out",
+					Aliases: []string{"o"},
+					Usage:   "path to write json file with key and keyID out to",
+				},
+				&cli.IntFlag{
+					Name:    "size",
+					Aliases: []string{"s"},
+					Usage:   "number of bytes for the generated key",
+					Value:   32,
 				},
 			},
 		},
@@ -360,72 +359,6 @@ func remigrate(c *cli.Context) (err error) {
 // Administrative Commands
 //===========================================================================
 
-func regenerateTravelAddresses(c *cli.Context) (err error) {
-	var endpoint string
-	if endpoint = c.String("endpoint"); endpoint == "" {
-		endpoint = conf.Node.Endpoint
-	}
-
-	var factory models.TravelAddressFactory
-	if factory, err = models.NewTravelAddressFactory(endpoint, c.String("protocol")); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	updateAccount := func(account *models.Account) (err error) {
-		if account.TravelAddress.String, err = factory(account); err != nil {
-			return fmt.Errorf("could not update travel address for account %s: %w", account.ID, err)
-		}
-		account.TravelAddress.Valid = account.TravelAddress.String != ""
-
-		if err = db.UpdateAccount(context.Background(), account); err != nil {
-			return fmt.Errorf("could not update account %s: %w", account.ID, err)
-		}
-
-		return nil
-	}
-
-	updateCryptoAddress := func(addr *models.CryptoAddress) (err error) {
-		if addr.TravelAddress.String, err = factory(addr); err != nil {
-			return fmt.Errorf("could not update travel address for crypto address %s: %w", addr.ID, err)
-		}
-
-		addr.TravelAddress.Valid = addr.TravelAddress.String != ""
-
-		if err = db.UpdateCryptoAddress(context.Background(), addr); err != nil {
-			return fmt.Errorf("could not update crypto address %s: %w", addr.ID, err)
-		}
-
-		return nil
-	}
-
-	// Go through all accounts and update their travel addresses
-	// TODO: handle pagination
-	var accounts *models.AccountsPage
-	if accounts, err = db.ListAccounts(context.Background(), nil); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	for _, account := range accounts.Accounts {
-		if err = updateAccount(account); err != nil {
-			fmt.Println(err)
-		}
-
-		var addrs *models.CryptoAddressPage
-		if addrs, err = db.ListCryptoAddresses(context.Background(), account.ID, nil); err != nil {
-			return cli.Exit(err, 1)
-		}
-
-		// TODO: handle pagination
-		for _, addr := range addrs.CryptoAddresses {
-			if err = updateCryptoAddress(addr); err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-
-	return nil
-}
-
 var roles = map[string]int64{
 	"admin":      1,
 	"compliance": 2,
@@ -549,6 +482,38 @@ func generateTokenKey(c *cli.Context) (err error) {
 	}
 
 	fmt.Printf("RSA key id: %s -- saved with PEM encoding to %s\n", keyid, out)
+	return nil
+}
+
+func generateHMACKey(c *cli.Context) (err error) {
+	key := make([]byte, c.Int("size"))
+	if _, err = rand.Read(key); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	keyID := ulid.Make()
+	keys := hex.EncodeToString(key)
+
+	if out := c.String("out"); out != "" {
+		data := map[string]string{
+			"key":   keys,
+			"keyID": keyID.String(),
+		}
+
+		var f *os.File
+		if f, err = os.Create(out); err != nil {
+			return cli.Exit(err, 1)
+		}
+		defer f.Close()
+
+		if err = json.NewEncoder(f).Encode(data); err != nil {
+			return cli.Exit(err, 1)
+		}
+
+	} else {
+		fmt.Printf("Key ID: %s\nKey: %s\n", keyID, keys)
+	}
+
 	return nil
 }
 

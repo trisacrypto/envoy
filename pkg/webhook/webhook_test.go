@@ -3,6 +3,7 @@ package webhook_test
 import (
 	"compress/gzip"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/webhook"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 )
@@ -32,7 +34,7 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(endpoint)
+		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -51,7 +53,7 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(endpoint)
+		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -70,7 +72,7 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(endpoint)
+		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -89,7 +91,7 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(endpoint)
+		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -104,7 +106,7 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(endpoint)
+		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -114,6 +116,65 @@ func TestWebhook(t *testing.T) {
 
 		require.Nil(t, rep.Error, "expected a nil error returned")
 		require.Nil(t, rep.Payload, "expoected a nil payload returned")
+	})
+
+	t.Run("ClientAuth", func(t *testing.T) {
+		srv := httptest.NewServer(makeWebhookAuthHandler())
+		defer srv.Close()
+
+		endpoint, _ := url.Parse(srv.URL)
+		endpoint.Path = "/"
+
+		cb := webhook.New(config.WebhookConfig{
+			URL:               endpoint.String(),
+			AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+			AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+			RequireServerAuth: false,
+		})
+
+		rep, err := cb.Callback(ctx, req)
+		require.NoError(t, err, "could not execute callback request")
+		require.NotNil(t, rep, "a reply was not returned by the callback")
+		require.Equal(t, rep.TransferAction, webhook.DefaultTransferAction, "expected the default transfer action")
+	})
+
+	t.Run("BadClientAuth", func(t *testing.T) {
+		srv := httptest.NewServer(makeWebhookAuthHandler())
+		defer srv.Close()
+
+		endpoint, _ := url.Parse(srv.URL)
+		endpoint.Path = "/"
+
+		cb := webhook.New(config.WebhookConfig{
+			URL:               endpoint.String(),
+			AuthKeyID:         "01JT4JY0MS4BDJAT4BA9T4621Y",
+			AuthKeySecret:     "9b33d18fe311b4a0155dde8ca61b94afbce14193232f2c69f5630c6e73818f22",
+			RequireServerAuth: false,
+		})
+
+		_, err := cb.Callback(ctx, req)
+		require.Error(t, err, "could not execute callback request")
+		require.EqualError(t, err, "could not make webhook callback: received status 401 Unauthorized")
+	})
+
+	t.Run("ServerAuth", func(t *testing.T) {
+		srv := httptest.NewServer(makeWebhookAuthHandler())
+		defer srv.Close()
+
+		endpoint, _ := url.Parse(srv.URL)
+		endpoint.Path = "/"
+
+		cb := webhook.New(config.WebhookConfig{
+			URL:               endpoint.String(),
+			AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+			AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+			RequireServerAuth: true,
+		})
+
+		rep, err := cb.Callback(ctx, req)
+		require.NoError(t, err, "could not execute callback request")
+		require.NotNil(t, rep, "a reply was not returned by the callback")
+		require.Equal(t, rep.TransferAction, webhook.DefaultTransferAction, "expected the default transfer action")
 	})
 }
 
@@ -166,6 +227,49 @@ func makeWebhookError(msg string, code int) http.HandlerFunc {
 
 func makeWebhookNoContent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func makeWebhookAuthHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			err   error
+			token *webhook.HMACToken
+			key   []byte
+		)
+
+		key, _ = hex.DecodeString("cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d")
+
+		// Require authentication header
+		if token, err = webhook.ParseHMAC(r.Header.Get("Authorization")); err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		token.Collect(r.Header)
+		if valid, err := token.Verify(key); err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		} else if !valid {
+			http.Error(w, "could not verify auth token", http.StatusUnauthorized)
+			return
+		}
+
+		// Echo a Server-Authorization header back to the client
+		mac := webhook.NewHMAC("01JT4B3R5Z6AHJXV87QHPPKRBM", key)
+		for _, header := range token.Headers() {
+			mac.Append(header, r.Header.Get(header))
+			w.Header().Set(header, r.Header.Get(header))
+		}
+
+		if auth, err := mac.Authorization(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			w.Header().Set("Server-Authorization", auth)
+		}
+
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

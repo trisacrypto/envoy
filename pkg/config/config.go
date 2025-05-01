@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
@@ -31,9 +32,9 @@ type Config struct {
 	LogLevel        logger.LevelDecoder `split_words:"true" default:"info" desc:"specify the verbosity of logging (trace, debug, info, warn, error, fatal panic)"`
 	ConsoleLog      bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
 	DatabaseURL     string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
-	WebhookURL      string              `split_words:"true" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
 	SearchThreshold float64             `split_words:"true" default:"0.0" desc:"specify the threshold for fuzzy search (0.0 to 1.0)"`
 	Web             WebConfig           `split_words:"true"`
+	Webhook         WebhookConfig       `split_words:"true"`
 	Node            TRISAConfig         `split_words:"true"`
 	DirectorySync   DirectorySyncConfig `split_words:"true"`
 	TRP             TRPConfig           `split_words:"true"`
@@ -119,6 +120,13 @@ type SunriseConfig struct {
 	inviteURL      *url.URL
 }
 
+type WebhookConfig struct {
+	URL               string `required:"false" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
+	AuthKeyID         string `required:"false" split_words:"true" desc:"used to identify the shared secret key used for hmac authorization"`
+	AuthKeySecret     string `required:"false" split_words:"true" desc:"specify a shared secret key to use for hmac authorization"`
+	RequireServerAuth bool   `default:"false" split_words:"true" desc:"if true, the webhook server will require a valid hmac authorization header in webhook responses"`
+}
+
 // Optional region and deployment information associated with the node.
 type RegionInfo struct {
 	ID      int32  `env:"REGION_INFO_ID" desc:"the 7 digit region identifier code"`
@@ -154,13 +162,11 @@ func (c Config) Validate() (err error) {
 		return fmt.Errorf("invalid configuration: %q is not a valid gin mode", c.Mode)
 	}
 
-	if c.WebhookURL != "" {
-		if _, err = url.Parse(c.WebhookURL); err != nil {
-			return fmt.Errorf("invalid configuration: could not parse webhook url: %w", err)
-		}
+	if err = c.Web.Validate(); err != nil {
+		return err
 	}
 
-	if err = c.Web.Validate(); err != nil {
+	if err = c.Webhook.Validate(); err != nil {
 		return err
 	}
 
@@ -169,19 +175,6 @@ func (c Config) Validate() (err error) {
 
 func (c Config) GetLogLevel() zerolog.Level {
 	return zerolog.Level(c.LogLevel)
-}
-
-func (c Config) WebhookEnabled() bool {
-	return c.WebhookURL != ""
-}
-
-func (c Config) Webhook() *url.URL {
-	if c.WebhookURL == "" {
-		return nil
-	}
-
-	u, _ := url.Parse(c.WebhookURL)
-	return u
 }
 
 func (c WebConfig) Validate() (err error) {
@@ -204,6 +197,55 @@ func (c WebConfig) Validate() (err error) {
 	}
 
 	return nil
+}
+
+func (c WebhookConfig) Validate() (err error) {
+	if c.Enabled() {
+		if _, err = url.Parse(c.URL); err != nil {
+			return fmt.Errorf("invalid configuration: could not parse webhook url: %w", err)
+		}
+
+		if c.AuthKeySecret != "" {
+			if _, err := hex.DecodeString(strings.ToLower(c.AuthKeySecret)); err != nil {
+				return fmt.Errorf("invalid configuration: could not decode webhook auth key: %w", err)
+			}
+
+			if c.AuthKeyID == "" {
+				return errors.New("invalid configuration: webhook auth key id is required when auth key secret is set")
+			}
+		}
+
+		if c.RequireServerAuth && (c.AuthKeySecret == "" || c.AuthKeyID == "") {
+			return errors.New("invalid configuration: webhook server auth is enabled but no auth key is specified")
+		}
+	}
+	return nil
+}
+
+func (c WebhookConfig) Enabled() bool {
+	return c.URL != ""
+}
+
+func (c WebhookConfig) RequireClientAuth() bool {
+	return c.AuthKeySecret != "" || c.AuthKeyID != ""
+}
+
+func (c WebhookConfig) Endpoint() *url.URL {
+	if c.URL == "" {
+		return nil
+	}
+
+	u, _ := url.Parse(c.URL)
+	return u
+}
+
+func (c WebhookConfig) DecodeAuthKey() []byte {
+	if c.AuthKeySecret == "" {
+		return nil
+	}
+
+	key, _ := hex.DecodeString(strings.ToLower(c.AuthKeySecret))
+	return key
 }
 
 // Validate that the TRISA config has mTLS certificates for operation.

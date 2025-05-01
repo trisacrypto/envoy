@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/url"
 	"os"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/config"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 )
@@ -17,16 +17,18 @@ const (
 	mockScheme = "mock"
 )
 
-var MockURL *url.URL
-
-func init() {
-	MockURL, _ = url.Parse(mockURL)
+var MockConfig = config.WebhookConfig{
+	URL: mockURL,
 }
 
 // Mock implements the webhook Handler and is used for testing webhook interactions.
 type Mock struct {
 	OnCallback func(context.Context, *Request) (*Reply, error)
 	Callbacks  int
+}
+
+func NewMock() *Mock {
+	return &Mock{}
 }
 
 func (m *Mock) Callback(ctx context.Context, req *Request) (*Reply, error) {

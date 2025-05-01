@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/config"
 )
 
 const Timeout = 30 * time.Second
@@ -27,13 +27,15 @@ var (
 // New returns a webhook handler that will POST callbacks to the webhook specified by
 // the given URL. If the "mock" scheme is specified for the URL, then a MockCallback
 // handler will be returned for external testing purposes.
-func New(webhook *url.URL) Handler {
-	if webhook.Scheme == mockScheme {
+func New(conf config.WebhookConfig) Handler {
+	if conf.Endpoint().Scheme == mockScheme {
 		return &Mock{}
 	}
 
 	return &Webhook{
-		url: webhook.String(),
+		url:     conf.URL,
+		conf:    conf,
+		authKey: conf.DecodeAuthKey(),
 		client: &http.Client{
 			Timeout: Timeout,
 		},
@@ -46,8 +48,10 @@ type Handler interface {
 
 // Webhook implements the Handler to make POST requests to the webhook URL.
 type Webhook struct {
-	client *http.Client
-	url    string
+	client  *http.Client
+	url     string
+	conf    config.WebhookConfig
+	authKey []byte
 }
 
 const (
@@ -84,14 +88,34 @@ func (h *Webhook) Callback(ctx context.Context, out *Request) (in *Reply, err er
 	req.Header.Add("Accept-Language", acceptLang)
 	req.Header.Add("Accept-Encoding", acceptEncode)
 	req.Header.Add("Content-Type", contentType)
+	req.Header.Add("X-Transfer-ID", out.TransactionID.String())
+	req.Header.Add("X-Transfer-Timestamp", out.Timestamp)
+
+	if h.conf.RequireClientAuth() {
+		// Create HMAC authorization token and add it to the request
+		mac := NewHMAC(h.conf.AuthKeyID, h.authKey)
+		mac.Append("X-Transfer-ID", req.Header.Get("X-Transfer-ID"))
+		mac.Append("X-Transfer-Timestamp", req.Header.Get("X-Transfer-Timestamp"))
+
+		var auth string
+		if auth, err = mac.Authorization(); err != nil {
+			return nil, fmt.Errorf("could not create authorization header: %s", err)
+		}
+
+		req.Header.Add("Authorization", auth)
+	}
 
 	// Debug logging for the webhook POST request
 	log.Debug().
 		Str("url", req.URL.String()).
 		Str("method", req.Method).
+		Str("auth_key_id", h.conf.AuthKeyID).
+		Bool("client_auth_required", h.conf.RequireClientAuth()).
+		Bool("server_auth_required", h.conf.RequireServerAuth).
 		Int64("content_length", req.ContentLength).
 		Msg("preparing to send webhook callback")
 
+	// Execute the request
 	if rep, err = h.client.Do(req); err != nil {
 		return nil, err
 	}
@@ -106,6 +130,22 @@ func (h *Webhook) Callback(ctx context.Context, out *Request) (in *Reply, err er
 
 	if rep.StatusCode < 200 || rep.StatusCode >= 300 {
 		return nil, fmt.Errorf("could not make webhook callback: received status %s", rep.Status)
+	}
+
+	// Check server authentication if required
+	if h.conf.RequireServerAuth {
+		var token *HMACToken
+		if token, err = ParseHMAC(rep.Header.Get("Server-Authorization")); err != nil {
+			return nil, fmt.Errorf("could not parse server authorization header: %s", err)
+		}
+
+		token.Collect(rep.Header)
+
+		if valid, err := token.Verify(h.authKey); err != nil {
+			return nil, fmt.Errorf("could not verify server authorization header: %s", err)
+		} else if !valid {
+			return nil, fmt.Errorf("could not authorize webhook server")
+		}
 	}
 
 	// Check for non-content 204 response for default handling.
