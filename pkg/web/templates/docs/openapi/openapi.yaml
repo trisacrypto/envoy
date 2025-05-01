@@ -646,6 +646,7 @@ components:
             - gds
             - user
             - peer
+            - daybreak
           description: the source of the counterparty, e.g. gds means the record was
             created from the TRISA global directory service.
           example: gds
@@ -813,7 +814,7 @@ components:
           enum:
             - trisa
             - trp
-            - email
+            - sunrise
           description: Specify the travel rule protocol used to connect to the counterparty
             with; this will likely be TRP or email since TRISA counterparties
             are fetched from the GDS.
@@ -927,6 +928,7 @@ components:
             - gds
             - user
             - peer
+            - daybreak
           description: The source of the counterparty, used to filter the returned list.
           example: gds
         protocol:
@@ -1003,6 +1005,7 @@ components:
           enum:
             - gds
             - user
+            - daybreak
           example: gds
         page_size:
           type: integer
@@ -5722,6 +5725,7 @@ paths:
             enum:
               - gds
               - user
+              - daybreak
             example: gds
           example: gds
       responses:

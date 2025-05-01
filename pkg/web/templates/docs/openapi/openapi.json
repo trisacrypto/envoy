@@ -767,7 +767,8 @@
             "enum": [
               "gds",
               "user",
-              "peer"
+              "peer",
+              "daybreak"
             ],
             "description": "the source of the counterparty, e.g. gds means the record was created from the TRISA global directory service.",
             "example": "gds"
@@ -1073,7 +1074,8 @@
             "enum": [
               "gds",
               "user",
-              "peer"
+              "peer",
+              "daybreak"
             ],
             "description": "The source of the counterparty, used to filter the returned list.",
             "example": "gds"
@@ -1153,7 +1155,8 @@
             "description": "The counterparty list filtered by the source/directory of the counterparty.",
             "enum": [
               "gds",
-              "user"
+              "user",
+              "daybreak"
             ],
             "example": "gds"
           },
