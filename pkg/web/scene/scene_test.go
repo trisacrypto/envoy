@@ -69,7 +69,7 @@ func TestNew(t *testing.T) {
 			data := scene.New(CreateContext())
 
 			require.Contains(t, data, scene.SunriseEnabled, "expected sunrise enabled to be set with conf")
-			require.True(t, data[scene.SunriseEnabled].(bool), "expected sunrise enabled to default to true")
+			require.False(t, data[scene.SunriseEnabled].(bool), "expected sunrise enabled to default to false because email is unavailable by default")
 
 			require.Contains(t, data, scene.DaybreakEnabled, "expected daybreak enabled to be set with conf")
 			require.False(t, data[scene.DaybreakEnabled].(bool), "expected daybreak enabled to default to false")
