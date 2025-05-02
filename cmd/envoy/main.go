@@ -609,6 +609,9 @@ func daybreakImport(c *cli.Context) (err error) {
 								log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
 								continue
 							}
+
+							// log a message just in case this causes issues down the road
+							log.Warn().Err(err).Msg(fmt.Sprintf("A Daybreak Counterparty was not returned in the 'source info' step but exists in the db and we updated it (this is a rare edge case): '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
 						}
 					} else {
 						log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Counterparty: '%s' (DirectoryID: '%s')", modelCounterparty.Name, modelCounterparty.DirectoryID.String))
