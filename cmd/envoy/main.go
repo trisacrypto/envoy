@@ -535,7 +535,7 @@ func daybreakImport(c *cli.Context) (err error) {
 	}
 
 	// db context
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 99995*time.Second)
 	defer cancel()
 
 	// Load counterparty IDs currently in the DB and put into a map
@@ -574,46 +574,50 @@ func daybreakImport(c *cli.Context) (err error) {
 			log.Warn().Msg(fmt.Sprintf("Protocol must be 'sunrise' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
+		if modelCounterparty.RegisteredDirectory.Valid && modelCounterparty.RegisteredDirectory.String != "daybreak.rotational.io" {
+			log.Warn().Msg(fmt.Sprintf("RegisteredDirectory must be 'daybreak.rotational.io' to import: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			continue
+		}
 
 		if modelCounterparty.DirectoryID.Valid {
 			cSrc, ok := srcMap[modelCounterparty.DirectoryID.String]
 			if ok {
 				// counterparty is present in DB, so we update it
 				modelCounterparty.ID = cSrc.ID
-				if err = db.UpdateCounterparty(ctx, modelCounterparty); err != nil {
+				apiCounterparty.ID = cSrc.ID
+				if err = UpdateCounterpartyAndContacts(ctx, modelCounterparty, apiCounterparty); err != nil {
 					log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
 					continue
-				}
-
-				// update or create contacts (not performed in `UpdateCounterparty()`)
-				for _, apiContact := range apiCounterparty.Contacts {
-					// convert the api.Contact to a model.Contact
-					var modelContact *models.Contact
-					if modelContact, err = apiContact.Model(modelCounterparty); err != nil {
-						log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Contact to a model: '%s'", apiContact.Name))
-						continue
-					}
-
-					// create the contact, updating any already-existing contacts
-					if err = db.CreateContact(ctx, modelContact); err != nil {
-						if errors.Is(err, dberr.ErrAlreadyExists) {
-							//TODO: get the contact's ID and update the contact (for now we ignore updates for simplicity)
-							continue
-						} else {
-							log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
-							continue
-						}
-					}
 				}
 			} else {
 				// create the counterparty and all contacts together
 				if err = db.CreateCounterparty(ctx, modelCounterparty); err != nil {
-					log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
-					continue
+					if errors.Is(err, dberr.ErrAlreadyExists) {
+						// try to lookup this counterparty
+						var cParty *models.Counterparty
+						if cParty, err = db.LookupCounterparty(ctx, "directory_id", modelCounterparty.DirectoryID.String); err != nil {
+							log.Warn().Err(err).Msg(fmt.Sprintf("Error when looking up Counterparty: '%s' (DirectoryID: '%s')", modelCounterparty.Name, modelCounterparty.DirectoryID.String))
+							continue
+						}
+
+						// counterparty was found by the DirectoryID, see if it's supposed to be a "daybreak" based on the RegisteredDirectory
+						if cParty.RegisteredDirectory.Valid && cParty.RegisteredDirectory.String == "daybreak.rotational.io" {
+							// it is, so try to update it
+							modelCounterparty.ID = cParty.ID
+							apiCounterparty.ID = cParty.ID
+							if err = UpdateCounterpartyAndContacts(ctx, modelCounterparty, apiCounterparty); err != nil {
+								log.Warn().Err(err).Msg(fmt.Sprintf("Error when updating Counterparty: '%s' (ID: '%s')", modelCounterparty.Name, modelCounterparty.ID))
+								continue
+							}
+						}
+					} else {
+						log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Counterparty: '%s' (DirectoryID: '%s')", modelCounterparty.Name, modelCounterparty.DirectoryID.String))
+						continue
+					}
 				}
 			}
 		} else {
-			log.Warn().Msg(fmt.Sprintf("The DirectoryID of the model Counterparty was not valid: '%s' (DirID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
+			log.Warn().Msg(fmt.Sprintf("The DirectoryID of the model Counterparty was not valid: '%s' (DirectoryID: '%s')", apiCounterparty.Name, apiCounterparty.DirectoryID))
 			continue
 		}
 
@@ -780,4 +784,35 @@ func valueForColumn(table, column string) interface{} {
 	}
 
 	panic(fmt.Errorf("unknown type for %s.%s", table, column))
+}
+
+func UpdateCounterpartyAndContacts(ctx context.Context, modelCounterparty *models.Counterparty, apiCounterparty *api.Counterparty) error {
+	// update the counterparty
+	if err := db.UpdateCounterparty(ctx, modelCounterparty); err != nil {
+		return err
+	}
+
+	// update or create contacts (not performed in `UpdateCounterparty()`)
+	for _, apiContact := range apiCounterparty.Contacts {
+		// convert the api.Contact to a model.Contact
+		var modelContact *models.Contact
+		var err error
+		if modelContact, err = apiContact.Model(modelCounterparty); err != nil {
+			log.Warn().Err(err).Msg(fmt.Sprintf("Error when converting Contact to a model: '%s'", apiContact.Name))
+			continue
+		}
+
+		// create the contact, updating any already-existing contacts
+		if err = db.CreateContact(ctx, modelContact); err != nil {
+			if errors.Is(err, dberr.ErrAlreadyExists) {
+				//TODO: get the contact's ID and update the contact (this improvement has a ticket)
+				continue
+			} else {
+				log.Warn().Err(err).Msg(fmt.Sprintf("Error when creating Contact: '%s' (CounterpartyID: '%s')", modelContact.Name, modelCounterparty.ID))
+				continue
+			}
+		}
+	}
+
+	return nil
 }
