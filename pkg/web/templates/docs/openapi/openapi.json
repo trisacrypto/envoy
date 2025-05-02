@@ -7207,7 +7207,8 @@
               "type": "string",
               "enum": [
                 "gds",
-                "user"
+                "user",
+                "daybreak"
               ],
               "example": "gds"
             },
