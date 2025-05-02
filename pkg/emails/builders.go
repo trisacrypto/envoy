@@ -62,3 +62,9 @@ type VerifyEmailData struct {
 	SupportEmail   string
 	ComplianceName string
 }
+
+//===========================================================================
+// Reset Password Email
+//===========================================================================
+
+//TODO

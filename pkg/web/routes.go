@@ -97,6 +97,7 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/reset-password", s.ResetPasswordPage)
 	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
+	//TODO: "/reset-password/verification" for when they click the link
 
 	// Web UI Routes (Dashboards and Pages) - Authenticated
 	ui := s.router.Group("", authenticate)

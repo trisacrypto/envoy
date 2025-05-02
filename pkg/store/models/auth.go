@@ -50,6 +50,8 @@ type UserPageInfo struct {
 	Role string `json:"role,omitempty"`
 }
 
+//TODO add a model for a "reset password request" for a user ID
+
 //===========================================================================
 // Associated Fields and Models
 //===========================================================================

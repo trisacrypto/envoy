@@ -21,3 +21,5 @@ func TestVerifyURL(t *testing.T) {
 
 	require.Equal(t, "https://sunrise.example.com/v1/sunrise/verify?token=YWJjMTIz", invite.VerifyURL())
 }
+
+//TODO: reset password builder tests

@@ -454,3 +454,5 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	// Redirect to reset-password success page
 	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
 }
+
+//TODO: reset password verification (for when they click the link) (see sunrise.go for verification email code)

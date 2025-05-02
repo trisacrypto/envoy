@@ -508,3 +508,5 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 
 	return permissions, dbe(rows.Err())
 }
+
+//TODO add code for the "reset password request" for a user ID
