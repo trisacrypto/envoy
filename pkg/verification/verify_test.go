@@ -1,19 +1,18 @@
-package sunrise_test
+package verification_test
 
 import (
 	"bytes"
 	"testing"
 	"time"
 
-	"github.com/trisacrypto/envoy/pkg/sunrise"
-
 	"github.com/stretchr/testify/require"
+	"github.com/trisacrypto/envoy/pkg/verification"
 	"go.rtnl.ai/ulid"
 )
 
 func TestVerification(t *testing.T) {
 	// Generate verification token and signature
-	verify, signature, err := sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(1*time.Hour)).Sign()
+	verify, signature, err := verification.NewToken(ulid.MakeSecure(), time.Now().Add(1*time.Hour)).Sign()
 	require.NoError(t, err, "could not sign token")
 
 	// Create tokens string to send to user; assume that the signature is saved to db and loaded again
@@ -24,11 +23,11 @@ func TestVerification(t *testing.T) {
 	require.NoError(t, err, "could not marshal signature")
 
 	// Parse the incoming token from the user
-	token, err := sunrise.ParseVerification(tks)
+	token, err := verification.ParseVerification(tks)
 	require.NoError(t, err, "could not parse verification token")
 
 	// Pretend to load the signature from the database by unmarshaling it
-	signature = &sunrise.SignedToken{}
+	signature = &verification.SignedToken{}
 	err = signature.UnmarshalBinary(dbd)
 	require.NoError(t, err, "could not unmarshal signature")
 
@@ -40,13 +39,13 @@ func TestVerification(t *testing.T) {
 
 func TestNewToken(t *testing.T) {
 	t.Run("DefaultExpiration", func(t *testing.T) {
-		token := sunrise.NewToken(ulid.MakeSecure(), time.Time{})
+		token := verification.NewToken(ulid.MakeSecure(), time.Time{})
 		require.False(t, token.Expiration.IsZero(), "expected an expiration timestamp to be set")
 		require.True(t, token.Expiration.After(time.Now()), "expiration is not set in the future")
 	})
 
 	t.Run("NonceGeneration", func(t *testing.T) {
-		token := sunrise.NewToken(ulid.MakeSecure(), time.Now())
+		token := verification.NewToken(ulid.MakeSecure(), time.Now())
 		data, err := token.MarshalBinary()
 		require.NoError(t, err, "could not marshal binary")
 
@@ -55,13 +54,13 @@ func TestNewToken(t *testing.T) {
 	})
 
 	t.Run("Randomness", func(t *testing.T) {
-		sunriseID := ulid.MakeSecure()
+		recordID := ulid.MakeSecure()
 		expiration := time.Now().Add(1 * time.Hour)
 
-		// Generate 16 tokens with the same sunriseID and expiration timestamp
-		tokens := make([]*sunrise.Token, 0, 16)
+		// Generate 16 tokens with the same recordID and expiration timestamp
+		tokens := make([]*verification.Token, 0, 16)
 		for i := 0; i < 16; i++ {
-			tokens = append(tokens, sunrise.NewToken(sunriseID, expiration))
+			tokens = append(tokens, verification.NewToken(recordID, expiration))
 		}
 
 		// Ensure that all marshaled tokens are different (because of the nonce)
@@ -87,19 +86,19 @@ func TestNewToken(t *testing.T) {
 
 func TestTokenExpiration(t *testing.T) {
 	testCases := []struct {
-		token  *sunrise.Token
+		token  *verification.Token
 		assert require.BoolAssertionFunc
 	}{
 		{
-			sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(7*24*time.Hour)),
+			verification.NewToken(ulid.MakeSecure(), time.Now().Add(7*24*time.Hour)),
 			require.False,
 		},
 		{
-			sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(-7*24*time.Hour)),
+			verification.NewToken(ulid.MakeSecure(), time.Now().Add(-7*24*time.Hour)),
 			require.True,
 		},
 		{
-			&sunrise.Token{SunriseID: ulid.MakeSecure()},
+			&verification.Token{RecordID: ulid.MakeSecure()},
 			require.True,
 		},
 	}
@@ -111,7 +110,7 @@ func TestTokenExpiration(t *testing.T) {
 
 func TestTokenSign(t *testing.T) {
 	t.Run("Happy", func(t *testing.T) {
-		token := sunrise.NewToken(ulid.MakeSecure(), time.Now())
+		token := verification.NewToken(ulid.MakeSecure(), time.Now())
 		verification, signature, err := token.Sign()
 		require.NoError(t, err, "could not sign token")
 		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte ulid + 64 byte secret)")
@@ -119,7 +118,7 @@ func TestTokenSign(t *testing.T) {
 	})
 
 	t.Run("WithoutNonce", func(t *testing.T) {
-		token := &sunrise.Token{SunriseID: ulid.MakeSecure(), Expiration: time.Now()}
+		token := &verification.Token{RecordID: ulid.MakeSecure(), Expiration: time.Now()}
 		verification, signature, err := token.Sign()
 		require.NoError(t, err, "could not sign token")
 		require.Len(t, verification, 16+64, "unexpected length of verification token (16 byte ulid + 64 byte secret)")
@@ -127,19 +126,19 @@ func TestTokenSign(t *testing.T) {
 	})
 
 	t.Run("VerificationToken", func(t *testing.T) {
-		sunriseID := ulid.MakeSecure()
-		verify, _, err := sunrise.NewToken(sunriseID, time.Time{}).Sign()
+		recordID := ulid.MakeSecure()
+		verify, _, err := verification.NewToken(recordID, time.Time{}).Sign()
 		require.NoError(t, err, "could not sign token")
 
-		require.Equal(t, sunriseID, verify.SunriseID(), "expected sunrise ID to match")
+		require.Equal(t, recordID, verify.RecordID(), "expected record ID to match")
 		require.Len(t, verify.Secret(), 64, "expected secret to be 64 bytes long")
 	})
 
 	t.Run("Sad", func(t *testing.T) {
-		testCases := []*sunrise.Token{
+		testCases := []*verification.Token{
 			{},
-			{SunriseID: ulid.MakeSecure()},
-			{SunriseID: ulid.Null, Expiration: time.Now()},
+			{RecordID: ulid.MakeSecure()},
+			{RecordID: ulid.Null, Expiration: time.Now()},
 		}
 
 		for i, token := range testCases {
@@ -152,12 +151,12 @@ func TestTokenSign(t *testing.T) {
 
 	t.Run("SecretRandomness", func(t *testing.T) {
 		// Create a token with constant nonce, ulid, and expiration
-		token := sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(1*time.Hour))
+		token := verification.NewToken(ulid.MakeSecure(), time.Now().Add(1*time.Hour))
 
 		// Create 16 verification tokens from the same token
 
-		tokens := make([]sunrise.VerificationToken, 0, 16)
-		signatures := make([]*sunrise.SignedToken, 0, 16)
+		tokens := make([]verification.VerificationToken, 0, 16)
+		signatures := make([]*verification.SignedToken, 0, 16)
 		for i := 0; i < 16; i++ {
 			verify, signed, err := token.Sign()
 			require.NoError(t, err, "could not sign token")
@@ -185,10 +184,10 @@ func TestTokenSign(t *testing.T) {
 
 func TestTokenBinary(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
-		testCases := []*sunrise.Token{
-			sunrise.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
-			sunrise.NewToken(ulid.MakeSecure(), time.Now()),
-			sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(312391*time.Hour)),
+		testCases := []*verification.Token{
+			verification.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
+			verification.NewToken(ulid.MakeSecure(), time.Now()),
+			verification.NewToken(ulid.MakeSecure(), time.Now().Add(312391*time.Hour)),
 		}
 
 		for i, token := range testCases {
@@ -196,7 +195,7 @@ func TestTokenBinary(t *testing.T) {
 			require.NotNil(t, data, "test case %d returned nil data", i)
 			require.NoError(t, err, "test case %d errored on marshal", i)
 
-			cmpt := &sunrise.Token{}
+			cmpt := &verification.Token{}
 			err = cmpt.UnmarshalBinary(data)
 			require.NoError(t, err, "test case %d errored on unmarshal", i)
 
@@ -206,16 +205,16 @@ func TestTokenBinary(t *testing.T) {
 
 	t.Run("BadMarshal", func(t *testing.T) {
 		testCases := []struct {
-			token *sunrise.Token
+			token *verification.Token
 			err   error
 		}{
 			{
-				sunrise.NewToken(ulid.Null, time.Now()),
-				sunrise.ErrInvalidSunriseID,
+				verification.NewToken(ulid.Null, time.Now()),
+				verification.ErrInvalidRecordID,
 			},
 			{
-				&sunrise.Token{SunriseID: ulid.MakeSecure(), Expiration: time.Time{}},
-				sunrise.ErrInvalidExpiration,
+				&verification.Token{RecordID: ulid.MakeSecure(), Expiration: time.Time{}},
+				verification.ErrInvalidExpiration,
 			},
 		}
 
@@ -233,19 +232,19 @@ func TestTokenBinary(t *testing.T) {
 		}{
 			{
 				nil,
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{},
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{0x1, 0x2, 0x3, 0x4, 0xf, 0xfe},
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				bytes.Repeat([]byte{0x1, 0x2, 0x3, 0x4, 0xf, 0xfe}, 64),
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{
@@ -256,7 +255,7 @@ func TestTokenBinary(t *testing.T) {
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d, 0x15,
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d, 0x15,
 				},
-				sunrise.ErrDecode,
+				verification.ErrDecode,
 			},
 			{
 				[]byte{
@@ -267,12 +266,12 @@ func TestTokenBinary(t *testing.T) {
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d, 0x15,
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d,
 				},
-				sunrise.ErrInvalidNonce,
+				verification.ErrInvalidNonce,
 			},
 		}
 
 		for i, tc := range testCases {
-			token := &sunrise.Token{}
+			token := &verification.Token{}
 			err := token.UnmarshalBinary(tc.data)
 			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
@@ -281,10 +280,10 @@ func TestTokenBinary(t *testing.T) {
 
 func TestSignedTokenBinary(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
-		testCases := []*sunrise.Token{
-			sunrise.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
-			sunrise.NewToken(ulid.MakeSecure(), time.Now()),
-			sunrise.NewToken(ulid.MakeSecure(), time.Now().Add(312391*time.Hour)),
+		testCases := []*verification.Token{
+			verification.NewToken(ulid.MustParse("01JC48RSVNS30RJ7GDATFXDHD1"), time.Date(1994, 12, 20, 15, 21, 1, 3213, time.UTC)),
+			verification.NewToken(ulid.MakeSecure(), time.Now()),
+			verification.NewToken(ulid.MakeSecure(), time.Now().Add(312391*time.Hour)),
 		}
 
 		for i, token := range testCases {
@@ -295,7 +294,7 @@ func TestSignedTokenBinary(t *testing.T) {
 			require.NotNil(t, data, "test case %d returned nil data", i)
 			require.NoError(t, err, "test case %d errored on marshal", i)
 
-			cmpt := &sunrise.SignedToken{}
+			cmpt := &verification.SignedToken{}
 			err = cmpt.UnmarshalBinary(data)
 			require.NoError(t, err, "test case %d errored on unmarshal", i)
 
@@ -305,12 +304,12 @@ func TestSignedTokenBinary(t *testing.T) {
 
 	t.Run("BadMarshal", func(t *testing.T) {
 		testCases := []struct {
-			token *sunrise.SignedToken
+			token *verification.SignedToken
 			err   error
 		}{
 			{
-				&sunrise.SignedToken{},
-				sunrise.ErrInvalidSignature,
+				&verification.SignedToken{},
+				verification.ErrInvalidSignature,
 			},
 		}
 
@@ -328,19 +327,19 @@ func TestSignedTokenBinary(t *testing.T) {
 		}{
 			{
 				nil,
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{},
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{0x1, 0x2, 0x3, 0x4, 0xf, 0xfe},
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				bytes.Repeat([]byte{0x1, 0x2, 0x3, 0x4, 0xf, 0xfe}, 64),
-				sunrise.ErrSize,
+				verification.ErrSize,
 			},
 			{
 				[]byte{
@@ -353,12 +352,12 @@ func TestSignedTokenBinary(t *testing.T) {
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d, 0x15,
 					0x22, 0x1, 0x33, 0x41, 0xd3, 0x7a, 0x12, 0xc2, 0xab, 0x41, 0x0, 0xfc, 0xe1, 0x7b, 0x7d, 0x15,
 				},
-				sunrise.ErrInvalidSignature,
+				verification.ErrInvalidSignature,
 			},
 		}
 
 		for i, tc := range testCases {
-			token := &sunrise.SignedToken{}
+			token := &verification.SignedToken{}
 			err := token.UnmarshalBinary(tc.data)
 			require.ErrorIs(t, err, tc.err, "test case %d returned the wrong error", i)
 		}
@@ -368,9 +367,9 @@ func TestSignedTokenBinary(t *testing.T) {
 func TestVerificationToken(t *testing.T) {
 	t.Run("Static", func(t *testing.T) {
 		tks := "k0ZmbMJcQeyFtAtZ0_2EXMHwJ1ufcB4831ozVeHzAcVpyKybKzelG0l9qbJ4K5IUjaGSx5EdJ_9rSR8RVry3g13DJ-Dh4NktFFSY0ULIkMY"
-		token, err := sunrise.ParseVerification(tks)
+		token, err := verification.ParseVerification(tks)
 		require.NoError(t, err, "could not parse good verification token")
-		require.Equal(t, token.SunriseID(), ulid.MustParse("4K8SK6SGJW87P8BD0BB79ZV12W"), "unexpected sunrise id")
+		require.Equal(t, token.RecordID(), ulid.MustParse("4K8SK6SGJW87P8BD0BB79ZV12W"), "unexpected record id")
 
 		secret := []byte{
 			0xc1, 0xf0, 0x27, 0x5b, 0x9f, 0x70, 0x1e, 0x3c, 0xdf, 0x5a, 0x33, 0x55, 0xe1, 0xf3, 0x1, 0xc5,
@@ -384,14 +383,14 @@ func TestVerificationToken(t *testing.T) {
 
 	t.Run("TooShort", func(t *testing.T) {
 		tks := "k0ZmbMJcQeyFtAtZ0_2EXMHwJ1ufcB4831ozVeHzAcVpyKybKzelG0l9qbJ4K5IUjaGSx5EdJ_"
-		token, err := sunrise.ParseVerification(tks)
-		require.ErrorIs(t, err, sunrise.ErrSize, "expected size parsing error")
+		token, err := verification.ParseVerification(tks)
+		require.ErrorIs(t, err, verification.ErrSize, "expected size parsing error")
 		require.Nil(t, token, "expected nil token returned")
 	})
 
 	t.Run("BadDecode", func(t *testing.T) {
 		tks := "k0ZmbMJcQeyFtAtZ0_2}XMHwJ1ufcB4831ozVeHzAcVpyKybKzelG0l9qbJ4K5IUjaGSx5EdJ_"
-		token, err := sunrise.ParseVerification(tks)
+		token, err := verification.ParseVerification(tks)
 		require.EqualError(t, err, "illegal base64 data at input byte 19", "expected base64 parsing error")
 		require.Nil(t, token, "expected nil token returned")
 	})

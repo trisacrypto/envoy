@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/emails"
-	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/envoy/pkg/verification"
 )
 
 func TestVerifyURL(t *testing.T) {
@@ -16,7 +16,7 @@ func TestVerifyURL(t *testing.T) {
 			Host:   "sunrise.example.com",
 			Path:   "/v1/sunrise/verify",
 		},
-		Token: sunrise.VerificationToken("abc123"),
+		Token: verification.VerificationToken("abc123"),
 	}
 
 	require.Equal(t, "https://sunrise.example.com/v1/sunrise/verify?token=YWJjMTIz", invite.VerifyURL())
