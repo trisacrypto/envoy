@@ -265,6 +265,7 @@ func TestCounterpartyQueryValidate(t *testing.T) {
 		}{
 			{"gds"},
 			{"user"},
+			{"daybreak"},
 			{""},
 		}
 
@@ -280,8 +281,8 @@ func TestCounterpartyQueryValidate(t *testing.T) {
 			source string
 			err    string
 		}{
-			{"foo", "invalid field source: must be one of gds or user"},
-			{"-1", "invalid field source: must be one of gds or user"},
+			{"foo", "invalid field source: must be one of gds, user, or daybreak"},
+			{"-1", "invalid field source: must be one of gds, user, or daybreak"},
 		}
 
 		for i, tc := range testCases {
