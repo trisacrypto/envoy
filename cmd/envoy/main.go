@@ -535,7 +535,7 @@ func daybreakImport(c *cli.Context) (err error) {
 	}
 
 	// db context
-	ctx, cancel := context.WithTimeout(context.Background(), 99995*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Load counterparty IDs currently in the DB and put into a map
