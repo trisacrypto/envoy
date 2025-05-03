@@ -227,8 +227,8 @@ func TestTRISAConfig(t *testing.T) {
 		BindAddr:    ":9300",
 		Directory: config.DirectoryConfig{
 			Insecure:        false,
-			Endpoint:        "api.trisatest.net:443",
-			MembersEndpoint: "members.trisatest.net:443",
+			Endpoint:        "api.testnet.directory:443",
+			MembersEndpoint: "members.testnet.directory:443",
 		},
 	}
 
@@ -255,8 +255,8 @@ func TestCertsConfigCache(t *testing.T) {
 		BindAddr:    ":9300",
 		Directory: config.DirectoryConfig{
 			Insecure:        false,
-			Endpoint:        "api.trisatest.net:443",
-			MembersEndpoint: "members.trisatest.net:443",
+			Endpoint:        "api.testnet.directory:443",
+			MembersEndpoint: "members.testnet.directory:443",
 		},
 	}
 
@@ -357,14 +357,14 @@ func TestDirectoryConfig(t *testing.T) {
 		{":443", ""},
 		{"bufconn", "bufconn"},
 		{"testing:123", "testing"},
-		{"trisatest.net", "trisatest.net"},
-		{"trisatest.net:456", "trisatest.net"},
-		{"api.trisatest.net", "trisatest.net"},
-		{"api.trisatest.net:443", "trisatest.net"},
-		{"api.vaspdirectory.net", "vaspdirectory.net"},
-		{"api.vaspdirectory.net:443", "vaspdirectory.net"},
-		{"testing.api.vaspdirectory.net", "vaspdirectory.net"},
-		{"testing.api.vaspdirectory.net:443", "vaspdirectory.net"},
+		{"testnet.directory", "testnet.directory"},
+		{"testnet.directory:456", "testnet.directory"},
+		{"api.testnet.directory", "testnet.directory"},
+		{"api.testnet.directory:443", "testnet.directory"},
+		{"api.trisa.directory", "trisa.directory"},
+		{"api.trisa.directory:443", "trisa.directory"},
+		{"testing.api.trisa.directory", "trisa.directory"},
+		{"testing.api.trisa.directory:443", "trisa.directory"},
 	}
 
 	for i, tc := range testCases {

@@ -40,15 +40,15 @@ func TestFromContext(t *testing.T) {
 	// Make assertions about what is being looked up in the GDS
 	mgds.GetMock().OnLookup = func(ctx context.Context, in *gds.LookupRequest) (out *gds.LookupReply, err error) {
 		// Assert that the expected common name is being looked up
-		require.Equal(t, "alice.vaspbot.net", in.CommonName, "unexpected common name in lookup request")
+		require.Equal(t, "alice.vaspbot.com", in.CommonName, "unexpected common name in lookup request")
 		require.Empty(t, in.Id, "unexpected id in lookup request")
 		require.Empty(t, in.RegisteredDirectory, "unexpected registered directory in lookup request")
 
 		return &gds.LookupReply{
 			Id:                  "bd6bf155-86a6-41c9-90e5-1d6a4797b160",
 			RegisteredDirectory: "trisatest.dev",
-			CommonName:          "alice.vaspbot.net",
-			Endpoint:            "alice.vaspbot.net:443",
+			CommonName:          "alice.vaspbot.com",
+			Endpoint:            "alice.vaspbot.com:443",
 			Name:                "Alice VASP",
 			Country:             "US",
 			VerifiedOn:          "2024-03-10T08:23:02Z",
@@ -68,7 +68,7 @@ func TestFromContext(t *testing.T) {
 
 	// Connect a TRISANetwork client to the authenticated mock
 	opts = append(opts, grpc.WithContextDialer(bufnet.Dialer))
-	cc, err := grpc.NewClient("alice.vaspbot.net", opts...)
+	cc, err := grpc.NewClient("alice.vaspbot.com", opts...)
 	require.NoError(t, err, "could not dial authenticated remote peer mock")
 
 	// Setup to get the context from the remote dialer
@@ -85,8 +85,8 @@ func TestFromContext(t *testing.T) {
 			return nil, errors.Join(errors.New("could not get peer info"), err)
 		}
 
-		if info.CommonName != "alice.vaspbot.net" {
-			return nil, fmt.Errorf("unknown common name %q expected alice.vaspbot.net", info.CommonName)
+		if info.CommonName != "alice.vaspbot.com" {
+			return nil, fmt.Errorf("unknown common name %q expected alice.vaspbot.com", info.CommonName)
 		}
 
 		// Don't return anything
@@ -119,16 +119,16 @@ func TestLookupPeer(t *testing.T) {
 	require.NoError(t, err, "could not setup GDS mock with fixture")
 
 	require.Equal(t, 0, trisaActual.NPeers(), "peers cache is not empty")
-	peer, err := trisa.LookupPeer(context.TODO(), "alice.vaspbot.net", "")
+	peer, err := trisa.LookupPeer(context.TODO(), "alice.vaspbot.com", "")
 	require.NoError(t, err, "could not lookup peer")
-	require.Equal(t, "alice.vaspbot.net", peer.Name(), "unexpected peer returned")
+	require.Equal(t, "alice.vaspbot.com", peer.Name(), "unexpected peer returned")
 	require.Equal(t, 1, trisaActual.NPeers(), "peers cache should contain one item")
 	require.Equal(t, 1, mgds.GetMock().Calls[dmock.LookupRPC], "unexpected number of GDS lookup calls")
 
 	// Test cached lookup by common name for alpha peer
-	peer, err = trisa.LookupPeer(context.TODO(), "alice.vaspbot.net", "")
+	peer, err = trisa.LookupPeer(context.TODO(), "alice.vaspbot.com", "")
 	require.NoError(t, err, "could not lookup peer")
-	require.Equal(t, "alice.vaspbot.net", peer.Name(), "unexpected peer returned")
+	require.Equal(t, "alice.vaspbot.com", peer.Name(), "unexpected peer returned")
 	require.Equal(t, 1, trisaActual.NPeers(), "peers cache should not have increased on next call")
 	require.Equal(t, 1, mgds.GetMock().Calls[dmock.LookupRPC], "cache should have prevented GDS Lookup")
 
@@ -138,21 +138,21 @@ func TestLookupPeer(t *testing.T) {
 
 	peer, err = trisa.LookupPeer(context.TODO(), "d5699a22-e1f5-4952-afb0-81c447749e6e", "")
 	require.NoError(t, err, "could not lookup peer")
-	require.Equal(t, "bob.vaspbot.net", peer.Name(), "unexpected peer returned")
+	require.Equal(t, "bob.vaspbot.com", peer.Name(), "unexpected peer returned")
 	require.Equal(t, 2, trisaActual.NPeers(), "peers cache should contain two item")
 	require.Equal(t, 2, mgds.GetMock().Calls[dmock.LookupRPC], "unexpected number of GDS lookup calls")
 
 	// Test cached lookup by common name for bravo peer
 	// NOTE: currently, executing another request by UUID would trigger another GDS lookup
-	peer, err = trisa.LookupPeer(context.TODO(), "bob.vaspbot.net", "")
+	peer, err = trisa.LookupPeer(context.TODO(), "bob.vaspbot.com", "")
 	require.NoError(t, err, "could not lookup peer")
-	require.Equal(t, "bob.vaspbot.net", peer.Name(), "unexpected peer returned")
+	require.Equal(t, "bob.vaspbot.com", peer.Name(), "unexpected peer returned")
 	require.Equal(t, 2, trisaActual.NPeers(), "peers cache should not have increased on next call")
 	require.Equal(t, 2, mgds.GetMock().Calls[dmock.LookupRPC], "cache should have prevented GDS Lookup")
 
 	// Check cache at end of testing
-	require.True(t, trisaActual.Contains("alice.vaspbot.net"), "missing alpha")
-	require.True(t, trisaActual.Contains("bob.vaspbot.net"), "missing bravo")
+	require.True(t, trisaActual.Contains("alice.vaspbot.com"), "missing alpha")
+	require.True(t, trisaActual.Contains("bob.vaspbot.com"), "missing bravo")
 }
 
 func TestLookupPeerInput(t *testing.T) {
@@ -210,7 +210,7 @@ func TestLookupPeerErrors(t *testing.T) {
 	err = mgds.GetMock().UseError(dmock.LookupRPC, codes.NotFound, "vasp not found")
 	require.NoError(t, err, "could not setup GDS mock with error")
 
-	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.net", "")
+	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.com", "")
 	require.EqualError(t, err, "rpc error: code = NotFound desc = vasp not found", "unexpected error returned")
 
 	// Test error in response from directory
@@ -220,18 +220,18 @@ func TestLookupPeerErrors(t *testing.T) {
 		}, nil
 	}
 
-	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.net", "")
+	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.com", "")
 	require.EqualError(t, err, "[42] whoopsie", "unexpected error returned")
 
 	// Test bad info returned, cannot create peer
 	mgds.GetMock().OnLookup = func(ctx context.Context, in *gds.LookupRequest) (*gds.LookupReply, error) {
 		return &gds.LookupReply{
-			CommonName: "bob.vaspbot.net",
+			CommonName: "bob.vaspbot.com",
 			VerifiedOn: "October 4, 2022",
 		}, nil
 	}
 
-	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.net", "")
+	_, err = trisa.LookupPeer(ctx, "bob.vaspbot.com", "")
 	require.EqualError(t, err, "peer does not have an endpoint to connect on", "unexpected error returned")
 }
 
@@ -258,8 +258,8 @@ func TestRefresh(t *testing.T) {
 
 	require.Equal(t, 2, trisaActual.NPeers(), "peers cache is not empty")
 	require.Equal(t, 1, mgds.GetMock().Calls[dmock.ListRPC], "unexpected number of GDS list calls")
-	require.True(t, trisaActual.Contains("alice.vaspbot.net"), "missing alpha")
-	require.True(t, trisaActual.Contains("bob.vaspbot.net"), "missing bravo")
+	require.True(t, trisaActual.Contains("alice.vaspbot.com"), "missing alpha")
+	require.True(t, trisaActual.Contains("bob.vaspbot.com"), "missing bravo")
 }
 
 func TestString(t *testing.T) {

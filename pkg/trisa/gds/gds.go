@@ -35,8 +35,8 @@ func New(conf config.TRISAConfig) *GDS {
 }
 
 // String returns the name of the directory service being connected to by parsing the
-// root domain from the endpoint and stripping the port. E.g. api.trisatest.net:443
-// becomes trisatest.net and localhost:4436 becomes localhost.
+// root domain from the endpoint and stripping the port. E.g. api.testnet.directory:443
+// becomes testnet.directory and localhost:4436 becomes localhost.
 func (g *GDS) String() string {
 	return g.conf.Directory.Network()
 }

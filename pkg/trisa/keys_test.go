@@ -27,15 +27,15 @@ func (s *trisaTestSuite) TestKeyExchange() {
 	require.Equal(int64(3), rep.Version)
 	require.Equal("SHA256-RSA", rep.SignatureAlgorithm)
 	require.Equal("RSA", rep.PublicKeyAlgorithm)
-	require.Equal("2024-03-28T21:44:43Z", rep.NotBefore)
-	require.Equal("2054-03-21T21:44:43Z", rep.NotAfter)
+	require.Equal("2025-05-03T15:26:27Z", rep.NotBefore)
+	require.Equal("2055-04-26T15:26:27Z", rep.NotAfter)
 	require.False(rep.Revoked)
 
 	checksum := md5.Sum(rep.Signature)
-	require.Equal("B+XEC4iNvTamg+pG9BFvuQ==", base64.StdEncoding.EncodeToString(checksum[:]))
+	require.Equal("G3u+xTl6HMaQdP8tUmNb0g==", base64.StdEncoding.EncodeToString(checksum[:]))
 
 	checksum = md5.Sum(rep.Data)
-	require.Equal("C4CpBT2MHivJQ/Mw2jW8yw==", base64.StdEncoding.EncodeToString(checksum[:]))
+	require.Equal("fQ0GhWCvdoigJfc5EIT+uw==", base64.StdEncoding.EncodeToString(checksum[:]))
 
 	// Check to ensure that the key was cached
 	chain, err := s.network.KeyChain()

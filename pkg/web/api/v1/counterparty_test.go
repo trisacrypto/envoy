@@ -40,7 +40,7 @@ func TestCounterpartyValidate(t *testing.T) {
 
 	t.Run("RegisteredDirectory", func(t *testing.T) {
 		counterparty := &Counterparty{
-			RegisteredDirectory: "trisatest.net",
+			RegisteredDirectory: "testnet.directory",
 			Protocol:            "trp",
 			CommonName:          "trisa.example.com",
 			Endpoint:            "https://trisa.example.com",

@@ -84,12 +84,12 @@ type TRISAConfig struct {
 }
 
 // DirectoryConfig is a generic configuration for connecting to a TRISA GDS service.
-// By default the configuration connects to the MainNet GDS, replace vaspdirectory.net
-// with trisatest.net to connect to the TestNet instead.
+// By default the configuration connects to the MainNet GDS, replace trisa.directory
+// with testnet.directory to connect to the TestNet instead.
 type DirectoryConfig struct {
 	Insecure        bool   `default:"false" desc:"if true, do not connect using TLS"`
-	Endpoint        string `default:"api.vaspdirectory.net:443" required:"true" desc:"the endpoint of the public GDS service"`
-	MembersEndpoint string `default:"members.vaspdirectory.net:443" required:"true" split_words:"true" desc:"the endpoint of the members only GDS service"`
+	Endpoint        string `default:"api.trisa.directory:443" required:"true" desc:"the endpoint of the public GDS service"`
+	MembersEndpoint string `default:"members.trisa.directory:443" required:"true" split_words:"true" desc:"the endpoint of the members only GDS service"`
 }
 
 // DirectorySyncConfig manages the behavior of synchronizing counterparty VASPs with the
