@@ -21,7 +21,7 @@ func TestMaintenanceInterceptor(t *testing.T) {
 	conf := config.TRISAConfig{
 		Maintenance: true,
 		MTLSConfig: config.MTLSConfig{
-			Certs: "testdata/certs/alice.vaspbot.net.pem",
+			Certs: "testdata/certs/alice.vaspbot.com.pem",
 			Pool:  "testdata/certs/trisatest.dev.pem",
 		},
 	}

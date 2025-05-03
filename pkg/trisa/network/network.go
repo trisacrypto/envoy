@@ -373,7 +373,7 @@ func (n *TRISANetwork) Close() (err error) {
 }
 
 // String returns the last part of the configured endpoint usually returning
-// vaspdirectory.net or trisatest.net depending on the configuration.
+// trisa.directory or testnet.directory depending on the configuration.
 func (n *TRISANetwork) String() string {
 	return n.conf.Directory.Network()
 }
