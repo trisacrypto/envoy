@@ -53,7 +53,7 @@ func (s *trisaTestSuite) SetupSuite() {
 		Enabled:     true,
 		BindAddr:    "bufnet",
 		MTLSConfig: config.MTLSConfig{
-			Certs: "testdata/certs/alice.vaspbot.net.pem",
+			Certs: "testdata/certs/alice.vaspbot.com.pem",
 			Pool:  "testdata/certs/trisatest.dev.pem",
 		},
 		KeyExchangeCacheTTL: 60 * time.Second,

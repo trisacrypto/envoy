@@ -2,8 +2,8 @@
     "member_summary": {
         "id": "b5b20dc2-dc0c-4acf-9861-5b73f1ccc170",
         "registeredDirectory": "trisatest.dev",
-        "commonName": "alice.vaspbot.net",
-        "endpoint": "alice.vaspbot.net:443",
+        "commonName": "alice.vaspbot.com",
+        "endpoint": "alice.vaspbot.com:443",
         "name": "AliceVASP",
         "website": "https://alicevasp.com",
         "country": "US",

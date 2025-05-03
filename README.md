@@ -6,6 +6,10 @@
 
 Complete documentation for Envoy can be found at [https://trisa.dev/envoy](https://trisa.dev/envoy).
 
+## Travel Rule Compliance
+
+If you're looking to deploy Envoy for travel rule compliance purposes, you'll need to start by requesting mTLS certificates to join the TRISA network. Please visit [The TRISA Directory](https://trisa.directory/) for more information about how to register.
+
 ## Running Envoy Locally
 
 **NOTE**: Development is happening rapidly on the node right now; if these instructions don't work correctly, please open an issue on GitHub so we can review the docs.
