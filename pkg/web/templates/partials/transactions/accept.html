@@ -1,0 +1,22 @@
+{{- with .Envelope }}
+<form id="acceptForm" hx-post="/v1/transactions/{{ .EnvelopeID }}/accept" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  {{- with .Identity }}
+  <h2>{{ if .Originator.Plural }}Originators{{ else }}Originator{{ end }}</h2>
+  {{- range .Originator }}
+  <h3>{{ .Person.FullName }}</h3>
+  {{- end }}
+
+  <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
+  {{- range .Beneficiary }}
+  <h3>{{ .Person.FullName }}</h3>
+  {{- end }}
+
+  <h2>Originator VASP</h2>
+
+  <h2>Beneficiary VASP</h2>
+  {{- end }}
+
+  <h2>Transaction Details</h2>
+
+</form>
+{{- end }}

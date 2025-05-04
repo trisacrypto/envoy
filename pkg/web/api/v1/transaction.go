@@ -540,24 +540,12 @@ func (e *Envelope) BeneficiaryVASP() *ivms101.LegalPerson {
 	return nil
 }
 
-// Retrieves first originator account in the identity payload that has a legal name.
-func (e *Envelope) FirstOriginator() *ivms101.NaturalPerson {
+// Retrieves the originator persons payload if there are any.
+func (e *Envelope) Originators() []*ivms101.Person {
 	if e.Identity != nil {
 		if e.Identity.Originator != nil {
 			if len(e.Identity.Originator.OriginatorPersons) > 0 {
-				// Search for the first natural person to have a legal name.
-				for _, originator := range e.Identity.Originator.OriginatorPersons {
-					if person := originator.GetNaturalPerson(); person != nil {
-						if nameIdx := FindLegalName(person); nameIdx >= 0 {
-							return person
-						}
-					}
-				}
-
-				// If no legal person with a legal name is found, return first originator
-				if person := e.Identity.Originator.OriginatorPersons[0].GetNaturalPerson(); person != nil {
-					return person
-				}
+				return e.Identity.Originator.OriginatorPersons
 			}
 		}
 	}
@@ -566,24 +554,12 @@ func (e *Envelope) FirstOriginator() *ivms101.NaturalPerson {
 	return nil
 }
 
-// Retrieves first beneficiary account in the identity payload that has a legal name.
-func (e *Envelope) FirstBeneficiary() *ivms101.NaturalPerson {
+// Retrieves the beneficiary persons payload if there are any.
+func (e *Envelope) Beneficiaries() []*ivms101.Person {
 	if e.Identity != nil {
 		if e.Identity.Beneficiary != nil {
 			if len(e.Identity.Beneficiary.BeneficiaryPersons) > 0 {
-				// Search for the first natural person to have a legal name.
-				for _, beneficiary := range e.Identity.Beneficiary.BeneficiaryPersons {
-					if person := beneficiary.GetNaturalPerson(); person != nil {
-						if nameIdx := FindLegalName(person); nameIdx >= 0 {
-							return person
-						}
-					}
-				}
-
-				// If no legal person with a legal name is found, return first originator
-				if person := e.Identity.Beneficiary.BeneficiaryPersons[0].GetNaturalPerson(); person != nil {
-					return person
-				}
+				return e.Identity.Beneficiary.BeneficiaryPersons
 			}
 		}
 	}

@@ -38,6 +38,7 @@
 
 {{- if not $.IsViewOnly }}
 {{- if and .Status.Review (not .Archived) }}
+<div id="alerts"></div>
 <section id="transaction" hx-get="/v1/transactions/{{ .ID }}/accept" hx-trigger="load">
   <div class="card">
     <div class="card-body text-center">

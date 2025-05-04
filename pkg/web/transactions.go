@@ -559,7 +559,7 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/transactions/send.html",
+		HTMLName: "partials/transactions/accept.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -955,7 +955,7 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/transactions/send.html",
+		HTMLName: "partials/transactions/repair.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

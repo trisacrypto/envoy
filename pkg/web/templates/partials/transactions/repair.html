@@ -1,0 +1,5 @@
+{{- with .Envelope }}
+<form id="repairForm" hx-post="/v1/transactions/{{ .EnvelopeID }}/repair" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+{{ . }}
+</form>
+{{- end }}

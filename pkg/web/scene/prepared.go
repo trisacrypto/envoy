@@ -64,18 +64,18 @@ func (s Prepared) Beneficiary() Person {
 	return makePerson(s.identity.Beneficiary.BeneficiaryPersons[0].GetNaturalPerson())
 }
 
-func (s Prepared) OriginatingVASP() VASP {
+func (s Prepared) OriginatingVASP() Company {
 	if s.identity == nil || s.identity.OriginatingVasp == nil || s.identity.OriginatingVasp.OriginatingVasp == nil {
-		return VASP{}
+		return Company{}
 	}
-	return makeVASP(s.identity.OriginatingVasp.OriginatingVasp.GetLegalPerson())
+	return makeCompany(s.identity.OriginatingVasp.OriginatingVasp.GetLegalPerson())
 }
 
-func (s Prepared) BeneficiaryVASP() VASP {
+func (s Prepared) BeneficiaryVASP() Company {
 	if s.identity == nil || s.identity.BeneficiaryVasp == nil || s.identity.BeneficiaryVasp.BeneficiaryVasp == nil {
-		return VASP{}
+		return Company{}
 	}
-	return makeVASP(s.identity.BeneficiaryVasp.BeneficiaryVasp.GetLegalPerson())
+	return makeCompany(s.identity.BeneficiaryVasp.BeneficiaryVasp.GetLegalPerson())
 }
 
 func (s Prepared) RoutingJSON() string {
