@@ -10,11 +10,11 @@ import (
 )
 
 func TestMockURL(t *testing.T) {
-	require.Equal(t, "mock", webhook.MockURL.Scheme)
+	require.Equal(t, "mock", webhook.MockConfig.Endpoint().Scheme)
 }
 
 func TestMock(t *testing.T) {
-	cb := webhook.New(webhook.MockURL)
+	cb := webhook.New(webhook.MockConfig)
 	require.IsType(t, &webhook.Mock{}, cb, "expected mock handler to be returned")
 
 	req, err := loadRequest("transaction_payload.json")
@@ -39,7 +39,7 @@ func TestMock(t *testing.T) {
 }
 
 func TestMockReply(t *testing.T) {
-	cb := webhook.New(webhook.MockURL)
+	cb := webhook.New(webhook.MockConfig)
 	require.IsType(t, &webhook.Mock{}, cb, "expected mock handler to be returned")
 
 	mock := cb.(*webhook.Mock)

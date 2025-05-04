@@ -389,6 +389,15 @@ func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *p
 		return status.Error(codes.Unavailable, "envoy compliance callback is not available")
 	}
 
+	// If a 204 no content response is received, then return the default response.
+	if reply.TransferAction == webhook.DefaultTransferAction {
+		p.Log.Debug().Msg("received 204 no content from webhook callback, using default response")
+		if err = s.DefaultResponse(payload, p); err != nil {
+			return err
+		}
+	}
+
+	// Otherwise handle the payload received from the webhook callback.
 	// Sanity check the transaction id
 	if reply.TransactionID != request.TransactionID {
 		p.Log.Error().Msg("reply/request transaction id mismatch")

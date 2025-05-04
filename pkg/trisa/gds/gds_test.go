@@ -24,12 +24,12 @@ func TestGDSString(t *testing.T) {
 		expected string
 	}{
 		{"", ""},
-		{"api.trisatest.net:443", "trisatest.net"},
-		{"api.test.vaspdirectory.net:3000", "vaspdirectory.net"},
+		{"api.testnet.directory:443", "testnet.directory"},
+		{"api.test.trisa.directory:3000", "trisa.directory"},
 		{"localhost:2226", "localhost"},
-		{"trisatest.net:443", "trisatest.net"},
-		{"api.trisatest.net", "trisatest.net"},
-		{"trisatest.net", "trisatest.net"},
+		{"testnet.directory:443", "testnet.directory"},
+		{"api.testnet.directory", "testnet.directory"},
+		{"testnet.directory", "testnet.directory"},
 	}
 
 	for i, tc := range testCases {

@@ -1,9 +1,11 @@
 package config_test
 
 import (
+	"encoding/hex"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -21,7 +23,6 @@ var testEnv = map[string]string{
 	"TRISA_LOG_LEVEL":                       "debug",
 	"TRISA_CONSOLE_LOG":                     "true",
 	"TRISA_DATABASE_URL":                    "sqlite3:///tmp/trisa.db",
-	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
 	"TRISA_ENDPOINT":                        "testing.tr-envoy.com:443",
 	"TRISA_SEARCH_THRESHOLD":                "0.75",
 	"TRISA_WEB_ENABLED":                     "false",
@@ -37,6 +38,10 @@ var testEnv = map[string]string{
 	"TRISA_WEB_AUTH_ACCESS_TOKEN_TTL":       "24h",
 	"TRISA_WEB_AUTH_REFRESH_TOKEN_TTL":      "48h",
 	"TRISA_WEB_AUTH_TOKEN_OVERLAP":          "-12h",
+	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
+	"TRISA_WEBHOOK_AUTH_KEY_ID":             "01JT4B3R5Z6AHJXV87QHPPKRBM",
+	"TRISA_WEBHOOK_AUTH_KEY_SECRET":         "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+	"TRISA_WEBHOOK_REQUIRE_SERVER_AUTH":     "true",
 	"TRISA_NODE_ENABLED":                    "true",
 	"TRISA_NODE_BIND_ADDR":                  ":556",
 	"TRISA_NODE_POOL":                       "fixtures/certs/pool.gz",
@@ -79,7 +84,6 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, zerolog.DebugLevel, conf.GetLogLevel())
 	require.True(t, conf.ConsoleLog)
 	require.Equal(t, testEnv["TRISA_DATABASE_URL"], conf.DatabaseURL)
-	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.WebhookURL)
 	require.Equal(t, 0.75, conf.SearchThreshold)
 	require.True(t, conf.Web.Maintenance)
 	require.False(t, conf.Web.Enabled)
@@ -96,6 +100,11 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, 24*time.Hour, conf.Web.Auth.AccessTokenTTL)
 	require.Equal(t, 48*time.Hour, conf.Web.Auth.RefreshTokenTTL)
 	require.Equal(t, -12*time.Hour, conf.Web.Auth.TokenOverlap)
+	require.True(t, conf.Webhook.Enabled())
+	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.Webhook.URL)
+	require.Equal(t, testEnv["TRISA_WEBHOOK_AUTH_KEY_ID"], conf.Webhook.AuthKeyID)
+	require.Equal(t, testEnv["TRISA_WEBHOOK_AUTH_KEY_SECRET"], conf.Webhook.AuthKeySecret)
+	require.True(t, conf.Webhook.RequireServerAuth)
 	require.True(t, conf.Node.Maintenance)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Node.Endpoint)
 	require.Equal(t, testEnv["TRISA_NODE_BIND_ADDR"], conf.Node.BindAddr)
@@ -216,8 +225,8 @@ func TestTRISAConfig(t *testing.T) {
 		BindAddr:    ":9300",
 		Directory: config.DirectoryConfig{
 			Insecure:        false,
-			Endpoint:        "api.trisatest.net:443",
-			MembersEndpoint: "members.trisatest.net:443",
+			Endpoint:        "api.testnet.directory:443",
+			MembersEndpoint: "members.testnet.directory:443",
 		},
 	}
 
@@ -244,8 +253,8 @@ func TestCertsConfigCache(t *testing.T) {
 		BindAddr:    ":9300",
 		Directory: config.DirectoryConfig{
 			Insecure:        false,
-			Endpoint:        "api.trisatest.net:443",
-			MembersEndpoint: "members.trisatest.net:443",
+			Endpoint:        "api.testnet.directory:443",
+			MembersEndpoint: "members.testnet.directory:443",
 		},
 	}
 
@@ -346,14 +355,14 @@ func TestDirectoryConfig(t *testing.T) {
 		{":443", ""},
 		{"bufconn", "bufconn"},
 		{"testing:123", "testing"},
-		{"trisatest.net", "trisatest.net"},
-		{"trisatest.net:456", "trisatest.net"},
-		{"api.trisatest.net", "trisatest.net"},
-		{"api.trisatest.net:443", "trisatest.net"},
-		{"api.vaspdirectory.net", "vaspdirectory.net"},
-		{"api.vaspdirectory.net:443", "vaspdirectory.net"},
-		{"testing.api.vaspdirectory.net", "vaspdirectory.net"},
-		{"testing.api.vaspdirectory.net:443", "vaspdirectory.net"},
+		{"testnet.directory", "testnet.directory"},
+		{"testnet.directory:456", "testnet.directory"},
+		{"api.testnet.directory", "testnet.directory"},
+		{"api.testnet.directory:443", "testnet.directory"},
+		{"api.trisa.directory", "trisa.directory"},
+		{"api.trisa.directory:443", "trisa.directory"},
+		{"testing.api.trisa.directory", "trisa.directory"},
+		{"testing.api.trisa.directory:443", "trisa.directory"},
 	}
 
 	for i, tc := range testCases {
@@ -363,22 +372,122 @@ func TestDirectoryConfig(t *testing.T) {
 }
 
 func TestWebhookConfig(t *testing.T) {
-	conf := config.Config{
-		Mode:       "test",
-		WebhookURL: "",
-		Web:        config.WebConfig{Enabled: false},
-		Node:       config.TRISAConfig{Enabled: false},
-		TRP:        config.TRPConfig{Enabled: false},
-	}
-	require.NoError(t, conf.Validate(), "expected no error when no webhook is specified")
-	require.False(t, conf.WebhookEnabled(), "expected webhook enabled to be false with no webhook specified")
-	require.Nil(t, conf.Webhook())
+	t.Run("Empty", func(t *testing.T) {
+		conf := config.WebhookConfig{}
+		require.NoError(t, conf.Validate(), "expected empty config to be valid")
+		require.False(t, conf.Enabled(), "expected empty config to be disabled")
+	})
 
-	conf.WebhookURL = "https://example.com/callback"
-	require.NoError(t, conf.Validate(), "expected no error when webhook is specified")
-	require.True(t, conf.WebhookEnabled(), "expected webhook enabled to be true with webhook specified")
-	require.NotNil(t, conf.Webhook())
-	require.Equal(t, conf.WebhookURL, conf.Webhook().String())
+	t.Run("Endpoint", func(t *testing.T) {
+		conf := config.WebhookConfig{
+			URL: "",
+		}
+		require.NoError(t, conf.Validate(), "expected no error when no webhook is specified")
+		require.False(t, conf.Enabled(), "expected webhook enabled to be false with no webhook specified")
+		require.Nil(t, conf.Endpoint())
+
+		conf.URL = "https://example.com/callback"
+		require.NoError(t, conf.Validate(), "expected no error when webhook is specified")
+		require.True(t, conf.Enabled(), "expected webhook enabled to be true with webhook specified")
+		require.NotNil(t, conf.Endpoint())
+		require.Equal(t, conf.URL, conf.Endpoint().String())
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		tests := []config.WebhookConfig{
+			{
+				URL: "",
+			},
+			{
+				URL: "https://example.com/callback",
+			},
+			{
+				URL:               "https://example.com/callback",
+				AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+				AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+				RequireServerAuth: false,
+			},
+			{
+				URL:               "https://example.com/callback",
+				AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+				AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+				RequireServerAuth: true,
+			},
+		}
+
+		for i, tc := range tests {
+			require.NoError(t, tc.Validate(), "test case %d: expected valid config to be valid", i)
+		}
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		tests := []struct {
+			conf config.WebhookConfig
+			err  string
+		}{
+			{
+				config.WebhookConfig{
+					URL:               "https://example.com/callback",
+					AuthKeyID:         "",
+					AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+					RequireServerAuth: false,
+				},
+				"invalid configuration: webhook auth key id is required when auth key secret is set",
+			},
+			{
+				config.WebhookConfig{
+					URL:               "https://example.com/callback",
+					AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+					AuthKeySecret:     "foo",
+					RequireServerAuth: false,
+				},
+				"invalid configuration: could not decode webhook auth key: encoding/hex: invalid byte: U+006F 'o'",
+			},
+			{
+				config.WebhookConfig{
+					URL:               "https://example.com/callback",
+					AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
+					AuthKeySecret:     "",
+					RequireServerAuth: true,
+				},
+				"invalid configuration: webhook server auth is enabled but no auth key is specified",
+			},
+		}
+
+		for i, tc := range tests {
+			require.Error(t, tc.conf.Validate(), "test case %d: expected valid config to be invalid", i)
+			require.EqualError(t, tc.conf.Validate(), tc.err, "test case %d: unexpected error", i)
+		}
+	})
+
+	t.Run("RequireClientAuth", func(t *testing.T) {
+		conf := config.WebhookConfig{
+			URL:           "https://example.com/callback",
+			AuthKeyID:     "01JT4B3R5Z6AHJXV87QHPPKRBM",
+			AuthKeySecret: "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
+		}
+
+		require.True(t, conf.RequireClientAuth(), "expected client auth to be required")
+
+		conf.AuthKeyID = ""
+		conf.AuthKeySecret = ""
+		require.False(t, conf.RequireClientAuth(), "expected client auth to not be required")
+	})
+
+	t.Run("DecodeAuthKey", func(t *testing.T) {
+		conf := config.WebhookConfig{
+			URL:           "https://example.com/callback",
+			AuthKeyID:     "01JT4B3R5Z6AHJXV87QHPPKRBM",
+			AuthKeySecret: strings.ToUpper("cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d"),
+		}
+
+		expected, _ := hex.DecodeString("cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d")
+		require.Equal(t, expected, conf.DecodeAuthKey())
+
+		conf.AuthKeyID = ""
+		conf.AuthKeySecret = ""
+		require.Nil(t, conf.DecodeAuthKey(), "expected nil auth key when not set")
+	})
 }
 
 // Returns the current environment for the specified keys, or if no keys are specified

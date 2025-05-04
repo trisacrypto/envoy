@@ -17,13 +17,13 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 10950 \
 # Create certificate requests for alice and bob
 openssl req -new -newkey rsa:4096 \
     -nodes -keyout alice.key.pem -out alice.csr \
-    -subj "/C=US/ST=New York/L=New York/O=Alice VASP/OU=Testing/CN=alice.vaspbot.net" \
-    -addext "subjectAltName=DNS:alice.vaspbot.net,DNS:*.alice.vaspbot.net"
+    -subj "/C=US/ST=New York/L=New York/O=Alice VASP/OU=Testing/CN=alice.vaspbot.com" \
+    -addext "subjectAltName=DNS:alice.vaspbot.com,DNS:*.alice.vaspbot.com"
 
 openssl req -new -newkey rsa:4096 \
     -nodes -keyout bob.key.pem -out bob.csr \
-    -subj "/C=GB/ST=Oxfordshire/L=Oxford/O=Bob VASP/OU=Testing/CN=bob.vaspbot.net" \
-    -addext "subjectAltName=DNS:bob.vaspbot.net,DNS:*.bob.vaspbot.net"
+    -subj "/C=GB/ST=Oxfordshire/L=Oxford/O=Bob VASP/OU=Testing/CN=bob.vaspbot.com" \
+    -addext "subjectAltName=DNS:bob.vaspbot.com,DNS:*.bob.vaspbot.com"
 
 # Create signed certificates with CA
 openssl x509 -req -days 10950 \
