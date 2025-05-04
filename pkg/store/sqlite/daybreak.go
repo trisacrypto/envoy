@@ -114,10 +114,14 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 	}
 
 	for _, contact := range contacts {
+		if contact.CounterpartyID.IsZero() {
+			contact.CounterpartyID = counterparty.ID
+		}
 		if err = s.createContact(tx, contact); err != nil {
 			if errors.Is(err, dberr.ErrAlreadyExists) {
 				// TODO: get the contact's ID and update it if it is associated with the
 				// counterparty (otherwise error). (This improvement has a ticket already)
+				continue // silence these specific errors until we deal with the update ticket
 			}
 
 			log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not create contact")
