@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
@@ -91,21 +92,43 @@ func (s *Server) SendSunriseForm(c *gin.Context) {
 }
 
 func (s *Server) TransactionsAcceptPreview(c *gin.Context) {
-	// Get the transaction ID from the URL path and make available to the template.
-	ctx := scene.New(c)
-	ctx["ID"] = c.Param("id")
-	ctx["EditMode"] = "accept"
+	var (
+		err error
+		out *api.Transaction
+	)
 
-	c.HTML(http.StatusOK, "pages/transactions/edit.html", ctx)
+	if out, err = s.retrieveTransaction(c); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			s.NotFound(c)
+			return
+		}
+
+		s.Error(c, err)
+		return
+	}
+
+	ctx := scene.New(c).WithAPIData(out)
+	c.HTML(http.StatusOK, "pages/transactions/accept.html", ctx)
 }
 
 func (s *Server) TransactionsRepairPreview(c *gin.Context) {
-	// Get the transaction ID from the URL path and make available to the template.
-	ctx := scene.New(c)
-	ctx["ID"] = c.Param("id")
-	ctx["EditMode"] = "repair"
+	var (
+		err error
+		out *api.Transaction
+	)
 
-	c.HTML(http.StatusOK, "pages/transactions/edit.html", ctx)
+	if out, err = s.retrieveTransaction(c); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			s.NotFound(c)
+			return
+		}
+
+		s.Error(c, err)
+		return
+	}
+
+	ctx := scene.New(c).WithAPIData(out)
+	c.HTML(http.StatusOK, "pages/transactions/repair.html", ctx)
 }
 
 func (s *Server) TransactionDetailPage(c *gin.Context) {
