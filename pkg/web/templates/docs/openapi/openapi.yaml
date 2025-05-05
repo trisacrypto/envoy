@@ -2303,15 +2303,18 @@ components:
         counterparty_id:
           type: string
           format: ulid
-          description: For the TRISA protocol, submit either the travel address or the VASP
-            counterparty ID to identify the VASP (mutually exclusive with all
-            non-protocol fields).
+          description:
+            Lookup the counterparty by its Envoy specific ID. If this is included,
+            the endpoint will ignore the other optional lookup fields. If the
+            counterparty in Envoy with this ID has a different protocol than
+            included in the routing for this request, then it will fail.
           example: 01JPMJG3ZFSX753ZAKRWRZPWVC
         travel_address:
           type: string
           format: TravelAddress
-          description: Optional for TRISA and required for TRP, the travel address of the
-            recipient or counterparty VASP.
+          description:
+            Optional for TRISA and TRP, the travel address of the recipient or
+            counterparty VASP.
           example: taLg4sBFp3cWhB9wN7qsiUF8pxo7JXtVShYkv5ix1wG2kX5y4pRiJ3TRHmeD8H67TLLm5wHyDktVw1onfDeQfESumf91mjRTMbi
         counterparty:
           type: string
@@ -2322,7 +2325,8 @@ components:
           example: AliceCoin, LLC
         email:
           type: string
-          description: Required for the Sunrise protocol, the email address of the
+          description:
+            Optional for the Sunrise protocol, the email address of the
             compliance contact at the counterparty to send the Sunrise message
             to. May contain a name and bracketed email.
           example: Jane Smith <jane@alicecoin.com>
