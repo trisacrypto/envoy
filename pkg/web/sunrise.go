@@ -17,7 +17,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
@@ -89,7 +89,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		in    *api.SunriseVerification
 		log   zerolog.Logger
 		model *models.Sunrise
-		token sunrise.VerificationToken
+		token verification.VerificationToken
 	)
 
 	in = &api.SunriseVerification{}
@@ -114,7 +114,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	token = in.VerificationToken()
 
 	// Get the sunrise record from the database
-	if model, err = s.store.RetrieveSunrise(ctx, token.SunriseID()); err != nil {
+	if model, err = s.store.RetrieveSunrise(ctx, token.RecordID()); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
 			return
