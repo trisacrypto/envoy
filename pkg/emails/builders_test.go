@@ -9,7 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/verification"
 )
 
-func TestVerifyURL(t *testing.T) {
+func TestVerifySunriseURL(t *testing.T) {
 	invite := emails.SunriseInviteData{
 		BaseURL: &url.URL{
 			Scheme: "https",
@@ -21,5 +21,15 @@ func TestVerifyURL(t *testing.T) {
 
 	require.Equal(t, "https://sunrise.example.com/v1/sunrise/verify?token=YWJjMTIz", invite.VerifyURL())
 }
+func TestVerifyResetPasswordURL(t *testing.T) {
+	invite := emails.ResetPasswordEmailData{
+		BaseURL: &url.URL{
+			Scheme: "https",
+			Host:   "resetpassword.example.com",
+			Path:   "/v1/reset-password",
+		},
+		Token: verification.VerificationToken("abc123"),
+	}
 
-//TODO: reset password builder tests
+	require.Equal(t, "https://resetpassword.example.com/v1/reset-password?token=YWJjMTIz", invite.VerifyURL())
+}

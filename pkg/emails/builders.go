@@ -63,8 +63,36 @@ type VerifyEmailData struct {
 	ComplianceName string
 }
 
-//===========================================================================
+// ===========================================================================
 // Reset Password Email
-//===========================================================================
+// ===========================================================================
 
-//TODO
+const (
+	ResetPasswordRE       = "TRISA Envoy Password Reset Link"
+	ResetPasswordTemplate = "reset_password"
+)
+
+func NewResetPasswordEmail(recipient string, data ResetPasswordEmailData) (*Email, error) {
+	return New(recipient, ResetPasswordRE, ResetPasswordTemplate, data)
+}
+
+// ResetPasswordEmailData is used to complete the reset_password template.
+type ResetPasswordEmailData struct {
+	ContactName  string
+	ContactEmail string
+	BaseURL      *url.URL
+	Token        verification.VerificationToken
+	SupportEmail string
+}
+
+func (s ResetPasswordEmailData) VerifyURL() string {
+	if s.BaseURL == nil {
+		return ""
+	}
+
+	params := make(url.Values, 1)
+	params.Set("token", s.Token.String())
+
+	s.BaseURL.RawQuery = params.Encode()
+	return s.BaseURL.String()
+}
