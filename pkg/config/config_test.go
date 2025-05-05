@@ -66,6 +66,7 @@ var testEnv = map[string]string{
 	"REGION_INFO_COUNTRY":                   "US",
 	"REGION_INFO_CLOUD":                     "GCP",
 	"REGION_INFO_CLUSTER":                   "rotational-testing-gke-9",
+	"TRISA_WEB_DAYBREAK_ENABLED":            "true",
 }
 
 func TestConfig(t *testing.T) {
@@ -130,6 +131,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["REGION_INFO_COUNTRY"], conf.RegionInfo.Country)
 	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)
 	require.Equal(t, testEnv["REGION_INFO_CLUSTER"], conf.RegionInfo.Cluster)
+	require.True(t, conf.Web.Daybreak.Enabled)
 }
 
 func TestWebConfig(t *testing.T) {

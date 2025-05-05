@@ -378,8 +378,8 @@ func (c *Contact) Validate(create bool) (err error) {
 
 func (c *CounterpartyQuery) Validate() (err error) {
 	if c.Source != "" {
-		if ok, _ := enum.CheckSource(c.Source, enum.SourceUnknown, enum.SourceDirectorySync, enum.SourceUserEntry); !ok {
-			err = ValidationError(err, IncorrectField("source", "must be one of gds or user"))
+		if ok, _ := enum.CheckSource(c.Source, enum.SourceUnknown, enum.SourceDirectorySync, enum.SourceUserEntry, enum.SourceDaybreak); !ok {
+			err = ValidationError(err, IncorrectField("source", "must be one of gds, user, or daybreak"))
 		}
 	}
 	return err

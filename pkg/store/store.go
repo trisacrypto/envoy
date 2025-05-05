@@ -178,3 +178,15 @@ type APIKeyStore interface {
 	UpdateAPIKey(context.Context, *models.APIKey) error
 	DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error
 }
+
+// Methods required for managing Daybreak records in the database. This interface allows
+// us to have a single transaction open for a daybreak operation so that with respect
+// to a single counterparty we completely create the record or rollback on failure.
+//
+// NOTE: this is not part of the Store interface since it is not required for the
+// server to function but is useful for Daybreak-specific operations.
+type DaybreakStore interface {
+	ListDaybreak(context.Context) (map[string]*models.CounterpartySourceInfo, error)
+	CreateDaybreak(context.Context, *models.Counterparty) error
+	UpdateDaybreak(context.Context, *models.Counterparty) error
+}

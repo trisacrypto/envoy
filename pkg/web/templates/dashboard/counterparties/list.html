@@ -25,6 +25,13 @@
           TRISA GDS
         </a>
       </li>
+      {{ if .DaybreakEnabled }}
+      <li class="nav-item">
+        <a href="/counterparties?source=daybreak" class='nav-link{{ if eq .Source "daybreak" }} active{{ end }}'>
+          Daybreak Counterparties
+        </a>
+      </li>
+      {{ end }}
       <li class="nav-item">
         <a href="/counterparties?source=user" class='nav-link{{ if eq .Source "user" }} active{{ end }}'>
           Your Counterparties
