@@ -78,15 +78,15 @@ func (s *Server) ResolveCounterparty(c *gin.Context, in *api.Routing) (vasp *mod
 	}
 
 	switch {
-		// If vasp is nil we probably shouldn't have made it this far in the code, but protecting ourselves anyway.
-		case vasp == nil:
-			c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from routing information"))
-			return nil, errors.New("unhandled nil vasp at end of resolve counterparty")
-		case vasp.Protocol != protocol:
-			err := errors.New("could not find counterparty that supports requested protocol")
-			c.JSON(http.StatusNotFound, api.Error(err)
-			return nil, err
-		default:
+	// If vasp is nil we probably shouldn't have made it this far in the code, but protecting ourselves anyway.
+	case vasp == nil:
+		c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from routing information"))
+		return nil, errors.New("unhandled nil vasp at end of resolve counterparty")
+	case vasp.Protocol != protocol:
+		err := errors.New("could not find counterparty that supports requested protocol")
+		c.JSON(http.StatusNotFound, api.Error(err))
+		return nil, err
+	default:
 		return vasp, nil
 	}
 }
