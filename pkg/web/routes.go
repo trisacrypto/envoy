@@ -97,7 +97,6 @@ func (s *Server) setupRoutes() (err error) {
 	s.router.GET("/logout", s.Logout)
 	s.router.GET("/reset-password", s.ResetPasswordPage)
 	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
-	//TODO: "/reset-password/verification" for when they click the link
 
 	// Web UI Routes (Dashboards and Pages) - Authenticated
 	ui := s.router.Group("", authenticate)
@@ -182,6 +181,7 @@ func (s *Server) setupRoutes() (err error) {
 
 		// User Profile Management
 		v1.POST("/reset-password", s.ResetPassword)
+		//TODO: "/reset-password/verification" for when they click a reset password email link
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource
