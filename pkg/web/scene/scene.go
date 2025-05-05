@@ -271,10 +271,10 @@ func (s Scene) Envelope() *api.Envelope {
 
 func WithConf(conf *config.Config) {
 	// Compute the sunriseEnabled boolean
-	enabled := conf.Sunrise.Enabled && conf.Email.Available()
-	sunriseEnabled = &enabled
+	sEnabled := conf.Sunrise.Enabled && conf.Email.Available()
+	sunriseEnabled = &sEnabled
 
 	// Compute the daybreakEnabled boolean
-	enabled = conf.Web.Daybreak.Enabled
-	daybreakEnabled = &enabled
+	dEnabled := conf.Web.Daybreak.Enabled
+	daybreakEnabled = &dEnabled
 }
