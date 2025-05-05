@@ -286,7 +286,7 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 }
 
 func lookupContactCounterparty(tx *sql.Tx, email string) (counterpartyID ulid.ULID, err error) {
-	if err = tx.QueryRow(lookupContactEmailSQL, sql.Named("email", email)).Scan(&counterpartyID); err != nil {
+	if err = tx.QueryRow(lookupContactEmailSQL, sql.Named("email", strings.ToLower(email))).Scan(&counterpartyID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ulid.ULID{}, dberr.ErrNotFound
 		}
