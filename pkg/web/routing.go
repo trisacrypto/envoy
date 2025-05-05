@@ -32,51 +32,62 @@ func (s *Server) ResolveCounterparty(c *gin.Context, in *api.Routing) (vasp *mod
 	}
 
 	ctx := c.Request.Context()
-	switch protocol {
-	case enum.ProtocolTRISA:
-		// Ideally we look up the counterparty by ID
-		if !in.CounterpartyID.IsZero() {
-			if vasp, err = s.store.RetrieveCounterparty(ctx, in.CounterpartyID); err != nil {
-				if errors.Is(err, dberr.ErrNotFound) {
-					c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from routing information"))
-					return nil, err
-				}
 
-				c.Error(err)
-				c.JSON(http.StatusInternalServerError, api.Error("could not identify counterparty from routing information"))
+	// Ideally we look up the counterparty by ID for any protocol
+	if !in.CounterpartyID.IsZero() {
+		if vasp, err = s.store.RetrieveCounterparty(ctx, in.CounterpartyID); err != nil {
+			if errors.Is(err, dberr.ErrNotFound) {
+				c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from routing information"))
 				return nil, err
 			}
-			return vasp, nil
-		}
 
-		// Alternatively, lookup the counterparty by travel address
-		if vasp, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
-			// NOTE: CounterpartyFromTravelAddress handles API response back to user.
-			return nil, err
-		}
-		return vasp, nil
-
-	case enum.ProtocolTRP:
-		// Lookup the counterparty by travel address
-		if vasp, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
-			// NOTE: CounterpartyFromTravelAddress handles API response back to user.
-			return nil, err
-		}
-		return vasp, nil
-
-	case enum.ProtocolSunrise:
-		// Get or create the counterparty for the associated email address
-		if vasp, err = s.store.GetOrCreateSunriseCounterparty(ctx, in.EmailAddress, in.Counterparty); err != nil {
 			c.Error(err)
-			c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
+			c.JSON(http.StatusInternalServerError, api.Error("could not identify counterparty from routing information"))
 			return nil, err
 		}
-		return vasp, nil
+	} else {
+		// If there was no counterparty ID given, then try the backup methods for lookup on a per-protocol basis
+		switch protocol {
+		case enum.ProtocolTRISA:
+			// Lookup the counterparty by travel address
+			if vasp, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
+				// NOTE: CounterpartyFromTravelAddress handles API response back to user.
+				return nil, err
+			}
 
+		case enum.ProtocolTRP:
+			// Lookup the counterparty by travel address
+			if vasp, err = s.CounterpartyFromTravelAddress(c, in.TravelAddress); err != nil {
+				// NOTE: CounterpartyFromTravelAddress handles API response back to user.
+				return nil, err
+			}
+
+		case enum.ProtocolSunrise:
+			// Get or create the counterparty for the associated email address and/or name
+			if vasp, err = s.store.GetOrCreateSunriseCounterparty(ctx, in.EmailAddress, in.Counterparty); err != nil {
+				c.Error(err)
+				c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
+				return nil, err
+			}
+
+		default:
+			// If we get here the protocol is valid but not handled, so this is a developer
+			// bug that we need to fix ASAP, hence the panic.
+			panic(fmt.Errorf("unhandled protocol in resolve counterparty: %q", protocol.String()))
+		}
+	}
+
+	switch {
+	// If vasp is nil we probably shouldn't have made it this far in the code, but protecting ourselves anyway.
+	case vasp == nil:
+		c.JSON(http.StatusNotFound, api.Error("could not identify counterparty from routing information"))
+		return nil, errors.New("unhandled nil vasp at end of resolve counterparty")
+	case vasp.Protocol != protocol:
+		err := errors.New("could not find counterparty that supports requested protocol")
+		c.JSON(http.StatusNotFound, api.Error(err))
+		return nil, err
 	default:
-		// If we get here the protocol is valid but not handled, so this is a developer
-		// bug that we need to fix ASAP, hence the panic.
-		panic(fmt.Errorf("unhandled protocol in resolve counterparty: %q", protocol.String()))
+		return vasp, nil
 	}
 }
 

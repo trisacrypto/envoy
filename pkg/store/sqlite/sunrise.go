@@ -195,7 +195,7 @@ func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
 }
 
 const (
-	lookupContactEmailSQL     = "SELECT counterparty_id FROM contacts WHERE email=:email"
+	lookupContactEmailSQL     = "SELECT counterparty_id FROM contacts WHERE LOWER(email)=LOWER(:email)"
 	countCounterpartyNameSQL  = "SELECT count(id) FROM counterparties WHERE name LIKE :name"
 	lookupCounterpartyNameSQL = "SELECT id FROM counterparties WHERE name LIKE :name LIMIT 1"
 )
