@@ -30,8 +30,6 @@ type ResetPasswordRequest struct {
 	Email string `json:"email"`
 }
 
-//TODO: reset password verification request
-
 func (r *LoginRequest) Validate() (err error) {
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Email == "" {
@@ -67,5 +65,3 @@ func (r *ReauthenticateRequest) Validate() (err error) {
 	}
 	return err
 }
-
-//TODO: reset password verification code (see sunrise.go in this folder)

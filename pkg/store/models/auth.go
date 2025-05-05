@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/verification"
+	"go.rtnl.ai/ulid"
 )
 
 type User struct {
@@ -49,8 +51,6 @@ type UserPageInfo struct {
 	PageInfo
 	Role string `json:"role,omitempty"`
 }
-
-//TODO add a model for a "reset password request" for a user ID
 
 //===========================================================================
 // Associated Fields and Models
@@ -212,4 +212,64 @@ func (p *Permission) Params() []any {
 		sql.Named("created", p.Created),
 		sql.Named("modified", p.Modified),
 	}
+}
+
+//===========================================================================
+// ResetPasswordLink
+//===========================================================================
+
+type ResetPasswordLink struct {
+	Model
+	UserID     ulid.ULID                 // A foreign key reference to the user's account
+	Email      string                    // Email address of recipient the token was sent to
+	Expiration time.Time                 // The timestamp that the sunrise verification token is no longer valid
+	Signature  *verification.SignedToken // The signed token produced by the sunrise package for verification purposes
+	SentOn     sql.NullTime              // The timestamp that the email message was sent
+	VerifiedOn sql.NullTime              // The timestamp that the user verified the token
+}
+
+// Scans a complete SELECT into the ResetPasswordLink model
+func (s *ResetPasswordLink) Scan(scanner Scanner) error {
+	return scanner.Scan(
+		&s.ID,
+		&s.UserID,
+		&s.Email,
+		&s.Expiration,
+		&s.Signature,
+		&s.SentOn,
+		&s.VerifiedOn,
+		&s.Created,
+		&s.Modified,
+	)
+}
+
+// Scans a partial SELECT into the ResetPasswordLink model for listing the ResetPasswordLink model
+func (s *ResetPasswordLink) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&s.ID,
+		&s.UserID,
+		&s.Expiration,
+		&s.SentOn,
+		&s.VerifiedOn,
+	)
+}
+
+// Get the complete named params of the ResetPasswordLink message from the model.
+func (s *ResetPasswordLink) Params() []any {
+	return []any{
+		sql.Named("id", s.ID),
+		sql.Named("userID", s.UserID),
+		sql.Named("email", s.Email),
+		sql.Named("expiration", s.Expiration),
+		sql.Named("signature", s.Signature),
+		sql.Named("sentOn", s.SentOn),
+		sql.Named("verifiedOn", s.VerifiedOn),
+		sql.Named("created", s.Created),
+		sql.Named("modified", s.Modified),
+	}
+}
+
+// IsExpired returns true if the link expiration is before the current time.
+func (s *ResetPasswordLink) IsExpired() bool {
+	return time.Now().After(s.Expiration)
 }
