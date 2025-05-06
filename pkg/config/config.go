@@ -48,16 +48,17 @@ type Config struct {
 // TRISA transactions. The web UI can be enabled or disabled and runs independently of
 // the other servers on the node.
 type WebConfig struct {
-	Maintenance   bool       `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
-	Enabled       bool       `default:"true" desc:"if false, the web UI server will not be run"`
-	APIEnabled    bool       `default:"true" split_words:"true" desc:"if false, the API server will return unavailable when accessed; subordinate to the enabled flag"`
-	UIEnabled     bool       `default:"true" split_words:"true" desc:"if false, the UI server will return unavailable when accessed; subordinate to the enabled flag"`
-	BindAddr      string     `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
-	Origin        string     `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
-	TRISAEndpoint string     `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
-	TRPEndpoint   string     `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
-	DocsName      string     `split_words:"true" desc:"the display name for the API docs server in the Swagger app"`
-	Auth          AuthConfig `split_words:"true"`
+	Maintenance   bool           `env:"TRISA_MAINTENANCE" desc:"if true sets the web UI to maintenance mode; inherited from parent"`
+	Enabled       bool           `default:"true" desc:"if false, the web UI server will not be run"`
+	APIEnabled    bool           `default:"true" split_words:"true" desc:"if false, the API server will return unavailable when accessed; subordinate to the enabled flag"`
+	UIEnabled     bool           `default:"true" split_words:"true" desc:"if false, the UI server will return unavailable when accessed; subordinate to the enabled flag"`
+	BindAddr      string         `default:":8000" split_words:"true" desc:"the ip address and port to bind the web server on"`
+	Origin        string         `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
+	TRISAEndpoint string         `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
+	TRPEndpoint   string         `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
+	DocsName      string         `split_words:"true" desc:"the display name for the API docs server in the Swagger app"`
+	Auth          AuthConfig     `split_words:"true"`
+	Daybreak      DaybreakConfig `split_words:"true"`
 }
 
 // AuthConfig specifies the configuration for authenticating WebUI requests
@@ -125,6 +126,10 @@ type WebhookConfig struct {
 	AuthKeyID         string `required:"false" split_words:"true" desc:"used to identify the shared secret key used for hmac authorization"`
 	AuthKeySecret     string `required:"false" split_words:"true" desc:"specify a shared secret key to use for hmac authorization"`
 	RequireServerAuth bool   `default:"false" split_words:"true" desc:"if true, the webhook server will require a valid hmac authorization header in webhook responses"`
+}
+
+type DaybreakConfig struct {
+	Enabled bool `default:"false" desc:"if true, the Daybreak counterparties list tab will be shown, otherwise not shown"`
 }
 
 // Optional region and deployment information associated with the node.

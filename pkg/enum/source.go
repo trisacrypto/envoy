@@ -69,7 +69,7 @@ func ParseSource(s interface{}) (Source, error) {
 }
 
 func (s Source) String() string {
-	if s > SourceRemote {
+	if s > SourceDaybreak {
 		return sourceNames[0]
 	}
 	return sourceNames[s]

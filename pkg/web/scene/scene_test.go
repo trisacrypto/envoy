@@ -57,6 +57,7 @@ func TestNew(t *testing.T) {
 		t.Run("None", func(t *testing.T) {
 			data := scene.New(CreateContext())
 			require.NotContains(t, data, scene.SunriseEnabled, "expected no config info without it being explicitly set")
+			require.NotContains(t, data, scene.DaybreakEnabled, "expected no config info without it being explicitly set")
 		})
 
 		t.Run("WithConf", func(t *testing.T) {
@@ -66,8 +67,12 @@ func TestNew(t *testing.T) {
 			scene.WithConf(&conf)
 
 			data := scene.New(CreateContext())
+
 			require.Contains(t, data, scene.SunriseEnabled, "expected sunrise enabled to be set with conf")
 			require.True(t, data[scene.SunriseEnabled].(bool), "expected sunrise enabled to default to true")
+
+			require.Contains(t, data, scene.DaybreakEnabled, "expected daybreak enabled to be set with conf")
+			require.False(t, data[scene.DaybreakEnabled].(bool), "expected daybreak enabled to default to false")
 		})
 
 	})

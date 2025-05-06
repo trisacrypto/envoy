@@ -22,6 +22,9 @@ var (
 	// Configuration values set from the global configuration to be included in context.
 	// SunriseEnabled is true iff sunrise is enabled and email messaging is available
 	sunriseEnabled *bool
+
+	// daybreakEnabled is true iff daybreak and sunrise are enabled and email messaging is available
+	daybreakEnabled *bool
 )
 
 // Keys for default Scene context items
@@ -34,6 +37,7 @@ const (
 	APIData         = "APIData"
 	Parent          = "Parent"
 	SunriseEnabled  = "SunriseEnabled"
+	DaybreakEnabled = "DaybreakEnabled"
 )
 
 type Scene map[string]interface{}
@@ -65,6 +69,10 @@ func New(c *gin.Context) Scene {
 	// Add configuration values
 	if sunriseEnabled != nil {
 		context[SunriseEnabled] = *sunriseEnabled
+	}
+
+	if daybreakEnabled != nil {
+		context[DaybreakEnabled] = *daybreakEnabled
 	}
 
 	return context
@@ -259,6 +267,10 @@ func (s Scene) EnvelopeList() *api.EnvelopesList {
 
 func WithConf(conf *config.Config) {
 	// Compute the sunriseEnabled boolean
-	enabled := conf.Sunrise.Enabled && conf.Email.Available()
-	sunriseEnabled = &enabled
+	sEnabled := conf.Sunrise.Enabled && conf.Email.Available()
+	sunriseEnabled = &sEnabled
+
+	// Compute the daybreakEnabled boolean
+	dEnabled := conf.Web.Daybreak.Enabled
+	daybreakEnabled = &dEnabled
 }

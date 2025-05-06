@@ -11,7 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -152,7 +152,7 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 	}
 
 	// Create the HMAC verification token for the contact
-	verification := sunrise.NewToken(record.ID, record.Expiration)
+	verification := verification.NewToken(record.ID, record.Expiration)
 
 	// Sign the verification token
 	if invite.Token, record.Signature, err = verification.Sign(); err != nil {

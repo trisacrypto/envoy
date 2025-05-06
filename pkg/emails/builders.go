@@ -3,7 +3,7 @@ package emails
 import (
 	"net/url"
 
-	"github.com/trisacrypto/envoy/pkg/sunrise"
+	"github.com/trisacrypto/envoy/pkg/verification"
 )
 
 //===========================================================================
@@ -26,7 +26,7 @@ type SunriseInviteData struct {
 	OriginatorName  string
 	BeneficiaryName string
 	BaseURL         *url.URL
-	Token           sunrise.VerificationToken
+	Token           verification.VerificationToken
 	SupportEmail    string
 	ComplianceEmail string
 }

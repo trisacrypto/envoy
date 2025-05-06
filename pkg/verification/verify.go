@@ -1,4 +1,4 @@
-package sunrise
+package verification
 
 import (
 	"bytes"
@@ -28,11 +28,12 @@ const (
 )
 
 // A Token is a data representation of the information needed to create a secure
-// sunrise verification token to send to the compliance officer of the counterparty.
-// Tokens can be used to generate SignedTokens and SignedTokens can be used to send a
-// secure verification token and to verify that tokens belong to the specified user.
+// record verification token for use in cases such as sending Sunrise email or
+// password reset links. Tokens can be used to generate SignedTokens and
+// SignedTokens can be used to send a secure verification token and to verify
+// that tokens belong to the specified user.
 type Token struct {
-	SunriseID  ulid.ULID // ID of the sunrise record in the database
+	RecordID   ulid.ULID // ID of the record in the database for verification
 	Expiration time.Time // Expiration date of the token (not after)
 	nonce      []byte    // Random nonce for cryptographic security
 }
@@ -55,13 +56,13 @@ type VerificationToken []byte
 // Create a new token with the specified ID and expiration timestamp. If the timestamp
 // is zero valued, then a timestamp in the future will be generated with the default
 // expiration deadline.
-func NewToken(sunriseID ulid.ULID, expiration time.Time) *Token {
+func NewToken(recordID ulid.ULID, expiration time.Time) *Token {
 	if expiration.IsZero() {
 		expiration = time.Now().Add(defaultTTL)
 	}
 
 	token := &Token{
-		SunriseID:  sunriseID,
+		RecordID:   recordID,
 		Expiration: expiration,
 		nonce:      make([]byte, nonceLength),
 	}
@@ -111,7 +112,7 @@ func (t *Token) Sign() (token VerificationToken, signature *SignedToken, err err
 
 	// Create the verification token
 	token = make(VerificationToken, verifyTokenLength)
-	copy(token[0:16], t.SunriseID[:])
+	copy(token[0:16], t.RecordID[:])
 	copy(token[16:], secret)
 
 	return token, signature, nil
@@ -130,7 +131,7 @@ func (t *Token) MarshalBinary() ([]byte, error) {
 	}
 
 	data := make([]byte, maxTokenLength)
-	copy(data[:16], t.SunriseID[:])
+	copy(data[:16], t.RecordID[:])
 
 	i := binary.PutVarint(data[16:], t.Expiration.UnixNano())
 	l := 16 + i
@@ -152,8 +153,8 @@ func (t *Token) readFrom(data []byte) (int, error) {
 		return 0, ErrSize
 	}
 
-	// Parse sunrise ID
-	t.SunriseID = ulid.ULID(data[:16])
+	// Parse record ID
+	t.RecordID = ulid.ULID(data[:16])
 
 	// Parse expiration time
 	exp, i := binary.Varint(data[16 : 16+binary.MaxVarintLen64])
@@ -174,8 +175,8 @@ func (t *Token) readFrom(data []byte) (int, error) {
 }
 
 func (t *Token) Validate() (err error) {
-	if t.SunriseID.IsZero() {
-		err = errors.Join(err, ErrInvalidSunriseID)
+	if t.RecordID.IsZero() {
+		err = errors.Join(err, ErrInvalidRecordID)
 	}
 
 	if t.Expiration.IsZero() {
@@ -190,7 +191,7 @@ func (t *Token) Validate() (err error) {
 }
 
 func (t *Token) Equal(o *Token) bool {
-	return bytes.Equal(t.SunriseID[:], o.SunriseID[:]) &&
+	return bytes.Equal(t.RecordID[:], o.RecordID[:]) &&
 		t.Expiration.Equal(o.Expiration) &&
 		bytes.Equal(t.nonce, o.nonce)
 }
@@ -318,7 +319,7 @@ func ParseVerification(tks string) (_ VerificationToken, err error) {
 	return VerificationToken(token), nil
 }
 
-func (v VerificationToken) SunriseID() ulid.ULID {
+func (v VerificationToken) RecordID() ulid.ULID {
 	return ulid.ULID(v[:16])
 }
 
