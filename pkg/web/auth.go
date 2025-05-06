@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
@@ -446,13 +448,79 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// TODO: lookup user and send reset email with rate limiting.
+	ctx := c.Request.Context()
+	if err = s.sendResetPasswordEmail(ctx, in.Email); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not send reset password request"))
+		return
+	}
 
 	// Make sure the user is logged out to prevent session hijacking
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
 	// Redirect to reset-password success page
 	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
+}
+
+// Send a reset password email to the user and create a verification token.
+func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (err error) {
+	// Lookup the user
+	var user *models.User
+	if user, err = s.store.RetrieveUser(ctx, emailAddr); err != nil {
+		return err
+	}
+
+	// Create a ResetPasswordLink record for database storage
+	record := &models.ResetPasswordLink{
+		UserID:     user.ID,
+		Email:      user.Email,
+		Expiration: time.Now().Add(15 * time.Minute),
+	}
+
+	// Create the ID in the database of the ResetPasswordLink record.
+	if err = s.store.CreateResetPasswordLink(ctx, record); err != nil {
+		return err
+	}
+
+	// Create the ResetPasswordEmailData for the email builder
+	emailData := emails.ResetPasswordEmailData{
+		ContactName:  user.Name,
+		ContactEmail: user.Email,
+		BaseURL:      s.url,
+		SupportEmail: s.conf.Email.SupportEmail,
+	}
+
+	// Create the HMAC verification token for the ResetPasswordLink
+	verification := verification.NewToken(record.ID, record.Expiration)
+
+	// Sign the verification token
+	if emailData.Token, record.Signature, err = verification.Sign(); err != nil {
+		return err
+	}
+
+	// Update the ResetPasswordLink record in the database with the token
+	if err = s.store.UpdateResetPasswordLink(ctx, record); err != nil {
+		return err
+	}
+
+	// Build the email
+	var email *emails.Email
+	if email, err = emails.NewResetPasswordEmail(emailData); err != nil {
+		return err
+	}
+
+	// Send the email to the user
+	if err = email.Send(); err != nil {
+		return err
+	}
+
+	// Update the ResetPasswordLink record in the database with a SentOn timestamp
+	record.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
+	if err = s.store.UpdateResetPasswordLink(ctx, record); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //TODO: `ResetPasswordVerification()`` (for when they click the link) (see sunrise.go for verification email code)
