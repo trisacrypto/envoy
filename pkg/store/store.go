@@ -49,6 +49,7 @@ type Store interface {
 	SunriseStore
 	UserStore
 	APIKeyStore
+	ResetPasswordLinkStore
 }
 
 // Secrets is a generic storage interface for storing secrets such as private key
@@ -177,6 +178,13 @@ type APIKeyStore interface {
 	RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
 	UpdateAPIKey(context.Context, *models.APIKey) error
 	DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error
+}
+
+type ResetPasswordLinkStore interface {
+	CreateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
+	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
+	UpdateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
+	// No "Delete" or "List" operation is required for this interface.
 }
 
 // Methods required for managing Daybreak records in the database. This interface allows

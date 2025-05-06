@@ -513,12 +513,72 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 // ResetPasswordLink Store
 //===========================================================================
 
-//TODO ListResetPasswordLink (will we need this? if not, don't code it up)
+const createResetPasswordLinkSQL = "INSERT INTO reset_password_link (id, user_id, email, expiration, signature, sent_on, verified_on, created, modified) VALUES (:id, :userId, :email, :expiration, :signature, :sentOn, :verifiedOn, :created, :modified)"
 
-//TODO CreateResetPasswordLink
+// Create a ResetPasswordLink record in the database.
+func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	if !link.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
 
-//TODO RetrieveResetPasswordLink
+	link.ID = ulid.MakeSecure()
+	link.Created = time.Now()
+	link.Modified = link.Created
 
-//TODO UpdateResetPasswordLink
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-//TODO DeleteResetPasswordLink (will we need this? if not, don't code it up)
+	if _, err = tx.Exec(createResetPasswordLinkSQL, link.Params()...); err != nil {
+		return dbe(err)
+	}
+
+	return tx.Commit()
+}
+
+const retrieveResetPasswordLinkByIDSQL = "SELECT * FROM reset_password_link WHERE id=:id"
+
+// Retrieve a ResetPasswordLink in the database by its ID.
+func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID) (link *models.ResetPasswordLink, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	link = &models.ResetPasswordLink{}
+	if err = link.Scan(tx.QueryRow(retrieveResetPasswordLinkByIDSQL, sql.Named("id", linkID))); err != nil {
+		return nil, dbe(err)
+	}
+
+	tx.Commit()
+	return link, nil
+}
+
+const updateResetPasswordLinkVerifiedSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sent_on, verified_on=:verified_on, modified=:modified  WHERE id=:id"
+
+// Update a ResetPasswordLink record. Only updates the Signature, SentOn, VerifiedOn, and Modified fields, for security
+// purposes.
+func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	link.Modified = time.Now()
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var result sql.Result
+	if result, err = tx.Exec(updateResetPasswordLinkVerifiedSQL, link.Params()...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
