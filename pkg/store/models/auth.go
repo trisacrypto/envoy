@@ -243,17 +243,6 @@ func (s *ResetPasswordLink) Scan(scanner Scanner) error {
 	)
 }
 
-// Scans a partial SELECT into the ResetPasswordLink model for listing the ResetPasswordLink model
-func (s *ResetPasswordLink) ScanSummary(scanner Scanner) error {
-	return scanner.Scan(
-		&s.ID,
-		&s.UserID,
-		&s.Expiration,
-		&s.SentOn,
-		&s.VerifiedOn,
-	)
-}
-
 // Get the complete named params of the ResetPasswordLink message from the model.
 func (s *ResetPasswordLink) Params() []any {
 	return []any{
