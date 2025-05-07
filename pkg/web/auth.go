@@ -448,6 +448,7 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Send the email, also creating a verification token
 	ctx := c.Request.Context()
 	if err = s.sendResetPasswordEmail(ctx, in.Email); err != nil {
 		c.Error(err)
@@ -462,19 +463,40 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
 }
 
-// Send a reset password email to the user and create a verification token.
+// Send a reset password email to the user, also creating a verification token.
 func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (err error) {
+	// The default amount of time that a ResetPasswordLink will expire after
+	// TODO: make this configurable?
+	const defaultTTL = 15 * time.Minute
+
 	// Lookup the user
 	var user *models.User
 	if user, err = s.store.RetrieveUser(ctx, emailAddr); err != nil {
 		return err
 	}
 
+	// Rate limiting is based on the `defaultTTL` expiration time: check to see
+	// if there is an active ResetPasswordLink and if there is we rate limit
+	var link *models.ResetPasswordLink
+	if link, err = s.store.RetrieveMostRecentActiveResetPasswordLink(ctx, user.ID); link != nil || err != nil {
+		if link != nil {
+			// Rate limted! Do not allow for another ResetPasswordLink to be created.
+			return dberr.ErrAlreadyExists
+		}
+
+		// If we get a "record not found" error, that means there is no active
+		// ResetPasswordLink, so we don't need to rate limit.
+		if err != nil && err != dberr.ErrNotFound {
+			// there was a different error, so we fail here
+			return err
+		}
+	}
+
 	// Create a ResetPasswordLink record for database storage
 	record := &models.ResetPasswordLink{
 		UserID:     user.ID,
 		Email:      user.Email,
-		Expiration: time.Now().Add(15 * time.Minute),
+		Expiration: time.Now().Add(defaultTTL),
 	}
 
 	// Create the ID in the database of the ResetPasswordLink record.
@@ -523,4 +545,4 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	return nil
 }
 
-//TODO: `ResetPasswordVerification()`` (for when they click the link) (see sunrise.go for verification email code)
+//TODO: `ResetPasswordVerification()` (for when they click the link) (see sunrise.go for verification email code)

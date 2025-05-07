@@ -184,7 +184,7 @@ type ResetPasswordLinkStore interface {
 	CreateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
 	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
 	UpdateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
-	// No "Delete" or "List" operation is required for this interface.
+	RetrieveMostRecentActiveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
 }
 
 // Methods required for managing Daybreak records in the database. This interface allows
