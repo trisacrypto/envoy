@@ -557,7 +557,7 @@ func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID)
 	return link, nil
 }
 
-const updateResetPasswordLinkVerifiedSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sent_on, verified_on=:verified_on, modified=:modified  WHERE id=:id"
+const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sent_on, verified_on=:verified_on, modified=:modified  WHERE id=:id"
 
 // Update a ResetPasswordLink record. Only updates the Signature, SentOn,
 // VerifiedOn, and Modified fields.
@@ -571,7 +571,7 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 	defer tx.Rollback()
 
 	var result sql.Result
-	if result, err = tx.Exec(updateResetPasswordLinkVerifiedSQL, link.UpdateParams()...); err != nil {
+	if result, err = tx.Exec(updateResetPasswordLinkSQL, link.UpdateParams()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -583,10 +583,10 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 	return nil
 }
 
-const retrieveMostRecentUnexspiredResetPasswordLinkSQL = "SELECT * FROM reset_password_link WHERE user_id=:userId AND sent_on IS NOT NULL AND datetime('now') < datetime(expiration) AND verified_on IS NULL ORDER BY created DESC LIMIT 1"
+const retrieveMostRecentActiveResetPasswordLinkSQL = "SELECT * FROM reset_password_link WHERE user_id=:userId AND sent_on IS NOT NULL AND datetime('now') < datetime(expiration) AND verified_on IS NULL ORDER BY created DESC LIMIT 1"
 
 // Retrieve the most recent ResetPasswordLink for the `userID` that has been
-// sent, is not expired, and has not been verified (link has not been clicked).
+// emailed to the user, is not expired, and has not been verified/completed.
 func (s *Store) RetrieveMostRecentActiveResetPasswordLink(ctx context.Context, userID ulid.ULID) (link *models.ResetPasswordLink, err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
@@ -595,7 +595,7 @@ func (s *Store) RetrieveMostRecentActiveResetPasswordLink(ctx context.Context, u
 	defer tx.Rollback()
 
 	link = &models.ResetPasswordLink{}
-	if err = link.Scan(tx.QueryRow(retrieveMostRecentUnexspiredResetPasswordLinkSQL, sql.Named("userId", userID))); err != nil {
+	if err = link.Scan(tx.QueryRow(retrieveMostRecentActiveResetPasswordLinkSQL, sql.Named("userId", userID))); err != nil {
 		return nil, dbe(err)
 	}
 
