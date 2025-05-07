@@ -243,7 +243,19 @@ func (s *ResetPasswordLink) Scan(scanner Scanner) error {
 	)
 }
 
-// Get the complete named params of the ResetPasswordLink message from the model.
+// Get the named params of the ResetPasswordLink from the model that are
+// required for an update operation.
+func (s *ResetPasswordLink) UpdateParams() []any {
+	return []any{
+		sql.Named("id", s.ID),
+		sql.Named("signature", s.Signature),
+		sql.Named("sentOn", s.SentOn),
+		sql.Named("verifiedOn", s.VerifiedOn),
+		sql.Named("modified", s.Modified),
+	}
+}
+
+// Get the complete named params of the ResetPasswordLink from the model.
 func (s *ResetPasswordLink) Params() []any {
 	return []any{
 		sql.Named("id", s.ID),
@@ -258,7 +270,8 @@ func (s *ResetPasswordLink) Params() []any {
 	}
 }
 
-// IsExpired returns true if the link expiration is before the current time.
+// IsExpired returns true if the current time is after the link expiration or if
+// the link has already been verified/completed.
 func (s *ResetPasswordLink) IsExpired() bool {
-	return time.Now().After(s.Expiration)
+	return time.Now().After(s.Expiration) || !s.VerifiedOn.Valid
 }

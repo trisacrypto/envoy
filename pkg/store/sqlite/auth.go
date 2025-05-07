@@ -571,7 +571,7 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 	defer tx.Rollback()
 
 	var result sql.Result
-	if result, err = tx.Exec(updateResetPasswordLinkVerifiedSQL, link.Params()...); err != nil {
+	if result, err = tx.Exec(updateResetPasswordLinkVerifiedSQL, link.UpdateParams()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound

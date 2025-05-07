@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -427,6 +428,7 @@ func (s *Server) ChangePassword(c *gin.Context) {
 	})
 }
 
+// Looks up a user by email and sends that user a link/token to reset their password.
 func (s *Server) ResetPassword(c *gin.Context) {
 	var (
 		err error
@@ -466,7 +468,6 @@ func (s *Server) ResetPassword(c *gin.Context) {
 // Send a reset password email to the user, also creating a verification token.
 func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (err error) {
 	// The default amount of time that a ResetPasswordLink will expire after
-	// TODO: make this configurable?
 	const defaultTTL = 15 * time.Minute
 
 	// Lookup the user
@@ -508,7 +509,7 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	emailData := emails.ResetPasswordEmailData{
 		ContactName:  user.Name,
 		ContactEmail: user.Email,
-		BaseURL:      s.url,
+		BaseURL:      s.url.JoinPath("reset-password", "verify"),
 		SupportEmail: s.conf.Email.SupportEmail,
 	}
 
@@ -545,4 +546,78 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	return nil
 }
 
-//TODO: `ResetPasswordVerification()` (for when they click the link) (see sunrise.go for verification email code)
+// Verifies an incoming ResetPasswordLink token from a user clicking on a URL.
+func (s *Server) ResetPasswordVerify(c *gin.Context) {
+	var (
+		err   error
+		in    *api.URLVerification
+		log   zerolog.Logger
+		link  *models.ResetPasswordLink
+		token verification.VerificationToken
+	)
+
+	in = &api.URLVerification{}
+	ctx := c.Request.Context()
+	log = logger.Tracing(ctx)
+
+	// We do not allow JSON API requests to this endpoint. Returning a 406 error
+	// here is for the legitimate API users.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
+
+	// Read the token string
+	if err = c.BindJSON(in); err != nil {
+		log.Warn().Err(err).Msg("could not parse query string")
+		c.HTML(http.StatusBadRequest, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Validate the token string
+	if err = in.Validate(); err != nil {
+		// If the token is invalid or missing, return a 404.
+		// NOTE: do not log an error as this is very verbose, instead just a debug message
+		log.Debug().Err(err).Msg("reset password request with invalid token")
+		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Get the verification token from the token string
+	token = in.VerificationToken()
+
+	// Get the ResetPasswordLink record from the database
+	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordID()); err != nil {
+		log.Warn().Err(err).Str("record_id", token.RecordID().String()).Msg("could not retrieve reset password record")
+		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Check that the token is valid
+	if secure, err := link.Signature.Verify(token); err != nil || !secure {
+		// If the token is not secure or verifiable, return a 404 but be freaked out
+		log.Warn().Err(err).Bool("secure", secure).Msg("a reset password request hmac verification failed")
+		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Check that the token and link have both not expired
+	if link.Signature.Token.IsExpired() || link.IsExpired() {
+		// The token is expired or has already been verified/completed.
+		log.Debug().Msg("received a request with an expired verification token")
+		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Record the verification time
+	link.VerifiedOn.Valid = true
+	link.VerifiedOn.Time = time.Now()
+	if err = s.store.UpdateResetPasswordLink(ctx, link); err != nil {
+		log.Warn().Err(err).Msg("failed to update reset password verified time")
+		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		return
+	}
+
+	// Render the change password form
+	c.HTML(http.StatusOK, "auth/reset/change.html", scene.New(c))
+}

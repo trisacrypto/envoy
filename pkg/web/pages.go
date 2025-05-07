@@ -50,6 +50,12 @@ func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "auth/reset/success.html", scene.New(c))
 }
 
+// ResetPasswordVerifyPage displays a button for the user to click to verify
+// a ResetPasswordLink token and continue to the password reset change page.
+func (s *Server) ResetPasswordVerifyPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "auth/reset/verify.html", scene.New(c))
+}
+
 //===========================================================================
 // Transactions Pages
 //===========================================================================
