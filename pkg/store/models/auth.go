@@ -270,8 +270,7 @@ func (s *ResetPasswordLink) Params() []any {
 	}
 }
 
-// IsExpired returns true if the current time is after the link expiration or if
-// the link has already been verified/completed.
+// IsExpired returns true if the current time is after the link expiration.
 func (s *ResetPasswordLink) IsExpired() bool {
-	return time.Now().After(s.Expiration) || !s.VerifiedOn.Valid
+	return time.Now().After(s.Expiration)
 }
