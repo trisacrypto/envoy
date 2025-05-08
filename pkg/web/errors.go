@@ -22,6 +22,7 @@ var (
 	ErrIDMismatch        = errors.New("resource id does not match target")
 	ErrNotFound          = errors.New("resource not found")
 	ErrUnavailable       = errors.New("could not connect to remote counterparty; please try again later")
+	ErrDisabled          = errors.New("the protocol used to send to the counterparty is currently disabled")
 )
 
 // Logs the error with c.Error and negotiates the response. If HTML is requested by the
