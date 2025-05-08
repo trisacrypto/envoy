@@ -1,22 +1,85 @@
 {{- with .Envelope }}
+<p class="text-body-secondary mb-4">
+  Please review the transaction and identity information below for completeness and
+  accuracy. You may make any required changes to the information before accepting the
+  travel rule transfer. Accepting the transfer indicates to the Counterparty VASP that
+  the information is is satisfactory for compliance purposes in your jurisdiction and
+  that they may proceed with the virtual asset transfer.
+</p>
+
 <form id="acceptForm" hx-post="/v1/transactions/{{ .EnvelopeID }}/accept" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>Transaction Details</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedTransaction" aria-expanded="false" aria-controls="extendedTransaction">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+  {{- template "transferForm" .Transaction }}
+
+  <hr class="mt-4 mb-5">
+
   {{- with .Identity }}
-  <h2>{{ if .Originator.Plural }}Originators{{ else }}Originator{{ end }}</h2>
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>{{ if .Originator.Plural }}Originators{{ else }}Originator{{ end }}</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedOriginator" aria-expanded="false" aria-controls="extendedOriginator">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
   {{- range .Originator }}
-  <h3>{{ .Person.FullName }}</h3>
+  {{- if .Person }}
+  {{- template "naturalPersonForm" dict "Prefix" "originator" "Person" .Person }}
+  {{- else if .Company }}
+  {{- template "legalPersonForm" dict "Prefix" "originator" "Person" .Company }}
+  {{- end }}
   {{- end }}
 
-  <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiary" aria-expanded="false" aria-controls="extendedBeneficiary">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
   {{- range .Beneficiary }}
-  <h3>{{ .Person.FullName }}</h3>
+  {{- if .Person }}
+  {{- template "naturalPersonForm" dict "Prefix" "beneficiary" "Person" .Person }}
+  {{- else if .Company }}
+  {{- template "legalPersonForm" dict "Prefix" "beneficiary" "Person" .Company }}
   {{- end }}
+  {{- end }}
+
+  <hr class="mt-4 mb-5">
 
   <h2>Originator VASP</h2>
+  {{ template "legalPersonForm" dict "Prefix" "originatingVASP" "Person" .OriginatorVASP }}
+
+  <hr class="mt-4 mb-5">
 
   <h2>Beneficiary VASP</h2>
-  {{- end }}
+  {{ template "legalPersonForm" dict "Prefix" "beneficiaryVASP" "Person" .BeneficiaryVASP }}
+  {{- end}}
 
-  <h2>Transaction Details</h2>
+  <hr class="mt-4 mb-5">
+
+
 
 </form>
 {{- end }}

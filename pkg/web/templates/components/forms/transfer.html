@@ -1,0 +1,118 @@
+{{ define "transferForm" }}
+<fieldset id="fieldsetTransaction">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="originatorCryptoAddress">
+          Originator Wallet Address
+        </label>
+        <small class="form-text text-body-secondary">
+          Crypto wallet address the funds will be transferred from.
+        </small>
+        <input
+          type="text" class="form-control" value="{{ .Originator }}"
+          id="originatorCryptoAddress" name="originator_crypto_address"
+          placeholder="Crypto Wallet Address" required
+        >
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="beneficiaryCryptoAddress">
+          Beneficiary Wallet Address
+        </label>
+        <small class="form-text text-body-secondary">
+          Crypto wallet address the funds will be transferred to.
+        </small>
+        <input
+          type="text" class="form-control" value="{{ .Beneficiary }}"
+          id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
+          placeholder="Crypto Wallet Address" required
+        >
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="transferAmount">Transfer Amount</label>
+        <small class="form-text text-body-secondary">
+          Enter a value that can be matched on the blockchain.
+        </small>
+        <input type="text" class="form-control" value="{{ .Amount }}"
+               id="transferAmount" name="transfer_amount"
+               placeholder="Transfer Amount" required
+        >
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label mb-1" for="transferAmount">Network</label>
+        <small class="form-text text-body-secondary">
+          Select the network or blockchain DTI/SLIP-0044 code.
+        </small>
+        <select class="form-control"
+                id="network" name="transfer_network"
+                data-networks='{"searchEnabled": true}'
+                data-selected="{{ .Network }}"
+                placeholder="Digital Token Identifier" required
+        >
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="extendedTransaction" class="extended collapse show">
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="assetType">Asset Type</label>
+          <input type="text" class="form-control" value="{{ .AssetType }}"
+                id="assetType" name="transfer_asset_type"
+                placeholder="Network-Specific Asset Type (optional)"
+          >
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="tag">Memo/Destination Tag</label>
+          <input type="text" class="form-control" value="{{ .Tag }}"
+                id="tag" name="transfer_tag"
+                placeholder="Network-Specific Memo (optional)"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="txnID">Transaction ID/Hash</label>
+      <small class="form-text text-body-secondary">
+        If the transfer has already been completed on the chain, enter the hash or ID.
+      </small>
+      <input type="text" class="form-control" value="{{ .Txid }}"
+            id="txnID" name="transfer_transaction_id"
+            placeholder="Transaction ID or Hash"
+      >
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="txnID">Transaction Timestamp</label>
+      <small class="form-text text-body-secondary">
+        The timestamp associated with the block or transaction hash.
+      </small>
+      <input type="text" class="form-control" value="{{ .Timestamp }}"
+            id="timestamp" name="transfer_transaction_timestamp"
+            placeholder="Timestamp"
+      >
+    </div>
+    {{- if .ExtraJson }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="extraJSON">Extra JSON</label>
+      <small class="form-text text-body-secondary">
+        Any additional, chain-specific information about the transaction (JSON format).
+      </small>
+      <textarea class="form-control" id="extraJSON" name="transfer_extra_json">
+        {{ .ExtraJson }}
+      </textarea>
+    </div>
+    {{- end }}
+  </div>
+</div>
+{{ end }}

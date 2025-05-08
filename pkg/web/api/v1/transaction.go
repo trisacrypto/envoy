@@ -579,6 +579,8 @@ func (e *Envelope) TransactionPayload() *generic.Transaction {
 		return e.Pending.Transaction
 	case e.Sunrise != nil && e.Sunrise.Transaction != nil:
 		return e.Sunrise.Transaction
+	case e.TRP != nil && e.TRP.Transaction != nil:
+		return e.TRP.Transaction
 	default:
 		log.Debug().Msg("could not identify transaction payload")
 		return nil

@@ -116,6 +116,10 @@
 {{ end }}
 
 {{- define "appcode" }}
+<script type="module" src="/static/js/htmx/helpers.js"></script>
+<script type="module" src="/static/js/modules/networks.js"></script>
+<script type="module" src="/static/js/modules/countries.js"></script>
+<script type="module" src="/static/js/modules/ivms101.js"></script>
 <script type="module" src="/static/js/modules/components.js"></script>
 <script type="module" src="/static/js/transactions/edit.js"></script>
 {{- end }}
