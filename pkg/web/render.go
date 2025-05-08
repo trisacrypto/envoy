@@ -13,8 +13,7 @@ import (
 	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
 	"go.rtnl.ai/x/humanize"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"go.rtnl.ai/x/typecase"
 )
 
 //go:embed all:static
@@ -132,7 +131,6 @@ func (r *Render) AddPattern(fsys fs.FS, pattern string, includes ...string) (err
 }
 
 func (r *Render) FuncMap() template.FuncMap {
-	title := cases.Title(language.English)
 	if r.funcs == nil {
 		r.funcs = template.FuncMap{
 			"uppercase": func(s string) string {
@@ -141,8 +139,13 @@ func (r *Render) FuncMap() template.FuncMap {
 			"lowercase": func(s string) string {
 				return strings.ToLower(s)
 			},
-			"titlecase": title.String,
-			"moment":    humanize.Time,
+			"titlecase": func(s string) string {
+				return typecase.Title(s)
+			},
+			"camel": func(s string) string {
+				return typecase.Camel(s)
+			},
+			"moment": humanize.Time,
 			"rfc3339": func(t time.Time) string {
 				return t.Format(time.RFC3339)
 			},

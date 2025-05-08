@@ -1,5 +1,5 @@
 {{ define "legalPersonForm" }}
-{{ $title := titlecase .Prefix }}
+{{ $title := camel .Prefix }}
 <fieldset id="fieldset{{ $title }}" data-person="{{ .Prefix }}">
   <div class="row">
     <div class="col-md-6">
