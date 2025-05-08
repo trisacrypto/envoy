@@ -30,6 +30,11 @@ type ResetPasswordRequest struct {
 	Email string `json:"email"`
 }
 
+type ResetPasswordChangeRequest struct {
+	Password string `json:"password"`
+	URLVerification
+}
+
 func (r *LoginRequest) Validate() (err error) {
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Email == "" {

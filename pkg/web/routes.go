@@ -182,8 +182,7 @@ func (s *Server) setupRoutes() (err error) {
 
 		// User Profile Management
 		v1.POST("/reset-password", s.ResetPassword)
-		v1.POST("/reset-password/verify", s.ResetPasswordVerify)
-		//TODO: may need to have a "/reset-password/change" endpoint if "/change-password" does not work for this flow
+		v1.POST("/reset-password/verify", s.ResetPasswordVerifyAndChange)
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource

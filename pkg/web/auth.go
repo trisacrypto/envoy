@@ -427,6 +427,10 @@ func (s *Server) ChangePassword(c *gin.Context) {
 	})
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Reset Password Workflow Endpoints
+//////////////////////////////////////////////////////////////////////////////
+
 // Looks up a user by email and sends that user a link/token to reset their password.
 func (s *Server) ResetPassword(c *gin.Context) {
 	var (
@@ -463,6 +467,67 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	// Redirect to reset-password success page
 	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
 }
+
+// Verifies an incoming password change requested via a verification link, then changes the user's password.
+func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
+	var (
+		err   error
+		in    *api.ResetPasswordChangeRequest
+		token verification.VerificationToken
+	)
+	const (
+		failureStatus   = http.StatusBadRequest
+		failureTemplate = "auth/reset/failure.html"
+	)
+
+	// Prepare context and logging
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx)
+
+	// Prepare for possible error
+	var errScene scene.Scene
+	errScene = scene.New(c)
+	errScene["SupportEmail"] = s.conf.Email.SupportEmail
+
+	// We do not allow JSON API requests to this endpoint. Returning a 406 error
+	// here is for the legitimate API users.
+	if IsAPIRequest(c) {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
+		return
+	}
+
+	// Read the token string
+	if err = c.BindJSON(in); err != nil {
+		log.Warn().Err(err).Msg("could not parse query string")
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return
+	}
+
+	// Validate the token string
+	if err = in.URLVerification.Validate(); err != nil {
+		// If the token is invalid or missing, return a 404.
+		// NOTE: do not log an error as this is very verbose, instead just a debug message
+		log.Debug().Err(err).Msg("reset password request with invalid token")
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return
+	}
+
+	// Get the verification token from the token string
+	token = in.URLVerification.VerificationToken()
+
+	// Verify the ResetPasswordLink token
+	if err = s.verifyResetPasswordLinkToken(c, token); err != nil {
+		// NOTE: `verifyResetPasswordLinkToken()` handles setting the response and logging the error
+		return
+	}
+
+	// Change the user's password
+	// TODO
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Reset Password Workflow internal functions
+//////////////////////////////////////////////////////////////////////////////
 
 // Send a reset password email to the user, also creating a verification token.
 func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (err error) {
@@ -545,70 +610,8 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	return nil
 }
 
-// Verifies an incoming ResetPasswordLink token from a user clicking on a URL.
-func (s *Server) ResetPasswordVerify(c *gin.Context) {
-	var (
-		err   error
-		in    *api.URLVerification
-		token verification.VerificationToken
-	)
-	const (
-		failureStatus   = http.StatusBadRequest
-		failureTemplate = "auth/reset/failure.html"
-	)
-
-	// Prepare context and logging
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx)
-
-	// Prepare for possible error
-	var errScene scene.Scene
-	errScene = scene.New(c)
-	errScene["SupportEmail"] = s.conf.Email.SupportEmail
-
-	// We do not allow JSON API requests to this endpoint. Returning a 406 error
-	// here is for the legitimate API users.
-	if IsAPIRequest(c) {
-		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
-		return
-	}
-
-	// Read the token string
-	if err = c.BindJSON(in); err != nil {
-		log.Warn().Err(err).Msg("could not parse query string")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return
-	}
-
-	// Validate the token string
-	if err = in.Validate(); err != nil {
-		// If the token is invalid or missing, return a 404.
-		// NOTE: do not log an error as this is very verbose, instead just a debug message
-		log.Debug().Err(err).Msg("reset password request with invalid token")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return
-	}
-
-	// Get the verification token from the token string
-	token = in.VerificationToken()
-
-	// Verify the ResetPasswordLink token
-	if err = s.resetPasswordtokenVerify(c, token); err != nil {
-		// NOTE: `resetPasswordtokenVerify()` handles setting the response and logging the error
-		return
-	}
-
-	// Prepare context for the password change form so that we can validate the password change as well
-	var changeScene scene.Scene
-	changeScene = scene.New(c)
-	changeScene["token"] = token
-
-	// Render the change password form
-	c.HTML(http.StatusOK, "auth/reset/change.html", changeScene)
-}
-
 // Verifies a ResetPasswordLink token. This function will handle logging and setting the HTML response for errors.
-func (s *Server) resetPasswordtokenVerify(c *gin.Context, token verification.VerificationToken) (err error) {
+func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification.VerificationToken) (err error) {
 	var (
 		errScene scene.Scene
 		link     *models.ResetPasswordLink
