@@ -89,6 +89,7 @@ type TransactionStore interface {
 	UnarchiveTransaction(context.Context, uuid.UUID) error
 	PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error)
 	CountTransactions(context.Context) (*models.TransactionCounts, error)
+	TransactionState(context.Context, uuid.UUID) (archived bool, status enum.Status, err error)
 }
 
 // SecureEnvelopes are associated with individual transactions.

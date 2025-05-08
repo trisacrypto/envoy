@@ -10,10 +10,21 @@ import (
 // IVMS101 is a struct that represents the complex IVMS101 data as a flattened struct
 // with only the data that is required by our web application.
 type IVMS101 struct {
-	Originator      Person
-	OriginatorVASP  VASP
-	Beneficiary     Person
-	BeneficiaryVASP VASP
+	Originator      Entities
+	OriginatorVASP  Company
+	Beneficiary     Entities
+	BeneficiaryVASP Company
+}
+
+type Entities []Entity
+
+func (e Entities) Plural() bool {
+	return len(e) > 1
+}
+
+type Entity struct {
+	Person  *Person
+	Company *Company
 }
 
 type Person struct {
@@ -29,7 +40,7 @@ type Person struct {
 	CountryOfResidence  string
 }
 
-type VASP struct {
+type Company struct {
 	AddressComponents
 	LegalName             string
 	PrimaryAddress        *ivms101.Address
@@ -58,17 +69,54 @@ type AddressComponents struct {
 // Return the simplified/flattened IVMS101 identity representation if an Envelope has
 // been set as the APIData in the Scene.
 func (s Scene) IVMS101() *IVMS101 {
-	var envelope *api.Envelope
+	var envelope *Envelope
 	if envelope = s.Envelope(); envelope == nil {
 		return nil
 	}
+	return NewIVMS101(envelope)
+}
 
+func NewIVMS101(envelope *Envelope) *IVMS101 {
 	// Create the IVMS101 struct from the envelope data
 	ivms := &IVMS101{
-		Originator:      makePerson(envelope.FirstOriginator()),
-		OriginatorVASP:  makeVASP(envelope.OriginatorVASP()),
-		Beneficiary:     makePerson(envelope.FirstBeneficiary()),
-		BeneficiaryVASP: makeVASP(envelope.BeneficiaryVASP()),
+		// Originator:      makePerson(envelope.FirstOriginator()),
+		OriginatorVASP: makeCompany(envelope.OriginatorVASP()),
+		// Beneficiary:     makePerson(envelope.FirstBeneficiary()),
+		BeneficiaryVASP: makeCompany(envelope.BeneficiaryVASP()),
+	}
+
+	// Create the originator persons
+	for _, person := range envelope.Originators() {
+		var entity Entity
+		switch {
+		case person.GetNaturalPerson() != nil:
+			person := makePerson(person.GetNaturalPerson())
+			entity.Person = &person
+		case person.GetLegalPerson() != nil:
+			company := makeCompany(person.GetLegalPerson())
+			entity.Company = &company
+		}
+
+		if entity.Person != nil || entity.Company != nil {
+			ivms.Originator = append(ivms.Originator, entity)
+		}
+	}
+
+	// Create the beneficiary persons
+	for _, person := range envelope.Beneficiaries() {
+		var entity Entity
+		switch {
+		case person.GetNaturalPerson() != nil:
+			person := makePerson(person.GetNaturalPerson())
+			entity.Person = &person
+		case person.GetLegalPerson() != nil:
+			company := makeCompany(person.GetLegalPerson())
+			entity.Company = &company
+		}
+
+		if entity.Person != nil || entity.Company != nil {
+			ivms.Beneficiary = append(ivms.Beneficiary, entity)
+		}
 	}
 
 	return ivms
@@ -105,7 +153,7 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 	return p
 }
 
-func makeVASP(vasp *ivms101.LegalPerson) (v VASP) {
+func makeCompany(vasp *ivms101.LegalPerson) (v Company) {
 	if vasp == nil {
 		return v
 	}

@@ -25,9 +25,9 @@ require (
 	github.com/trisacrypto/trisa v1.6.1
 	github.com/urfave/cli/v2 v2.27.6
 	go.rtnl.ai/ulid v1.1.1
-	go.rtnl.ai/x v1.2.0
+	go.rtnl.ai/x v1.3.0
 	golang.org/x/crypto v0.36.0
-	golang.org/x/text v0.23.0
+	golang.org/x/text v0.25.0
 	google.golang.org/api v0.228.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.6
@@ -117,7 +117,7 @@ require (
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20250324211829-b45e905df463 // indirect

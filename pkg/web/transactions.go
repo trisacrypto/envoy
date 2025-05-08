@@ -133,19 +133,11 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 
 func (s *Server) TransactionDetail(c *gin.Context) {
 	var (
-		err           error
-		transactionID uuid.UUID
-		transaction   *models.Transaction
-		out           *api.Transaction
+		err error
+		out *api.Transaction
 	)
 
-	// Parse the transactionID passed in from the URL
-	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
-		return
-	}
-
-	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+	if out, err = s.retrieveTransaction(c); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -153,13 +145,6 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	if out, err = api.NewTransaction(transaction); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
 	}
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
@@ -168,6 +153,40 @@ func (s *Server) TransactionDetail(c *gin.Context) {
 		HTMLName: "partials/transactions/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
+}
+
+// Helper method for pages and API routes that require access to the transaction detail
+// but handle the output data differently (e.g. rendering a page or a partial).
+// NOTE: no error handling or logging happens in this method, so callers must handle
+// all errors and logging before aborting the request.
+func (s *Server) retrieveTransaction(c *gin.Context) (out *api.Transaction, err error) {
+	var (
+		transactionID uuid.UUID
+		transaction   *models.Transaction
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		// Return a db error so that the caller can return a 404 error.
+		return nil, dberr.ErrNotFound
+	}
+
+	if transaction, err = s.store.RetrieveTransaction(c.Request.Context(), transactionID); err != nil {
+		if !errors.Is(err, dberr.ErrNotFound) {
+			// If this is a database error other than not found, log the error and
+			// return an internal error to prevent leaking critical backend details to
+			// the user that will confuse them or allow them to exploit the system.
+			c.Error(err)
+			return nil, dberr.ErrInternal
+		}
+		return nil, err
+	}
+
+	if out, err = api.NewTransaction(transaction); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (s *Server) UpdateTransaction(c *gin.Context) {
@@ -475,6 +494,8 @@ func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	var (
 		err           error
+		archived      bool
+		status        enum.Status
 		transactionID uuid.UUID
 		env           *models.SecureEnvelope
 		decrypted     *envelope.Envelope
@@ -487,8 +508,30 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 		return
 	}
 
-	// Retrieve the latest secure envelope for the transaction from the database
+	// Check that transaction is in a repairable state.
 	ctx := c.Request.Context()
+	if archived, status, err = s.store.TransactionState(ctx, transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if archived {
+		c.JSON(http.StatusBadRequest, api.Error("transaction is archived and cannot be accepted"))
+		return
+	}
+
+	if status != enum.StatusReview {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a reviewable state"))
+		return
+	}
+
+	// Retrieve the latest secure envelope for the transaction from the database
 	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, enum.DirectionAny); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
@@ -516,7 +559,8 @@ func (s *Server) AcceptTransactionPreview(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "transaction_accept.html",
+		HTMLName: "partials/transactions/accept.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
@@ -524,6 +568,8 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 	var (
 		err        error
 		envelopeID uuid.UUID
+		archived   bool
+		status     enum.Status
 		in         *api.Envelope
 		payload    *trisa.Payload
 		out        *api.Envelope
@@ -565,6 +611,30 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 		return
 	}
 
+	// Verify that the transaction is in a state that we can perform the action on.
+	// Check that transaction is in a repairable state.
+	ctx := c.Request.Context()
+	if archived, status, err = s.store.TransactionState(ctx, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if archived {
+		c.JSON(http.StatusBadRequest, api.Error("transaction is archived and cannot be repaired"))
+		return
+	}
+
+	if status != enum.StatusReview {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a reviewable state"))
+		return
+	}
+
 	// Send the payload with the accept transfer state
 	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferAccepted); err != nil {
 		c.Error(err)
@@ -573,7 +643,6 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 	}
 
 	// Ensure the logger is set!
-	ctx := c.Request.Context()
 	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
@@ -656,6 +725,8 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 func (s *Server) RejectTransaction(c *gin.Context) {
 	var (
 		err        error
+		archived   bool
+		status     enum.Status
 		envelopeID uuid.UUID
 		in         *api.Rejection
 		out        *api.Envelope
@@ -682,6 +753,29 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 		return
 	}
 
+	// Check that transaction is in a rejectable state.
+	ctx := c.Request.Context()
+	if archived, status, err = s.store.TransactionState(ctx, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if archived {
+		c.JSON(http.StatusBadRequest, api.Error("transaction is archived and cannot be repaired"))
+		return
+	}
+
+	if status != enum.StatusReview {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a reviewable state"))
+		return
+	}
+
 	if packet, err = postman.SendTRISAReject(envelopeID, in.Proto()); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process reject transaction request"))
@@ -689,7 +783,6 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	}
 
 	// Ensure the logger is set!
-	ctx := c.Request.Context()
 	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database
@@ -770,6 +863,8 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	var (
 		err           error
+		archived      bool
+		status        enum.Status
 		transactionID uuid.UUID
 		errorEnv      *models.SecureEnvelope
 		payloadEnv    *models.SecureEnvelope
@@ -783,9 +878,31 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 		return
 	}
 
+	// Check that transaction is in a repairable state.
+	ctx := c.Request.Context()
+	if archived, status, err = s.store.TransactionState(ctx, transactionID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if archived {
+		c.JSON(http.StatusBadRequest, api.Error("transaction is archived and cannot be repaired"))
+		return
+	}
+
+	if status != enum.StatusRepair {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a repairable state"))
+		return
+	}
+
 	// Retrieve the latest secure envelope for the transaction from the database
 	// this should be the error envelope that contains the required repair info.
-	ctx := c.Request.Context()
 	if errorEnv, err = s.store.LatestSecureEnvelope(ctx, transactionID, enum.DirectionIncoming); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
@@ -838,13 +955,16 @@ func (s *Server) RepairTransactionPreview(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "transaction_repair.html",
+		HTMLName: "partials/transactions/repair.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
 func (s *Server) RepairTransaction(c *gin.Context) {
 	var (
 		err        error
+		archived   bool
+		status     enum.Status
 		envelopeID uuid.UUID
 		in         *api.Envelope
 		payload    *trisa.Payload
@@ -884,6 +1004,29 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 		return
 	}
 
+	// Check that transaction is in a repairable state.
+	ctx := c.Request.Context()
+	if archived, status, err = s.store.TransactionState(ctx, envelopeID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if archived {
+		c.JSON(http.StatusBadRequest, api.Error("transaction is archived and cannot be repaired"))
+		return
+	}
+
+	if status != enum.StatusRepair {
+		c.JSON(http.StatusBadRequest, api.Error("transaction not in a repairable state"))
+		return
+	}
+
 	// Send the payload with the accept transfer state
 	if packet, err = postman.SendTRISA(envelopeID, payload, trisa.TransferReview); err != nil {
 		c.Error(err)
@@ -892,7 +1035,6 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	}
 
 	// Ensure the logger is set!
-	ctx := c.Request.Context()
 	packet.Log = logger.Tracing(ctx).With().Str("envelope_id", envelopeID.String()).Logger()
 
 	// Lookup the transaction from the database

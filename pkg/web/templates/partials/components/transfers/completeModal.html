@@ -1,0 +1,38 @@
+{{ define "completeTransferModal" -}}
+<div id="completeTransferModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Complete Transfer</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="completeAlerts"></div>
+        <form id="completeForm" hx-post="/v1/transactions/{{ .ID }}/complete" hx-ext="json-enc" hx-swap="none" hx-indicator="#completeLoader" hx-disabled-elt="next button[type='submit'], next button[type='button']">
+          <div class="form-group">
+            <label for="message" class="mb-1">Transaction ID or Hash</label>
+            <textarea id="message" name="message" class="form-control" rows="3" placeholder=""></textarea>
+            <small class="form-text text-body-secondary mt-1">
+              Specify the transaction hash of the completed transfer on the blockchain.
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="message" class="mb-1">Transaction Timestamp</label>
+            <input type="text" class="form-control" value=""
+                   id="timestamp" name="transfer_transaction_timestamp"
+            >
+            <small class="form-text text-body-secondary mt-1">
+              The timestamp associated with the block or transaction hash.
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span id="completeLoader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" form="completeForm" class="btn btn-success" disabled>Complete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}

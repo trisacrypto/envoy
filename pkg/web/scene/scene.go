@@ -95,6 +95,11 @@ func (s Scene) WithParent(parent ulid.ULID) Scene {
 	return s
 }
 
+func (s Scene) With(key string, val interface{}) Scene {
+	s[key] = val
+	return s
+}
+
 //===========================================================================
 // Scene User Related Helpers
 //===========================================================================
@@ -250,15 +255,6 @@ func (s Scene) APIKeyDetail() *api.APIKey {
 func (s Scene) EnvelopeList() *api.EnvelopesList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.EnvelopesList); ok {
-			return out
-		}
-	}
-	return nil
-}
-
-func (s Scene) Envelope() *api.Envelope {
-	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.Envelope); ok {
 			return out
 		}
 	}

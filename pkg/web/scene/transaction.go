@@ -164,6 +164,10 @@ func (s Status) Repair() bool {
 	return s.value == enum.StatusRepair
 }
 
+func (s Status) Accepted() bool {
+	return s.value == enum.StatusAccepted
+}
+
 func (s Status) ActionRequired() bool {
 	ok, _ := enum.CheckStatus(s, enum.StatusReview, enum.StatusRepair, enum.StatusDraft)
 	return ok

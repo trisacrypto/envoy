@@ -86,6 +86,7 @@ type Envelope struct {
 	Transaction        *generic.Transaction     `json:"transaction,omitempty"`
 	Pending            *generic.Pending         `json:"pending,omitempty"`
 	Sunrise            *generic.Sunrise         `json:"sunrise,omitempty"`
+	TRP                *generic.TRP             `json:"trp,omitempty"`
 	SentAt             *time.Time               `json:"sent_at"`
 	ReceivedAt         *time.Time               `json:"received_at,omitempty"`
 	Timestamp          time.Time                `json:"timestamp,omitempty"`
@@ -381,6 +382,11 @@ func NewEnvelope(model *models.SecureEnvelope, env *envelope.Envelope) (out *Env
 		if err = payload.Transaction.UnmarshalTo(out.Sunrise); err != nil {
 			return nil, err
 		}
+	case "type.googleapis.com/trisa.data.generic.v1beta1.TRP":
+		out.TRP = &generic.TRP{}
+		if err = payload.Transaction.UnmarshalTo(out.TRP); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unknown transaction protobuf type: %q", payload.Transaction.TypeUrl)
 	}
@@ -419,6 +425,7 @@ func NewEnvelopeList(page *models.SecureEnvelopePage, envelopes []*envelope.Enve
 		env.Transaction = nil
 		env.Pending = nil
 		env.Sunrise = nil
+		env.TRP = nil
 		env.SecureEnvelope = nil
 
 		out.DecryptedEnvelopes = append(out.DecryptedEnvelopes, env)
@@ -533,24 +540,12 @@ func (e *Envelope) BeneficiaryVASP() *ivms101.LegalPerson {
 	return nil
 }
 
-// Retrieves first originator account in the identity payload that has a legal name.
-func (e *Envelope) FirstOriginator() *ivms101.NaturalPerson {
+// Retrieves the originator persons payload if there are any.
+func (e *Envelope) Originators() []*ivms101.Person {
 	if e.Identity != nil {
 		if e.Identity.Originator != nil {
 			if len(e.Identity.Originator.OriginatorPersons) > 0 {
-				// Search for the first natural person to have a legal name.
-				for _, originator := range e.Identity.Originator.OriginatorPersons {
-					if person := originator.GetNaturalPerson(); person != nil {
-						if nameIdx := FindLegalName(person); nameIdx >= 0 {
-							return person
-						}
-					}
-				}
-
-				// If no legal person with a legal name is found, return first originator
-				if person := e.Identity.Originator.OriginatorPersons[0].GetNaturalPerson(); person != nil {
-					return person
-				}
+				return e.Identity.Originator.OriginatorPersons
 			}
 		}
 	}
@@ -559,24 +554,12 @@ func (e *Envelope) FirstOriginator() *ivms101.NaturalPerson {
 	return nil
 }
 
-// Retrieves first beneficiary account in the identity payload that has a legal name.
-func (e *Envelope) FirstBeneficiary() *ivms101.NaturalPerson {
+// Retrieves the beneficiary persons payload if there are any.
+func (e *Envelope) Beneficiaries() []*ivms101.Person {
 	if e.Identity != nil {
 		if e.Identity.Beneficiary != nil {
 			if len(e.Identity.Beneficiary.BeneficiaryPersons) > 0 {
-				// Search for the first natural person to have a legal name.
-				for _, beneficiary := range e.Identity.Beneficiary.BeneficiaryPersons {
-					if person := beneficiary.GetNaturalPerson(); person != nil {
-						if nameIdx := FindLegalName(person); nameIdx >= 0 {
-							return person
-						}
-					}
-				}
-
-				// If no legal person with a legal name is found, return first originator
-				if person := e.Identity.Beneficiary.BeneficiaryPersons[0].GetNaturalPerson(); person != nil {
-					return person
-				}
+				return e.Identity.Beneficiary.BeneficiaryPersons
 			}
 		}
 	}
@@ -596,6 +579,8 @@ func (e *Envelope) TransactionPayload() *generic.Transaction {
 		return e.Pending.Transaction
 	case e.Sunrise != nil && e.Sunrise.Transaction != nil:
 		return e.Sunrise.Transaction
+	case e.TRP != nil && e.TRP.Transaction != nil:
+		return e.TRP.Transaction
 	default:
 		log.Debug().Msg("could not identify transaction payload")
 		return nil

@@ -18,4 +18,5 @@ var (
 	ErrIDMismatch         = errors.New("id does not match id of prepared resource")
 	ErrNoEndpoint         = errors.New("cannot create travel address: no endpoint defined")
 	ErrAmbiguous          = errors.New("ambiguous query: more than one result returned")
+	ErrInternal           = errors.New("something critical went wrong, please try again later")
 )
