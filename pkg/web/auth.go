@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -551,14 +550,21 @@ func (s *Server) ResetPasswordVerify(c *gin.Context) {
 	var (
 		err   error
 		in    *api.URLVerification
-		log   zerolog.Logger
-		link  *models.ResetPasswordLink
 		token verification.VerificationToken
 	)
+	const (
+		failureStatus   = http.StatusBadRequest
+		failureTemplate = "auth/reset/failure.html"
+	)
 
-	in = &api.URLVerification{}
+	// Prepare context and logging
 	ctx := c.Request.Context()
-	log = logger.Tracing(ctx)
+	log := logger.Tracing(ctx)
+
+	// Prepare for possible error
+	var errScene scene.Scene
+	errScene = scene.New(c)
+	errScene["SupportEmail"] = s.conf.Email.SupportEmail
 
 	// We do not allow JSON API requests to this endpoint. Returning a 406 error
 	// here is for the legitimate API users.
@@ -570,7 +576,7 @@ func (s *Server) ResetPasswordVerify(c *gin.Context) {
 	// Read the token string
 	if err = c.BindJSON(in); err != nil {
 		log.Warn().Err(err).Msg("could not parse query string")
-		c.HTML(http.StatusBadRequest, "auth/reset/failure.html", scene.New(c))
+		c.HTML(failureStatus, failureTemplate, errScene)
 		return
 	}
 
@@ -579,34 +585,68 @@ func (s *Server) ResetPasswordVerify(c *gin.Context) {
 		// If the token is invalid or missing, return a 404.
 		// NOTE: do not log an error as this is very verbose, instead just a debug message
 		log.Debug().Err(err).Msg("reset password request with invalid token")
-		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
+		c.HTML(failureStatus, failureTemplate, errScene)
 		return
 	}
 
 	// Get the verification token from the token string
 	token = in.VerificationToken()
 
+	// Verify the ResetPasswordLink token
+	if err = s.resetPasswordtokenVerify(c, token); err != nil {
+		// NOTE: `resetPasswordtokenVerify()` handles setting the response and logging the error
+		return
+	}
+
+	// Prepare context for the password change form so that we can validate the password change as well
+	var changeScene scene.Scene
+	changeScene = scene.New(c)
+	changeScene["token"] = token
+
+	// Render the change password form
+	c.HTML(http.StatusOK, "auth/reset/change.html", changeScene)
+}
+
+// Verifies a ResetPasswordLink token. This function will handle logging and setting the HTML response for errors.
+func (s *Server) resetPasswordtokenVerify(c *gin.Context, token verification.VerificationToken) (err error) {
+	var (
+		errScene scene.Scene
+		link     *models.ResetPasswordLink
+	)
+	const (
+		failureStatus   = http.StatusBadRequest
+		failureTemplate = "auth/reset/failure.html"
+	)
+
+	// Prepare for possible error
+	errScene = scene.New(c)
+	errScene["SupportEmail"] = s.conf.Email.SupportEmail
+
+	// Prepare context and logging
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx)
+
 	// Get the ResetPasswordLink record from the database
 	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordID()); err != nil {
 		log.Warn().Err(err).Str("record_id", token.RecordID().String()).Msg("could not retrieve reset password record")
-		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
-		return
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return err
 	}
 
 	// Check that the token is valid
 	if secure, err := link.Signature.Verify(token); err != nil || !secure {
 		// If the token is not secure or verifiable, return a 404 but be freaked out
 		log.Warn().Err(err).Bool("secure", secure).Msg("a reset password request hmac verification failed")
-		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
-		return
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return err
 	}
 
 	// Check that the token and link have both not expired
 	if link.Signature.Token.IsExpired() || link.IsExpired() {
 		// The token is expired or has already been verified/completed.
 		log.Debug().Msg("received a request with an expired verification token")
-		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
-		return
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return err
 	}
 
 	// Record the verification time
@@ -614,10 +654,9 @@ func (s *Server) ResetPasswordVerify(c *gin.Context) {
 	link.VerifiedOn.Time = time.Now()
 	if err = s.store.UpdateResetPasswordLink(ctx, link); err != nil {
 		log.Warn().Err(err).Msg("failed to update reset password verified time")
-		c.HTML(http.StatusNotFound, "auth/reset/failure.html", scene.New(c))
-		return
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return err
 	}
 
-	// Render the change password form
-	c.HTML(http.StatusOK, "auth/reset/change.html", scene.New(c))
+	return nil
 }
