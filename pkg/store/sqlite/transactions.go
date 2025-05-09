@@ -313,6 +313,28 @@ func (s *Store) countTransactions(tx *sql.Tx, counts *models.TransactionCounts, 
 	return rows.Err()
 }
 
+const transactionStateSQL = "SELECT archived, status FROM transactions WHERE id=:id"
+
+func (s *Store) TransactionState(ctx context.Context, transactionID uuid.UUID) (archived bool, status enum.Status, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return archived, status, err
+	}
+	defer tx.Rollback()
+
+	var row *sql.Row
+	if row = tx.QueryRow(transactionStateSQL, sql.Named("id", transactionID)); err != nil {
+		return archived, status, dbe(err)
+	}
+
+	if err = row.Scan(&archived, &status); err != nil {
+		return archived, status, dbe(err)
+	}
+
+	tx.Commit()
+	return archived, status, nil
+}
+
 //===========================================================================
 // Secure Envelopes CRUD Interface
 //===========================================================================

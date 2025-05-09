@@ -60,6 +60,9 @@ func (s *Server) Send(c *gin.Context, routing *api.Routing, payload *trisa.Paylo
 		if errors.Is(err, ErrUnavailable) {
 			c.JSON(http.StatusBadGateway, api.Error(err))
 			return nil, err
+		} else if errors.Is(err, ErrDisabled) {
+			c.JSON(http.StatusFailedDependency, api.Error(err))
+			return nil, err
 		}
 
 		c.JSON(http.StatusInternalServerError, api.Error("could not send transfer message to counterparty"))
@@ -97,17 +100,29 @@ func (s *Server) SendPacket(ctx context.Context, protocol enum.Protocol, packet 
 	// incoming reply from the counterparty.
 	switch protocol {
 	case enum.ProtocolTRISA:
+		if !s.conf.Node.Enabled {
+			return nil, ErrDisabled
+		}
+
 		wrapped := packet.TRISA()
 		if err = s.SendTRISA(ctx, wrapped); err != nil {
 			return nil, err
 		}
 		packet = &wrapped.Packet
 	case enum.ProtocolTRP:
+		if !s.conf.TRP.Enabled {
+			return nil, ErrDisabled
+		}
+
 		return nil, errors.New("TRP sending is temporarily disabled as we refresh Envoy to v1.0.0")
 		// if err = s.SendTRP(ctx, packet.TRP()); err != nil {
 		// 	return err
 		// }
 	case enum.ProtocolSunrise:
+		if !s.conf.Sunrise.Enabled {
+			return nil, ErrDisabled
+		}
+
 		wrapped := packet.Sunrise()
 		if err = s.SendSunrise(ctx, wrapped); err != nil {
 			return nil, err

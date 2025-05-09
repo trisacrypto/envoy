@@ -60,6 +60,10 @@ func (s *Store) PrepareTransaction(context.Context, uuid.UUID) (models.PreparedT
 	return nil, nil
 }
 
+func (s *Store) TransactionState(context.Context, uuid.UUID) (archived bool, status enum.Status, err error) {
+	return false, enum.StatusUnspecified, nil
+}
+
 func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
 	return nil, nil
 }

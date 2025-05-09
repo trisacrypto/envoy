@@ -1,0 +1,127 @@
+<p class="text-body-secondary mb-4">
+  The counterparty has requested corrections or additional information in order to accept
+  the travel rule information transfer for their jurisdiction. Please review the requested
+  changes and make any necessary updates to the information below.
+</p>
+
+{{- with .Rejection }}
+<h2>Repair: {{ titlecase .Code }}</h2>
+<p class="mb-4 text-danger">
+  {{- if .Message }}
+  {{ .Message }}
+  {{- else }}
+  The counterparty requested that you repair this envelope with code "{{ titlecase .Code }}".
+  They did not send any additional information with the request except that you should
+  retry the travel rule transfer.
+  {{- end }}
+</p>
+{{- end }}
+
+{{- with .Envelope }}
+<form id="repairForm" class="mb-5" hx-post="/v1/transactions/{{ .EnvelopeID }}/repair" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>Transaction Details</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedTransaction" aria-expanded="false" aria-controls="extendedTransaction">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+  {{- template "transferForm" .Transaction }}
+
+  <hr class="mt-4 mb-5">
+
+  {{- with .Identity }}
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>{{ if .Originator.Plural }}Originators{{ else }}Originator{{ end }}</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedOriginator" aria-expanded="false" aria-controls="extendedOriginator">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{- range .Originator }}
+  {{- if .Person }}
+  {{- template "naturalPersonForm" dict "Prefix" "originator" "Person" .Person }}
+  {{- else if .Company }}
+  {{- template "legalPersonForm" dict "Prefix" "originator" "Company" .Company }}
+  {{- end }}
+  {{- end }}
+
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiary" aria-expanded="false" aria-controls="extendedBeneficiary">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{- range .Beneficiary }}
+  {{- if .Person }}
+  {{- template "naturalPersonForm" dict "Prefix" "beneficiary" "Person" .Person }}
+  {{- else if .Company }}
+  {{- template "legalPersonForm" dict "Prefix" "beneficiary" "Company" .Company }}
+  {{- end }}
+  {{- end }}
+
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>Originator VASP</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedOriginatingVASP" aria-expanded="false" aria-controls="extendedOriginatingVASP">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{ template "legalPersonForm" dict "Prefix" "originatingVASP" "Company" .OriginatorVASP }}
+
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>Beneficiary VASP</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiaryVASP" aria-expanded="false" aria-controls="extendedBeneficiaryVASP">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{ template "legalPersonForm" dict "Prefix" "beneficiaryVASP" "Company" .BeneficiaryVASP }}
+  {{- end}}
+
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <button type="submit" class="btn w-100 btn-warning" disabled>
+        <i class="fe fe-send"></i> Repair and Send for Review
+      </button>
+      <a type="reset" href="/transactions/{{ .EnvelopeID }}" class="btn w-100 btn-dark mt-2">
+        <i class="fe fe-arrow-left"></i> Cancel
+      </a>
+    </div>
+  </div>
+
+</form>
+{{- end }}

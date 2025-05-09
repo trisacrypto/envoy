@@ -49,6 +49,27 @@
 {{ end }}
 
 {{ define "main"  }}
+{{ $sendEnabled := .SendEnabledForProtocol .Protocol }}
+{{- if not $sendEnabled }}
+  <div class="alerts my-5">
+    <div class="alert alert-danger fade show" role="alert">
+      {{ if eq .Protocol "trisa" }}
+        <h4 class="alert-heading">TRISA is Disabled</h4>
+        <p class="mb-0">To enable TRISA functionality, you must request valid certificates from the TRISA Global Directory and be approved for membership in the TRISA network.</p>
+      {{ else if eq .Protocol "trp" }}
+        <h4 class="alert-heading">TRP is Disabled</h4>
+        <p class="mb-0">To enable TRP functionality, you must configure your Envoy node with valid TRP settings and enable it.</p>
+      {{ else if eq .Protocol "sunrise" }}
+        <h4 class="alert-heading">Sunrise is Disabled</h4>
+        <p class="mb-0">To enable Sunrise functionality, you must configure your Envoy node with a valid email configuration and enable Sunrise.</p>
+      {{ else }}
+      <h4 class="alert-heading">{{ .Protocol }} is Disabled</h4>
+      <p class="mb-0">To enable sending messages with this protocol, please contact your system administrator.</p>
+      {{ end }}
+    </div>
+  </div>
+{{- end }}
+
 <div class="d-flex justify-content-end mb-n5">
   <span class="text-muted mt-1 p-0"><small>Switch Protocol:</small></span>
   {{ if ne .Protocol "trisa" }}
@@ -119,7 +140,7 @@
   <hr class="mt-4 mb-5">
 
   <!-- transfer details -->
-  <fieldset id="fielsetTransaction">
+  <fieldset id="fieldsetTransaction">
     <h2>Transfer Details</h2>
     <div class="row">
       <div class="col-md-6">
@@ -204,15 +225,17 @@
   <hr class="mt-4 mb-5">
 
   <!-- originator information -->
-  {{ template "legalPersonForm" dict "Prefix" "originator" }}
+  <h2>Originator Information</h2>
+  {{ template "naturalPersonForm" dict "Prefix" "originator" }}
   <hr class="mt-4 mb-5">
 
   <!-- beneficiary information -->
-  {{ template "legalPersonForm" dict "Prefix" "beneficiary" }}
+  <h2>Beneficiary Information</h2>
+  {{ template "naturalPersonForm" dict "Prefix" "beneficiary" }}
   <hr class="mt-4 mb-5">
 
   <!-- buttons -->
-  <button type="submit" class="btn w-100 btn-primary">
+  <button type="submit" class="btn w-100 btn-primary"{{ if not $sendEnabled }} disabled{{ end }}>
     Preview Message
   </button>
   <a type="reset" href="/transactions" class="btn w-100 btn-link text-body-secondary mt-2">

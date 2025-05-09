@@ -1,0 +1,125 @@
+{{ template "page.html" . }}
+{{ define "title" }}Travel Rule Transfer Message | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Travel Rule{{ end }}
+{{ define "pagetitle" }}Transfer Message{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "page-content" }}
+{{- with .TransactionDetail }}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Transfer Detail</h6>
+        <h1 class="header-title">Repair Transfer from {{ .Counterparty }}</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/transactions/{{ .ID }}" class="btn btn-primary btn-sm">
+          <i class="fe fe-arrow-left"></i>
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{- if not $.IsViewOnly }}
+{{- if and .Status.Repair (not .Archived) }}
+<div id="alerts"></div>
+<section id="transaction" hx-get="/v1/transactions/{{ .ID }}/repair" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- else }}
+<!-- Transfer is archived or not in repairable state -->
+<section>
+  <div class="card">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-12 col-lg-4 order-lg-2">
+          <div class="text-center">
+            <img src="/static/img/illustrations/meditate.svg" alt="..." class="img-fluid" style="max-width: 272px;">
+          </div>
+        </div>
+        <div class="col-12 col-lg-8 px-4 py-3 order-lg-1">
+          <h2>
+            <i class="fe fe-alert-triangle text-warning"></i> Cannot Repair Transfer
+          </h2>
+          <p class="text-body-secondary">
+            {{ if .Archived}}
+            This transfer has been archived and cannot be repaired or modified.
+            {{- else }}
+            This transfer is in the <strong>{{ .Status }}</strong> state, which means that
+            it cannot be repaired and is awaiting some other action.
+            {{- end }}
+          </p>
+          <a href="/transactions/{{ .ID }}" class="btn btn-primary lift mt-3">
+            <i class="fe fe-arrow-left"></i>
+            Back to Transfer
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{- end }}
+{{- else }}
+<!-- User does not have permission to repair the transfer -->
+<section>
+  <div class="card">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-12 col-lg-4 order-lg-2">
+          <div class="text-center">
+            <img src="/static/img/illustrations/anger.svg" alt="..." class="img-fluid mt-n5 mt-lg-0 me-md-n5" style="max-width: 272px;">
+          </div>
+        </div>
+        <div class="col-12 col-lg-8 px-4 py-3 order-lg-1">
+          <h2>
+            <i class="fe fe-alert-triangle text-warning"></i> Insufficient Permission to Repair Transfer
+          </h2>
+          <p class="text-body-secondary">
+            You do not have the permissions required to repair a travel rule transfer.
+            Please return to the <a href="/transactions">Transfer Inbox</a> and contact
+            your Envoy administrator if you require additional permissions.
+          </p>
+          <a href="/transactions/{{ .ID }}" class="btn btn-primary lift mt-3">
+            <i class="fe fe-arrow-left"></i>
+            Back to Transfer
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+{{- end }}
+{{ end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/htmx/helpers.js"></script>
+<script type="module" src="/static/js/modules/networks.js"></script>
+<script type="module" src="/static/js/modules/countries.js"></script>
+<script type="module" src="/static/js/modules/ivms101.js"></script>
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/transactions/edit.js"></script>
+{{- end }}

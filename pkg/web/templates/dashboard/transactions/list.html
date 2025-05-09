@@ -33,10 +33,15 @@
     <span class="visually-hidden">Toggle Dropdown</span>
   </button>
   <ul class="dropdown-menu">
+    {{- if .TRISAEnabled }}
     <li><a class="dropdown-item" href="/send/trisa"><i class="fe fe-shield me-2"></i> Send TRISA Transfer</a></li>
+    {{- end }}
+    {{- if .TRPEnabled }}
     <li><a class="dropdown-item" href="/send/trp"><i class="fe fe-zap me-2"></i> Send TRP Transfer</a></li>
-    <li><hr class="dropdown-divider"></li>
+    {{- end }}
+    {{- if .SunriseEnabled }}
     <li><a class="dropdown-item" href="/send/sunrise"><i class="fe fe-sunrise me-2"></i> Send Sunrise Email</a></li>
+    {{- end }}
   </ul>
 </div>
 <a href="/v1/transactions/export" class="btn btn-dark ms-2" title="Export Transfers CSV">

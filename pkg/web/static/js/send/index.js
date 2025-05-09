@@ -178,7 +178,7 @@ document.body.addEventListener('htmx:beforeRequest', function(e) {
 Post-event handling after htmx has settled the DOM.
 */
 document.body.addEventListener("htmx:afterSettle", function(e) {
-  // Re-initialize the form choices aftrer account lookups.
+  // Re-initialize the form choices after account lookups.
   if (isRequestFor(e, "/v1/accounts/lookup", "get")) {
     initializeChoices(e.target);
 

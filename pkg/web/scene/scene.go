@@ -20,10 +20,14 @@ var (
 	shortVersion = pkg.Version(true)
 
 	// Configuration values set from the global configuration to be included in context.
-	// SunriseEnabled is true iff sunrise is enabled and email messaging is available
+	// Protocol configuration values
+	trisaEnabled *bool
+	trpEnabled   *bool
+
+	// sunriseEnabled is true iff sunrise is enabled and email messaging is available
 	sunriseEnabled *bool
 
-	// daybreakEnabled is true iff daybreak and sunrise are enabled and email messaging is available
+	// daybreakEnabled is true iff daybreak is enabled by the configuration
 	daybreakEnabled *bool
 )
 
@@ -36,6 +40,8 @@ const (
 	User            = "User"
 	APIData         = "APIData"
 	Parent          = "Parent"
+	TRISAEnabled    = "TRISAEnabled"
+	TRPEnabled      = "TRPEnabled"
 	SunriseEnabled  = "SunriseEnabled"
 	DaybreakEnabled = "DaybreakEnabled"
 )
@@ -67,6 +73,14 @@ func New(c *gin.Context) Scene {
 	}
 
 	// Add configuration values
+	if trisaEnabled != nil {
+		context[TRISAEnabled] = *trisaEnabled
+	}
+
+	if trpEnabled != nil {
+		context[TRPEnabled] = *trpEnabled
+	}
+
 	if sunriseEnabled != nil {
 		context[SunriseEnabled] = *sunriseEnabled
 	}
@@ -92,6 +106,11 @@ func (s Scene) WithAPIData(data interface{}) Scene {
 
 func (s Scene) WithParent(parent ulid.ULID) Scene {
 	s[Parent] = parent.String()
+	return s
+}
+
+func (s Scene) With(key string, val interface{}) Scene {
+	s[key] = val
 	return s
 }
 
@@ -256,13 +275,17 @@ func (s Scene) EnvelopeList() *api.EnvelopesList {
 	return nil
 }
 
-func (s Scene) Envelope() *api.Envelope {
-	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.Envelope); ok {
-			return out
-		}
+func (s Scene) SendEnabledForProtocol(protocol string) bool {
+	switch protocol {
+	case "trisa":
+		return trisaEnabled != nil && *trisaEnabled
+	case "trp":
+		return trpEnabled != nil && *trpEnabled
+	case "sunrise":
+		return sunriseEnabled != nil && *sunriseEnabled
+	default:
+		return false
 	}
-	return nil
 }
 
 //===========================================================================
@@ -274,7 +297,7 @@ func WithConf(conf *config.Config) {
 	sEnabled := conf.Sunrise.Enabled && conf.Email.Available()
 	sunriseEnabled = &sEnabled
 
-	// Compute the daybreakEnabled boolean
-	dEnabled := conf.Web.Daybreak.Enabled
-	daybreakEnabled = &dEnabled
+	trisaEnabled = &conf.Node.Enabled
+	trpEnabled = &conf.TRP.Enabled
+	daybreakEnabled = &conf.Web.Daybreak.Enabled
 }
