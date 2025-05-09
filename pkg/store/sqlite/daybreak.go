@@ -63,7 +63,7 @@ func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counter
 					} else {
 						// If no error occurred, then we fixed the original counterparty
 						// Need to commit and return here to short-circuit error handling
-						log.Info().Str("directory_id", counterparty.DirectoryID.String).Msg("fixed original counterparty that was not returned in source info (a rare edge case)")
+						log.Debug().Str("directory_id", counterparty.DirectoryID.String).Msg("fixed original counterparty that was not returned in source info (a rare edge case)")
 						return tx.Commit()
 					}
 				}
