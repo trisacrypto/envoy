@@ -108,26 +108,37 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 		return err
 	}
 
+	// Retrieve the contacts currently in the DB
+	var currContacts map[string]*models.Contact
+	if currContacts, err = s.listMapCounterpartyContactsByEmail(tx, counterparty.ID); err != nil {
+		return err
+	}
+
+	// get the contacts off the incoming counterparty
 	var contacts []*models.Contact
 	if contacts, err = counterparty.Contacts(); err != nil {
 		return err
 	}
 
+	// Update or create each contact
 	for _, contact := range contacts {
 		if contact.CounterpartyID.IsZero() {
 			contact.CounterpartyID = counterparty.ID
 		}
-		if err = s.createContact(tx, contact); err != nil {
-			if errors.Is(err, dberr.ErrAlreadyExists) {
-				if err = s.updateContact(tx, contact); err != nil {
-					log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact")
-					return err
-				}
-			} else {
-				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not create contact")
+
+		if currContact, ok := currContacts[contact.Email]; ok {
+			// Contact with this email is present in DB
+			contact.ID = currContact.ID
+			if err = s.updateContact(tx, contact); err != nil {
+				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact when updating counterparty")
 				return err
 			}
-
+		} else {
+			// No Contact found with this email for this counterparty
+			if err = s.createContact(tx, contact); err != nil {
+				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not create contact when updating counterparty")
+				return err
+			}
 		}
 	}
 

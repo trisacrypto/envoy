@@ -337,6 +337,28 @@ func (s *Store) listContacts(tx *sql.Tx, counterparty *models.Counterparty) (err
 	return nil
 }
 
+// Returns a mapping of Contacts using their email as the keys; useful for comparing contacts we need to update/create.
+func (s *Store) listMapCounterpartyContactsByEmail(tx *sql.Tx, counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	contacts = make(map[string]*models.Contact)
+	for rows.Next() {
+		contact := &models.Contact{}
+		if err = contact.Scan(rows); err != nil {
+			return nil, err
+		}
+
+		contact.CounterpartyID = counterpartyID
+		contacts[contact.Email] = contact
+	}
+
+	return contacts, nil
+}
+
 const createContactSQL = "INSERT INTO contacts (id, name, email, role, counterparty_id, created, modified) VALUES (:id, :name, :email, :role, :counterpartyID, :created, :modified)"
 
 func (s *Store) CreateContact(ctx context.Context, contact *models.Contact) (err error) {
