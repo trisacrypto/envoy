@@ -31,5 +31,5 @@ func TestVerifyResetPasswordURL(t *testing.T) {
 		Token: verification.VerificationToken("abc123"),
 	}
 
-	require.Equal(t, "https://resetpassword.example.com/v1/reset-password?token=YWJjMTIz", invite.VerifyURL())
+	require.Equal(t, "https://resetpassword.example.com/reset-password/verify-change?token=YWJjMTIz", invite.VerifyURL())
 }

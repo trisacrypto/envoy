@@ -55,6 +55,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Counterparty Lei",
 			Path: "0007_counterparty_lei.sql",
 		},
+		{
+			ID:   8,
+			Name: "Reset Password Link",
+			Path: "0008_reset_password_link.sql",
+		},
 	}
 
 	for i, migration := range migrations {
