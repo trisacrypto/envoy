@@ -1,6 +1,59 @@
 {{ template "auth.html" . }}
 {{ define "title" }}Reset Password | TRISA Envoy{{ end }}
 {{ define "auth" }}
-TODO: make a POST form with a "change my password" textbox and button and hidden token field to go to
-"/v1/reset-password/verify"
+<div class="row">
+
+    <!-- password requirements card -->
+    <div class="col-12 col-md-6 order-md-2">
+        <div class="card bg-light border ms-md-4">
+            <div class="card-body">
+                <p class="mb-2">
+                    Password requirements
+                </p>
+                <p class="small text-body-secondary mb-2">
+                    To create a new password, you have to meet all of the following requirements:
+                </p>
+                <ul class="small text-body-secondary ps-4 mb-0">
+                    <li>
+                        Minimum 8 characters
+                    </li>
+                    <li>
+                        Both upper and lower case letters
+                    </li>
+                    <li>
+                        At least one number
+                    </li>
+                    <li>
+                        Can’t be the same as previous password
+                    </li>
+                    <li>
+                        Special characters recommended
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- change password form -->
+    <div class="col-12 col-md-6">
+        <!-- Note: this form is duplicated in the partials/profile/changePassword.html template and must be updated if this form is. -->
+        <form hx-post="/v1/reset-password/verify-change" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+            <input type="hidden" id="token" name="token" value="{{ .Token }}">
+
+            <div class="form-group">
+                <label class="form-label" for="password">New password</label>
+                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm">Confirm new password</label>
+                <input type="password" class="form-control" id="confirm" name="confirm" autocomplete="">
+            </div>
+
+            <button class="btn w-100 btn-primary lift" type="submit">
+                Change your password
+            </button>
+        </form>
+    </div>
+</div>
 {{ end }}

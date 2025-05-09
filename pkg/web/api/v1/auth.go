@@ -32,6 +32,7 @@ type ResetPasswordRequest struct {
 
 type ResetPasswordChangeRequest struct {
 	Password string `json:"password"`
+	Confirm  string `json:"confirm"`
 	URLVerification
 }
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -47,13 +48,29 @@ func (s *Server) ResetPasswordPage(c *gin.Context) {
 // ResetPasswordSuccessPage displays the confirmation message after a user has
 // requested a password reset link. This page is displayed no matter the outcome.
 func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "auth/reset/success.html", scene.New(c))
+	c.HTML(http.StatusOK, "auth/reset/success_sent.html", scene.New(c))
 }
 
-// ResetPasswordVerifyPage displays a button for the user to click to verify
-// a ResetPasswordLink token and continue to the password reset change page.
-func (s *Server) ResetPasswordVerifyPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "auth/reset/verify.html", scene.New(c))
+// ResetPasswordVerifyAndChangePage allows the user to enter their new password
+// and click Submit which will submit that data and the token to the verify and
+// change password endpoint.
+func (s *Server) ResetPasswordVerifyAndChangePage(c *gin.Context) {
+	// Read the token string
+	in := &api.URLVerification{}
+	if err := c.BindJSON(in); err != nil {
+		log.Warn().Err(err).Msg("could not parse query string")
+		errScene := scene.New(c)
+		errScene["SupportEmail"] = s.conf.Email.SupportEmail
+		c.HTML(http.StatusBadRequest, "auth/reset/failure.html", errScene)
+		return
+	}
+
+	// Set the scene (we pass the token on from the verify/change page)
+	tokenScene := scene.New(c)
+	tokenScene["Token"] = in.Token
+
+	// Render the verify and change page
+	c.HTML(http.StatusOK, "auth/reset/verify_change.html", tokenScene)
 }
 
 //===========================================================================

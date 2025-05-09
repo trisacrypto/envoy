@@ -471,9 +471,11 @@ func (s *Server) ResetPassword(c *gin.Context) {
 // Verifies an incoming password change requested via a verification link, then changes the user's password.
 func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 	var (
-		err   error
-		in    *api.ResetPasswordChangeRequest
-		token verification.VerificationToken
+		derivedKey string
+		err        error
+		in         *api.ResetPasswordChangeRequest
+		token      verification.VerificationToken
+		link       *models.ResetPasswordLink
 	)
 	const (
 		failureStatus   = http.StatusBadRequest
@@ -485,8 +487,7 @@ func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 	log := logger.Tracing(ctx)
 
 	// Prepare for possible error
-	var errScene scene.Scene
-	errScene = scene.New(c)
+	errScene := scene.New(c)
 	errScene["SupportEmail"] = s.conf.Email.SupportEmail
 
 	// We do not allow JSON API requests to this endpoint. Returning a 406 error
@@ -507,7 +508,7 @@ func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 	if err = in.URLVerification.Validate(); err != nil {
 		// If the token is invalid or missing, return a 404.
 		// NOTE: do not log an error as this is very verbose, instead just a debug message
-		log.Debug().Err(err).Msg("reset password request with invalid token")
+		log.Debug().Err(err).Msg("reset password change with invalid token")
 		c.HTML(failureStatus, failureTemplate, errScene)
 		return
 	}
@@ -516,13 +517,39 @@ func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 	token = in.URLVerification.VerificationToken()
 
 	// Verify the ResetPasswordLink token
-	if err = s.verifyResetPasswordLinkToken(c, token); err != nil {
+	if link, err = s.verifyResetPasswordLinkToken(c, token); err != nil {
 		// NOTE: `verifyResetPasswordLinkToken()` handles setting the response and logging the error
 		return
 	}
 
-	// Change the user's password
-	// TODO
+	// Confirm the two entered passwords are valid and match
+	password := api.ProfilePassword{
+		Current:  "ignored",
+		Password: in.Password,
+		Confirm:  in.Confirm,
+	}
+	if err = password.Validate(); err != nil {
+		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change invalid ProfilePassword")
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return
+	}
+
+	// Create derived key from requested password reset
+	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
+		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change could not create derived key")
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return
+	}
+
+	// Set the password for the specified user
+	if err = s.store.SetUserPassword(c.Request.Context(), link.UserID, derivedKey); err != nil {
+		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change could not set password for user")
+		c.HTML(failureStatus, failureTemplate, errScene)
+		return
+	}
+
+	// Redirect to reset-password success page
+	c.HTML(http.StatusOK, "auth/reset/success_changed.html", scene.New(c))
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -573,7 +600,7 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	emailData := emails.ResetPasswordEmailData{
 		ContactName:  user.Name,
 		ContactEmail: user.Email,
-		BaseURL:      s.url.JoinPath("reset-password", "verify"),
+		BaseURL:      s.url.JoinPath("reset-password", "verify-change"),
 		SupportEmail: s.conf.Email.SupportEmail,
 	}
 
@@ -610,19 +637,15 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	return nil
 }
 
-// Verifies a ResetPasswordLink token. This function will handle logging and setting the HTML response for errors.
-func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification.VerificationToken) (err error) {
-	var (
-		errScene scene.Scene
-		link     *models.ResetPasswordLink
-	)
+// Verifies a ResetPasswordLink token and returns the ResetPasswordLink object.
+// NOTE: This function will handle logging and setting the HTML response for errors.
+func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification.VerificationToken) (link *models.ResetPasswordLink, err error) {
+	// Prepare for possible error
 	const (
 		failureStatus   = http.StatusBadRequest
 		failureTemplate = "auth/reset/failure.html"
 	)
-
-	// Prepare for possible error
-	errScene = scene.New(c)
+	errScene := scene.New(c)
 	errScene["SupportEmail"] = s.conf.Email.SupportEmail
 
 	// Prepare context and logging
@@ -631,35 +654,35 @@ func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification
 
 	// Get the ResetPasswordLink record from the database
 	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordID()); err != nil {
-		log.Warn().Err(err).Str("record_id", token.RecordID().String()).Msg("could not retrieve reset password record")
+		log.Warn().Err(err).Str("token_record_id", token.RecordID().String()).Msg("could not retrieve reset password record")
 		c.HTML(failureStatus, failureTemplate, errScene)
-		return err
+		return nil, err
 	}
 
 	// Check that the token is valid
 	if secure, err := link.Signature.Verify(token); err != nil || !secure {
 		// If the token is not secure or verifiable, return a 404 but be freaked out
-		log.Warn().Err(err).Bool("secure", secure).Msg("a reset password request hmac verification failed")
+		log.Warn().Err(err).Str("link_id", link.ID.String()).Bool("secure", secure).Msg("a reset password request hmac verification failed")
 		c.HTML(failureStatus, failureTemplate, errScene)
-		return err
+		return nil, err
 	}
 
 	// Check that the token and link have both not expired
 	if link.Signature.Token.IsExpired() || link.IsExpired() {
 		// The token is expired or has already been verified/completed.
-		log.Debug().Msg("received a request with an expired verification token")
+		log.Debug().Str("link_id", link.ID.String()).Msg("received a request with an expired verification token")
 		c.HTML(failureStatus, failureTemplate, errScene)
-		return err
+		return nil, err
 	}
 
 	// Record the verification time
 	link.VerifiedOn.Valid = true
 	link.VerifiedOn.Time = time.Now()
 	if err = s.store.UpdateResetPasswordLink(ctx, link); err != nil {
-		log.Warn().Err(err).Msg("failed to update reset password verified time")
+		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("failed to update reset password verified time")
 		c.HTML(failureStatus, failureTemplate, errScene)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return link, nil
 }

@@ -26,7 +26,7 @@ func TestVerifyResetPasswordURL(t *testing.T) {
 		BaseURL: &url.URL{
 			Scheme: "https",
 			Host:   "resetpassword.example.com",
-			Path:   "/v1/reset-password",
+			Path:   "/reset-password/verify-change",
 		},
 		Token: verification.VerificationToken("abc123"),
 	}
