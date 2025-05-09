@@ -1,0 +1,52 @@
+{{ template "page.html" . }}
+{{ define "title" }}Sunrise Page Not Found | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Sunrise{{ end }}
+{{ define "pagetitle" }}Resource Missing{{ end }}
+
+{{ define "main"  }}
+<div class="row align-items-center my-7">
+  <div class="col-12 col-md-5 offset-xl-2 offset-md-1 order-md-2 mb-5 mb-md-0">
+    <!-- Image -->
+    <div class="text-center">
+      <img src="/static/img/illustrations/lost.svg" alt="You're Lost!" class="img-fluid" style="max-height: 256px;">
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-5 order-md-1 my-5">
+      <div class="text-center">
+        <!-- Preheading -->
+        <h6 class="text-uppercase text-muted mb-4">
+          Not Found
+        </h6>
+
+        <!-- Heading -->
+        <h1 class="display-4 mb-3">
+          Sunrise Unavailable
+        </h1>
+
+        <!-- Subheading -->
+        <p class="text-muted mb-4">
+          Unfortunately, it appears the resource you're looking for is not available.
+          Please keep in mind that Sunrise messages must be accessed via a secure link
+          that was sent to you via email.
+        </p>
+
+        <!-- Button -->
+        {{ if .ComplianceEmail }}
+        <a href="mailto:{{ .ComplianceEmail }}" class="btn btn-sm btn-primary mt-2">
+          Email {{ .Compliance }}
+        </a>
+        {{ end }}
+
+        {{ if .SupportEmail }}
+        <a href="mailto:{{ .SupportEmail }}" class="btn btn-sm btn-secondary mt-2">
+          Email {{ .Support }}
+        </a>
+        {{ end }}
+
+      </div>
+    </div>
+</div><!-- / .row -->
+{{ end }}
+
+{{ define "appcode" }}
+{{ end }}

@@ -30,7 +30,10 @@ var (
 // error is rendered as a JSON response. If a non error is passed as err then no error
 // is logged to the context and it is treated as a message to the user.
 func (s *Server) Error(c *gin.Context, err error) {
-	c.Error(err)
+	if err != nil {
+		c.Error(err)
+	}
+
 	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/500.html",
