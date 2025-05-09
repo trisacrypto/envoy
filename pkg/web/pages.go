@@ -57,7 +57,7 @@ func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
 func (s *Server) ResetPasswordVerifyAndChangePage(c *gin.Context) {
 	// Read the token string
 	in := &api.URLVerification{}
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindQuery(in); err != nil {
 		log.Warn().Err(err).Msg("could not parse query string")
 		errScene := scene.New(c)
 		errScene["SupportEmail"] = s.conf.Email.SupportEmail

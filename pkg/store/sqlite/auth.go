@@ -557,7 +557,7 @@ func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID)
 	return link, nil
 }
 
-const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sent_on, verified_on=:verified_on, modified=:modified  WHERE id=:id"
+const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sentOn, verified_on=:verifiedOn, modified=:modified  WHERE id=:id"
 
 // Update a ResetPasswordLink record. Only updates the Signature, SentOn,
 // VerifiedOn, and Modified fields.

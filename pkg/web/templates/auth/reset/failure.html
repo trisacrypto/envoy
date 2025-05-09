@@ -3,8 +3,8 @@
 {{ define "auth" }}
 <h1 class="display-4 text-center mb-3">Reset Password Link Failure</h1>
 <p>For some reason, we cannot reset your password using the provided link.</p>
-<p>You may submit a request to <a href="/reset-password">reset your password</a> again{{ if .SupportEmail }}
-    or email support at <a href="mailto:{{ .SupportEmail }}">{{ .SupportEmail }}</a> for assistance.{{ end }}.
+<p>You may submit a request to <a href="/reset-password">reset your password</a> again.{{ if .SupportEmail }} You may
+    also email support for assistance: {{ .SupportEmail }}{{ end }}.
 </p>
 
 {{ end }}

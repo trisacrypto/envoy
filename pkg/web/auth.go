@@ -478,11 +478,12 @@ func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 		link       *models.ResetPasswordLink
 	)
 	const (
-		failureStatus   = http.StatusBadRequest
+		failureStatus   = http.StatusSeeOther
 		failureTemplate = "auth/reset/failure.html"
 	)
 
-	// Prepare context and logging
+	// Prepare general
+	in = &api.ResetPasswordChangeRequest{}
 	ctx := c.Request.Context()
 	log := logger.Tracing(ctx)
 
@@ -642,7 +643,7 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification.VerificationToken) (link *models.ResetPasswordLink, err error) {
 	// Prepare for possible error
 	const (
-		failureStatus   = http.StatusBadRequest
+		failureStatus   = http.StatusSeeOther
 		failureTemplate = "auth/reset/failure.html"
 	)
 	errScene := scene.New(c)

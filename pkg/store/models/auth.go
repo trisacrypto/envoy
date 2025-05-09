@@ -259,7 +259,7 @@ func (s *ResetPasswordLink) UpdateParams() []any {
 func (s *ResetPasswordLink) Params() []any {
 	return []any{
 		sql.Named("id", s.ID),
-		sql.Named("userID", s.UserID),
+		sql.Named("userId", s.UserID),
 		sql.Named("email", s.Email),
 		sql.Named("expiration", s.Expiration),
 		sql.Named("signature", s.Signature),
