@@ -382,12 +382,18 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterpartyID u
 	}
 	defer tx.Rollback()
 
+	// Retrieve the contact
 	contact = &models.Contact{}
 	if err = contact.Scan(tx.QueryRow(retrieveContactSQL, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID))); err != nil {
 		return nil, dbe(err)
 	}
 
-	// TODO: retrieve counterparty and associate it with the contact.
+	// Retrieve and associate the Counterparty
+	var counterparty *models.Counterparty
+	if counterparty, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+		return nil, err
+	}
+	contact.SetCounterparty(counterparty)
 
 	tx.Commit()
 	return contact, nil
@@ -412,6 +418,23 @@ func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err
 	}
 	defer tx.Rollback()
 
+	if err = s.updateContact(tx, contact); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) updateContact(tx *sql.Tx, contact *models.Contact) (err error) {
+	// Basic validation
+	if contact.ID.IsZero() {
+		return dberr.ErrMissingID
+	}
+
+	if contact.CounterpartyID.IsZero() {
+		return dberr.ErrMissingReference
+	}
+
 	// Update modified timestamp (in place).
 	contact.Modified = time.Now()
 
@@ -423,7 +446,7 @@ func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const deleteContact = "DELETE FROM contacts WHERE id=:id AND counterparty_id=:counterpartyID"
