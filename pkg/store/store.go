@@ -140,11 +140,11 @@ type CounterpartyStore interface {
 }
 
 type ContactStore interface {
-	ListContacts(ctx context.Context, counterpartyID ulid.ULID, page *models.PageInfo) (*models.ContactsPage, error)
+	ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
 	CreateContact(context.Context, *models.Contact) error
-	RetrieveContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (*models.Contact, error)
+	RetrieveContact(ctx context.Context, contactID, counterpartyID any) (*models.Contact, error)
 	UpdateContact(context.Context, *models.Contact) error
-	DeleteContact(ctx context.Context, contactID, counterpartyID ulid.ULID) error
+	DeleteContact(ctx context.Context, contactID, counterpartyID any) error
 }
 
 type TravelAddressStore interface {

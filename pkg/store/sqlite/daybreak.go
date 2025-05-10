@@ -153,3 +153,26 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 
 	return nil
 }
+
+// Returns a mapping of Contacts using their email as the keys; useful for comparing
+// contacts we need to update/create in bulk imports of counterparties.
+func (s *Store) listMapCounterpartyContactsByEmail(tx *sql.Tx, counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	contacts = make(map[string]*models.Contact)
+	for rows.Next() {
+		contact := &models.Contact{}
+		if err = contact.Scan(rows); err != nil {
+			return nil, err
+		}
+
+		contact.CounterpartyID = counterpartyID
+		contacts[contact.Email] = contact
+	}
+
+	return contacts, nil
+}
