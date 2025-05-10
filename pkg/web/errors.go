@@ -18,11 +18,13 @@ var (
 	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
 	ErrNoPublicKey       = errors.New("no public key associated with secure envelope")
 	ErrSunriseSubject    = errors.New("invalid subject type for sunrise review")
+	ErrSunriseRetrieve   = errors.New("could not retrieve sunrise record")
 	ErrMissingID         = errors.New("id required for this resource")
 	ErrIDMismatch        = errors.New("resource id does not match target")
 	ErrNotFound          = errors.New("resource not found")
 	ErrUnavailable       = errors.New("could not connect to remote counterparty; please try again later")
 	ErrDisabled          = errors.New("the protocol used to send to the counterparty is currently disabled")
+	ErrNotAllowed        = errors.New("the requested action is not allowed")
 )
 
 // Logs the error with c.Error and negotiates the response. If HTML is requested by the
@@ -47,7 +49,7 @@ func (s *Server) NotFound(c *gin.Context) {
 	c.Negotiate(http.StatusNotFound, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/404.html",
-		HTMLData: scene.New(c),
+		HTMLData: scene.New(c).Error(ErrNotFound).WithEmail(s.conf.Email.SupportEmail),
 		JSONData: api.NotFound,
 	})
 }
@@ -57,7 +59,7 @@ func (s *Server) NotAllowed(c *gin.Context) {
 	c.Negotiate(http.StatusMethodNotAllowed, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		HTMLName: "errors/status/405.html",
-		HTMLData: scene.New(c),
+		HTMLData: scene.New(c).Error(ErrNotAllowed).WithEmail(s.conf.Email.SupportEmail),
 		JSONData: api.NotAllowed,
 	})
 }
