@@ -508,3 +508,97 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 
 	return permissions, dbe(rows.Err())
 }
+
+//===========================================================================
+// ResetPasswordLink Store
+//===========================================================================
+
+const createResetPasswordLinkSQL = "INSERT INTO reset_password_link (id, user_id, email, expiration, signature, sent_on, verified_on, created, modified) VALUES (:id, :userId, :email, :expiration, :signature, :sentOn, :verifiedOn, :created, :modified)"
+
+// Create a ResetPasswordLink record in the database.
+func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	if !link.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
+
+	link.ID = ulid.MakeSecure()
+	link.Created = time.Now()
+	link.Modified = link.Created
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.Exec(createResetPasswordLinkSQL, link.Params()...); err != nil {
+		return dbe(err)
+	}
+
+	return tx.Commit()
+}
+
+const retrieveResetPasswordLinkByIDSQL = "SELECT * FROM reset_password_link WHERE id=:id"
+
+// Retrieve a ResetPasswordLink in the database by its ID.
+func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID) (link *models.ResetPasswordLink, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	link = &models.ResetPasswordLink{}
+	if err = link.Scan(tx.QueryRow(retrieveResetPasswordLinkByIDSQL, sql.Named("id", linkID))); err != nil {
+		return nil, dbe(err)
+	}
+
+	tx.Commit()
+	return link, nil
+}
+
+const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sentOn, verified_on=:verifiedOn, modified=:modified  WHERE id=:id"
+
+// Update a ResetPasswordLink record. Only updates the Signature, SentOn,
+// VerifiedOn, and Modified fields.
+func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	link.Modified = time.Now()
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var result sql.Result
+	if result, err = tx.Exec(updateResetPasswordLinkSQL, link.UpdateParams()...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+const retrieveMostRecentActiveResetPasswordLinkSQL = "SELECT * FROM reset_password_link WHERE user_id=:userId AND sent_on IS NOT NULL AND datetime('now') < datetime(expiration) AND verified_on IS NULL ORDER BY created DESC LIMIT 1"
+
+// Retrieve the most recent ResetPasswordLink for the `userID` that has been
+// emailed to the user, is not expired, and has not been verified/completed.
+func (s *Store) RetrieveMostRecentActiveResetPasswordLink(ctx context.Context, userID ulid.ULID) (link *models.ResetPasswordLink, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	link = &models.ResetPasswordLink{}
+	if err = link.Scan(tx.QueryRow(retrieveMostRecentActiveResetPasswordLinkSQL, sql.Named("userId", userID))); err != nil {
+		return nil, dbe(err)
+	}
+
+	tx.Commit()
+	return link, nil
+}

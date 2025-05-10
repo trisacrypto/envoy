@@ -1,6 +1,7 @@
 package emails_test
 
 import (
+	"database/sql"
 	"net/url"
 	"os"
 	"strings"
@@ -31,7 +32,7 @@ func TestLiveEmails(t *testing.T) {
 
 	recipient := os.Getenv("TEST_LIVE_EMAIL_RECIPIENT")
 
-	t.Run("Invite", func(t *testing.T) {
+	t.Run("SunriseInvite", func(t *testing.T) {
 		data := SunriseInviteData{
 			ContactName:     "Charlie Brown",
 			ComplianceName:  "Testing Compliance",
@@ -50,7 +51,7 @@ func TestLiveEmails(t *testing.T) {
 		require.NoError(t, err, "could not send sunrise invite email")
 	})
 
-	t.Run("Verify", func(t *testing.T) {
+	t.Run("SunriseVerify", func(t *testing.T) {
 		data := VerifyEmailData{
 			Code:           "ABC123",
 			ComplianceName: "Testing Compliance",
@@ -62,6 +63,22 @@ func TestLiveEmails(t *testing.T) {
 
 		err = email.Send()
 		require.NoError(t, err, "could not send sunrise verify email")
+	})
+
+	t.Run("ResetPassword", func(t *testing.T) {
+		data := ResetPasswordEmailData{
+			ContactName:  sql.NullString{Valid: true, String: "Forgetful User"},
+			ContactEmail: "forgetful@example.com",
+			BaseURL:      &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/reset-password/verify-change"},
+			Token:        verification.VerificationToken("abc123"),
+			SupportEmail: "support@example.com",
+		}
+
+		email, err := NewResetPasswordEmail(data)
+		require.NoError(t, err, "could not create reset password email")
+
+		err = email.Send()
+		require.NoError(t, err, "could not send reset password email")
 	})
 }
 
