@@ -97,7 +97,6 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	log = logger.Tracing(ctx)
 
 	if err = c.BindQuery(in); err != nil {
-		// TODO: do we need to handle UI 400 errors?
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error("could not parse query string"))
 		return
@@ -107,7 +106,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		// If the token is invalid or missing, return a 404.
 		// NOTE: do not log an error as this is very verbose, instead just a debug message
 		log.Debug().Err(err).Msg("sunrise request with invalid token")
-		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+		s.SunriseMissing(c)
 		return
 	}
 
@@ -116,12 +115,12 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// Get the sunrise record from the database
 	if model, err = s.store.RetrieveSunrise(ctx, token.RecordID()); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+			s.SunriseMissing(c)
 			return
 		}
 
 		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
@@ -129,7 +128,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	if secure, err := model.Signature.Verify(token); err != nil || !secure {
 		// If the token is not secure or verifiable, return a 404 but be freaked out
 		log.Warn().Err(err).Bool("secure", secure).Msg("a sunrise verification request was made to an existing message but hmac verification failed")
-		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+		s.SunriseMissing(c)
 		return
 	}
 
@@ -145,8 +144,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// the sunrise message preview.
 	if !s.conf.Sunrise.RequireOTP {
 		if err = s.SetSunriseAuthCookies(c, model); err != nil {
-			c.Error(err)
-			c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+			s.SunriseError(c, err)
 			return
 		}
 
@@ -157,7 +155,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// TODO: send one time code to the user's email address
 
 	// Render the OTP form
-	c.HTML(http.StatusOK, "verify.html", scene.New(c))
+	c.HTML(http.StatusOK, "sunrise/verify/verify.html", scene.New(c))
 }
 
 func (s *Server) SunriseMessageReview(c *gin.Context) {
@@ -176,59 +174,57 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 	log := logger.Tracing(ctx)
 
 	if claims, err = auth.GetClaims(c); err != nil {
-		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, err)
 		return
 	}
 
 	// Get the sunrise record ID from the subject of the claims
 	if subjectType, sunriseID, err = claims.SubjectID(); err != nil {
-		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, err)
 		return
 	}
 
 	// Validate the subject type
 	if subjectType != auth.SubjectSunrise {
 		log.Debug().Str("subject_type", subjectType.String()).Msg("invalid subject type for sunrise review")
-		c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+		s.SunriseMissing(c)
 		return
 	}
 
 	// Retrieve the sunrise record from the database
 	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+			s.SunriseMissing(c)
 			return
 		}
 
 		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
 	// Retrieve the latest secure envelope from the database
 	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionOutgoing); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.HTML(http.StatusNotFound, "sunrise_404.html", scene.New(c))
+			s.SunriseMissing(c)
 			return
 		}
 
 		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
 	// Decrypt the secure envelope using the private keys in the key store
 	if decrypted, err = s.Decrypt(env); err != nil {
 		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
 	if out, err = api.NewEnvelope(env, decrypted); err != nil {
 		c.Error(err)
-		c.HTML(http.StatusInternalServerError, "500.html", scene.New(c))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
@@ -344,11 +340,6 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 }
 
 func (s *Server) SunriseMessageAccept(c *gin.Context) {
-	c.HTML(http.StatusOK, "sunrise_accept.html", scene.New(c))
-	if true {
-		return
-	}
-
 	var (
 		err        error
 		in         *api.Envelope
@@ -503,7 +494,11 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 
 	// This is currently an HTMX response so simply respond with a 200 so that the
 	// success toast message pops up in the front end.
-	c.HTML(http.StatusOK, "sunrise_accept.html", scene.New(c))
+	c.JSON(http.StatusOK, api.Reply{Success: true})
+}
+
+func (s *Server) SunriseMessageCompleted(c *gin.Context) {
+	c.HTML(http.StatusOK, "sunrise/review/complete.html", scene.New(c))
 }
 
 func (s *Server) SunriseMessageDownload(c *gin.Context) {
@@ -518,14 +513,12 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	)
 
 	if claims, err = auth.GetClaims(c); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, err)
 		return
 	}
 
 	if _, sunriseID, err = claims.SubjectID(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, err)
 		return
 	}
 
@@ -533,7 +526,7 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	ctx := c.Request.Context()
 	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
@@ -541,19 +534,19 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	// details since the incoming envelope will only have beneficiary info.
 	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionAny); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
 	if decrypted, err = s.Decrypt(env); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
 	if out, err = api.NewEnvelope(env, decrypted); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
@@ -564,7 +557,7 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	var data []byte
 	if data, err = json.MarshalIndent(out, "", "  "); err != nil {
 		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		s.SunriseError(c, ErrSunriseRetrieve)
 		return
 	}
 
@@ -573,6 +566,28 @@ func (s *Server) SunriseMessageDownload(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
 	c.Header("ACcept-Length", fmt.Sprintf("%d", len(data)))
 	c.Data(http.StatusOK, binding.MIMEJSON, data)
+}
+
+func (s *Server) SunriseMissing(c *gin.Context) {
+	c.Negotiate(http.StatusNotFound, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		HTMLName: "sunrise/status/404.html",
+		HTMLData: scene.New(c).SunriseError(nil).WithEmail(s.conf.Email.SupportEmail, s.conf.Email.ComplianceEmail),
+		JSONData: api.NotFound,
+	})
+}
+
+func (s *Server) SunriseError(c *gin.Context, err error) {
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Negotiate(http.StatusInternalServerError, gin.Negotiate{
+		Offered:  []string{binding.MIMEHTML, binding.MIMEJSON},
+		HTMLName: "sunrise/status/500.html",
+		HTMLData: scene.New(c).SunriseError(err).WithEmail(s.conf.Email.SupportEmail, s.conf.Email.ComplianceEmail),
+		JSONData: api.Error(err),
+	})
 }
 
 func (s *Server) GetComplianceName() string {

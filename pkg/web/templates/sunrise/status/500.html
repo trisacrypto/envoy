@@ -1,0 +1,57 @@
+{{ template "page.html" . }}
+{{ define "title" }}Sunrise Page Not Found | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Sunrise{{ end }}
+{{ define "pagetitle" }}System Failure{{ end }}
+
+{{ define "main"  }}
+<div class="row align-items-center my-7">
+  <div class="col-12 col-md-5 offset-xl-2 offset-md-1 order-md-2 mb-5 mb-md-0">
+    <!-- Image -->
+    <div class="text-center">
+      <img src="/static/img/illustrations/twisted.svg" alt="You're Lost!" class="img-fluid">
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-5 order-md-1 my-5">
+      <div class="text-center">
+        <!-- Preheading -->
+        <h6 class="text-uppercase text-muted mb-4">
+          Internal Error
+        </h6>
+
+        <!-- Heading -->
+        <h1 class="display-4 mb-3">
+          Something went very wrong on our end &hellip;
+        </h1>
+
+        {{ if .Error }}
+        <p class="text-danger mb-2">
+          Error: {{ .Error }}.
+        </p>
+        {{ end }}
+
+        <!-- Subheading -->
+        <p class="text-muted mb-4">
+          We're really very sorry this happened and we'll work to fix it as soon as possible.
+          Contact {{ if .SupportEmail }}<a href="mailto:{{ .SupportEmail }}">{{ .Support }}</a>{{ else }}support{{ end }} to let us know things went wrong.
+        </p>
+
+        <!-- Button -->
+        {{ if .SupportEmail }}
+        <a href="mailto:{{ .SupportEmail }}" class="btn btn-sm btn-danger mt-2">
+          Email {{ .Support }}
+        </a>
+        {{ end }}
+
+        {{ if .ComplianceEmail }}
+        <a href="mailto:{{ .ComplianceEmail }}" class="btn btn-sm btn-primary mt-2">
+          Email {{ .Compliance }}
+        </a>
+        {{ end }}
+
+      </div>
+    </div>
+</div><!-- / .row -->
+{{ end }}
+
+{{ define "appcode" }}
+{{ end }}
