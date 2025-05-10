@@ -172,7 +172,7 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 	return nil
 }
 
-func (s *Store) ListContacts(ctx context.Context, counterpartyID ulid.ULID, page *models.PageInfo) (*models.ContactsPage, error) {
+func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error) {
 	return nil, nil
 }
 
@@ -180,7 +180,7 @@ func (s *Store) CreateContact(context.Context, *models.Contact) error {
 	return nil
 }
 
-func (s *Store) RetrieveContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (*models.Contact, error) {
+func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any) (*models.Contact, error) {
 	return nil, nil
 }
 
@@ -188,7 +188,7 @@ func (s *Store) UpdateContact(context.Context, *models.Contact) error {
 	return nil
 }
 
-func (s *Store) DeleteContact(ctx context.Context, contactID, counterpartyID ulid.ULID) error {
+func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) error {
 	return nil
 }
 

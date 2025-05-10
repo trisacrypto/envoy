@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"go.rtnl.ai/ulid"
 )
 
 // ListDaybreak returns a map of all the daybreak counterparty sources in the database
@@ -60,10 +61,9 @@ func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counter
 					if err = s.updateDaybreak(tx, counterparty); err != nil {
 						log.Warn().Err(err).Str("directory_id", counterparty.DirectoryID.String).Msg("could not fix original daybreak counterparty")
 					} else {
-
 						// If no error occurred, then we fixed the original counterparty
 						// Need to commit and return here to short-circuit error handling
-						log.Info().Str("directory_id", counterparty.DirectoryID.String).Msg("fixed original counterparty that was not returned in source info (a rare edge case)")
+						log.Debug().Str("directory_id", counterparty.DirectoryID.String).Msg("fixed original counterparty that was not returned in source info (a rare edge case)")
 						return tx.Commit()
 					}
 				}
@@ -108,26 +108,71 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 		return err
 	}
 
+	// Retrieve the contacts currently in the DB
+	var currContacts map[string]*models.Contact
+	if currContacts, err = s.listMapCounterpartyContactsByEmail(tx, counterparty.ID); err != nil {
+		return err
+	}
+
+	// get the contacts off the incoming counterparty
 	var contacts []*models.Contact
 	if contacts, err = counterparty.Contacts(); err != nil {
 		return err
 	}
 
+	// Update or create each contact
 	for _, contact := range contacts {
 		if contact.CounterpartyID.IsZero() {
 			contact.CounterpartyID = counterparty.ID
 		}
-		if err = s.createContact(tx, contact); err != nil {
-			if errors.Is(err, dberr.ErrAlreadyExists) {
-				// TODO: get the contact's ID and update it if it is associated with the
-				// counterparty (otherwise error). (This improvement has a ticket already)
-				continue // silence these specific errors until we deal with the update ticket
-			}
 
-			log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not create contact")
-			return err
+		if currContact, ok := currContacts[contact.Email]; ok {
+			// Contact with this email is present in DB
+			contact.ID = currContact.ID
+			if err = s.updateContact(tx, contact); err != nil {
+				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact when updating counterparty")
+				return err
+			}
+		} else {
+			// No Contact found with this email for this counterparty
+			if !contact.ID.IsZero() {
+				contact.ID = ulid.Zero
+			}
+			if err = s.createContact(tx, contact); err != nil {
+				if err == dberr.ErrAlreadyExists {
+					// This email address is proboably associated with a contact for a different counterparty
+					log.Warn().Err(err).Str("contact", contact.Email).Msg("contact is associated with two counterparties")
+					return err
+				} else {
+					log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not create contact when updating counterparty")
+					return err
+				}
+			}
 		}
 	}
 
 	return nil
+}
+
+// Returns a mapping of Contacts using their email as the keys; useful for comparing
+// contacts we need to update/create in bulk imports of counterparties.
+func (s *Store) listMapCounterpartyContactsByEmail(tx *sql.Tx, counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {
+	var rows *sql.Rows
+	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	contacts = make(map[string]*models.Contact)
+	for rows.Next() {
+		contact := &models.Contact{}
+		if err = contact.Scan(rows); err != nil {
+			return nil, err
+		}
+
+		contact.CounterpartyID = counterpartyID
+		contacts[contact.Email] = contact
+	}
+
+	return contacts, nil
 }
