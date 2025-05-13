@@ -20,6 +20,9 @@ var (
 	shortVersion = pkg.Version(true)
 
 	// Configuration values set from the global configuration to be included in context.
+	// Global information
+	organization *string
+
 	// Protocol configuration values
 	trisaEnabled *bool
 	trpEnabled   *bool
@@ -40,6 +43,7 @@ const (
 	User            = "User"
 	APIData         = "APIData"
 	Parent          = "Parent"
+	Organization    = "Organization"
 	TRISAEnabled    = "TRISAEnabled"
 	TRPEnabled      = "TRPEnabled"
 	SunriseEnabled  = "SunriseEnabled"
@@ -73,6 +77,10 @@ func New(c *gin.Context) Scene {
 	}
 
 	// Add configuration values
+	if organization != nil {
+		context[Organization] = *organization
+	}
+
 	if trisaEnabled != nil {
 		context[TRISAEnabled] = *trisaEnabled
 	}
@@ -293,6 +301,9 @@ func (s Scene) SendEnabledForProtocol(protocol string) bool {
 //===========================================================================
 
 func WithConf(conf *config.Config) {
+	// Set the organization name for the configuration
+	organization = &conf.Organization
+
 	// Compute the sunriseEnabled boolean
 	sEnabled := conf.Sunrise.Enabled && conf.Email.Available()
 	sunriseEnabled = &sEnabled

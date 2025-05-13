@@ -126,6 +126,21 @@ func (p Person) FullName() string {
 	return strings.TrimSpace(p.Forename + " " + p.Surname)
 }
 
+func (a AddressComponents) AddressLabel() string {
+	switch a.AddressType {
+	case "HOME":
+		return "Home Address"
+	case "BIZZ":
+		return "Business Address"
+	case "GEOG":
+		return "Geographic Address"
+	case "MISC":
+		return "Address"
+	default:
+		return "Address"
+	}
+}
+
 func makePerson(person *ivms101.NaturalPerson) (p Person) {
 	if person == nil {
 		return p

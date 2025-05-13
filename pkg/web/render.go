@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/iso3166"
 	"go.rtnl.ai/x/humanize"
 	"go.rtnl.ai/x/typecase"
 )
@@ -173,6 +174,12 @@ func (r *Render) FuncMap() template.FuncMap {
 					emoji += string(r + 0x1F1A5)
 				}
 				return emoji
+			},
+			"country": func(code string) string {
+				if country, err := iso3166.Find(code); err == nil {
+					return country.Country
+				}
+				return code
 			},
 			"add": func(a, b int) int {
 				return a + b

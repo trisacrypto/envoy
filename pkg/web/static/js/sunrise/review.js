@@ -1,5 +1,5 @@
 /*
-Application code for sending an accept/reject message on the transfer detail page.
+Application code for the sunrise review page which includes accept/reject logic.
 */
 
 import Alerts from '../modules/alerts.js';
@@ -8,9 +8,10 @@ import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
-
 // Initialize the alerts component.
 const alerts = new Alerts("#alerts");
+const rejectAlerts = new Alerts("#rejectAlerts");
+
 
 /*
 Initialize the select elements with choices.js in the form element.
@@ -71,14 +72,6 @@ function initializeExtended() {
 }
 
 /*
-Post-event handling after htmx has settled the DOM.
-*/
-document.body.addEventListener("htmx:afterSettle", function(e) {
-  initializeChoices(e.target);
-  initializeExtended();
-});
-
-/*
 Handle htmx errors as JSON responses from the backend.
 */
 document.body.addEventListener("htmx:responseError", (e) => {
@@ -120,3 +113,8 @@ document.body.addEventListener("htmx:responseError", (e) => {
       throw new Error("Unhandled error code: " + e.detail.xhr.status + " - " + error.error);
   }
 });
+
+
+// Initialize the page (don't have to wait for HTMX in this case).
+initializeChoices(document);
+initializeExtended();
