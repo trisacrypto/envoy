@@ -3,6 +3,7 @@ Application code for the sunrise review page which includes accept/reject logic.
 */
 
 import Alerts from '../modules/alerts.js';
+import { isRequestFor } from '../htmx/helpers.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
@@ -81,33 +82,39 @@ document.body.addEventListener("htmx:responseError", (e) => {
     error = JSON.parse(e.detail.xhr.response);
     console.error(e.detail.requestConfig.path, error.error);
   } catch (e) {
-    console.error(e.detail.requestConfig.path, e);
+    console.error(e.detail?.requestConfig.path, e);
     error = {
       error: "an unknown error occurred"
     }
   }
 
-  // Scroll to the top of the page.
-  window.scrollTo(0, 0);
+  var alertsDiv;
+  if (isRequestFor(e, "/sunrise/reject", "post")) {
+    alertsDiv = rejectAlerts;
+  } else {
+    // Scroll to the top of the page.
+    window.scrollTo(0, 0);
+    alertsDiv = alerts;
+  }
 
   switch (e.detail.xhr.status) {
     case 400:
-      alerts.warning("Bad request", error.error);
+      alertsDiv.warning("Bad request", error.error);
       break;
     case 404:
-      alerts.info("Not Found", error.error);
+      alertsDiv.info("Not Found", error.error);
       break;
     case 409:
-      alerts.warning("Conflict", error.error);
+      alertsDiv.warning("Conflict", error.error);
       break;
     case 422:
-      alerts.warning("Validation error", error.error);
+      alertsDiv.warning("Validation error", error.error);
       break;
     case 500:
       window.location.href = "/error";
       break;
     case 502:
-      alerts.danger("Counterparty unavailable", error.error);
+      alertsDiv.danger("Counterparty unavailable", error.error);
       break;
     default:
       throw new Error("Unhandled error code: " + e.detail.xhr.status + " - " + error.error);

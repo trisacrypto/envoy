@@ -49,27 +49,27 @@
     {{- with .Transaction }}
     <dl class="row">
     {{- if .Txid }}
-    <dt>Tx ID</dt>
+    <dt class="text-secondary"><small>Tx ID</small></dt>
     <dd><code>{{ .Txid }}</code></dd>
     {{- end }}
     {{- if .Timestamp }}
-    <dt>Asset Type</dt>
+    <dt class="text-secondary"><small>Asset Type</small></dt>
     <dd>{{ .Timestamp }}</dd>
     {{- end }}
-    <dt>Originator Wallet</dt>
+    <dt class="text-secondary"><small>Originator Wallet</small></dt>
     <dd><code>{{ .Originator }}</code></dd>
-    <dt>Beneficiary Wallet</dt>
+    <dt class="text-secondary"><small>Beneficiary Wallet</small></dt>
     <dd><code>{{ .Beneficiary }}</code></dd>
-    <dt>Amount</dt>
+    <dt class="text-secondary"><small>Amount</small></dt>
     <dd>{{ .Amount }}</dd>
-    <dt>Virtual Asset</dt>
+    <dt class="text-secondary"><small>Virtual Asset</small></dt>
     <dd>{{ .Network }}</dd>
     {{- if .AssetType }}
-    <dt>Asset Type</dt>
+    <dt class="text-secondary"><small>Asset Type</small></dt>
     <dd>{{ .AssetType }}</dd>
     {{- end }}
     {{- if .Tag }}
-    <dt>Memo/Tag</dt>
+    <dt class="text-secondary"><small>Memo/Tag</small></dt>
     <dd>{{ .Tag }}</dd>
     {{- end }}
     {{- end }}
@@ -81,15 +81,15 @@
     <h3>Originating VASP</h3>
     {{- with .OriginatorVASP }}
     <dl class="row">
-    <dt>Name</dt>
+    <dt class="text-secondary"><small>Name</small></dt>
     <dd>{{ .LegalName }}</dd>
     {{- if .CustomerNumber }}
-    <dt>Customer Number</dt>
+    <dt class="text-secondary"><small>Customer Number</small></dt>
     <dd>{{ .CustomerNumber }}</dd>
     {{- end }}
-    <dt>Registered In</dt>
+    <dt class="text-secondary"><small>Registered In</small></dt>
     <dd>{{ flag .CountryOfRegistration }} {{ country .CountryOfRegistration }}</dd>
-    <dt>Registration ID</dt>
+    <dt class="text-secondary"><small>Registration ID</small></dt>
     {{- if .NationalIdentifier.Identifier }}
     <dd>
       <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
@@ -102,7 +102,7 @@
     <dd>Unknown</dd>
     {{ end }}
     {{- if .PrimaryAddress }}
-    <dt>{{ .AddressLabel }}</dt>
+    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
     <dd>
       {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
       {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
@@ -119,13 +119,13 @@
     {{- if .Person }}
     {{- with .Person }}
     <dl class="row">
-    <dt>Name</dt>
+    <dt class="text-secondary"><small>Name</small></dt>
     <dd>{{ .FullName }}</dd>
     {{- if .CustomerNumber }}
-    <dt>Customer Number</dt>
+    <dt class="text-secondary"><small>Customer Number</small></dt>
     <dd>{{ .CustomerNumber }}</dd>
     {{- end }}
-    <dt>Resides In</dt>
+    <dt class="text-secondary"><small>Resides In</small></dt>
     {{- if .CountryOfResidence }}
     <dd>{{ flag .CountryOfResidence }} {{ country .CountryOfResidence }}</dd>
     {{- else if .NationalIdentifier.CountryOfIssue }}
@@ -136,14 +136,14 @@
     {{ if .DateOfBirth }}
     {{- end }}
     {{ if .DateOfBirth }}
-    <dt>Date of Birth</dt>
+    <dt class="text-secondary"><small>Date of Birth</small></dt>
     <dd>{{ .DateOfBirth }}</dd>
     {{ end }}
     {{- if .PlaceOfBirth }}
-    <dt>Place of Birth</dt>
+    <dt class="text-secondary"><small>Place of Birth</small></dt>
     <dd>{{ .PlaceOfBirth }}</dd>
     {{- end }}
-    <dt>National ID</dt>
+    <dt class="text-secondary"><small>National ID</small></dt>
     {{- if .NationalIdentifier.Identifier }}
     <dd>
       <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
@@ -156,7 +156,7 @@
     <dd>Unknown</dd>
     {{ end }}
     {{- if .PrimaryAddress }}
-    <dt>{{ .AddressLabel }}</dt>
+    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
     <dd>
       {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
       {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
@@ -169,15 +169,15 @@
     {{- else if .Company }}
     {{- with .Company }}
     <dl class="row">
-    <dt>Name</dt>
+    <dt class="text-secondary"><small>Name</small></dt>
     <dd>{{ .LegalName }}</dd>
     {{- if .CustomerNumber }}
-    <dt>Customer Number</dt>
+    <dt class="text-secondary"><small>Customer Number</small></dt>
     <dd>{{ .CustomerNumber }}</dd>
     {{- end }}
-    <dt>Registered In</dt>
+    <dt class="text-secondary"><small>Registered In</small></dt>
     <dd>{{ flag .CountryOfRegistration }} {{ country .CountryOfRegistration }}</dd>
-    <dt>Registration ID</dt>
+    <dt class="text-secondary"><small>Registration ID</small></dt>
     {{- if .NationalIdentifier.Identifier }}
     <dd>
       <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
@@ -190,7 +190,7 @@
     <dd>Unknown</dd>
     {{ end }}
     {{- if .PrimaryAddress }}
-    <dt>{{ .AddressLabel }}</dt>
+    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
     <dd>
       {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
       {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
@@ -207,7 +207,7 @@
 
 <hr class="mb-4" />
 
-<form  id="acceptForm" class="mb-5" hx-post="/sunrise/accept" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+<form  id="acceptForm" class="mb-5" hx-post="/sunrise/accept" hx-ext="json-enc" hx-swap="none" hx-disabled-elt="find button[type='submit']">
   <div class="row align-items-center">
     <div class="col">
       <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
@@ -249,7 +249,7 @@
   {{- end }}
   <div class="row align-items-center mb-5">
     <div class="col">
-      <button type="submit" class="btn w-100 btn-success" disabled>
+      <button type="submit" form="acceptForm" class="btn w-100 btn-success">
         <i class="fe fe-check-square"></i> Accept
       </button>
     </div>
