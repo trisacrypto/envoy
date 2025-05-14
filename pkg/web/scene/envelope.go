@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"encoding/json"
+
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 )
@@ -60,4 +62,12 @@ func (e *Envelope) Transaction() *generic.Transaction {
 		return tx
 	}
 	return &generic.Transaction{}
+}
+
+func (e *Envelope) TransactionJSON() string {
+	if tx := e.TransactionPayload(); tx != nil {
+		data, _ := json.Marshal(tx)
+		return string(data)
+	}
+	return ""
 }

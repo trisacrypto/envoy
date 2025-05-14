@@ -20,6 +20,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
@@ -203,6 +204,12 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 		return
 	}
 
+	if sunriseMsg.Status != enum.StatusPending {
+		// The sunrise message has already been reviwed so redirect to the complete page
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/sunrise/complete")
+		return
+	}
+
 	// Retrieve the latest secure envelope from the database
 	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionOutgoing); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
@@ -228,6 +235,7 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(out)
 	c.HTML(http.StatusOK, "sunrise/review/review.html", scene.New(c).WithAPIData(out))
 }
 
@@ -293,7 +301,7 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 	// If the transaction state is not in pending, return an error (prevent multiple rejects)
 	if packet.Transaction.Status != enum.StatusPending {
 		c.Error(err)
-		c.JSON(http.StatusConflict, api.Error("could not complete request"))
+		c.JSON(http.StatusConflict, api.Error("transfer message has already been reviewed"))
 		return
 	}
 
@@ -334,9 +342,8 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 		return
 	}
 
-	// This is currently an HTMX response so simply respond with a 200 so that the
-	// success toast message pops up in the front end.
-	c.JSON(http.StatusOK, api.Reply{Success: true})
+	// If successful, then redirect to the sunrise message complete page.
+	htmx.Redirect(c, http.StatusTemporaryRedirect, "/sunrise/complete")
 }
 
 func (s *Server) SunriseMessageAccept(c *gin.Context) {
@@ -492,9 +499,8 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		return
 	}
 
-	// This is currently an HTMX response so simply respond with a 200 so that the
-	// success toast message pops up in the front end.
-	c.JSON(http.StatusOK, api.Reply{Success: true})
+	// If successful, then redirect to the sunrise message complete page.
+	htmx.Redirect(c, http.StatusTemporaryRedirect, "/sunrise/complete")
 }
 
 func (s *Server) SunriseMessageCompleted(c *gin.Context) {

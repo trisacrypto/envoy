@@ -1,6 +1,7 @@
 package scene
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -18,10 +19,6 @@ type IVMS101 struct {
 
 type Entities []Entity
 
-func (e Entities) Plural() bool {
-	return len(e) > 1
-}
-
 type Entity struct {
 	Person  *Person
 	Company *Company
@@ -38,6 +35,7 @@ type Person struct {
 	DateOfBirth         string
 	PlaceOfBirth        string
 	CountryOfResidence  string
+	original            *ivms101.NaturalPerson
 }
 
 type Company struct {
@@ -48,6 +46,7 @@ type Company struct {
 	CustomerNumber        string
 	CountryOfRegistration string
 	NationalIdentifier    NationalIdentifier
+	original              *ivms101.LegalPerson
 }
 
 type NationalIdentifier struct {
@@ -122,8 +121,47 @@ func NewIVMS101(envelope *Envelope) *IVMS101 {
 	return ivms
 }
 
+func (e Entities) Plural() bool {
+	return len(e) > 1
+}
+
+func (e Entities) JSON() string {
+	data, _ := json.Marshal(e)
+	return string(data)
+}
+
 func (p Person) FullName() string {
 	return strings.TrimSpace(p.Forename + " " + p.Surname)
+}
+
+func (p Person) JSON() string {
+	if p.original != nil {
+		data, _ := json.Marshal(p.original)
+		return string(data)
+	}
+	return ""
+}
+
+func (p Person) MarshalJSON() ([]byte, error) {
+	if p.original != nil {
+		return json.Marshal(p.original)
+	}
+	return nil, nil
+}
+
+func (c Company) JSON() string {
+	if c.original != nil {
+		data, _ := json.Marshal(c.original)
+		return string(data)
+	}
+	return ""
+}
+
+func (c Company) MarshalJSON() ([]byte, error) {
+	if c.original != nil {
+		return json.Marshal(c.original)
+	}
+	return nil, nil
 }
 
 func (a AddressComponents) AddressLabel() string {
@@ -146,6 +184,7 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 		return p
 	}
 
+	p.original = person
 	p.PrimaryAddress = api.FindPrimaryAddress(person)
 	p.PrimaryAddressLines = api.MakeAddressLines(p.PrimaryAddress)
 	p.AddressComponents = makeAddressComponents(p.PrimaryAddress)
@@ -173,6 +212,7 @@ func makeCompany(vasp *ivms101.LegalPerson) (v Company) {
 		return v
 	}
 
+	v.original = vasp
 	v.PrimaryAddress = api.FindPrimaryAddress(vasp)
 	v.PrimaryAddressLines = api.MakeAddressLines(v.PrimaryAddress)
 	v.AddressComponents = makeAddressComponents(v.PrimaryAddress)

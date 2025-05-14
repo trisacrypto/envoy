@@ -33,11 +33,11 @@
     </div>
     <div class="col-md-6">
       <div class="form-group">
-        <label class="form-label mb-1" for="{{ .Prefix }}_customerID">Internal Customer Identifier</label>
+        <label class="form-label mb-1" for="{{ .Prefix }}_customerIdentification">Internal Customer Identifier</label>
         <small class="form-text text-body-secondary">
           Optional, an internal identifier for the account holder.
         </small>
-        <input type="text" class="form-control" id="{{ .Prefix }}_customerID" name="{{ .Prefix }}_customer_id" placeholder="Customer Identifier" value="{{ .Person.CustomerNumber }}">
+        <input type="text" class="form-control" id="{{ .Prefix }}_customerIdentification" name="{{ .Prefix }}_customer_identification" placeholder="Customer Identifier" value="{{ .Person.CustomerNumber }}">
       </div>
     </div>
   </div>

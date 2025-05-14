@@ -10,7 +10,7 @@ import { createFlatpickr } from '../modules/components.js';
 import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
 
 // Initialize the alerts component.
-const alerts = new Alerts("#alerts");
+const alerts = new Alerts("#alerts", {autoClose: true, closeTime: 6000});
 const rejectAlerts = new Alerts("#rejectAlerts");
 
 
@@ -73,6 +73,34 @@ function initializeExtended() {
 }
 
 /*
+Configure requests made by htmx before they are sent.
+*/
+document.body.addEventListener('htmx:configRequest', function(e) {
+  /*
+  Update the form information for rejection.
+  */
+  if (isRequestFor(e, "/sunrise/reject", "post")) {
+    const params = new FormData();
+    e.detail.parameters.forEach((value, key) => {
+      if (key === "retry") {
+        key = "json:retry";
+      }
+      params.append(key, value);
+    });
+
+    e.detail.parameters = params;
+  }
+
+  /*
+  Handle IVMS 101 data submitted during accept
+  */
+  if (isRequestFor(e, "/sunrise/accept", "post")) {
+    return
+  }
+
+});
+
+/*
 Handle htmx errors as JSON responses from the backend.
 */
 document.body.addEventListener("htmx:responseError", (e) => {
@@ -81,8 +109,8 @@ document.body.addEventListener("htmx:responseError", (e) => {
   try {
     error = JSON.parse(e.detail.xhr.response);
     console.error(e.detail.requestConfig.path, error.error);
-  } catch (e) {
-    console.error(e.detail?.requestConfig.path, e);
+  } catch (err) {
+    console.error(e, err);
     error = {
       error: "an unknown error occurred"
     }
@@ -120,7 +148,6 @@ document.body.addEventListener("htmx:responseError", (e) => {
       throw new Error("Unhandled error code: " + e.detail.xhr.status + " - " + error.error);
   }
 });
-
 
 // Initialize the page (don't have to wait for HTMX in this case).
 initializeChoices(document);

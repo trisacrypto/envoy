@@ -3,6 +3,20 @@
 {{ define "pretitle" }}Sunrise{{ end }}
 {{ define "pagetitle" }}Review Travel Rule Message{{ end }}
 
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
 {{ define "modals" }}
   {{ template "rejectSunriseModal" . }}
 {{ end }}
@@ -113,6 +127,7 @@
     </dl>
     {{- end }}
   </div>
+
   <div class="col-md-4">
     <h3>Originating Account</h3>
     {{- range .Originator }}
@@ -244,9 +259,15 @@
 
   {{ template "legalPersonForm" dict "Prefix" "beneficiaryVASP" "Company" .BeneficiaryVASP }}
 
-  <hr class="mt-4 mb-5">
+  <!-- Hidden Identity JSON -->
+  <input type="hidden" name="json:originator" value="{{ .Originator.JSON }}" />
+  <input type="hidden" name="json:originatorVASP" value="{{ .OriginatorVASP.JSON }}" />
+  {{- end }}{{/* with .Identity ends */}}
 
-  {{- end }}
+  <!-- Hidden Transaction JSON -->
+  <input type="hidden" name="json:transaction" value="{{ .TransactionJSON }}" />
+
+  <hr class="mt-4 mb-5">
   <div class="row align-items-center mb-5">
     <div class="col">
       <button type="submit" form="acceptForm" class="btn w-100 btn-success">
@@ -261,8 +282,8 @@
   </div>
 </form>
 
-{{- end }}
-{{ end }}
+{{- end }}{{/* with .Envelope ends */}}
+{{- end }}{{/* define main ends */}}
 
 {{ define "appcode" }}
 <script type="module" src="/static/js/sunrise/review.js"></script>
