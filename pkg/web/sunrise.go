@@ -169,6 +169,7 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 		env         *models.SecureEnvelope
 		decrypted   *envelope.Envelope
 		out         *api.Envelope
+		data        scene.Scene
 	)
 
 	ctx := c.Request.Context()
@@ -235,8 +236,13 @@ func (s *Server) SunriseMessageReview(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(out)
-	c.HTML(http.StatusOK, "sunrise/review/review.html", scene.New(c).WithAPIData(out))
+	data = scene.New(c).
+		With("Sunrise", sunriseMsg).
+		WithEmail("Compliance", s.conf.Email.ComplianceEmail).
+		WithEmail("Support", s.conf.Email.SupportEmail).
+		WithAPIData(out)
+
+	c.HTML(http.StatusOK, "sunrise/review/review.html", data)
 }
 
 func (s *Server) SunriseMessageReject(c *gin.Context) {
@@ -504,7 +510,82 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 }
 
 func (s *Server) SunriseMessageCompleted(c *gin.Context) {
-	c.HTML(http.StatusOK, "sunrise/review/complete.html", scene.New(c))
+	var (
+		err         error
+		claims      *auth.Claims
+		subjectType auth.SubjectType
+		sunriseID   ulid.ULID
+		sunriseMsg  *models.Sunrise
+		env         *models.SecureEnvelope
+		decrypted   *envelope.Envelope
+		out         *api.Envelope
+		data        scene.Scene
+	)
+
+	ctx := c.Request.Context()
+	log := logger.Tracing(ctx)
+
+	if claims, err = auth.GetClaims(c); err != nil {
+		s.SunriseError(c, err)
+		return
+	}
+
+	// Get the sunrise record ID from the subject of the claims
+	if subjectType, sunriseID, err = claims.SubjectID(); err != nil {
+		s.SunriseError(c, err)
+		return
+	}
+
+	// Validate the subject type
+	if subjectType != auth.SubjectSunrise {
+		log.Debug().Str("subject_type", subjectType.String()).Msg("invalid subject type for sunrise review")
+		s.SunriseMissing(c)
+		return
+	}
+
+	// Retrieve the sunrise record from the database
+	if sunriseMsg, err = s.store.RetrieveSunrise(ctx, sunriseID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			s.SunriseMissing(c)
+			return
+		}
+
+		c.Error(err)
+		s.SunriseError(c, ErrSunriseRetrieve)
+		return
+	}
+
+	// Retrieve the latest secure envelope from the database
+	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionAny); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			s.SunriseMissing(c)
+			return
+		}
+
+		c.Error(err)
+		s.SunriseError(c, ErrSunriseRetrieve)
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		s.SunriseError(c, ErrSunriseRetrieve)
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		s.SunriseError(c, ErrSunriseRetrieve)
+		return
+	}
+
+	data = scene.New(c).
+		With("Sunrise", sunriseMsg).
+		WithEmail("Compliance", s.conf.Email.ComplianceEmail).
+		WithEmail("Support", s.conf.Email.SupportEmail).
+		WithAPIData(out)
+	c.HTML(http.StatusOK, "sunrise/review/complete.html", data)
 }
 
 func (s *Server) SunriseMessageDownload(c *gin.Context) {

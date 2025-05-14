@@ -6,6 +6,8 @@ overloaded term and milieu was too hard to spell.
 package scene
 
 import (
+	"net/mail"
+
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/config"
@@ -119,6 +121,23 @@ func (s Scene) WithParent(parent ulid.ULID) Scene {
 
 func (s Scene) With(key string, val interface{}) Scene {
 	s[key] = val
+	return s
+}
+
+func (s Scene) WithEmail(prefix, email string) Scene {
+	if email == "" {
+		return s
+	}
+
+	if addr, _ := mail.ParseAddress(email); addr != nil {
+		switch {
+		case addr.Name != "" && addr.Address != "":
+			return s.With(prefix+"Email", addr.Address).With(prefix, addr.Name)
+		case addr.Address != "":
+			return s.With(prefix+"Email", addr.Address).With(prefix, addr.Address)
+		}
+	}
+
 	return s
 }
 
