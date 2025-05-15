@@ -2,6 +2,7 @@ package scene
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -68,6 +69,20 @@ func (e *Envelope) TransactionJSON() string {
 	if tx := e.TransactionPayload(); tx != nil {
 		data, _ := json.Marshal(tx)
 		return string(data)
+	}
+	return ""
+}
+
+func (e *Envelope) SentAtRepr() string {
+	if e.SentAt != nil {
+		return e.SentAt.Format(time.RFC3339)
+	}
+	return ""
+}
+
+func (e *Envelope) ReceivedAtRepr() string {
+	if e.ReceivedAt != nil {
+		return e.ReceivedAt.Format(time.RFC3339)
 	}
 	return ""
 }

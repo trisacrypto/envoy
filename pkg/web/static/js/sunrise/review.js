@@ -7,7 +7,7 @@ import { isRequestFor } from '../htmx/helpers.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
-import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
+import { selectAddressType, selectNationalIdentifierType, Envelope } from '../modules/ivms101.js';
 
 // Initialize the alerts component.
 const alerts = new Alerts("#alerts", {autoClose: true, closeTime: 6000});
@@ -89,13 +89,26 @@ document.body.addEventListener('htmx:configRequest', function(e) {
     });
 
     e.detail.parameters = params;
+    return;
   }
 
   /*
   Handle IVMS 101 data submitted during accept
   */
   if (isRequestFor(e, "/sunrise/accept", "post")) {
-    return
+    // Prepare the outgoing data as a nested JSON payload.
+    const envelope = new Envelope(e.target);
+
+    // Convert to a flattened form data object for htmx.
+    e.detail.parameters = new FormData();
+    for (const [key, value] of envelope.entries()) {
+      if (typeof value === "object") {
+        e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+      } else {
+        e.detail.parameters.append(key, value);
+      }
+    }
+    return;
   }
 
 });

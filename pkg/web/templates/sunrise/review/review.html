@@ -261,11 +261,14 @@
 
   <!-- Hidden Identity JSON -->
   <input type="hidden" name="json:originator" value="{{ .Originator.JSON }}" />
-  <input type="hidden" name="json:originatorVASP" value="{{ .OriginatorVASP.JSON }}" />
+  <input type="hidden" name="json:originatingVASP" value="{{ .OriginatorVASP.JSON }}" />
   {{- end }}{{/* with .Identity ends */}}
 
   <!-- Hidden Transaction JSON -->
   <input type="hidden" name="json:transaction" value="{{ .TransactionJSON }}" />
+
+  {{ if .SentAt }}<input type="hidden" name="sent_at" value="{{ .SentAtRepr }}" />{{ end }}
+  {{ if .ReceivedAt }}<input type="hidden" name="received_at" value="{{ .ReceivedAtRepr }}" />{{ end }}
 
   <hr class="mt-4 mb-5">
   <div class="row align-items-center mb-5">

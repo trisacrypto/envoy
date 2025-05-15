@@ -447,7 +447,7 @@ func (e *Envelope) Validate() (err error) {
 	// Perform lightweight validation of the payload
 	if e.Error != nil {
 		if e.Identity != nil || e.Transaction != nil || e.Pending != nil {
-			return ValidationError(OneOfTooMany("error", "identity"))
+			return ValidationError(OneOfTooMany("error", "payload"))
 		}
 		return nil
 	}

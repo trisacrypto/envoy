@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
@@ -28,6 +29,7 @@ type Person struct {
 	AddressComponents
 	Forename            string
 	Surname             string
+	NameType            string
 	PrimaryAddress      *ivms101.Address
 	PrimaryAddressLines []string
 	CustomerNumber      string
@@ -41,6 +43,7 @@ type Person struct {
 type Company struct {
 	AddressComponents
 	LegalName             string
+	LegalNameType         string
 	PrimaryAddress        *ivms101.Address
 	PrimaryAddressLines   []string
 	CustomerNumber        string
@@ -126,8 +129,33 @@ func (e Entities) Plural() bool {
 }
 
 func (e Entities) JSON() string {
-	data, _ := json.Marshal(e)
-	return string(data)
+	switch len(e) {
+	case 0:
+		return ""
+	case 1:
+		if e[0].Person != nil || e[0].Company != nil {
+			return e[0].JSON()
+		}
+		return ""
+	default:
+		log.Warn().Int("count", len(e)).Msg("handling multiple entities is not yet supported")
+		for _, entity := range e {
+			if entity.Person != nil || entity.Company != nil {
+				return entity.JSON()
+			}
+		}
+		return ""
+	}
+}
+
+func (e Entity) JSON() string {
+	if e.Person != nil {
+		return e.Person.JSON()
+	}
+	if e.Company != nil {
+		return e.Company.JSON()
+	}
+	return ""
 }
 
 func (p Person) FullName() string {
@@ -197,6 +225,7 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 		name := person.Name.NameIdentifiers[nameIdx]
 		p.Surname = name.PrimaryIdentifier
 		p.Forename = name.SecondaryIdentifier
+		p.NameType = strings.TrimPrefix(name.NameIdentifierType.String(), "NATURAL_PERSON_NAME_TYPE_CODE_")
 	}
 
 	if person.DateAndPlaceOfBirth != nil {
@@ -223,6 +252,7 @@ func makeCompany(vasp *ivms101.LegalPerson) (v Company) {
 	if nameIdx := api.FindLegalName(vasp); nameIdx >= 0 {
 		name := vasp.Name.NameIdentifiers[nameIdx]
 		v.LegalName = name.LegalPersonName
+		v.LegalNameType = strings.TrimPrefix(name.LegalPersonNameIdentifierType.String(), "LEGAL_PERSON_NAME_TYPE_CODE_")
 	}
 
 	return v

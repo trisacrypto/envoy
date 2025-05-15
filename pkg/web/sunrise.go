@@ -359,8 +359,6 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		claims     *auth.Claims
 		sunriseID  ulid.ULID
 		sunriseMsg *models.Sunrise
-		env        *models.SecureEnvelope
-		decrypted  *envelope.Envelope
 		payload    *trisa.Payload
 		packet     *postman.SunrisePacket
 	)
@@ -372,7 +370,7 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		return
 	}
 
-	if err = in.Validate(); err != nil {
+	if err = ValidateSunrise(in); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
@@ -398,39 +396,11 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		return
 	}
 
-	// Load the latest secure envelope from the database to populate the complete
-	// details since the incoming envelope will only have beneficiary info.
-	if env, err = s.store.LatestSecureEnvelope(ctx, sunriseMsg.EnvelopeID, enum.DirectionOutgoing); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
-		return
+	// Set the received at timestamp on the payload
+	if in.ReceivedAt == nil {
+		now := time.Now()
+		in.ReceivedAt = &now
 	}
-
-	if decrypted, err = s.Decrypt(env); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
-		return
-	}
-
-	var orig *api.Envelope
-	if orig, err = api.NewEnvelope(env, decrypted); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
-		return
-	}
-
-	now := time.Now()
-	in.ID = orig.ID
-	in.EnvelopeID = orig.EnvelopeID
-	in.Transaction = orig.Transaction
-	in.Pending = orig.Pending
-	in.Sunrise = orig.Sunrise
-	in.SentAt = orig.SentAt
-	in.ReceivedAt = &now
-	in.Identity.OriginatingVasp = orig.Identity.OriginatingVasp
-	in.Identity.Originator = orig.Identity.Originator
-	in.Identity.TransferPath = orig.Identity.TransferPath
-	in.Identity.PayloadMetadata = orig.Identity.PayloadMetadata
 
 	// Create a secure envelope with a Payload
 	if payload, err = in.Payload(); err != nil {
@@ -709,4 +679,56 @@ func (s *Server) SetSunriseAuthCookies(c *gin.Context, model *models.Sunrise) (e
 	}
 
 	return nil
+}
+
+func ValidateSunrise(in *api.Envelope) (err error) {
+	if err = in.Validate(); err != nil {
+		return err
+	}
+
+	if in.Error != nil {
+		err = api.ValidationError(err, api.IncorrectField("error", "sunrise envelope should not contain errors"))
+	}
+
+	if in.Transaction == nil {
+		err = api.ValidationError(err, api.MissingField("transaction"))
+	} else {
+		if in.Transaction.Originator == "" {
+			err = api.ValidationError(err, api.MissingField("transaction.originator"))
+		}
+
+		if in.Transaction.Beneficiary == "" {
+			err = api.ValidationError(err, api.MissingField("transaction.beneficiary"))
+		}
+
+		if in.Transaction.Network == "" {
+			err = api.ValidationError(err, api.MissingField("transaction.network"))
+		}
+
+		if in.Transaction.Amount == 0.0 {
+			err = api.ValidationError(err, api.MissingField("transaction.amount"))
+		}
+	}
+
+	if in.Identity == nil {
+		err = api.ValidationError(err, api.MissingField("identity"))
+	} else {
+		if in.Identity.Originator == nil || len(in.Identity.Originator.OriginatorPersons) == 0 {
+			err = api.ValidationError(err, api.MissingField("identity.originator"))
+		}
+
+		if in.Identity.Beneficiary == nil || len(in.Identity.Beneficiary.BeneficiaryPersons) == 0 {
+			err = api.ValidationError(err, api.MissingField("identity.beneficiary"))
+		}
+
+		if in.Identity.OriginatingVasp == nil {
+			err = api.ValidationError(err, api.MissingField("identity.originator_vasp"))
+		}
+
+		if in.Identity.BeneficiaryVasp == nil {
+			err = api.ValidationError(err, api.MissingField("identity.beneficiary_vasp"))
+		}
+	}
+
+	return err
 }
