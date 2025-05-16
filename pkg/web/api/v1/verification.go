@@ -7,16 +7,16 @@ import (
 )
 
 //===========================================================================
-// Sunrise Verification
+// URL Verification
 //===========================================================================
 
 // Allows the user to pass a verification token via the URL.
-type SunriseVerification struct {
+type URLVerification struct {
 	Token string `json:"token,omitempty" url:"token,omitempty" form:"token"`
 	token verification.VerificationToken
 }
 
-func (s *SunriseVerification) Validate() (err error) {
+func (s *URLVerification) Validate() (err error) {
 	s.Token = strings.TrimSpace(s.Token)
 	if s.Token == "" {
 		err = ValidationError(err, MissingField("token"))
@@ -33,7 +33,7 @@ func (s *SunriseVerification) Validate() (err error) {
 // Returns the underlying verification token if it has already been parsed. It parses
 // the token if not, but does not return the error (only) nil. Callers should ensure
 // that Validate() is called first to ensure there will be no parse errors.
-func (s *SunriseVerification) VerificationToken() verification.VerificationToken {
+func (s *URLVerification) VerificationToken() verification.VerificationToken {
 	if len(s.token) == 0 {
 		var err error
 		if s.token, err = verification.ParseVerification(s.Token); err != nil {

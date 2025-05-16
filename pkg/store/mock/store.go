@@ -274,3 +274,23 @@ func (s *Store) UpdateAPIKey(context.Context, *models.APIKey) error {
 func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
 	return nil
 }
+
+func (s *Store) ListResetPasswordLinks(ctx context.Context, page *models.PageInfo) (out *models.ResetPasswordLinkPage, err error) {
+	return nil, nil
+}
+
+func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) error {
+	return nil
+}
+
+func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID) (*models.ResetPasswordLink, error) {
+	return nil, nil
+}
+
+func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) error {
+	return nil
+}
+
+func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (err error) {
+	return nil
+}

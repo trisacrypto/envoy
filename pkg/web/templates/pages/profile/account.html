@@ -40,7 +40,7 @@
     </p>
   </div>
   <div class="col-12 col-md-auto">
-    <form hx-post="/v1/reset-password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+    <form hx-post="/v1/forgot-password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
       <input type="hidden" id="email" name="email" value="{{ .User.Email }}">
       <button class="btn btn-white" type="submit">
         Forgot your password?

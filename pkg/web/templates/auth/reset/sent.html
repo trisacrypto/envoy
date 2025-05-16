@@ -1,0 +1,25 @@
+{{ template "auth.html" . }}
+{{ define "title" }}Forgot Password | TRISA Envoy{{ end }}
+
+{{ define "auth" }}
+
+<!-- Heading -->
+<h1 class="display-4 text-center mb-3">
+  Password reset sent
+</h1>
+
+<!-- Subheading -->
+<p class="text-body-secondary text-center mb-3">
+  Please check your email for a secure link to reset your password and close this window.
+</p>
+
+<p class="text-body-secondary text-center mb-3">
+  Note that password reset links expire after 15 minutes and a new link cannot be sent until the previous link expires.
+</p>
+
+<div class="text-center mb-5">
+  <small class="text-body-secondary text-center">
+    Remembered your password? <a href="/login">Log in</a>.
+  </small>
+</div>
+{{ end }}

@@ -30,6 +30,12 @@ type ResetPasswordRequest struct {
 	Email string `json:"email"`
 }
 
+type ResetPasswordChangeRequest struct {
+	URLVerification
+	Password string `json:"password"`
+	Confirm  string `json:"confirm"`
+}
+
 func (r *LoginRequest) Validate() (err error) {
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Email == "" {
@@ -64,4 +70,23 @@ func (r *ReauthenticateRequest) Validate() (err error) {
 		err = ValidationError(err, MissingField("refresh_token"))
 	}
 	return err
+}
+
+func (r *ResetPasswordChangeRequest) Validate() (err error) {
+	if err = r.URLVerification.Validate(); err != nil {
+		return err
+	}
+
+	// Confirm the two entered passwords are valid and match
+	password := ProfilePassword{
+		Current:  "ignored",
+		Password: r.Password,
+		Confirm:  r.Confirm,
+	}
+
+	if err = password.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -204,6 +204,12 @@ func (c WebConfig) Validate() (err error) {
 	return nil
 }
 
+func (c WebConfig) ResetPasswordURL() *url.URL {
+	u, _ := url.Parse(c.Origin)
+	u.Path = "/reset-password"
+	return u
+}
+
 func (c WebhookConfig) Validate() (err error) {
 	if c.Enabled() {
 		if _, err = url.Parse(c.URL); err != nil {

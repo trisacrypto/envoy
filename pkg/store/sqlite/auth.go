@@ -508,3 +508,152 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 
 	return permissions, dbe(rows.Err())
 }
+
+//===========================================================================
+// ResetPasswordLink Store
+//===========================================================================
+
+const listResetPasswordLinkSQL = "SELECT * FROM reset_password_link"
+
+func (s *Store) ListResetPasswordLinks(ctx context.Context, page *models.PageInfo) (out *models.ResetPasswordLinkPage, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// TODO: handle pagination
+	out = &models.ResetPasswordLinkPage{
+		Links: make([]*models.ResetPasswordLink, 0),
+	}
+
+	var rows *sql.Rows
+	if rows, err = tx.Query(listResetPasswordLinkSQL); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		link := &models.ResetPasswordLink{}
+		if err = link.Scan(rows); err != nil {
+			return nil, err
+		}
+		out.Links = append(out.Links, link)
+	}
+
+	tx.Commit()
+	return out, nil
+}
+
+const (
+	checkExistingLinkSQL       = "SELECT * FROM reset_password_link WHERE user_id=:userID"
+	createResetPasswordLinkSQL = "INSERT INTO reset_password_link (id, user_id, email, expiration, signature, sent_on, created, modified) VALUES (:id, :userId, :email, :expiration, :signature, :sentOn, :created, :modified)"
+)
+
+// Create a ResetPasswordLink record in the database. This method checks to see if there
+// is an existing link for the user and if so, it will return ErrTooSoon if that link
+// is not expired. If the link is expired, it will be deleted and a new one created.
+func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	if !link.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
+
+	link.ID = ulid.MakeSecure()
+	link.Created = time.Now()
+	link.Modified = link.Created
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	existing := &models.ResetPasswordLink{}
+	if err = existing.Scan(tx.QueryRow(checkExistingLinkSQL, sql.Named("userID", link.UserID))); err != nil {
+		if err != sql.ErrNoRows {
+			return dbe(err)
+		}
+	}
+
+	if !existing.Expiration.IsZero() {
+		// If the existing link is not expired, then return ErrTooSoon
+		if !existing.IsExpired() {
+			return dberr.ErrTooSoon
+		}
+
+		// Delete the existing link if it is expired
+		if _, err = tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", existing.ID)); err != nil {
+			return dbe(err)
+		}
+	}
+
+	if _, err = tx.Exec(createResetPasswordLinkSQL, link.Params()...); err != nil {
+		return dbe(err)
+	}
+
+	return tx.Commit()
+}
+
+const retrieveResetPasswordLinkByIDSQL = "SELECT * FROM reset_password_link WHERE id=:id"
+
+// Retrieve a ResetPasswordLink in the database by its ID.
+func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID) (link *models.ResetPasswordLink, err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	link = &models.ResetPasswordLink{}
+	if err = link.Scan(tx.QueryRow(retrieveResetPasswordLinkByIDSQL, sql.Named("id", linkID))); err != nil {
+		return nil, dbe(err)
+	}
+
+	tx.Commit()
+	return link, nil
+}
+
+const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:signature, sent_on=:sentOn, modified=:modified  WHERE id=:id"
+
+// Update a ResetPasswordLink record. Only updates the Signature, SentOn,
+// VerifiedOn, and Modified fields.
+func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	link.Modified = time.Now()
+
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var result sql.Result
+	if result, err = tx.Exec(updateResetPasswordLinkSQL, link.UpdateParams()...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+const deleteResetPasswordLinkSQL = "DELETE FROM reset_password_link WHERE id=:id"
+
+func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var result sql.Result
+	if result, err = tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", linkID)); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return tx.Commit()
+}

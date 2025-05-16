@@ -87,13 +87,13 @@ const GenericComplianceName = "A VASP Compliance Team using TRISA Envoy"
 func (s *Server) VerifySunriseUser(c *gin.Context) {
 	var (
 		err   error
-		in    *api.SunriseVerification
+		in    *api.URLVerification
 		log   zerolog.Logger
 		model *models.Sunrise
 		token verification.VerificationToken
 	)
 
-	in = &api.SunriseVerification{}
+	in = &api.URLVerification{}
 	ctx := c.Request.Context()
 	log = logger.Tracing(ctx)
 
