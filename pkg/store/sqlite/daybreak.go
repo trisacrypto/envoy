@@ -154,6 +154,71 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 	return nil
 }
 
+// Deletes the counterparty and any associated contacts in the database, unless
+// the counterparty has transactions associated with it. If `ignoreTxns` is `true`,
+// then it will delete the counterparty and contacts without checking for associated
+// transactions. This function will return the `errors.ErrDaybreakHasTxns` error
+// if trying to delete a Daybreak Counterparty with transactions associated to
+// it in the database when `ignoreTxns` is not `true`.
+func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if ignoreTxns {
+		if err = s.deleteDaybreakCounterparty(tx, counterpartyID); err != nil {
+			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
+			return err
+		}
+	} else {
+		if err = s.deleteDaybreakCounterpartyUnlessHasTxns(tx, counterpartyID); err != nil {
+			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) deleteDaybreakCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
+	return s.deleteCounterparty(tx, counterpartyID)
+}
+
+func (s *Store) deleteDaybreakCounterpartyUnlessHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
+	if has, err := s.counterpartyHasTxns(tx, counterpartyID); has || err != nil {
+		if err != nil {
+			return err
+		}
+		return dberr.ErrDaybreakHasTxns
+
+	} else {
+		return s.deleteDaybreakCounterparty(tx, counterpartyID)
+	}
+}
+
+//###############
+//### Helpers ###
+//###############
+
+const counterpartyHasTxnsSQL = "SELECT counterparty_id FROM transactions WHERE counterparty_id=:counterpartyId LIMIT 1"
+
+// Returns `true` if the `counterpartyID` is associated with any transactions, otherwise `false`.
+func (s *Store) counterpartyHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (has bool, err error) {
+	// Query
+	var rows *sql.Rows
+	if rows, err = tx.Query(counterpartyHasTxnsSQL, sql.Named("counterpartyId", counterpartyID)); err != nil {
+		return true, dbe(err)
+	}
+	defer rows.Close()
+
+	// `rows.Next()` returns `true` if there is a row, otherwise `false`
+	hasTxns := rows.Next()
+
+	return hasTxns, nil
+}
+
 // Returns a mapping of Contacts using their email as the keys; useful for comparing
 // contacts we need to update/create in bulk imports of counterparties.
 func (s *Store) listMapCounterpartyContactsByEmail(tx *sql.Tx, counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {

@@ -187,7 +187,8 @@ type APIKeyStore interface {
 // NOTE: this is not part of the Store interface since it is not required for the
 // server to function but is useful for Daybreak-specific operations.
 type DaybreakStore interface {
-	ListDaybreak(context.Context) (map[string]*models.CounterpartySourceInfo, error)
-	CreateDaybreak(context.Context, *models.Counterparty) error
-	UpdateDaybreak(context.Context, *models.Counterparty) error
+	ListDaybreak(ctx context.Context) (map[string]*models.CounterpartySourceInfo, error)
+	CreateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
+	UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
+	DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) error
 }

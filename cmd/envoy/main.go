@@ -21,6 +21,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -194,6 +195,14 @@ func main() {
 					Required: true,
 				},
 			},
+		},
+		{
+			Name:     "daybreak:retire",
+			Usage:    "Deletes any Daybreak counterparties and contacts which do not have any transactions associated with them",
+			Category: "admin",
+			Before:   openDB,
+			Action:   daybreakRetire,
+			After:    closeDB,
 		},
 	}
 
@@ -637,6 +646,38 @@ func daybreakImport(c *cli.Context) (err error) {
 		Int("total", len(cpartyImports)).
 		Float64("percent_success", (float64(created+updated) / float64(len(cpartyImports)) * 100.0)).
 		Msg("daybreak import complete")
+
+	return nil
+}
+
+func daybreakRetire(c *cli.Context) (err error) {
+	// Make sure we have a daybreak database
+	ddb, ok := db.(store.DaybreakStore)
+	if !ok {
+		return cli.Exit("configured database does not support daybreak operations", 2)
+	}
+
+	// Create outer context for database interactions and source info.
+	// NOTE: 30 seconds should be enough for several thousand entries, otherwise increase it.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Get all Daybreak Counterparties
+	var srcMap map[string]*models.CounterpartySourceInfo
+	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	// Delete all of the counterparties (`ignoreTxns` is `false`)
+	for _, counterparty := range srcMap {
+		if err = ddb.DeleteDaybreak(ctx, counterparty.ID, false); err != nil {
+			if err == dberr.ErrDaybreakHasTxns {
+				log.Info().Str("id", counterparty.ID.String()).Str("directory_id", counterparty.DirectoryID.String).Msg("daybreak counterparty not deleted because it has associated transactions")
+				continue
+			}
+			return err
+		}
+	}
 
 	return nil
 }
