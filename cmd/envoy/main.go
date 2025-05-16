@@ -539,7 +539,8 @@ func daybreakImport(c *cli.Context) (err error) {
 	}
 
 	// Create outer context for database interactions and source info.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// NOTE: 30 seconds should be enough for several thousand entries, otherwise increase it.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// NOTE: this operation happens in its own transaction, if two daybreak imports
@@ -594,10 +595,7 @@ func daybreakImport(c *cli.Context) (err error) {
 		}
 
 		if len(contacts) == 0 {
-			// TODO: we could create a CLI flag to ignore counterparties with no contacts
-			// if we wanted to force import them. However by default, not importing a
-			// counterparty without contacts is better since they won't be able to do
-			// sunrise without an email address.
+			// Daybreak counterparties should always have contacts, otherwise where do emails go?
 			log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("counterparty has no contacts")
 			continue
 		}

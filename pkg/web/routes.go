@@ -163,7 +163,11 @@ func (s *Server) setupRoutes() (err error) {
 		sunrise.GET("/review", sunriseAuth, s.SunriseMessageReview)
 		sunrise.POST("/reject", sunriseAuth, s.SunriseMessageReject)
 		sunrise.POST("/accept", sunriseAuth, s.SunriseMessageAccept)
+		sunrise.GET("/complete", sunriseAuth, s.SunriseMessageCompleted)
 		sunrise.GET("/download", sunriseAuth, s.SunriseMessageDownload)
+
+		// Error page for sunrise users
+		sunrise.GET("/missing", s.SunriseMissing)
 	}
 
 	// API Routes (Including Content Negotiated Partials)

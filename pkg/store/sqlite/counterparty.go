@@ -271,18 +271,39 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 
 const listContactsSQL = "SELECT * FROM contacts WHERE counterparty_id=:counterpartyID"
 
-// List contacts associated with the specified counterparty.
-func (s *Store) ListContacts(ctx context.Context, counterpartyID ulid.ULID, page *models.PageInfo) (out *models.ContactsPage, err error) {
+// List contacts associated with the specified counterparty. The counterparty can either
+// be a ULID of the counterparty ID or a pointer to the Counterparty model. If the
+// ID is specified then the associated counterparty is retrieved from the database and
+// attached to all returned contacts. If the model is specified, then the contacts,
+// will be attached to the model.
+func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (out *models.ContactsPage, err error) {
+	var (
+		counterpartyID    ulid.ULID
+		counterpartyModel *models.Counterparty
+	)
+
+	if counterparty == nil {
+		return nil, dberr.ErrMissingAssociation
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	// Check to ensure the associated counterparty exists
-	var counterparty *models.Counterparty
-	if counterparty, err = retrieveCounterparty(tx, counterpartyID); err != nil {
-		return nil, err
+	// Handle the input counterparty and retrieve the counterparty model if necessary.
+	switch c := counterparty.(type) {
+	case *models.Counterparty:
+		counterpartyID = c.ID
+		counterpartyModel = c
+	case ulid.ULID:
+		counterpartyID = c
+		if counterpartyModel, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("invalid type for counterparty: %T", counterparty)
 	}
 
 	// TODO: handle pagination
@@ -303,13 +324,17 @@ func (s *Store) ListContacts(ctx context.Context, counterpartyID ulid.ULID, page
 			return nil, err
 		}
 
-		contact.SetCounterparty(counterparty)
+		contact.SetCounterparty(counterpartyModel)
 		out.Contacts = append(out.Contacts, contact)
 	}
 
 	if errors.Is(rows.Err(), sql.ErrNoRows) {
 		return nil, dberr.ErrNotFound
 	}
+
+	// Associate the contacts with the counterparty model (useful if a pointer to
+	// a counterparty was passed in).
+	counterpartyModel.SetContacts(out.Contacts)
 
 	tx.Commit()
 	return out, nil
@@ -370,24 +395,56 @@ func (s *Store) createContact(tx *sql.Tx, contact *models.Contact) (err error) {
 	if _, err = tx.Exec(createContactSQL, contact.Params()...); err != nil {
 		return dbe(err)
 	}
+
 	return nil
 }
 
 const retrieveContactSQL = "SELECT * FROM contacts WHERE id=:id and counterparty_id=:counterpartyID"
 
-func (s *Store) RetrieveContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (contact *models.Contact, err error) {
+// Retrieve the contact with the specified ID and associate it with the
+// specified counterparty. The counterparty can either be the ULID of the counterparty
+// or a pointer to the Counterparty model. If the ID is specified then the
+// associated counterparty is retrieved from the database and attached to the
+// contact. Note that if a pointer to the Counterparty model is specified, it is not
+// modified in place.
+func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any) (contact *models.Contact, err error) {
+	var (
+		counterpartyID    ulid.ULID
+		counterpartyModel *models.Counterparty
+	)
+
+	if counterparty == nil {
+		return nil, dberr.ErrMissingAssociation
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	// Handle the input counterparty and retrieve the counterparty model if necessary.
+	switch c := counterparty.(type) {
+	case *models.Counterparty:
+		counterpartyID = c.ID
+		counterpartyModel = c
+	case ulid.ULID:
+		counterpartyID = c
+		if counterpartyModel, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("invalid type for counterparty: %T", counterparty)
+	}
+
+	// Retrieve the contact
 	contact = &models.Contact{}
 	if err = contact.Scan(tx.QueryRow(retrieveContactSQL, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID))); err != nil {
 		return nil, dbe(err)
 	}
 
-	// TODO: retrieve counterparty and associate it with the contact.
+	// Associate the contact with the counterparty model.
+	contact.SetCounterparty(counterpartyModel)
 
 	tx.Commit()
 	return contact, nil
@@ -412,6 +469,23 @@ func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err
 	}
 	defer tx.Rollback()
 
+	if err = s.updateContact(tx, contact); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) updateContact(tx *sql.Tx, contact *models.Contact) (err error) {
+	// Basic validation
+	if contact.ID.IsZero() {
+		return dberr.ErrMissingID
+	}
+
+	if contact.CounterpartyID.IsZero() {
+		return dberr.ErrMissingReference
+	}
+
 	// Update modified timestamp (in place).
 	contact.Modified = time.Now()
 
@@ -423,23 +497,60 @@ func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const deleteContact = "DELETE FROM contacts WHERE id=:id AND counterparty_id=:counterpartyID"
 
-func (s *Store) DeleteContact(ctx context.Context, contactID, counterpartyID ulid.ULID) (err error) {
+// Delete contact associated with the specified counterparty. The counterparty can
+// either be a ULID of the counterparty or a pointer to the Counterparty model. If the
+// ID is specified then the associated counterparty is used to identify the contact to
+// delete. If the model is specified, then the contact is deleted from the model as well.
+func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) (err error) {
+	var (
+		counterpartyID    ulid.ULID
+		counterpartyModel *models.Counterparty
+	)
+
+	if counterparty == nil {
+		return dberr.ErrMissingAssociation
+	}
+
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	// Handle the input counterparty.
+	switch c := counterparty.(type) {
+	case *models.Counterparty:
+		counterpartyID = c.ID
+		counterpartyModel = c
+	case ulid.ULID:
+		counterpartyID = c
+	default:
+		return fmt.Errorf("invalid type for counterparty: %T", counterparty)
+	}
+
 	var result sql.Result
 	if result, err = tx.Exec(deleteContact, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
+	}
+
+	// If a counterparty model was passed in, update its contacts to delete the deleted contact.
+	if counterpartyModel != nil {
+		if contacts, cerr := counterpartyModel.Contacts(); cerr == nil {
+			// Remove the contact from the counterparty model
+			for i, contact := range contacts {
+				if contact.ID == contactID {
+					counterpartyModel.SetContacts(append(contacts[:i], contacts[i+1:]...))
+					break
+				}
+			}
+		}
 	}
 
 	return tx.Commit()

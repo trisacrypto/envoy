@@ -115,7 +115,7 @@ func (s *Server) SunriseAuthenticate(issuer *auth.ClaimsIssuer) gin.HandlerFunc 
 
 			// Redirect the user to the 404 page
 			c.Abort()
-			c.HTML(http.StatusNotFound, "sunrise_404.html", nil)
+			c.HTML(http.StatusNotFound, "sunrise/status/404.html", nil)
 			return
 		}
 
@@ -126,7 +126,7 @@ func (s *Server) SunriseAuthenticate(issuer *auth.ClaimsIssuer) gin.HandlerFunc 
 
 			// Redirect the user to the 404 page
 			c.Abort()
-			c.HTML(http.StatusNotFound, "sunrise_404.html", nil)
+			c.HTML(http.StatusNotFound, "sunrise/status/404.html", nil)
 			return
 		}
 
