@@ -55,6 +55,11 @@ type SunrisePage struct {
 	Page     *PageInfo  `json:"page"`
 }
 
+type ResetPasswordLinkPage struct {
+	Links []*ResetPasswordLink `json:"links"`
+	Page  *PageInfo            `json:"page"`
+}
+
 func PageInfoFrom(in *PageInfo) (out *PageInfo) {
 	out = &PageInfo{
 		PageSize: DefaultPageSize,

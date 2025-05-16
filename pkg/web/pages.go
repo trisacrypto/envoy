@@ -40,22 +40,23 @@ func (s *Server) LoginPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "auth/login/login.html", scene.New(c))
 }
 
-// ResetPasswordPage displays the reset password form for the UI so that the user can
+// ForgotPasswordPage displays the reset password form for the UI so that the user can
 // enter their email address and receive a password reset link.
+func (s *Server) ForgotPasswordPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "auth/reset/forgot.html", scene.New(c))
+}
+
+// ForgotPasswordSentPage displays the success page for the reset password
+// request. Rather than using an HTMX partial, we redirect the user to this page to
+// ensure they close the window (e.g. if they were logged in) and to prevent a conflict
+// when cookies are reset during the password reset process.
+func (s *Server) ForgotPasswordSentPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "auth/reset/sent.html", scene.New(c))
+}
+
+// ResetPasswordPage allows the user to enter a new password if the reset password link
+// is verified and change their password as necessary.
 func (s *Server) ResetPasswordPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "auth/reset/password.html", scene.New(c))
-}
-
-// ResetPasswordSuccessPage displays the confirmation message after a user has
-// requested a password reset link. This page is displayed no matter the outcome.
-func (s *Server) ResetPasswordSuccessPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "auth/reset/success_sent.html", scene.New(c))
-}
-
-// ResetPasswordVerifyAndChangePage allows the user to enter their new password
-// and click Submit which will submit that data and the token to the verify and
-// change password endpoint.
-func (s *Server) ResetPasswordVerifyAndChangePage(c *gin.Context) {
 	// Read the token string
 	in := &api.URLVerification{}
 	if err := c.BindQuery(in); err != nil {
@@ -71,7 +72,7 @@ func (s *Server) ResetPasswordVerifyAndChangePage(c *gin.Context) {
 	tokenScene["Token"] = in.Token
 
 	// Render the verify and change page
-	c.HTML(http.StatusOK, "auth/reset/verify_change.html", tokenScene)
+	c.HTML(http.StatusOK, "auth/reset/password.html", tokenScene)
 }
 
 //===========================================================================

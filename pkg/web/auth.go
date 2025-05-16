@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -432,7 +434,7 @@ func (s *Server) ChangePassword(c *gin.Context) {
 //////////////////////////////////////////////////////////////////////////////
 
 // Looks up a user by email and sends that user a link/token to reset their password.
-func (s *Server) ResetPassword(c *gin.Context) {
+func (s *Server) ForgotPassword(c *gin.Context) {
 	var (
 		err error
 		in  *api.ResetPasswordRequest
@@ -449,27 +451,42 @@ func (s *Server) ResetPassword(c *gin.Context) {
 
 	in = &api.ResetPasswordRequest{}
 	if err = c.BindJSON(in); err != nil {
-		c.JSON(http.StatusBadRequest, api.Error("could not parse reset password request"))
+		s.Error(c, errors.New("could not parse reset password request"))
 		return
 	}
 
-	// Send the email, also creating a verification token
-	ctx := c.Request.Context()
-	if err = s.sendResetPasswordEmail(ctx, in.Email); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not send reset password request"))
-		return
+	// Send the email, also creating a verification token; if no email was provided
+	// simply redirect them to the success page to avoid leaking information.
+	if in.Email != "" {
+		ctx := c.Request.Context()
+		if err = s.sendResetPasswordEmail(ctx, in.Email); err != nil {
+			// If the user is not found, then still redirect to the success page because
+			// we don't want to leak information about whether the email address is valid.
+			// If the error is ErrTooSoon, then we want to rate limit the user without
+			// leaking information so also redirect to the success page.
+			if !errors.Is(err, dberr.ErrNotFound) && !errors.Is(err, dberr.ErrTooSoon) {
+				c.Error(err)
+				s.Error(c, errors.New("could not complete reset password request"))
+				return
+			}
+
+			log.Warn().Err(err).Str("email", in.Email).Msg("non-user email address provided for reset password request")
+		}
 	}
 
 	// Make sure the user is logged out to prevent session hijacking
 	auth.ClearAuthCookies(c, s.conf.Web.Auth.CookieDomain)
 
-	// Redirect to reset-password success page
-	htmx.Redirect(c, http.StatusSeeOther, "/reset-password/success")
+	// Redirect to reset-password success page (note do not use an HTMX partial here
+	// because the forgot password request can come from a logged in user on their
+	// profile page or a non-logged in user on the login page); a full redirect is
+	// necessary so they can close this window and follow the flow from their email.
+	htmx.Redirect(c, http.StatusSeeOther, "/forgot-password/sent")
 }
 
-// Verifies an incoming password change requested via a verification link, then changes the user's password.
-func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
+// Verifies an incoming password change requested via a verification link, then changes
+// the user's password according to the password form submitted.
+func (s *Server) ResetPassword(c *gin.Context) {
 	var (
 		derivedKey string
 		err        error
@@ -557,51 +574,39 @@ func (s *Server) ResetPasswordVerifyAndChange(c *gin.Context) {
 // Reset Password Workflow internal functions
 //////////////////////////////////////////////////////////////////////////////
 
+// The default amount of time that a ResetPasswordLink will expire after
+const resetPasswordLinkTTL = 15 * time.Minute
+
 // Send a reset password email to the user, also creating a verification token.
 func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (err error) {
-	// The default amount of time that a ResetPasswordLink will expire after
-	const defaultTTL = 15 * time.Minute
-
 	// Lookup the user
+	// TODO: add this all in a single transaction so we don't have a partial
+	// reset password link and no email sent.
 	var user *models.User
 	if user, err = s.store.RetrieveUser(ctx, emailAddr); err != nil {
 		return err
-	}
-
-	// Rate limiting is based on the `defaultTTL` expiration time: check to see
-	// if there is an active ResetPasswordLink and if there is we rate limit
-	var link *models.ResetPasswordLink
-	if link, err = s.store.RetrieveMostRecentActiveResetPasswordLink(ctx, user.ID); link != nil || err != nil {
-		if link != nil {
-			// Rate limted! Do not allow for another ResetPasswordLink to be created.
-			return dberr.ErrAlreadyExists
-		}
-
-		// If we get a "record not found" error, that means there is no active
-		// ResetPasswordLink, so we don't need to rate limit.
-		if err != nil && err != dberr.ErrNotFound {
-			// there was a different error, so we fail here
-			return err
-		}
 	}
 
 	// Create a ResetPasswordLink record for database storage
 	record := &models.ResetPasswordLink{
 		UserID:     user.ID,
 		Email:      user.Email,
-		Expiration: time.Now().Add(defaultTTL),
+		Expiration: time.Now().Add(resetPasswordLinkTTL),
 	}
 
 	// Create the ID in the database of the ResetPasswordLink record.
+	// NOTE: the create reset password link database function will return ErrTooSoon
+	// if the record already exists and is not expired; otherwise it will delete any
+	// existing (expired) record for the user and create a new one. ErrTooSoon will
+	// enable rate limiting to make sure the user cannot spam reset password requests.
 	if err = s.store.CreateResetPasswordLink(ctx, record); err != nil {
 		return err
 	}
 
 	// Create the ResetPasswordEmailData for the email builder
 	emailData := emails.ResetPasswordEmailData{
-		ContactName:  user.Name,
-		ContactEmail: user.Email,
-		BaseURL:      s.url.JoinPath("reset-password", "verify-change"),
+		ContactName:  user.Name.String,
+		BaseURL:      s.url.ResolveReference(&url.URL{Path: "/reset-password"}),
 		SupportEmail: s.conf.Email.SupportEmail,
 	}
 
@@ -620,7 +625,7 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 
 	// Build the email
 	var email *emails.Email
-	if email, err = emails.NewResetPasswordEmail(emailData); err != nil {
+	if email, err = emails.NewResetPasswordEmail(user.Email, emailData); err != nil {
 		return err
 	}
 
@@ -676,10 +681,8 @@ func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification
 		return nil, err
 	}
 
-	// Record the verification time
-	link.VerifiedOn.Valid = true
-	link.VerifiedOn.Time = time.Now()
-	if err = s.store.UpdateResetPasswordLink(ctx, link); err != nil {
+	// Delete the ResetPasswordLink record from the database now that record is verified.
+	if err = s.store.DeleteResetPasswordLink(ctx, link.ID); err != nil {
 		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("failed to update reset password verified time")
 		c.HTML(failureStatus, failureTemplate, errScene)
 		return nil, err

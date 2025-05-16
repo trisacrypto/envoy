@@ -183,10 +183,11 @@ type APIKeyStore interface {
 }
 
 type ResetPasswordLinkStore interface {
+	ListResetPasswordLinks(context.Context, *models.PageInfo) (*models.ResetPasswordLinkPage, error)
 	CreateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
 	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
 	UpdateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
-	RetrieveMostRecentActiveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
+	DeleteResetPasswordLink(context.Context, ulid.ULID) error
 }
 
 // Methods required for managing Daybreak records in the database. This interface allows

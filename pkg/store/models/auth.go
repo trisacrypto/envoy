@@ -225,7 +225,6 @@ type ResetPasswordLink struct {
 	Expiration time.Time                 // The timestamp that the sunrise verification token is no longer valid
 	Signature  *verification.SignedToken // The signed token produced by the sunrise package for verification purposes
 	SentOn     sql.NullTime              // The timestamp that the email message was sent
-	VerifiedOn sql.NullTime              // The timestamp that the user verified the token
 }
 
 // Scans a complete SELECT into the ResetPasswordLink model
@@ -237,7 +236,6 @@ func (s *ResetPasswordLink) Scan(scanner Scanner) error {
 		&s.Expiration,
 		&s.Signature,
 		&s.SentOn,
-		&s.VerifiedOn,
 		&s.Created,
 		&s.Modified,
 	)
@@ -250,7 +248,6 @@ func (s *ResetPasswordLink) UpdateParams() []any {
 		sql.Named("id", s.ID),
 		sql.Named("signature", s.Signature),
 		sql.Named("sentOn", s.SentOn),
-		sql.Named("verifiedOn", s.VerifiedOn),
 		sql.Named("modified", s.Modified),
 	}
 }
@@ -264,7 +261,6 @@ func (s *ResetPasswordLink) Params() []any {
 		sql.Named("expiration", s.Expiration),
 		sql.Named("signature", s.Signature),
 		sql.Named("sentOn", s.SentOn),
-		sql.Named("verifiedOn", s.VerifiedOn),
 		sql.Named("created", s.Created),
 		sql.Named("modified", s.Modified),
 	}
@@ -273,5 +269,5 @@ func (s *ResetPasswordLink) Params() []any {
 // IsExpired returns true if the current time is after the link expiration or
 // the token has already been verified and used to change a password.
 func (s *ResetPasswordLink) IsExpired() bool {
-	return time.Now().After(s.Expiration) || s.VerifiedOn.Valid
+	return time.Now().After(s.Expiration)
 }

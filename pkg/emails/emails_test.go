@@ -1,7 +1,6 @@
 package emails_test
 
 import (
-	"database/sql"
 	"net/url"
 	"os"
 	"strings"
@@ -67,14 +66,13 @@ func TestLiveEmails(t *testing.T) {
 
 	t.Run("ResetPassword", func(t *testing.T) {
 		data := ResetPasswordEmailData{
-			ContactName:  sql.NullString{Valid: true, String: "Forgetful User"},
-			ContactEmail: "forgetful@example.com",
-			BaseURL:      &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/reset-password/verify-change"},
+			ContactName:  "Forgetful User",
+			BaseURL:      &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/reset-password"},
 			Token:        verification.VerificationToken("abc123"),
 			SupportEmail: "support@example.com",
 		}
 
-		email, err := NewResetPasswordEmail(data)
+		email, err := NewResetPasswordEmail(recipient, data)
 		require.NoError(t, err, "could not create reset password email")
 
 		err = email.Send()

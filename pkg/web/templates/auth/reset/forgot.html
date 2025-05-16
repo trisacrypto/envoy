@@ -1,0 +1,67 @@
+{{ template "auth.html" . }}
+{{ define "title" }}Forgot Password | TRISA Envoy{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "auth" }}
+<!-- Heading -->
+<h1 class="display-4 text-center mb-3">
+  Password reset
+</h1>
+
+<!-- Subheading -->
+<p class="text-body-secondary text-center mb-5">
+  Enter your email to get a password reset link.
+</p>
+
+<!-- Form -->
+<form hx-post="/v1/forgot-password" hx-ext='json-enc' hx-headers='{"Accept": "text/html"}'>
+
+  <!-- Email address -->
+  <div class="form-group">
+
+    <!-- Label -->
+    <label class="form-label" form="email">
+      Email Address
+    </label>
+
+    <!-- Input -->
+    <input type="email" class="form-control" id="email" name="email" placeholder="name@address.com" required>
+
+  </div>
+
+  <!-- Submit -->
+  <button type="submit" class="btn btn-lg w-100 btn-primary mb-3">
+    Reset Password
+  </button>
+
+  <!-- Link -->
+  <div class="text-center">
+    <small class="text-body-secondary text-center">
+      Remember your password? <a href="/login">Log in</a>.
+    </small>
+  </div>
+
+</form>
+{{ end }}
+
+{{ define "appcode" }}
+<script>
+  // Handle errors from the backend.
+  document.body.addEventListener("htmx:responseError", (e) => {
+    window.location.href = "/error";
+  });
+</script>
+{{ end }}

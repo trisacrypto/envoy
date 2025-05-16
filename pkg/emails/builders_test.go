@@ -26,10 +26,10 @@ func TestVerifyResetPasswordURL(t *testing.T) {
 		BaseURL: &url.URL{
 			Scheme: "https",
 			Host:   "resetpassword.example.com",
-			Path:   "/reset-password/verify-change",
+			Path:   "/reset-password",
 		},
 		Token: verification.VerificationToken("abc123"),
 	}
 
-	require.Equal(t, "https://resetpassword.example.com/reset-password/verify-change?token=YWJjMTIz", invite.VerifyURL())
+	require.Equal(t, "https://resetpassword.example.com/reset-password?token=YWJjMTIz", invite.VerifyURL())
 }

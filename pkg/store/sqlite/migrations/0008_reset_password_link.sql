@@ -7,14 +7,14 @@ BEGIN;
 -- to verify that they are who they say they are.
 CREATE TABLE IF NOT EXISTS reset_password_link (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL,
     expiration DATETIME NOT NULL,
     signature BLOB DEFAULT NULL,
     sent_on DATETIME DEFAULT NULL,
-    verified_on DATETIME DEFAULT NULL,
     created DATETIME DEFAULT NULL,
     modified DATETIME DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 COMMIT;

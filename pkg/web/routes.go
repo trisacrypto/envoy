@@ -95,9 +95,9 @@ func (s *Server) setupRoutes() (err error) {
 	// Web UI Routes (Dashboards and Pages) - Unauthenticated
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
+	s.router.GET("/forgot-password", s.ForgotPasswordPage)
+	s.router.GET("/forgot-password/sent", s.ForgotPasswordSentPage)
 	s.router.GET("/reset-password", s.ResetPasswordPage)
-	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
-	s.router.GET("/reset-password/verify-change", s.ResetPasswordVerifyAndChangePage)
 
 	// Web UI Routes (Dashboards and Pages) - Authenticated
 	ui := s.router.Group("", authenticate)
@@ -185,8 +185,8 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/reauthenticate", s.Reauthenticate)
 
 		// User Profile Management
+		v1.POST("/forgot-password", s.ForgotPassword)
 		v1.POST("/reset-password", s.ResetPassword)
-		v1.POST("/reset-password/verify-change", s.ResetPasswordVerifyAndChange)
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
 		// Accounts Resource

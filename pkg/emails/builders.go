@@ -1,7 +1,6 @@
 package emails
 
 import (
-	"database/sql"
 	"net/url"
 
 	"github.com/trisacrypto/envoy/pkg/verification"
@@ -69,18 +68,17 @@ type VerifyEmailData struct {
 // ===========================================================================
 
 const (
-	ResetPasswordRE       = "TRISA Envoy Password Reset Link"
+	ResetPasswordRE       = "TRISA Envoy password reset request"
 	ResetPasswordTemplate = "reset_password"
 )
 
-func NewResetPasswordEmail(data ResetPasswordEmailData) (*Email, error) {
-	return New(data.ContactEmail, ResetPasswordRE, ResetPasswordTemplate, data)
+func NewResetPasswordEmail(recipient string, data ResetPasswordEmailData) (*Email, error) {
+	return New(recipient, ResetPasswordRE, ResetPasswordTemplate, data)
 }
 
 // ResetPasswordEmailData is used to complete the reset_password template.
 type ResetPasswordEmailData struct {
-	ContactName  sql.NullString                 // the user's name, if available
-	ContactEmail string                         // the user's email address
+	ContactName  string                         // the user's name, if available
 	BaseURL      *url.URL                       // the Envoy node's url
 	Token        verification.VerificationToken // verification token for reset password link record
 	SupportEmail string                         // the Envoy node's support email address
