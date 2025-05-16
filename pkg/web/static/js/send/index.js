@@ -90,6 +90,18 @@ document.body.addEventListener('htmx:configRequest', function(e) {
       "transfer": {}
     }
 
+    const keymap = {
+      "name_nameIdentifier_0_secondaryIdentifier": "forename",
+      "name_nameIdentifier_0_primaryIdentifier": "surname",
+      "countryOfResidence": "country_of_residence",
+      "customerIdentification": "customer_id",
+      "dateAndPlaceOfBirth_dateOfBirth": "identification_dob",
+      "dateAndPlaceOfBirth_placeOfBirth": "identification_birth_place",
+      "nationalIdentification_nationalIdentifierType": "identification_type_code",
+      "nationalIdentification_nationalIdentifier": "identification_number",
+      "nationalIdentification_countryOfIssue": "identification_country",
+    }
+
     formData.entries().forEach(([key, value]) => {
       // Skip keys from nested forms or choices.
       if (key == "search_terms") return;
@@ -101,14 +113,19 @@ document.body.addEventListener('htmx:configRequest', function(e) {
       // Get the object to update.
       let obj = data[prefix];
 
+      // Remap keys from IVMS101 to the prepared keys.
+      if (key in keymap) {
+        key = keymap[key];
+      }
+
       // Identification and Address are nested one level below
       if (key.startsWith("identification_")) {
         key = key.replace("identification_", "");
         obj = obj.identification;
       }
 
-      if (key.startsWith("addresses_")) {
-        key = key.replace("addresses_", "");
+      if (key.startsWith("geographicAddress_")) {
+        key = key.replace("geographicAddress_", "");
         const idx = parseInt(key.split("_", 1)[0]);
         key = key.replace(idx + "_", "");
 
@@ -116,9 +133,13 @@ document.body.addEventListener('htmx:configRequest', function(e) {
           obj.addresses.push({"address_lines": ["", "", ""]});
         }
 
+        if (key == "addressType") {
+          key = "address_type";
+        }
+
         obj = obj.addresses[idx];
-        if (key.startsWith("address_lines_")) {
-          key = parseInt(key.replace("address_lines_", ""));
+        if (key.startsWith("addressLine_")) {
+          key = parseInt(key.replace("addressLine_", ""));
           obj = obj.address_lines;
         }
       }

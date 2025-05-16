@@ -211,6 +211,10 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	return nil
 }
 
+func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status) (err error) {
+	return nil
+}
+
 func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
 	return nil
 }

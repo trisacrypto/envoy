@@ -1,0 +1,35 @@
+{{ define "transactionList" }}
+<dl class="row">
+  {{- if .Txid }}
+  <dt class="text-secondary"><small>Tx ID</small></dt>
+  <dd><code>{{ .Txid }}</code></dd>
+  {{- end }}
+
+  {{- if .Timestamp }}
+  <dt class="text-secondary"><small>Asset Type</small></dt>
+  <dd>{{ .Timestamp }}</dd>
+  {{- end }}
+
+  <dt class="text-secondary"><small>Originator Wallet</small></dt>
+  <dd><code>{{ .Originator }}</code></dd>
+
+  <dt class="text-secondary"><small>Beneficiary Wallet</small></dt>
+  <dd><code>{{ .Beneficiary }}</code></dd>
+
+  <dt class="text-secondary"><small>Amount</small></dt>
+  <dd>{{ .Amount }}</dd>
+
+  <dt class="text-secondary"><small>Virtual Asset</small></dt>
+  <dd>{{ .Network }}</dd>
+
+  {{- if .AssetType }}
+  <dt class="text-secondary"><small>Asset Type</small></dt>
+  <dd>{{ .AssetType }}</dd>
+  {{- end }}
+
+  {{- if .Tag }}
+  <dt class="text-secondary"><small>Memo/Tag</small></dt>
+  <dd>{{ .Tag }}</dd>
+  {{- end }}
+</dl>
+{{ end }}

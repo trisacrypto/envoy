@@ -11,6 +11,7 @@ import (
 
 	"go.rtnl.ai/ulid"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -163,6 +164,39 @@ func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 	// Execute the sunrise message into the database
 	var result sql.Result
 	if result, err = tx.Exec(updateSunriseSQL, msg.Params()...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return nil
+}
+
+const updateSunriseStatusSQL = "UPDATE sunrise SET status=:status, modified=:modified WHERE envelope_id=:envelopeID"
+
+func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status) (err error) {
+	var tx *sql.Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = updateSunriseStatus(tx, txID, status); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func updateSunriseStatus(tx *sql.Tx, txID uuid.UUID, status enum.Status) (err error) {
+	params := []interface{}{
+		sql.Named("status", status),
+		sql.Named("modified", time.Now()),
+		sql.Named("envelopeID", txID),
+	}
+
+	var result sql.Result
+	if result, err = tx.Exec(updateSunriseStatusSQL, params...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound

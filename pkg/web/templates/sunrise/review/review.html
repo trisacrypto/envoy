@@ -3,9 +3,154 @@
 {{ define "pretitle" }}Sunrise{{ end }}
 {{ define "pagetitle" }}Review Travel Rule Message{{ end }}
 
-{{ define "main"  }}
-
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
 {{ end }}
+
+{{ define "modals" }}
+  {{ template "rejectSunriseModal" . }}
+{{ end }}
+
+{{ define "main"  }}
+<div class="row">
+  <div class="col">
+    <div id="alerts"></div>
+  </div>
+</div>
+
+{{ if .Organization}}
+<h2>{{ .Organization }} Secure Travel Rule Data Portal</h2>
+{{ else }}
+<h2>TRISA Envoy Secure Travel Rule Data Portal</h2>
+{{ end }}
+
+<p class="text-secondary">
+  {{- if .Organization }}
+  {{ .Organization }} requires a
+  <a href="https://trisa.io/about/" target="_blank">Travel Rule information exchange</a>
+  for compliance in their jurisdiction before we can transfer virtual assets to one of
+  your account holders. Please carefully review the compliance information provided below
+  and provide any required information to accept the transfer. If you're not yet part of
+  the TRISA network, <a href="https://trisa.directory/guide" target="_blank">consider joining</a>
+  to streamline future Travel Rule compliance and secure data exchanges.
+  {{- else }}
+  Please review the <a href="https://trisa.io/about/" target="_blank">Travel Rule information</a>
+  for a virtual asset transfer and provide the required beneficiary information to
+  accept the transfer. If you're not yet part of the TRISA network,
+  <a href="https://trisa.directory/guide" target="_blank">consider joining</a>
+  to streamline future Travel Rule compliance and secure data exchanges.
+  {{- end }}
+</p>
+
+{{- with .Envelope }}
+<h2 class="mb-2 mt-4">Compliance Information</h2>
+<p>Transfer ID: <code>{{ .EnvelopeID }}</code></p>
+<hr class="mb-4" />
+
+<div class="row">
+  <div class="col-md-4">
+    <h3>Transaction Information</h3>
+    {{ template "transactionList" .Transaction }}
+  </dl>
+  </div>
+
+  {{- with .Identity }}
+  <div class="col-md-4">
+    <h3>Originating VASP</h3>
+    {{- with .OriginatorVASP }}
+    {{ template "companyList" . }}
+    {{- end }}
+  </div>
+
+  <div class="col-md-4">
+    <h3>Originating Account</h3>
+    {{- range .Originator }}
+    {{- if .Person }}
+    {{ template "personList" .Person }}
+    {{- else if .Company }}
+    {{ template "companyList" .Company }}
+    {{- end }}
+    {{- end }}
+  </div>
+</div>
+
+<hr class="mb-4" />
+
+<form  id="acceptForm" class="mb-5" hx-post="/sunrise/accept" hx-ext="json-enc" hx-swap="none" hx-disabled-elt="find button[type='submit']">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiary" aria-expanded="false" aria-controls="extendedBeneficiary">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{- range .Beneficiary }}
+  {{- if .Person }}
+  {{- template "naturalPersonForm" dict "Prefix" "beneficiary" "Person" .Person }}
+  {{- else if .Company }}
+  {{- template "legalPersonForm" dict "Prefix" "beneficiary" "Company" .Company }}
+  {{- end }}
+  {{- end }}
+
+  <hr class="mt-4 mb-5">
+
+  <div class="row align-items-center">
+    <div class="col">
+      <h2>Beneficiary VASP</h2>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiaryVASP" aria-expanded="false" aria-controls="extendedBeneficiaryVASP">
+        <i class="fe fe-eye"></i>
+        Show Details
+      </button>
+    </div>
+  </div>
+
+  {{ template "legalPersonForm" dict "Prefix" "beneficiaryVASP" "Company" .BeneficiaryVASP }}
+
+  <!-- Hidden Identity JSON -->
+  <input type="hidden" name="json:originator" value="{{ .Originator.JSON }}" />
+  <input type="hidden" name="json:originatingVASP" value="{{ .OriginatorVASP.JSON }}" />
+  {{- end }}{{/* with .Identity ends */}}
+
+  <!-- Hidden Transaction JSON -->
+  <input type="hidden" name="json:transaction" value="{{ .TransactionJSON }}" />
+
+  {{ if .SentAt }}<input type="hidden" name="sent_at" value="{{ .SentAtRepr }}" />{{ end }}
+  {{ if .ReceivedAt }}<input type="hidden" name="received_at" value="{{ .ReceivedAtRepr }}" />{{ end }}
+
+  <hr class="mt-4 mb-5">
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <button type="submit" form="acceptForm" class="btn w-100 btn-success">
+        <i class="fe fe-check-square"></i> Accept
+      </button>
+    </div>
+    <div class="col">
+      <button type="button" class="btn w-100 btn-danger" data-bs-toggle="modal" data-bs-target="#rejectSunriseModal">
+        <i class="fe fe-x-square"></i> Reject
+      </a>
+    </div>
+  </div>
+</form>
+
+{{- end }}{{/* with .Envelope ends */}}
+{{- end }}{{/* define main ends */}}
 
 {{ define "appcode" }}
 <script type="module" src="/static/js/sunrise/review.js"></script>

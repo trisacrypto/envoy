@@ -360,6 +360,11 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 		return fmt.Errorf("could not update transaction in database: %w", err)
 	}
 
+	// Update all sunrise messages with the new transaction status
+	if err = s.DB.UpdateSunriseStatus(s.Transaction.ID, s.Transaction.Status); err != nil {
+		return fmt.Errorf("could not update sunrise status: %w", err)
+	}
+
 	// Refresh to respond with the latest transaction info to the API request.
 	if err = s.RefreshTransaction(); err != nil {
 		return err

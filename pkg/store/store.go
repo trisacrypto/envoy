@@ -157,6 +157,7 @@ type SunriseStore interface {
 	CreateSunrise(context.Context, *models.Sunrise) error
 	RetrieveSunrise(context.Context, ulid.ULID) (*models.Sunrise, error)
 	UpdateSunrise(context.Context, *models.Sunrise) error
+	UpdateSunriseStatus(context.Context, uuid.UUID, enum.Status) error
 	DeleteSunrise(context.Context, ulid.ULID) error
 	GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (*models.Counterparty, error)
 }
