@@ -1,16 +1,18 @@
 /*
-Application code for sending an accept/reject message on the transfer detail page.
+Application code for the sunrise review page which includes accept/reject logic.
 */
 
 import Alerts from '../modules/alerts.js';
+import { isRequestFor } from '../htmx/helpers.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
-import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
-
+import { selectAddressType, selectNationalIdentifierType, Envelope } from '../modules/ivms101.js';
 
 // Initialize the alerts component.
-const alerts = new Alerts("#alerts");
+const alerts = new Alerts("#alerts", {autoClose: true, closeTime: 6000});
+const rejectAlerts = new Alerts("#rejectAlerts");
+
 
 /*
 Initialize the select elements with choices.js in the form element.
@@ -71,11 +73,44 @@ function initializeExtended() {
 }
 
 /*
-Post-event handling after htmx has settled the DOM.
+Configure requests made by htmx before they are sent.
 */
-document.body.addEventListener("htmx:afterSettle", function(e) {
-  initializeChoices(e.target);
-  initializeExtended();
+document.body.addEventListener('htmx:configRequest', function(e) {
+  /*
+  Update the form information for rejection.
+  */
+  if (isRequestFor(e, "/sunrise/reject", "post")) {
+    const params = new FormData();
+    e.detail.parameters.forEach((value, key) => {
+      if (key === "retry") {
+        key = "json:retry";
+      }
+      params.append(key, value);
+    });
+
+    e.detail.parameters = params;
+    return;
+  }
+
+  /*
+  Handle IVMS 101 data submitted during accept
+  */
+  if (isRequestFor(e, "/sunrise/accept", "post")) {
+    // Prepare the outgoing data as a nested JSON payload.
+    const envelope = new Envelope(e.target);
+
+    // Convert to a flattened form data object for htmx.
+    e.detail.parameters = new FormData();
+    for (const [key, value] of envelope.entries()) {
+      if (typeof value === "object") {
+        e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+      } else {
+        e.detail.parameters.append(key, value);
+      }
+    }
+    return;
+  }
+
 });
 
 /*
@@ -87,36 +122,46 @@ document.body.addEventListener("htmx:responseError", (e) => {
   try {
     error = JSON.parse(e.detail.xhr.response);
     console.error(e.detail.requestConfig.path, error.error);
-  } catch (e) {
-    console.error(e.detail.requestConfig.path, e);
+  } catch (err) {
+    console.error(e, err);
     error = {
       error: "an unknown error occurred"
     }
   }
 
-  // Scroll to the top of the page.
-  window.scrollTo(0, 0);
+  var alertsDiv;
+  if (isRequestFor(e, "/sunrise/reject", "post")) {
+    alertsDiv = rejectAlerts;
+  } else {
+    // Scroll to the top of the page.
+    window.scrollTo(0, 0);
+    alertsDiv = alerts;
+  }
 
   switch (e.detail.xhr.status) {
     case 400:
-      alerts.warning("Bad request", error.error);
+      alertsDiv.warning("Bad request", error.error);
       break;
     case 404:
-      alerts.info("Not Found", error.error);
+      alertsDiv.info("Not Found", error.error);
       break;
     case 409:
-      alerts.warning("Conflict", error.error);
+      alertsDiv.warning("Conflict", error.error);
       break;
     case 422:
-      alerts.warning("Validation error", error.error);
+      alertsDiv.warning("Validation error", error.error);
       break;
     case 500:
       window.location.href = "/error";
       break;
     case 502:
-      alerts.danger("Counterparty unavailable", error.error);
+      alertsDiv.danger("Counterparty unavailable", error.error);
       break;
     default:
       throw new Error("Unhandled error code: " + e.detail.xhr.status + " - " + error.error);
   }
 });
+
+// Initialize the page (don't have to wait for HTMX in this case).
+initializeChoices(document);
+initializeExtended();

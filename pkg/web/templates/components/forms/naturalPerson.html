@@ -8,7 +8,7 @@
         <small class="form-text text-body-secondary">
           Forenames, familiar names, given names, or initials.
         </small>
-        <input type="text" class="form-control" id="{{ .Prefix }}_secondaryIdentifier" name="{{ .Prefix }}_forename" placeholder="Legal Forename" value="{{ .Person.Forename }}">
+        <input type="text" class="form-control" id="{{ .Prefix }}_secondaryIdentifier" name="{{ .Prefix }}_name_nameIdentifier_0_secondaryIdentifier" placeholder="Legal Forename" value="{{ .Person.Forename }}">
       </div>
     </div>
     <div class="col-md-6">
@@ -17,9 +17,10 @@
         <small class="form-text text-body-secondary">
           Family, maiden, or surname excluding suffixes or titles.
         </small>
-        <input type="text" class="form-control" id="{{ .Prefix }}_primaryIdentifier" name="{{ .Prefix }}_surname" placeholder="Legal Surname" value="{{ .Person.Surname }}">
+        <input type="text" class="form-control" id="{{ .Prefix }}_primaryIdentifier" name="{{ .Prefix }}_name_nameIdentifier_0_primaryIdentifier" placeholder="Legal Surname" value="{{ .Person.Surname }}">
       </div>
     </div>
+    <input type="hidden" id="{{ .Prefix }}_primaryIdentifierType" name="{{ .Prefix }}_name_nameIdentifier_0_nameIdentifierType" value="{{ .Person.NameType }}">
   </div>
   <div class="row">
     <div class="col-md-6">
@@ -28,16 +29,16 @@
         <small class="form-text text-body-secondary">
           The country where the virtual asset is being transferred to.
         </small>
-        <select class="form-control" id="{{ .Prefix }}_countryOfResidence" name="{{ .Prefix }}_country_of_residence" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.CountryOfResidence }}"></select>
+        <select class="form-control" id="{{ .Prefix }}_countryOfResidence" name="{{ .Prefix }}_countryOfResidence" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.CountryOfResidence }}"></select>
       </div>
     </div>
     <div class="col-md-6">
       <div class="form-group">
-        <label class="form-label mb-1" for="{{ .Prefix }}_customerID">Internal Customer Identifier</label>
+        <label class="form-label mb-1" for="{{ .Prefix }}_customerIdentification">Internal Customer Identifier</label>
         <small class="form-text text-body-secondary">
           Optional, an internal identifier for the account holder.
         </small>
-        <input type="text" class="form-control" id="{{ .Prefix }}_customerID" name="{{ .Prefix }}_customer_id" placeholder="Customer Identifier" value="{{ .Person.CustomerNumber }}">
+        <input type="text" class="form-control" id="{{ .Prefix }}_customerIdentification" name="{{ .Prefix }}_customerIdentification" placeholder="Customer Identifier" value="{{ .Person.CustomerNumber }}">
       </div>
     </div>
   </div>
@@ -47,46 +48,46 @@
         <h3>Geographic Address</h3>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressType">Address Type</label>
-          <select class="form-control" id="{{ .Prefix }}_addressType" name="{{ .Prefix }}_addresses_0_address_type" data-address-type='{"searchEnabled": false}' data-selected="{{ .Person.AddressType }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_addressType" name="{{ .Prefix }}_geographicAddress_0_addressType" data-address-type='{"searchEnabled": false}' data-selected="{{ .Person.AddressType }}"></select>
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine1">Address Line 1</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine1" name="{{ .Prefix }}_addresses_0_address_lines_0" placeholder="Street Address" value="{{ .Person.AddressLine0 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine1" name="{{ .Prefix }}_geographicAddress_0_addressLine_0" placeholder="Street Address" value="{{ .Person.AddressLine0 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine2">Address Line 2</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine2" name="{{ .Prefix }}_addresses_0_address_lines_1" placeholder="Suite or Building Details" value="{{ .Person.AddressLine1 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine2" name="{{ .Prefix }}_geographicAddress_0_addressLine_1" placeholder="Suite or Building Details" value="{{ .Person.AddressLine1 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine3">Address Line 3</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine3" name="{{ .Prefix }}_addresses_0_address_lines_2" placeholder="City, State, Postal Code" value="{{ .Person.AddressLine2 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine3" name="{{ .Prefix }}_geographicAddress_0_addressLine_2" placeholder="City, State, Postal Code" value="{{ .Person.AddressLine2 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressCountry">Address Country</label>
-          <select class="form-control" id="{{ .Prefix }}_addressCountry" name="{{ .Prefix }}_addresses_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.AddressCountry }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_addressCountry" name="{{ .Prefix }}_geographicAddress_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.AddressCountry }}"></select>
         </div>
       </div>
       <div class="col-lg-6">
         <h3>National Identification</h3>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_dateOfBirth">Date of Birth</label>
-          <input type="date" class="form-control" id="{{ .Prefix }}_dateOfBirth" name="{{ .Prefix }}_identification_dob" data-flatpickr placeholder="YYYY-MM-DD"  value="{{ .Person.DateOfBirth }}">
+          <input type="date" class="form-control" id="{{ .Prefix }}_dateOfBirth" name="{{ .Prefix }}_dateAndPlaceOfBirth_dateOfBirth" data-flatpickr placeholder="YYYY-MM-DD"  value="{{ .Person.DateOfBirth }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_placeOfBirth">Place of Birth</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_placeOfBirth" name="{{ .Prefix }}_identification_birth_place" placeholder="Place of Birth" value="{{ .Person.PlaceOfBirth }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_placeOfBirth" name="{{ .Prefix }}_dateAndPlaceOfBirth_placeOfBirth" placeholder="Place of Birth" value="{{ .Person.PlaceOfBirth }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_nationalIdentificationType">Type of National Identification</label>
-          <select class="form-control" id="{{ .Prefix }}_nationalIdentificationType" name="{{ .Prefix }}_identification_type_code" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .Person.NationalIdentifier.TypeCode }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_nationalIdentificationType" name="{{ .Prefix }}_nationalIdentification_nationalIdentifierType" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .Person.NationalIdentifier.TypeCode }}"></select>
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_nationalIdentificationNumber">National Identification Number</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_nationalIdentificationNumber" name="{{ .Prefix }}_identification_number" placeholder="Identification Number" value="{{ .Person.NationalIdentifier.Identifier }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_nationalIdentificationNumber" name="{{ .Prefix }}_nationalIdentification_nationalIdentifier" placeholder="Identification Number" value="{{ .Person.NationalIdentifier.Identifier }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_countryOfIssue">Country of Issue</label>
-          <select class="form-control" id="{{ .Prefix }}_countryOfIssue" name="{{ .Prefix }}_identification_country" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.NationalIdentifier.CountryOfIssue }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_countryOfIssue" name="{{ .Prefix }}_nationalIdentification_countryOfIssue" data-countries='{"searchEnabled": true}' data-selected="{{ .Person.NationalIdentifier.CountryOfIssue }}"></select>
         </div>
       </div>
     </div>

@@ -1,0 +1,39 @@
+{{ define "companyList" }}
+<dl class="row">
+
+  <dt class="text-secondary"><small>Name</small></dt>
+  <dd>{{ .LegalName }}</dd>
+
+  {{- if .CustomerNumber }}
+  <dt class="text-secondary"><small>Customer Number</small></dt>
+  <dd>{{ .CustomerNumber }}</dd>
+  {{- end }}
+
+  <dt class="text-secondary"><small>Registered In</small></dt>
+  <dd>{{ flag .CountryOfRegistration }} {{ country .CountryOfRegistration }}</dd>
+
+  <dt class="text-secondary"><small>Registration ID</small></dt>
+  {{- if .NationalIdentifier.Identifier }}
+  <dd>
+    <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
+    <span>{{ .NationalIdentifier.Identifier }}</span>
+    {{ if .NationalIdentifier.RegistrationAuthority -}}
+      <br /><small class="text-muted">{{ .NationalIdentifier.RegistrationAuthority }}</small>
+    {{- end -}}
+  </dd>
+  {{- else }}
+  <dd>Unknown</dd>
+  {{ end }}
+
+  {{- if .PrimaryAddress }}
+  <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
+  <dd>
+    {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
+    {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
+    {{ if .AddressLine2 }}{{ .AddressLine2 }}<br />{{ end }}
+    {{ country .AddressCountry }}
+  </dd>
+  {{- end }}
+
+</dl>
+{{ end }}

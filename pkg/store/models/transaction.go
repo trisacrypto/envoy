@@ -82,6 +82,7 @@ type PreparedTransaction interface {
 	AddEnvelope(*SecureEnvelope) error                             // Associate a secure envelope with the prepared transaction
 	CreateSunrise(*Sunrise) error                                  // Create a sunrise message sent to the counterparty for the transaction
 	UpdateSunrise(*Sunrise) error                                  // Update the sunrise message
+	UpdateSunriseStatus(uuid.UUID, enum.Status) error              // Update the status of all sunrise messages
 	Rollback() error                                               // Rollback the prepared transaction and conclude it
 	Commit() error                                                 // Commit the prepared transaction and conclude it
 }

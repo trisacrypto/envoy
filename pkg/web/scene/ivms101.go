@@ -1,8 +1,10 @@
 package scene
 
 import (
+	"encoding/json"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 )
@@ -18,10 +20,6 @@ type IVMS101 struct {
 
 type Entities []Entity
 
-func (e Entities) Plural() bool {
-	return len(e) > 1
-}
-
 type Entity struct {
 	Person  *Person
 	Company *Company
@@ -31,6 +29,7 @@ type Person struct {
 	AddressComponents
 	Forename            string
 	Surname             string
+	NameType            string
 	PrimaryAddress      *ivms101.Address
 	PrimaryAddressLines []string
 	CustomerNumber      string
@@ -38,16 +37,19 @@ type Person struct {
 	DateOfBirth         string
 	PlaceOfBirth        string
 	CountryOfResidence  string
+	original            *ivms101.NaturalPerson
 }
 
 type Company struct {
 	AddressComponents
 	LegalName             string
+	LegalNameType         string
 	PrimaryAddress        *ivms101.Address
 	PrimaryAddressLines   []string
 	CustomerNumber        string
 	CountryOfRegistration string
 	NationalIdentifier    NationalIdentifier
+	original              *ivms101.LegalPerson
 }
 
 type NationalIdentifier struct {
@@ -122,8 +124,87 @@ func NewIVMS101(envelope *Envelope) *IVMS101 {
 	return ivms
 }
 
+func (e Entities) Plural() bool {
+	return len(e) > 1
+}
+
+func (e Entities) JSON() string {
+	switch len(e) {
+	case 0:
+		return ""
+	case 1:
+		if e[0].Person != nil || e[0].Company != nil {
+			return e[0].JSON()
+		}
+		return ""
+	default:
+		log.Warn().Int("count", len(e)).Msg("handling multiple entities is not yet supported")
+		for _, entity := range e {
+			if entity.Person != nil || entity.Company != nil {
+				return entity.JSON()
+			}
+		}
+		return ""
+	}
+}
+
+func (e Entity) JSON() string {
+	if e.Person != nil {
+		return e.Person.JSON()
+	}
+	if e.Company != nil {
+		return e.Company.JSON()
+	}
+	return ""
+}
+
 func (p Person) FullName() string {
 	return strings.TrimSpace(p.Forename + " " + p.Surname)
+}
+
+func (p Person) JSON() string {
+	if p.original != nil {
+		data, _ := json.Marshal(p.original)
+		return string(data)
+	}
+	return ""
+}
+
+func (p Person) MarshalJSON() ([]byte, error) {
+	if p.original != nil {
+		return json.Marshal(p.original)
+	}
+	return nil, nil
+}
+
+func (c Company) JSON() string {
+	if c.original != nil {
+		data, _ := json.Marshal(c.original)
+		return string(data)
+	}
+	return ""
+}
+
+func (c Company) MarshalJSON() ([]byte, error) {
+	if c.original != nil {
+		return json.Marshal(c.original)
+	}
+	return nil, nil
+}
+
+func (a AddressComponents) AddressLabel() string {
+	switch a.AddressType {
+	case "HOME":
+		return "Home Address"
+	case "BIZZ":
+		return "Business Address"
+	case "GEOG":
+		return "Geographic Address"
+	case "MISC":
+		return "Address"
+	default:
+		return "Address"
+	}
 }
 
 func makePerson(person *ivms101.NaturalPerson) (p Person) {
@@ -131,6 +212,7 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 		return p
 	}
 
+	p.original = person
 	p.PrimaryAddress = api.FindPrimaryAddress(person)
 	p.PrimaryAddressLines = api.MakeAddressLines(p.PrimaryAddress)
 	p.AddressComponents = makeAddressComponents(p.PrimaryAddress)
@@ -143,6 +225,7 @@ func makePerson(person *ivms101.NaturalPerson) (p Person) {
 		name := person.Name.NameIdentifiers[nameIdx]
 		p.Surname = name.PrimaryIdentifier
 		p.Forename = name.SecondaryIdentifier
+		p.NameType = strings.TrimPrefix(name.NameIdentifierType.String(), "NATURAL_PERSON_NAME_TYPE_CODE_")
 	}
 
 	if person.DateAndPlaceOfBirth != nil {
@@ -158,6 +241,7 @@ func makeCompany(vasp *ivms101.LegalPerson) (v Company) {
 		return v
 	}
 
+	v.original = vasp
 	v.PrimaryAddress = api.FindPrimaryAddress(vasp)
 	v.PrimaryAddressLines = api.MakeAddressLines(v.PrimaryAddress)
 	v.AddressComponents = makeAddressComponents(v.PrimaryAddress)
@@ -168,6 +252,7 @@ func makeCompany(vasp *ivms101.LegalPerson) (v Company) {
 	if nameIdx := api.FindLegalName(vasp); nameIdx >= 0 {
 		name := vasp.Name.NameIdentifiers[nameIdx]
 		v.LegalName = name.LegalPersonName
+		v.LegalNameType = strings.TrimPrefix(name.LegalPersonNameIdentifierType.String(), "LEGAL_PERSON_NAME_TYPE_CODE_")
 	}
 
 	return v
