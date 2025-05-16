@@ -57,7 +57,90 @@
   <dt class="col-3 text-secondary"><small>Timestamp</small></dt>
   <dd class="col-9">{{ .Timestamp }}</dd>
 </dl>
-{{ end }}
+{{ else }}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
+  <!-- Transaction Information Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Transaction Information</h3>
+        {{ template "transactionList" .Transaction }}
+      </div>
+    </div>
+  </div>
+
+
+  {{- with .Identity }}
+  <!-- Originator Card(s) -->
+  {{- range .Originator }}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Originating Account</h3>
+        {{- if .Person }}
+        {{ template "personList" .Person }}
+        {{- else if .Company }}
+        {{ template "companyList" .Company }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{- end }}
+
+  <!-- Beneficiary Card(s) -->
+  {{- range .Beneficiary }}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Beneficiary Account</h3>
+        {{- if .Person }}
+        {{ template "personList" .Person }}
+        {{- else if .Company }}
+        {{ template "companyList" .Company }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{- end }}
+
+  <!-- Originating VASP Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Originating VASP</h3>
+        {{- with .OriginatorVASP }}
+        {{ template "companyList" . }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Beneficiary VASP Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Beneficiary VASP</h3>
+
+        {{- with .BeneficiaryVASP }}
+        {{ template "companyList" . }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{ end }}{{/* end with .Identity */}}
+
+  <!-- Secure Envelope Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Secure Envelope</h3>
+        {{ template "envelopeList" . }}
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}{{/* end if .Error */}}
 
 {{ end }}{{/* end with .Envelope */}}
 {{ end }}{{/* end define main */}}

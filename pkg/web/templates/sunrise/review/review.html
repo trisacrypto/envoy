@@ -60,33 +60,7 @@
 <div class="row">
   <div class="col-md-4">
     <h3>Transaction Information</h3>
-    {{- with .Transaction }}
-    <dl class="row">
-    {{- if .Txid }}
-    <dt class="text-secondary"><small>Tx ID</small></dt>
-    <dd><code>{{ .Txid }}</code></dd>
-    {{- end }}
-    {{- if .Timestamp }}
-    <dt class="text-secondary"><small>Asset Type</small></dt>
-    <dd>{{ .Timestamp }}</dd>
-    {{- end }}
-    <dt class="text-secondary"><small>Originator Wallet</small></dt>
-    <dd><code>{{ .Originator }}</code></dd>
-    <dt class="text-secondary"><small>Beneficiary Wallet</small></dt>
-    <dd><code>{{ .Beneficiary }}</code></dd>
-    <dt class="text-secondary"><small>Amount</small></dt>
-    <dd>{{ .Amount }}</dd>
-    <dt class="text-secondary"><small>Virtual Asset</small></dt>
-    <dd>{{ .Network }}</dd>
-    {{- if .AssetType }}
-    <dt class="text-secondary"><small>Asset Type</small></dt>
-    <dd>{{ .AssetType }}</dd>
-    {{- end }}
-    {{- if .Tag }}
-    <dt class="text-secondary"><small>Memo/Tag</small></dt>
-    <dd>{{ .Tag }}</dd>
-    {{- end }}
-    {{- end }}
+    {{ template "transactionList" .Transaction }}
   </dl>
   </div>
 
@@ -94,37 +68,7 @@
   <div class="col-md-4">
     <h3>Originating VASP</h3>
     {{- with .OriginatorVASP }}
-    <dl class="row">
-    <dt class="text-secondary"><small>Name</small></dt>
-    <dd>{{ .LegalName }}</dd>
-    {{- if .CustomerNumber }}
-    <dt class="text-secondary"><small>Customer Number</small></dt>
-    <dd>{{ .CustomerNumber }}</dd>
-    {{- end }}
-    <dt class="text-secondary"><small>Registered In</small></dt>
-    <dd>{{ flag .CountryOfRegistration }} {{ country .CountryOfRegistration }}</dd>
-    <dt class="text-secondary"><small>Registration ID</small></dt>
-    {{- if .NationalIdentifier.Identifier }}
-    <dd>
-      <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
-      <span>{{ .NationalIdentifier.Identifier }}</span>
-      {{ if .NationalIdentifier.RegistrationAuthority -}}
-        <br /><small class="text-muted">{{ .NationalIdentifier.RegistrationAuthority }}</small>
-      {{- end -}}
-    </dd>
-    {{- else }}
-    <dd>Unknown</dd>
-    {{ end }}
-    {{- if .PrimaryAddress }}
-    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
-    <dd>
-      {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
-      {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
-      {{ if .AddressLine2 }}{{ .AddressLine2 }}<br />{{ end }}
-      {{ country .AddressCountry }}
-    </dd>
-    {{- end }}
-    </dl>
+    {{ template "companyList" . }}
     {{- end }}
   </div>
 
@@ -132,89 +76,9 @@
     <h3>Originating Account</h3>
     {{- range .Originator }}
     {{- if .Person }}
-    {{- with .Person }}
-    <dl class="row">
-    <dt class="text-secondary"><small>Name</small></dt>
-    <dd>{{ .FullName }}</dd>
-    {{- if .CustomerNumber }}
-    <dt class="text-secondary"><small>Customer Number</small></dt>
-    <dd>{{ .CustomerNumber }}</dd>
-    {{- end }}
-    <dt class="text-secondary"><small>Resides In</small></dt>
-    {{- if .CountryOfResidence }}
-    <dd>{{ flag .CountryOfResidence }} {{ country .CountryOfResidence }}</dd>
-    {{- else if .NationalIdentifier.CountryOfIssue }}
-    <dd>{{ flag .NationalIdentifier.CountryOfIssue }} {{ country .NationalIdentifier.CountryOfIssue }}</dd>
-    {{- else }}
-    <dd>Unknown</dd>
-    {{- end }}
-    {{ if .DateOfBirth }}
-    {{- end }}
-    {{ if .DateOfBirth }}
-    <dt class="text-secondary"><small>Date of Birth</small></dt>
-    <dd>{{ .DateOfBirth }}</dd>
-    {{ end }}
-    {{- if .PlaceOfBirth }}
-    <dt class="text-secondary"><small>Place of Birth</small></dt>
-    <dd>{{ .PlaceOfBirth }}</dd>
-    {{- end }}
-    <dt class="text-secondary"><small>National ID</small></dt>
-    {{- if .NationalIdentifier.Identifier }}
-    <dd>
-      <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
-      <span>{{ .NationalIdentifier.Identifier }}</span>
-      {{ if .NationalIdentifier.RegistrationAuthority -}}
-        <br /><small class="text-muted">{{ .NationalIdentifier.RegistrationAuthority }}</small>
-      {{- end -}}
-    </dd>
-    {{- else }}
-    <dd>Unknown</dd>
-    {{ end }}
-    {{- if .PrimaryAddress }}
-    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
-    <dd>
-      {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
-      {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
-      {{ if .AddressLine2 }}{{ .AddressLine2 }}<br />{{ end }}
-      {{ country .AddressCountry }}
-    </dd>
-    {{- end }}
-    </dl>
-    {{- end }}
+    {{ template "personList" .Person }}
     {{- else if .Company }}
-    {{- with .Company }}
-    <dl class="row">
-    <dt class="text-secondary"><small>Name</small></dt>
-    <dd>{{ .LegalName }}</dd>
-    {{- if .CustomerNumber }}
-    <dt class="text-secondary"><small>Customer Number</small></dt>
-    <dd>{{ .CustomerNumber }}</dd>
-    {{- end }}
-    <dt class="text-secondary"><small>Registered In</small></dt>
-    <dd>{{ flag .CountryOfRegistration }} {{ country .CountryOfRegistration }}</dd>
-    <dt class="text-secondary"><small>Registration ID</small></dt>
-    {{- if .NationalIdentifier.Identifier }}
-    <dd>
-      <span class="badge rounded-pill text-bg-primary me-2">{{ .NationalIdentifier.TypeRepr }}</span>
-      <span>{{ .NationalIdentifier.Identifier }}</span>
-      {{ if .NationalIdentifier.RegistrationAuthority -}}
-        <br /><small class="text-muted">{{ .NationalIdentifier.RegistrationAuthority }}</small>
-      {{- end -}}
-    </dd>
-    {{- else }}
-    <dd>Unknown</dd>
-    {{ end }}
-    {{- if .PrimaryAddress }}
-    <dt class="text-secondary"><small>{{ .AddressLabel }}</small></dt>
-    <dd>
-      {{ if .AddressLine0 }}{{ .AddressLine0 }}<br />{{ end }}
-      {{ if .AddressLine1 }}{{ .AddressLine1 }}<br />{{ end }}
-      {{ if .AddressLine2 }}{{ .AddressLine2 }}<br />{{ end }}
-      {{ country .AddressCountry }}
-    </dd>
-    {{- end }}
-    </dl>
-    {{- end }}
+    {{ template "companyList" .Company }}
     {{- end }}
     {{- end }}
   </div>

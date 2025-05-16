@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
@@ -189,6 +190,9 @@ func (r *Render) FuncMap() template.FuncMap {
 			},
 			"fillbr": func(n int) template.HTML {
 				return template.HTML(strings.Repeat("<br />", n))
+			},
+			"base64": func(data []byte) string {
+				return base64.RawStdEncoding.EncodeToString(data)
 			},
 		}
 	}
