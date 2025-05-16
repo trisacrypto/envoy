@@ -31,9 +31,9 @@ type ResetPasswordRequest struct {
 }
 
 type ResetPasswordChangeRequest struct {
+	URLVerification
 	Password string `json:"password"`
 	Confirm  string `json:"confirm"`
-	URLVerification
 }
 
 func (r *LoginRequest) Validate() (err error) {
@@ -70,4 +70,23 @@ func (r *ReauthenticateRequest) Validate() (err error) {
 		err = ValidationError(err, MissingField("refresh_token"))
 	}
 	return err
+}
+
+func (r *ResetPasswordChangeRequest) Validate() (err error) {
+	if err = r.URLVerification.Validate(); err != nil {
+		return err
+	}
+
+	// Confirm the two entered passwords are valid and match
+	password := ProfilePassword{
+		Current:  "ignored",
+		Password: r.Password,
+		Confirm:  r.Confirm,
+	}
+
+	if err = password.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }

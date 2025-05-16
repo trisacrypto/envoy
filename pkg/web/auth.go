@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -494,40 +494,26 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		token      verification.VerificationToken
 		link       *models.ResetPasswordLink
 	)
-	const (
-		failureStatus   = http.StatusSeeOther
-		failureTemplate = "auth/reset/failure.html"
-	)
-
-	// Prepare general
-	in = &api.ResetPasswordChangeRequest{}
-	ctx := c.Request.Context()
-	log := logger.Tracing(ctx)
-
-	// Prepare for possible error
-	errScene := scene.New(c)
-	errScene["SupportEmail"] = s.conf.Email.SupportEmail
 
 	// We do not allow JSON API requests to this endpoint. Returning a 406 error
-	// here is for the legitimate API users.
+	// here is for the legitimate API users who need to not use this endpoint.
 	if IsAPIRequest(c) {
 		c.AbortWithStatusJSON(http.StatusNotAcceptable, api.Error("endpoint unavailable for API calls"))
 		return
 	}
 
-	// Read the token string
+	// Read the token string from the query parameters
+	in = &api.ResetPasswordChangeRequest{}
 	if err = c.BindJSON(in); err != nil {
-		log.Warn().Err(err).Msg("could not parse query string")
-		c.HTML(failureStatus, failureTemplate, errScene)
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse reset password request"))
 		return
 	}
 
-	// Validate the token string
-	if err = in.URLVerification.Validate(); err != nil {
-		// If the token is invalid or missing, return a 404.
-		// NOTE: do not log an error as this is very verbose, instead just a debug message
-		log.Debug().Err(err).Msg("reset password change with invalid token")
-		c.HTML(failureStatus, failureTemplate, errScene)
+	// Validate the change password input
+	if err = in.Validate(); err != nil {
+		// If the token is invalid or missing, return a 422.
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
 		return
 	}
 
@@ -535,39 +521,44 @@ func (s *Server) ResetPassword(c *gin.Context) {
 	token = in.URLVerification.VerificationToken()
 
 	// Verify the ResetPasswordLink token
-	if link, err = s.verifyResetPasswordLinkToken(c, token); err != nil {
-		// NOTE: `verifyResetPasswordLinkToken()` handles setting the response and logging the error
-		return
-	}
-
-	// Confirm the two entered passwords are valid and match
-	password := api.ProfilePassword{
-		Current:  "ignored",
-		Password: in.Password,
-		Confirm:  in.Confirm,
-	}
-	if err = password.Validate(); err != nil {
-		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change invalid ProfilePassword")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return
+	if link, err = s.verifyResetPasswordLinkToken(c.Request.Context(), token); err != nil {
+		switch {
+		case errors.Is(err, dberr.ErrNotFound), errors.Is(err, ErrExpiredToken):
+			// If the link is not found or expired, the user needs to try to reset their password again
+			c.JSON(http.StatusBadRequest, api.Error("your reset password link is invalid or expired, please submit a new forgot password request"))
+			return
+		case errors.Is(err, ErrNotAllowed):
+			// If the link is not verified or secure, then slow down the request and send back a 403.
+			// The slow down prevents brute force attacks on the change password endpoint.
+			SlowDown()
+			c.JSON(http.StatusForbidden, api.Error("unable to process reset password request"))
+			return
+		default:
+			s.Error(c, err)
+			return
+		}
 	}
 
 	// Create derived key from requested password reset
 	if derivedKey, err = passwords.CreateDerivedKey(in.Password); err != nil {
-		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change could not create derived key")
-		c.HTML(failureStatus, failureTemplate, errScene)
+		s.Error(c, err)
 		return
 	}
 
 	// Set the password for the specified user
 	if err = s.store.SetUserPassword(c.Request.Context(), link.UserID, derivedKey); err != nil {
-		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("reset password change could not set password for user")
-		c.HTML(failureStatus, failureTemplate, errScene)
+		s.Error(c, err)
 		return
 	}
 
-	// Redirect to reset-password success page
-	c.HTML(http.StatusOK, "auth/reset/success_changed.html", scene.New(c))
+	// Now that the password has been changed, delete the ResetPasswordLink record
+	if err = s.store.DeleteResetPasswordLink(c.Request.Context(), link.ID); err != nil {
+		// Do not return an error if we could not delete the record, just log it.
+		log.Error().Err(err).Str("link_id", link.ID.String()).Msg("could not delete reset password link record")
+	}
+
+	// Signal to HTMX that the password has been changed successfully
+	c.HTML(http.StatusOK, "auth/reset/success.html", scene.New(c))
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -606,7 +597,7 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	// Create the ResetPasswordEmailData for the email builder
 	emailData := emails.ResetPasswordEmailData{
 		ContactName:  user.Name.String,
-		BaseURL:      s.url.ResolveReference(&url.URL{Path: "/reset-password"}),
+		BaseURL:      s.conf.Web.ResetPasswordURL(),
 		SupportEmail: s.conf.Email.SupportEmail,
 	}
 
@@ -644,49 +635,35 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 }
 
 // Verifies a ResetPasswordLink token and returns the ResetPasswordLink object.
-// NOTE: This function will handle logging and setting the HTML response for errors.
-func (s *Server) verifyResetPasswordLinkToken(c *gin.Context, token verification.VerificationToken) (link *models.ResetPasswordLink, err error) {
-	// Prepare for possible error
-	const (
-		failureStatus   = http.StatusSeeOther
-		failureTemplate = "auth/reset/failure.html"
-	)
-	errScene := scene.New(c)
-	errScene["SupportEmail"] = s.conf.Email.SupportEmail
-
+func (s *Server) verifyResetPasswordLinkToken(ctx context.Context, token verification.VerificationToken) (link *models.ResetPasswordLink, err error) {
 	// Prepare context and logging
-	ctx := c.Request.Context()
 	log := logger.Tracing(ctx)
 
 	// Get the ResetPasswordLink record from the database
 	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordID()); err != nil {
-		log.Warn().Err(err).Str("token_record_id", token.RecordID().String()).Msg("could not retrieve reset password record")
-		c.HTML(failureStatus, failureTemplate, errScene)
+		log.Debug().Err(err).Str("link_id", token.RecordID().String()).Msg("could not retrieve reset password link record")
 		return nil, err
 	}
 
 	// Check that the token is valid
 	if secure, err := link.Signature.Verify(token); err != nil || !secure {
-		// If the token is not secure or verifiable, return a 404 but be freaked out
+		// If the token is not secure or verifiable, be freaked out and warn admins
 		log.Warn().Err(err).Str("link_id", link.ID.String()).Bool("secure", secure).Msg("a reset password request hmac verification failed")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return nil, err
+		return nil, ErrNotAllowed
 	}
 
 	// Check that the token and link have both not expired
 	if link.Signature.Token.IsExpired() || link.IsExpired() {
 		// The token is expired or has already been verified/completed.
 		log.Debug().Str("link_id", link.ID.String()).Msg("received a request with an expired verification token")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return nil, err
-	}
-
-	// Delete the ResetPasswordLink record from the database now that record is verified.
-	if err = s.store.DeleteResetPasswordLink(ctx, link.ID); err != nil {
-		log.Warn().Err(err).Str("link_id", link.ID.String()).Msg("failed to update reset password verified time")
-		c.HTML(failureStatus, failureTemplate, errScene)
-		return nil, err
+		return nil, ErrExpiredToken
 	}
 
 	return link, nil
+}
+
+// Slow down sleeps the request for a random amount of time between 250ms and 2500ms
+func SlowDown() {
+	delay := time.Duration(rand.Int64N(2000)+2500) * time.Millisecond
+	time.Sleep(delay)
 }

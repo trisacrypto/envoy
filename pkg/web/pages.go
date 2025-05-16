@@ -57,14 +57,12 @@ func (s *Server) ForgotPasswordSentPage(c *gin.Context) {
 // ResetPasswordPage allows the user to enter a new password if the reset password link
 // is verified and change their password as necessary.
 func (s *Server) ResetPasswordPage(c *gin.Context) {
-	// Read the token string
+	// Read the token string from the URL parameters.
 	in := &api.URLVerification{}
 	if err := c.BindQuery(in); err != nil {
-		log.Warn().Err(err).Msg("could not parse query string")
-		errScene := scene.New(c)
-		errScene["SupportEmail"] = s.conf.Email.SupportEmail
-		c.HTML(http.StatusBadRequest, "auth/reset/failure.html", errScene)
-		return
+		// Debug an error here but don't worry about erroring; the token will be
+		// blank and will cause a validation error when the form is submitted.
+		log.Debug().Err(err).Msg("could not parse query string")
 	}
 
 	// Set the scene (we pass the token on from the verify/change page)

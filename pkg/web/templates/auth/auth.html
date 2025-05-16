@@ -1,8 +1,11 @@
 {{ template "base" . }}
 {{ define "bodyclass" }}d-flex align-items-center bg-auth border-top border-top-2 border-primary{{ end }}
 {{ define "content" -}}
+  {{ block "alerts" .}}
   <div id="alerts" class="position-fixed top-0 end-0 p-3 w-25"></div>
+  {{ end }}
 
+  {{ block "container" . }}
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-12 col-md-5 col-xl-4 my-5">
@@ -10,6 +13,8 @@
       </div>
     </div>
   </div>
+  {{ end }}
+
 {{ end }}
 
 {{ define "scripts" -}}
