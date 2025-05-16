@@ -19,4 +19,5 @@ var (
 	ErrNoEndpoint         = errors.New("cannot create travel address: no endpoint defined")
 	ErrAmbiguous          = errors.New("ambiguous query: more than one result returned")
 	ErrInternal           = errors.New("something critical went wrong, please try again later")
+	ErrDaybreakHasTxns    = errors.New("daybreak counterparty will not be deleted because it has transactions")
 )

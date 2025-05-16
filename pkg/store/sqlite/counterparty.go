@@ -259,14 +259,21 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 	}
 	defer tx.Rollback()
 
+	if err = s.deleteCounterparty(tx, counterpartyID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) deleteCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
 	var result sql.Result
 	if result, err = tx.Exec(deleteCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
-
-	return tx.Commit()
+	return nil
 }
 
 const listContactsSQL = "SELECT * FROM contacts WHERE counterparty_id=:counterpartyID"
