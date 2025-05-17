@@ -65,12 +65,14 @@ func (s *Server) ResetPasswordPage(c *gin.Context) {
 		log.Debug().Err(err).Msg("could not parse query string")
 	}
 
-	// Set the scene (we pass the token on from the verify/change page)
-	tokenScene := scene.New(c)
-	tokenScene["Token"] = in.Token
+	// Set the token into a cookie so that it can be parsed when the form is submitted.
+	// A cookie is more secure than using a hidden form because it cannot be accessed
+	// by XSS attacks (though it could be fetched by the window.location object).
+	// NOTE: no verification is performed here, just on reset-password.
+	s.SetResetPasswordTokenCookie(c, in.Token)
 
 	// Render the verify and change page
-	c.HTML(http.StatusOK, "auth/reset/password.html", tokenScene)
+	c.HTML(http.StatusOK, "auth/reset/password.html", scene.New(c))
 }
 
 //===========================================================================

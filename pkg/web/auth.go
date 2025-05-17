@@ -510,6 +510,15 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Get the verification token from the cookie
+	if in.Token, err = c.Cookie(ResetPasswordTokenCookie); err != nil {
+		// If no cookie is submitted, then slow down the request and send back a 403.
+		// The slow down prevents spamming the reset password endpoint.
+		SlowDown()
+		c.JSON(http.StatusForbidden, api.Error("unable to process reset password request"))
+		return
+	}
+
 	// Validate the change password input
 	if err = in.Validate(); err != nil {
 		// If the token is invalid or missing, return a 422.
@@ -559,6 +568,12 @@ func (s *Server) ResetPassword(c *gin.Context) {
 
 	// Signal to HTMX that the password has been changed successfully
 	c.HTML(http.StatusOK, "auth/reset/success.html", scene.New(c))
+}
+
+// Slow down sleeps the request for a random amount of time between 250ms and 2500ms
+func SlowDown() {
+	delay := time.Duration(rand.Int64N(2000)+2500) * time.Millisecond
+	time.Sleep(delay)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -660,10 +675,4 @@ func (s *Server) verifyResetPasswordLinkToken(ctx context.Context, token verific
 	}
 
 	return link, nil
-}
-
-// Slow down sleeps the request for a random amount of time between 250ms and 2500ms
-func SlowDown() {
-	delay := time.Duration(rand.Int64N(2000)+2500) * time.Millisecond
-	time.Sleep(delay)
 }
