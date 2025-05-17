@@ -13,7 +13,6 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
-	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
@@ -1345,9 +1344,4 @@ func CheckUUIDMatch(id, target uuid.UUID) error {
 	}
 
 	return nil
-}
-
-func setToastCookie(c *gin.Context, name, value, path, domain string) {
-	secure := !auth.IsLocalhost(domain)
-	c.SetCookie(name, value, 1, path, domain, secure, false)
 }
