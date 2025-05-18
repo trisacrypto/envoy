@@ -1,4 +1,4 @@
-{{ define "transferForm" }}
+{{ define "transactionForm" }}
 <fieldset id="fieldsetTransaction">
   <div class="row">
     <div class="col-md-6">
@@ -11,7 +11,7 @@
         </small>
         <input
           type="text" class="form-control" value="{{ .Originator }}"
-          id="originatorCryptoAddress" name="originator_crypto_address"
+          id="originatorCryptoAddress" name="transaction_originator"
           placeholder="Crypto Wallet Address" required
         >
       </div>
@@ -26,7 +26,7 @@
         </small>
         <input
           type="text" class="form-control" value="{{ .Beneficiary }}"
-          id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
+          id="beneficiaryCryptoAddress" name="transaction_beneficiary"
           placeholder="Crypto Wallet Address" required
         >
       </div>
@@ -40,7 +40,7 @@
           Enter a value that can be matched on the blockchain.
         </small>
         <input type="text" class="form-control" value="{{ .Amount }}"
-               id="transferAmount" name="transfer_amount"
+               id="transferAmount" name="transaction_amount"
                placeholder="Transfer Amount" required
         >
       </div>
@@ -52,7 +52,7 @@
           Select the network or blockchain DTI/SLIP-0044 code.
         </small>
         <select class="form-control"
-                id="network" name="transfer_network"
+                id="network" name="transaction_network"
                 data-networks='{"searchEnabled": true}'
                 data-selected="{{ .Network }}"
                 placeholder="Digital Token Identifier" required
@@ -67,7 +67,7 @@
         <div class="form-group">
           <label class="form-label" for="assetType">Asset Type</label>
           <input type="text" class="form-control" value="{{ .AssetType }}"
-                id="assetType" name="transfer_asset_type"
+                id="assetType" name="transaction_asset_type"
                 placeholder="Network-Specific Asset Type (optional)"
           >
         </div>
@@ -76,7 +76,7 @@
         <div class="form-group">
           <label class="form-label" for="tag">Memo/Destination Tag</label>
           <input type="text" class="form-control" value="{{ .Tag }}"
-                id="tag" name="transfer_tag"
+                id="tag" name="transaction_tag"
                 placeholder="Network-Specific Memo (optional)"
           >
         </div>
@@ -88,17 +88,17 @@
         If the transfer has already been completed on the chain, enter the hash or ID.
       </small>
       <input type="text" class="form-control" value="{{ .Txid }}"
-            id="txnID" name="transfer_transaction_id"
+            id="txnID" name="transaction_txid"
             placeholder="Transaction ID or Hash"
       >
     </div>
     <div class="form-group">
-      <label class="form-label mb-1" for="txnID">Transaction Timestamp</label>
+      <label class="form-label mb-1" for="transactionTimestamp">Transaction Timestamp</label>
       <small class="form-text text-body-secondary">
         The timestamp associated with the block or transaction hash.
       </small>
       <input type="text" class="form-control" value="{{ .Timestamp }}"
-            id="timestamp" name="transfer_transaction_timestamp"
+            id="transactionTimestamp" name="transaction_timestamp"
             placeholder="Timestamp"
       >
     </div>
@@ -108,7 +108,7 @@
       <small class="form-text text-body-secondary">
         Any additional, chain-specific information about the transaction (JSON format).
       </small>
-      <textarea class="form-control" id="extraJSON" name="transfer_extra_json">
+      <textarea class="form-control" id="extraJSON" name="transaction_extra_json">
         {{ .ExtraJson }}
       </textarea>
     </div>

@@ -6,7 +6,7 @@ import Alerts from '../modules/alerts.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
-import { selectAddressType, selectNationalIdentifierType } from '../modules/ivms101.js';
+import { selectAddressType, selectNationalIdentifierType, Envelope } from '../modules/ivms101.js';
 
 
 // Initialize the alerts component.
@@ -76,6 +76,25 @@ Post-event handling after htmx has settled the DOM.
 document.body.addEventListener("htmx:afterSettle", function(e) {
   initializeChoices(e.target);
   initializeExtended();
+});
+
+/*
+Configure requests made by htmx before they are sent.
+*/
+document.body.addEventListener('htmx:configRequest', function(e) {
+  // Prepare the outgoing data as a nested JSON payload.
+  const envelope = new Envelope(e.target);
+
+  // Convert to a flattened form data object for htmx.
+  e.detail.parameters = new FormData();
+  for (const [key, value] of envelope.entries()) {
+    if (typeof value === "object") {
+      e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+    } else {
+      e.detail.parameters.append(key, value);
+    }
+  }
+
 });
 
 /*
