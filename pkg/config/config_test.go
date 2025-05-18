@@ -39,6 +39,9 @@ var testEnv = map[string]string{
 	"TRISA_WEB_AUTH_REFRESH_TOKEN_TTL":      "48h",
 	"TRISA_WEB_AUTH_TOKEN_OVERLAP":          "-12h",
 	"TRISA_WEBHOOK_URL":                     "https://example.com/callback",
+	"TRISA_WEBHOOK_USE_MTLS":                "true",
+	"TRISA_WEBHOOK_CERTS":                   "fixtures/certs/webhook/certs.pem",
+	"TRISA_WEBHOOK_POOL":                    "fixtures/certs/webhook/pool.pem",
 	"TRISA_WEBHOOK_AUTH_KEY_ID":             "01JT4B3R5Z6AHJXV87QHPPKRBM",
 	"TRISA_WEBHOOK_AUTH_KEY_SECRET":         "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
 	"TRISA_WEBHOOK_REQUIRE_SERVER_AUTH":     "true",
@@ -103,6 +106,9 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, -12*time.Hour, conf.Web.Auth.TokenOverlap)
 	require.True(t, conf.Webhook.Enabled())
 	require.Equal(t, testEnv["TRISA_WEBHOOK_URL"], conf.Webhook.URL)
+	require.True(t, conf.Webhook.UseMTLS)
+	require.Equal(t, testEnv["TRISA_WEBHOOK_CERTS"], conf.Webhook.Certs)
+	require.Equal(t, testEnv["TRISA_WEBHOOK_POOL"], conf.Webhook.Pool)
 	require.Equal(t, testEnv["TRISA_WEBHOOK_AUTH_KEY_ID"], conf.Webhook.AuthKeyID)
 	require.Equal(t, testEnv["TRISA_WEBHOOK_AUTH_KEY_SECRET"], conf.Webhook.AuthKeySecret)
 	require.True(t, conf.Webhook.RequireServerAuth)
@@ -132,6 +138,124 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["REGION_INFO_CLOUD"], conf.RegionInfo.Cloud)
 	require.Equal(t, testEnv["REGION_INFO_CLUSTER"], conf.RegionInfo.Cluster)
 	require.True(t, conf.Web.Daybreak.Enabled)
+}
+
+func TestConfigValidation(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
+		conf := config.Config{
+			Mode: "test",
+			Web: config.WebConfig{
+				Enabled:    true,
+				APIEnabled: true,
+				UIEnabled:  true,
+				BindAddr:   ":4000",
+				Origin:     "http://localhost",
+			},
+			Node: config.TRISAConfig{
+				MTLSConfig: config.MTLSConfig{
+					Pool:  "fixtures/certs/pool.gz",
+					Certs: "fixtures/certs/certs.gz",
+				},
+				Maintenance: false,
+				BindAddr:    ":556",
+			},
+			TRP: config.TRPConfig{
+				Maintenance: false,
+				BindAddr:    ":8012",
+			},
+			Webhook: config.WebhookConfig{
+				URL: "https://example.com/callback",
+			},
+		}
+		require.NoError(t, conf.Validate(), "expected valid config to be valid")
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		conf := config.Config{
+			Mode: "foo",
+		}
+		require.EqualError(t, conf.Validate(), "invalid configuration: \"foo\" is not a valid gin mode")
+	})
+}
+
+func TestConfigNestedCerts(t *testing.T) {
+	t.Run("Specified", func(t *testing.T) {
+		t.Cleanup(cleanupEnv())
+		setEnv()
+
+		conf, _ := config.New()
+
+		require.Equal(t, testEnv["TRISA_NODE_CERTS"], conf.Node.Certs, "expected trisa certs to be specified")
+		require.Equal(t, testEnv["TRISA_NODE_POOL"], conf.Node.Pool, "expected trisa certs to be specified")
+
+		require.Equal(t, testEnv["TRISA_TRP_CERTS"], conf.TRP.Certs, "expected trp certs to be specified")
+		require.Equal(t, testEnv["TRISA_TRP_POOL"], conf.TRP.Pool, "expected trp certs to be specified")
+
+		require.Equal(t, testEnv["TRISA_WEBHOOK_CERTS"], conf.Webhook.Certs, "expected webhook certs to be specified")
+		require.Equal(t, testEnv["TRISA_WEBHOOK_POOL"], conf.Webhook.Pool, "expected webhook certs to be specified")
+	})
+
+	t.Run("Unspecified", func(t *testing.T) {
+		t.Cleanup(cleanupEnv())
+		setEnv()
+
+		os.Unsetenv("TRISA_TRP_CERTS")
+		os.Unsetenv("TRISA_TRP_POOL")
+		os.Unsetenv("TRISA_WEBHOOK_CERTS")
+		os.Unsetenv("TRISA_WEBHOOK_POOL")
+
+		conf, err := config.New()
+		require.NoError(t, err, "could not process configuration from the environment")
+
+		require.Equal(t, testEnv["TRISA_NODE_CERTS"], conf.Node.Certs, "expected trisa certs to be specified")
+		require.Equal(t, testEnv["TRISA_NODE_POOL"], conf.Node.Pool, "expected trisa certs to be specified")
+
+		require.Equal(t, conf.Node.Certs, conf.TRP.Certs, "expected trp certs to be same as trisa")
+		require.Equal(t, conf.Node.Pool, conf.TRP.Pool, "expected trp certs to be same as trisa")
+
+		require.Equal(t, conf.Node.Certs, conf.Webhook.Certs, "expected webhook certs to be same as trisa")
+		require.Equal(t, conf.Node.Pool, conf.Webhook.Pool, "expected webhook certs to be same as trisa")
+	})
+
+	t.Run("TRPOnly", func(t *testing.T) {
+		t.Cleanup(cleanupEnv())
+		setEnv()
+
+		os.Unsetenv("TRISA_TRP_CERTS")
+		os.Unsetenv("TRISA_TRP_POOL")
+
+		conf, err := config.New()
+		require.NoError(t, err, "could not process configuration from the environment")
+
+		require.Equal(t, testEnv["TRISA_NODE_CERTS"], conf.Node.Certs, "expected trisa certs to be specified")
+		require.Equal(t, testEnv["TRISA_NODE_POOL"], conf.Node.Pool, "expected trisa certs to be specified")
+
+		require.Equal(t, conf.Node.Certs, conf.TRP.Certs, "expected trp certs to be same as trisa")
+		require.Equal(t, conf.Node.Pool, conf.TRP.Pool, "expected trp certs to be same as trisa")
+
+		require.Equal(t, testEnv["TRISA_WEBHOOK_CERTS"], conf.Webhook.Certs, "expected webhook certs to be specified")
+		require.Equal(t, testEnv["TRISA_WEBHOOK_POOL"], conf.Webhook.Pool, "expected webhook certs to be specified")
+	})
+
+	t.Run("WebhookOnly", func(t *testing.T) {
+		t.Cleanup(cleanupEnv())
+		setEnv()
+
+		os.Unsetenv("TRISA_WEBHOOK_CERTS")
+		os.Unsetenv("TRISA_WEBHOOK_POOL")
+
+		conf, err := config.New()
+		require.NoError(t, err, "could not process configuration from the environment")
+
+		require.Equal(t, testEnv["TRISA_NODE_CERTS"], conf.Node.Certs, "expected trisa certs to be specified")
+		require.Equal(t, testEnv["TRISA_NODE_POOL"], conf.Node.Pool, "expected trisa certs to be specified")
+
+		require.Equal(t, testEnv["TRISA_TRP_CERTS"], conf.TRP.Certs, "expected trp certs to be specified")
+		require.Equal(t, testEnv["TRISA_TRP_POOL"], conf.TRP.Pool, "expected trp certs to be specified")
+
+		require.Equal(t, conf.Node.Certs, conf.Webhook.Certs, "expected webhook certs to be same as trisa")
+		require.Equal(t, conf.Node.Pool, conf.Webhook.Pool, "expected webhook certs to be same as trisa")
+	})
 }
 
 func TestWebConfig(t *testing.T) {
@@ -218,6 +342,13 @@ func TestWebConfig(t *testing.T) {
 		for i, tc := range testCases {
 			require.EqualError(t, tc.conf.Validate(), tc.errString, "test case %d failed", i)
 		}
+	})
+
+	t.Run("ResetPasswordURL", func(t *testing.T) {
+		conf := config.WebConfig{
+			Origin: "https://example.com",
+		}
+		require.Equal(t, "https://example.com/reset-password", conf.ResetPasswordURL().String(), "expected reset password URL to be set")
 	})
 }
 
@@ -454,6 +585,14 @@ func TestWebhookConfig(t *testing.T) {
 				},
 				"invalid configuration: webhook server auth is enabled but no auth key is specified",
 			},
+			{
+				config.WebhookConfig{
+					URL:               "https://example.com/callback",
+					UseMTLS:           true,
+					RequireServerAuth: false,
+				},
+				"invalid configuration: specify certificates path for webhook mTLS",
+			},
 		}
 
 		for i, tc := range tests {
@@ -489,6 +628,147 @@ func TestWebhookConfig(t *testing.T) {
 		conf.AuthKeyID = ""
 		conf.AuthKeySecret = ""
 		require.Nil(t, conf.DecodeAuthKey(), "expected nil auth key when not set")
+	})
+}
+
+func TestTRPConfig(t *testing.T) {
+	t.Run("Disabled", func(t *testing.T) {
+		conf := config.TRPConfig{Enabled: false}
+		require.NoError(t, conf.Validate(), "expected disabled config to be valid")
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		testCases := []config.TRPConfig{
+			{
+				Enabled: false,
+			},
+			{
+				Enabled:  true,
+				BindAddr: ":8012",
+			},
+			{
+				Enabled:  true,
+				BindAddr: ":8012",
+				UseMTLS:  true,
+				MTLSConfig: config.MTLSConfig{
+					Certs: "fixtures/certs/trp/certs.pem",
+				},
+			},
+			{
+				Enabled:  true,
+				BindAddr: ":8012",
+				UseMTLS:  true,
+				MTLSConfig: config.MTLSConfig{
+					Certs: "fixtures/certs/trp/certs.pem",
+					Pool:  "fixtures/certs/trp/pool.pem",
+				},
+			},
+		}
+
+		for _, conf := range testCases {
+			require.NoError(t, conf.Validate(), "expected valid config to be valid")
+		}
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		testCases := []struct {
+			conf      config.TRPConfig
+			errString string
+		}{
+			{
+				conf: config.TRPConfig{
+					Enabled:  true,
+					BindAddr: "",
+				},
+				errString: "invalid configuration: missing bind address",
+			},
+			{
+				conf: config.TRPConfig{
+					Enabled:  true,
+					BindAddr: ":8012",
+					UseMTLS:  true,
+				},
+				errString: "invalid configuration: specify certificates path",
+			},
+			{
+				conf: config.TRPConfig{
+					Enabled:  true,
+					BindAddr: ":8012",
+					UseMTLS:  true,
+					MTLSConfig: config.MTLSConfig{
+						Pool: "fixtures/certs/trp/pool.pem",
+					},
+				},
+				errString: "invalid configuration: specify certificates path",
+			},
+		}
+
+		for i, tc := range testCases {
+			require.EqualError(t, tc.conf.Validate(), tc.errString, "test case %d failed", i)
+		}
+	})
+}
+
+func TestSunriseConfig(t *testing.T) {
+	t.Run("InviteURL", func(t *testing.T) {
+		conf := config.SunriseConfig{
+			BaseURL:        "https://example.com",
+			InviteEndpoint: "/sunrise/review",
+		}
+		require.Equal(t, "https://example.com/sunrise/review", conf.InviteURL().String(), "expected invite URL to be set")
+	})
+}
+
+func TestRegionInfo(t *testing.T) {
+	t.Run("Unavailable", func(t *testing.T) {
+		conf := config.RegionInfo{}
+		require.False(t, conf.Available(), "expected region info to be unavailable")
+	})
+
+	t.Run("Available", func(t *testing.T) {
+		tests := []config.RegionInfo{
+			{
+				ID:      123456,
+				Name:    "us-east4c",
+				Country: "US",
+				Cloud:   "GCP",
+				Cluster: "rotational-testing-gke-9",
+			},
+			{
+				Name:    "us-east4c",
+				Country: "US",
+				Cloud:   "GCP",
+				Cluster: "rotational-testing-gke-9",
+			},
+			{
+				ID:      123456,
+				Country: "US",
+				Cloud:   "GCP",
+				Cluster: "rotational-testing-gke-9",
+			},
+			{
+				ID:      123456,
+				Name:    "us-east4c",
+				Cloud:   "GCP",
+				Cluster: "rotational-testing-gke-9",
+			},
+			{
+				ID:      123456,
+				Name:    "us-east4c",
+				Country: "US",
+				Cluster: "rotational-testing-gke-9",
+			},
+			{
+				ID:      123456,
+				Name:    "us-east4c",
+				Country: "US",
+				Cloud:   "GCP",
+			},
+		}
+
+		for i, tc := range tests {
+			require.True(t, tc.Available(), "test case %d: expected region info to be available", i)
+		}
 	})
 }
 

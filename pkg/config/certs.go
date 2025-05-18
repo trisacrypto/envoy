@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 
@@ -17,6 +19,7 @@ type CertsCacheLoader interface {
 var (
 	ErrMTLSPoolNotConfigured  = errors.New("invalid configuration: no certificate pool found")
 	ErrMTLSCertsNotConfigured = errors.New("invalid configuration: no certificates found")
+	ErrMTLSCertsNotPrivate    = errors.New("invalid configuration: no private keys provided with mTLS certs")
 )
 
 type MTLSConfig struct {
@@ -61,6 +64,37 @@ func (c *MTLSConfig) LoadPool() (_ trust.ProviderPool, err error) {
 	default:
 		return nil, ErrMTLSPoolNotConfigured
 	}
+}
+
+func (c *MTLSConfig) ClientTLSConfig() (_ *tls.Config, err error) {
+	var certs *trust.Provider
+	if certs, err = c.LoadCerts(); err != nil {
+		return nil, fmt.Errorf("could not configure mTLS client certs: %s", err)
+	}
+
+	if !certs.IsPrivate() {
+		return nil, ErrMTLSCertsNotPrivate
+	}
+
+	var pool trust.ProviderPool
+	if pool, err = c.LoadPool(); err != nil {
+		return nil, fmt.Errorf("could not configure mTLS client ca pool: %s", err)
+	}
+
+	var pair tls.Certificate
+	if pair, err = certs.GetKeyPair(); err != nil {
+		return nil, fmt.Errorf("could not configure mTLS client tls: %s", err)
+	}
+
+	var ca *x509.CertPool
+	if ca, err = pool.GetCertPool(true); err != nil {
+		return nil, fmt.Errorf("could not configure mTLS client ca: %s", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{pair},
+		RootCAs:      ca,
+	}, nil
 }
 
 // Load and cache the certificates and provider pool from disk.
