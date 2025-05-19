@@ -238,6 +238,8 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
 			transactions.GET("/:id/repair", authorize(permiss.TravelRuleView), s.RepairTransactionPreview)
 			transactions.POST("/:id/repair", authorize(permiss.TravelRuleManage), s.RepairTransaction)
+			transactions.GET("/:id/complete", authorize(permiss.TravelRuleView), s.CompleteTransactionPreview)
+			transactions.POST("/:id/complete", authorize(permiss.TravelRuleManage), s.CompleteTransaction)
 			transactions.POST("/:id/archive", authorize(permiss.TravelRuleManage), s.ArchiveTransaction)
 			transactions.POST("/:id/unarchive", authorize(permiss.TravelRuleManage), s.UnarchiveTransaction)
 
