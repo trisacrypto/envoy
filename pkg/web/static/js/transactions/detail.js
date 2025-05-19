@@ -4,12 +4,14 @@ Application code for the transaction detail page.
 
 import { isRequestMatch } from '../htmx/helpers.js';
 import { createChoices } from '../modules/components.js';
+import { Transaction } from '../modules/ivms101.js';
+
 import Alerts from '../modules/alerts.js';
 
 
 // Initialize the alerts component.
 const rejectAlerts = new Alerts("#rejectAlerts");
-
+const completeAlerts = new Alerts("#completeAlerts");
 
 /*
 Pre-flight request configuration for htmx requests.
@@ -29,7 +31,30 @@ document.body.addEventListener("htmx:configRequest", function(e) {
     });
 
     e.detail.parameters = params;
+    return;
   }
+
+  /*
+  Handle the complete transaction IVMS101 data request.
+  */
+  if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/complete/, "post")) {
+    const tx = new Transaction(e.target);
+
+    // Convert to a flattened form data object for htmx.
+    e.detail.parameters = new FormData();
+    for (const [key, value] of tx.entries()) {
+      if (typeof value === "object") {
+        e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+      } else {
+        e.detail.parameters.append(key, value);
+      }
+    }
+
+    console.log(e.detail.parameters)
+    e.preventDefault();
+    return false;
+  }
+
 });
 
 
@@ -69,5 +94,11 @@ document.body.addEventListener("htmx:responseError", function(e) {
   if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/reject/, "post")) {
     const error = JSON.parse(e.detail.xhr.response);
     rejectAlerts.danger("Error:", error.error);
+    return;
+  }
+
+  if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/complete/, "post")) {
+    const error = JSON.parse(e.detail.xhr.response);
+    completeAlerts.danger("Error:", error.error);
   }
 });

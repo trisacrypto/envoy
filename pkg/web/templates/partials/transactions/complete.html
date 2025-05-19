@@ -1,0 +1,59 @@
+<form id="completeForm" hx-post="/v1/transactions/{{ .EnvelopeID }}/complete" hx-ext="json-enc" hx-swap="none" hx-indicator="#completeLoader" hx-disabled-elt="next button[type='submit'], next button[type='button']">
+{{ with .TransactionPayload }}
+  <div class="form-group">
+    <label for="transaction_originator" class="mb-1">Originator Wallet</label>
+    <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Originator }}" id="transaction_originator" name="transaction_originator">
+  </div>
+  <div class="form-group">
+    <label for="transaction_beneficiary" class="mb-1">Beneficiary Wallet</label>
+    <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Beneficiary }}" id="transaction_beneficiary" name="transaction_beneficiary">
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="transaction_network" class="mb-1">Network</label>
+        <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Network }}" id="transaction_network" name="transaction_network">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="transaction_asset_type" class="mb-1">Asset Type</label>
+        <input type="text" readonly disabled class="form-control font-monospace" value="{{ .AssetType }}" id="transaction_asset_type" name="transaction_asset_type">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="transaction_tag" class="mb-1">Memo/Tag</label>
+    <input type="text" class="form-control font-monospace" value="{{ .Tag }}" id="transaction_tag" name="transaction_tag">
+    <small class="form-text text-body-secondary mt-1">
+      Network-specific memo or tag used to route the on-chain transfer.
+    </small>
+  </div>
+
+  <div class="form-group">
+    <label for="transaction_txid" class="mb-1">Transaction ID or Hash</label>
+    <textarea required id="transaction_txid" name="transaction_txid" class="form-control font-monospace" rows="2" placeholder="Enter Transaction Hash">{{ .Txid }}</textarea>
+    <small class="form-text text-body-secondary mt-1">
+      Specify the transaction hash of the completed transfer on the blockchain.
+    </small>
+  </div>
+  <div class="form-group">
+    <label for="message" class="mb-1">Transaction Timestamp</label>
+    <input required type="text" class="form-control font-monospace" value="{{ .Timestamp }}" id="transaction_timestamp" name="transaction_timestamp" placeholder="YYYY-MM-DDTHH:MM:SSZ">
+    <small class="form-text text-body-secondary mt-1">
+      The timestamp associated with the block or transaction hash.
+    </small>
+  </div>
+  <!-- TODO: allow user to add extra JSON and base64 encode it before POST
+  <div class="form-group">
+    <label for="transaction_extra_json" class="mb-1">Extra JSON</label>
+    <textarea id="transaction_extra_json" name="transaction_extra_json" class="form-control" rows="3" placeholder="{}">{{ .ExtraJson }}</textarea>
+    <small class="form-text text-body-secondary mt-1">
+      Any additional JSON data to help identify the transfer on the chain/network.
+    </small>
+  </div>
+  -->
+</form>
+{{ end }}

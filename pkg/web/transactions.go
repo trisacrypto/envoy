@@ -1189,7 +1189,7 @@ func (s *Server) CompleteTransactionPreview(c *gin.Context) {
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "partials/transactions/complete.html",
-		HTMLData: scene.New(c).WithAPIData(out),
+		HTMLData: scene.New(c).WithAPIData(out).With("EnvelopeID", transactionID),
 	})
 }
 
