@@ -159,7 +159,8 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 // then it will delete the counterparty and contacts without checking for associated
 // transactions. This function will return the `errors.ErrDaybreakHasTxns` error
 // if trying to delete a Daybreak Counterparty with transactions associated to
-// it in the database when `ignoreTxns` is not `true`.
+// it in the database when `ignoreTxns` is not `true`. This function will only
+// delete Counterparties with `source='daybreak'`.
 func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
 	var tx *sql.Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
@@ -182,10 +183,22 @@ func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ig
 	return tx.Commit()
 }
 
+const deleteDaybreakCounterpartySQL = "DELETE FROM counterparties WHERE id=:id AND source='daybreak'"
+
+// Delete a Daybreak Counterparty. This function will only delete Counterparties
+// with `source='daybreak'`.
 func (s *Store) deleteDaybreakCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
-	return s.deleteCounterparty(tx, counterpartyID)
+	var result sql.Result
+	if result, err = tx.Exec(deleteDaybreakCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+	return nil
 }
 
+// Delete a Daybreak Counterparty unless it has transactions associated with it.
+// This function will only delete Counterparties with `source='daybreak'`.
 func (s *Store) deleteDaybreakCounterpartyUnlessHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
 	if has, err := s.counterpartyHasTxns(tx, counterpartyID); has || err != nil {
 		if err != nil {

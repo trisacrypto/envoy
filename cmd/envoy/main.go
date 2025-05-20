@@ -669,15 +669,27 @@ func daybreakRetire(c *cli.Context) (err error) {
 	}
 
 	// Delete all of the counterparties (`ignoreTxns` is `false`)
+	deleted := 0
+	hasTxns := 0
 	for _, counterparty := range srcMap {
 		if err = ddb.DeleteDaybreak(ctx, counterparty.ID, false); err != nil {
 			if err == dberr.ErrDaybreakHasTxns {
+				hasTxns += 1
 				log.Info().Str("id", counterparty.ID.String()).Str("directory_id", counterparty.DirectoryID.String).Msg("daybreak counterparty not deleted because it has associated transactions")
 				continue
 			}
 			return err
 		}
+		deleted += 1
 	}
+
+	log.Info().
+		Int("deleted", deleted).
+		Int("hasTxns", hasTxns).
+		Int("errors", len(srcMap)-deleted-hasTxns).
+		Int("total", len(srcMap)).
+		Float64("percent_success", (float64(deleted+hasTxns) / float64(len(srcMap)) * 100.0)).
+		Msg("daybreak retirement complete")
 
 	return nil
 }
