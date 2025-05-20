@@ -30,7 +30,7 @@
       </button>
     </div>
   </div>
-  {{- template "transferForm" .Transaction }}
+  {{- template "transactionForm" .Transaction }}
 
   <hr class="mt-4 mb-5">
 
@@ -114,7 +114,7 @@
 
   <div class="row align-items-center mb-5">
     <div class="col">
-      <button type="submit" class="btn w-100 btn-warning" disabled>
+      <button type="submit" class="btn w-100 btn-warning">
         <i class="fe fe-send"></i> Repair and Send for Review
       </button>
       <a type="reset" href="/transactions/{{ .EnvelopeID }}" class="btn w-100 btn-dark mt-2">

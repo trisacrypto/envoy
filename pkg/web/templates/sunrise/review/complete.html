@@ -1,11 +1,149 @@
 {{ template "page.html" . }}
 {{ define "title" }}Review Sunrise Transfer Message | TRISA Envoy{{ end }}
 {{ define "pretitle" }}Sunrise{{ end }}
-{{ define "pagetitle" }}Review Complete!{{ end }}
+{{ define "pagetitle" }}Review Complete{{ if .Sunrise }}: Transfer {{ titlecase .Sunrise.Status.String }}{{ end }}{{ end }}
+
+{{- define "header-actions" }}
+<div class="col-auto">
+  <a href="/sunrise/download" class="btn btn-info" target="_blank">
+    <i class="fe fe-download"></i>
+    <span class="ms-1">Download Record</span>
+  </a>
+  <a href="https://trisa.directory/guide" class="btn btn-primary" target="_blank">
+    <i class="fe fe-shield"></i>
+    <span class="ms-1">Join TRISA Network</span>
+  </a>
+</div>
+{{ end }}
 
 {{ define "main"  }}
 
+{{ if .Organization}}
+<h2>{{ .Organization }} Secure Travel Rule Data Portal</h2>
+{{ else }}
+<h2>TRISA Envoy Secure Travel Rule Data Portal</h2>
 {{ end }}
+
+<p class="text-secondary">
+  Thank you for completing your compliance review of the TRISA Sunrise Transfer Message.
+  The transfer is now <strong>{{ if .Sunrise }}{{ .Sunrise.Status.String }}{{ else }}in an unknown state{{ end}}</strong>.
+  Please make sure you <a href="/sunrise/download" target="_blank">download a record</a>
+  of the transfer for your own compliance records. This record will continue to be
+  accessible via the link you received in your email if you need to return to check
+  the status of the transfer or receive updated information.
+  {{ if .ComplianceEmail }}If you have any questions, please contact <a href="mailto:{{ .ComplianceEmail }}">{{ .ComplianceName }}</a>.{{ end }}
+</p>
+
+<p class="text-secondary">
+  Please consider <a href="https://trisa.directory/guide" target="_blank">consider joining the TRISA network</a>
+  in order to streamline future compliance reviews. TRISA is a peer-to-peer network of
+  virtual asset service providers (VASPs) that allows for the secure exchange of travel
+  rule data. TRISA is open source and managed by a professional working group and you
+  can deploy an open source TRISA node for free, or pay for cost-effective hosted node.
+</p>
+
+{{- with .Envelope }}
+<h2 class="mb-2 mt-4">Compliance Information</h2>
+<p>Transfer ID: <code>{{ .EnvelopeID }}</code></p>
+<hr class="mb-4" />
+
+{{ if .Error }}
+<h3>Rejection Information</h3>
+<dl class="row">
+  <dt class="col-3 text-secondary"><small>Error Code</small></dt>
+  <dd class="col-9 text-danger"><strong>{{ titlecase .Error.Code.String }}</strong></dd>
+  <dt class="col-3 text-secondary"><small>Error Message</small></dt>
+  <dd class="col-9">{{ .Error.Message }}</dd>
+  <dt class="col-3 text-secondary"><small>Timestamp</small></dt>
+  <dd class="col-9">{{ .Timestamp }}</dd>
+</dl>
+{{ else }}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
+  <!-- Transaction Information Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Transaction Information</h3>
+        {{ template "transactionList" .Transaction }}
+      </div>
+    </div>
+  </div>
+
+
+  {{- with .Identity }}
+  <!-- Originator Card(s) -->
+  {{- range .Originator }}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Originating Account</h3>
+        {{- if .Person }}
+        {{ template "personList" .Person }}
+        {{- else if .Company }}
+        {{ template "companyList" .Company }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{- end }}
+
+  <!-- Beneficiary Card(s) -->
+  {{- range .Beneficiary }}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Beneficiary Account</h3>
+        {{- if .Person }}
+        {{ template "personList" .Person }}
+        {{- else if .Company }}
+        {{ template "companyList" .Company }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{- end }}
+
+  <!-- Originating VASP Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Originating VASP</h3>
+        {{- with .OriginatorVASP }}
+        {{ template "companyList" . }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Beneficiary VASP Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Beneficiary VASP</h3>
+
+        {{- with .BeneficiaryVASP }}
+        {{ template "companyList" . }}
+        {{- end }}
+      </div>
+    </div>
+  </div>
+  {{ end }}{{/* end with .Identity */}}
+
+  <!-- Secure Envelope Card -->
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Secure Envelope</h3>
+        {{ template "envelopeList" . }}
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}{{/* end if .Error */}}
+
+{{ end }}{{/* end with .Envelope */}}
+{{ end }}{{/* end define main */}}
 
 {{ define "appcode" }}
 {{ end }}

@@ -95,8 +95,9 @@ func (s *Server) setupRoutes() (err error) {
 	// Web UI Routes (Dashboards and Pages) - Unauthenticated
 	s.router.GET("/login", s.LoginPage)
 	s.router.GET("/logout", s.Logout)
+	s.router.GET("/forgot-password", s.ForgotPasswordPage)
+	s.router.GET("/forgot-password/sent", s.ForgotPasswordSentPage)
 	s.router.GET("/reset-password", s.ResetPasswordPage)
-	s.router.GET("/reset-password/success", s.ResetPasswordSuccessPage)
 
 	// Web UI Routes (Dashboards and Pages) - Authenticated
 	ui := s.router.Group("", authenticate)
@@ -162,7 +163,7 @@ func (s *Server) setupRoutes() (err error) {
 		sunrise.GET("/review", sunriseAuth, s.SunriseMessageReview)
 		sunrise.POST("/reject", sunriseAuth, s.SunriseMessageReject)
 		sunrise.POST("/accept", sunriseAuth, s.SunriseMessageAccept)
-		sunrise.GET("/completed", sunriseAuth, s.SunriseMessageCompleted)
+		sunrise.GET("/complete", sunriseAuth, s.SunriseMessageCompleted)
 		sunrise.GET("/download", sunriseAuth, s.SunriseMessageDownload)
 
 		// Error page for sunrise users
@@ -184,6 +185,7 @@ func (s *Server) setupRoutes() (err error) {
 		v1.POST("/reauthenticate", s.Reauthenticate)
 
 		// User Profile Management
+		v1.POST("/forgot-password", s.ForgotPassword)
 		v1.POST("/reset-password", s.ResetPassword)
 		v1.POST("/change-password", authenticate, s.ChangePassword)
 
@@ -236,6 +238,8 @@ func (s *Server) setupRoutes() (err error) {
 			transactions.POST("/:id/reject", authorize(permiss.TravelRuleManage), s.RejectTransaction)
 			transactions.GET("/:id/repair", authorize(permiss.TravelRuleView), s.RepairTransactionPreview)
 			transactions.POST("/:id/repair", authorize(permiss.TravelRuleManage), s.RepairTransaction)
+			transactions.GET("/:id/complete", authorize(permiss.TravelRuleView), s.CompleteTransactionPreview)
+			transactions.POST("/:id/complete", authorize(permiss.TravelRuleManage), s.CompleteTransaction)
 			transactions.POST("/:id/archive", authorize(permiss.TravelRuleManage), s.ArchiveTransaction)
 			transactions.POST("/:id/unarchive", authorize(permiss.TravelRuleManage), s.UnarchiveTransaction)
 

@@ -34,7 +34,8 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		cb, err := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		require.NoError(t, err, "could not create webhook handler")
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -53,7 +54,8 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		cb, err := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		require.NoError(t, err, "could not create webhook handler")
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -72,7 +74,8 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		cb, err := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		require.NoError(t, err, "could not create webhook handler")
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -91,7 +94,8 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		cb, err := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		require.NoError(t, err, "could not create webhook handler")
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -106,7 +110,8 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		cb, err := webhook.New(config.WebhookConfig{URL: endpoint.String()})
+		require.NoError(t, err, "could not create webhook handler")
 		require.IsType(t, &webhook.Webhook{}, cb, "unexpected webhook handler for real url")
 
 		rep, err := cb.Callback(ctx, req)
@@ -125,12 +130,13 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{
+		cb, err := webhook.New(config.WebhookConfig{
 			URL:               endpoint.String(),
 			AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
 			AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
 			RequireServerAuth: false,
 		})
+		require.NoError(t, err, "could not create webhook with client auth")
 
 		rep, err := cb.Callback(ctx, req)
 		require.NoError(t, err, "could not execute callback request")
@@ -145,14 +151,15 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{
+		cb, err := webhook.New(config.WebhookConfig{
 			URL:               endpoint.String(),
 			AuthKeyID:         "01JT4JY0MS4BDJAT4BA9T4621Y",
 			AuthKeySecret:     "9b33d18fe311b4a0155dde8ca61b94afbce14193232f2c69f5630c6e73818f22",
 			RequireServerAuth: false,
 		})
+		require.NoError(t, err, "could not create webhook with bad server auth")
 
-		_, err := cb.Callback(ctx, req)
+		_, err = cb.Callback(ctx, req)
 		require.Error(t, err, "could not execute callback request")
 		require.EqualError(t, err, "could not make webhook callback: received status 401 Unauthorized")
 	})
@@ -164,12 +171,13 @@ func TestWebhook(t *testing.T) {
 		endpoint, _ := url.Parse(srv.URL)
 		endpoint.Path = "/"
 
-		cb := webhook.New(config.WebhookConfig{
+		cb, err := webhook.New(config.WebhookConfig{
 			URL:               endpoint.String(),
 			AuthKeyID:         "01JT4B3R5Z6AHJXV87QHPPKRBM",
 			AuthKeySecret:     "cfbabc4715b4759d45ba26953dd2fc0bfc2344ef70a2005432e7f16b5081610d",
 			RequireServerAuth: true,
 		})
+		require.NoError(t, err, "could not create webhook with server auth")
 
 		rep, err := cb.Callback(ctx, req)
 		require.NoError(t, err, "could not execute callback request")

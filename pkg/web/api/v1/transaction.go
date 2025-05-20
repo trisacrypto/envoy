@@ -447,7 +447,7 @@ func (e *Envelope) Validate() (err error) {
 	// Perform lightweight validation of the payload
 	if e.Error != nil {
 		if e.Identity != nil || e.Transaction != nil || e.Pending != nil {
-			return ValidationError(OneOfTooMany("error", "identity"))
+			return ValidationError(OneOfTooMany("error", "payload"))
 		}
 		return nil
 	}
@@ -683,6 +683,53 @@ func (r *Rejection) Proto() *trisa.Error {
 		Message: r.Message,
 		Retry:   r.Retry,
 	}
+}
+
+//===========================================================================
+// Transaction Payload
+//===========================================================================
+
+func ValidateTransactionPayload(tx *generic.Transaction, status enum.Status) (err error) {
+	if tx.Originator == "" {
+		err = ValidationError(err, MissingField("originator"))
+	}
+
+	if tx.Beneficiary == "" {
+		err = ValidationError(err, MissingField("beneficiary"))
+	}
+
+	if tx.Amount <= 0.0 {
+		err = ValidationError(err, MissingField("amount"))
+	}
+
+	if tx.Network == "" {
+		err = ValidationError(err, MissingField("network"))
+	}
+
+	if tx.Timestamp != "" {
+		if _, terr := parseTimestamp(tx.Timestamp); terr != nil {
+			err = ValidationError(err, IncorrectField("timestamp", "invalid timestamp format"))
+		}
+	}
+
+	if status == enum.StatusCompleted {
+		if tx.Txid == "" {
+			err = ValidationError(err, MissingField("txid"))
+		}
+
+		if tx.Timestamp == "" {
+			err = ValidationError(err, MissingField("timestamp"))
+		}
+	}
+
+	if tx.ExtraJson != "" {
+		q := &EncodingQuery{}
+		if _, derr := q.Decode(tx.ExtraJson); derr != nil {
+			err = ValidationError(err, IncorrectField("extra_json", "extra_json should be valid JSON or base64 encoded JSON"))
+		}
+	}
+
+	return err
 }
 
 //===========================================================================

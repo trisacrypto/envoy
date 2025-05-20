@@ -19,7 +19,7 @@
       </button>
     </div>
   </div>
-  {{- template "transferForm" .Transaction }}
+  {{- template "transactionForm" .Transaction }}
 
   <hr class="mt-4 mb-5">
 
@@ -103,7 +103,7 @@
 
   <div class="row align-items-center mb-5">
     <div class="col">
-      <button type="submit" class="btn w-100 btn-success" disabled>
+      <button type="submit" class="btn w-100 btn-success">
         <i class="fe fe-send"></i> Accept and Send Reply
       </button>
       <a type="reset" href="/transactions/{{ .EnvelopeID }}" class="btn w-100 btn-dark mt-2">

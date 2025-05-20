@@ -760,6 +760,10 @@ func (p *PreparedTransaction) UpdateSunrise(in *models.Sunrise) error {
 	return updateSunrise(p.tx, in)
 }
 
+func (p *PreparedTransaction) UpdateSunriseStatus(txID uuid.UUID, status enum.Status) error {
+	return updateSunriseStatus(p.tx, txID, status)
+}
+
 func (p *PreparedTransaction) Rollback() error {
 	return p.tx.Rollback()
 }

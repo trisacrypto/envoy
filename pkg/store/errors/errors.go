@@ -12,6 +12,7 @@ var (
 	ErrMissingReference   = errors.New("missing id of foreign key reference")
 	ErrNotFound           = errors.New("record not found in database")
 	ErrAlreadyExists      = errors.New("record already exists in database")
+	ErrTooSoon            = errors.New("a previous record has not expired yet")
 	ErrNotImplemented     = errors.New("method not implemented for this storage backend")
 	ErrNoIDOnCreate       = errors.New("cannot create a resource with an established id")
 	ErrMissingID          = errors.New("missing id of resource")

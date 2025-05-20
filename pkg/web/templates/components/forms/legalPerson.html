@@ -8,8 +8,8 @@
         <small class="form-text text-body-secondary">
           The legal name of the entity as registered with the appropriate authority.
         </small>
-        <input type="text" class="form-control" id="{{ .Prefix }}_legalPersonName" name="{{ .Prefix }}_legal_person_name" placeholder="Legal Entity Name" value="{{ .Company.LegalName }}">
-        <input type="hidden" id="{{ .Prefix }}_legalPersonNameIdentifierType" name="{{ .Prefix }})_legal_person_name_identifier_type" placeholder="Legal Entity Name" value="LEGL">
+        <input type="text" class="form-control" id="{{ .Prefix }}_legalPersonName" name="{{ .Prefix }}_name_nameIdentifier_0_legalPersonName" placeholder="Legal Entity Name" value="{{ .Company.LegalName }}">
+        <input type="hidden" id="{{ .Prefix }}_legalPersonNameIdentifierType" name="{{ .Prefix }}_name_nameIdentifier_0_legalPersonNameIdentifierType" value="{{ .Company.LegalNameType }}">
       </div>
     </div>
     <div class="col-md-6">
@@ -18,7 +18,7 @@
         <small class="form-text text-body-secondary">
           The country in which the legal entity is registered.
         </small>
-        <select class="form-control" id="{{ .Prefix }}_countryOfRegistration" name="{{ .Prefix }}_country_of_registration" data-countries='{"searchEnabled": true}' data-selected="{{ .Company.CountryOfRegistration }}"></select>
+        <select class="form-control" id="{{ .Prefix }}_countryOfRegistration" name="{{ .Prefix }}_countryOfRegistration" data-countries='{"searchEnabled": true}' data-selected="{{ .Company.CountryOfRegistration }}"></select>
       </div>
     </div>
   </div>
@@ -26,11 +26,11 @@
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-label mb-1" for="{{ .Prefix }}_customerID">Internal Customer Identifier</label>
+          <label class="form-label mb-1" for="{{ .Prefix }}_customerNumber">Internal Customer Identifier</label>
           <small class="form-text text-body-secondary">
             Optional, an internal identifier for the counterparty.
           </small>
-          <input type="text" class="form-control" id="{{ .Prefix }}_customerNumber" name="{{ .Prefix }}_customer_number" placeholder="Customer Identifier" value="{{ .Company.CustomerNumber }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_customerNumber" name="{{ .Prefix }}_customerNumber" placeholder="Customer Identifier" value="{{ .Company.CustomerNumber }}">
         </div>
       </div>
     </div>
@@ -39,41 +39,41 @@
         <h3>Geographic Address</h3>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressType">Address Type</label>
-          <select class="form-control" id="{{ .Prefix }}_addressType" name="{{ .Prefix }}_addresses_0_address_type" data-address-type='{"searchEnabled": false}' data-selected="{{ .Company.AddressType }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_addressType" name="{{ .Prefix }}_geographicAddress_0_addressType" data-address-type='{"searchEnabled": false}' data-selected="{{ .Company.AddressType }}"></select>
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine1">Address Line 1</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine1" name="{{ .Prefix }}_addresses_0_address_lines_0" placeholder="Street Address" value="{{ .Company.AddressLine0 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine1" name="{{ .Prefix }}_geographicAddress_0_addressLine_0" placeholder="Street Address" value="{{ .Company.AddressLine0 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine2">Address Line 2</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine2" name="{{ .Prefix }}_addresses_0_address_lines_1" placeholder="Suite or Building Details" value="{{ .Company.AddressLine1 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine2" name="{{ .Prefix }}_geographicAddress_0_addressLine_1" placeholder="Suite or Building Details" value="{{ .Company.AddressLine1 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressLine3">Address Line 3</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine3" name="{{ .Prefix }}_addresses_0_address_lines_2" placeholder="City, State, Postal Code" value="{{ .Company.AddressLine2 }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_addressLine3" name="{{ .Prefix }}_geographicAddress_0_addressLine_2" placeholder="City, State, Postal Code" value="{{ .Company.AddressLine2 }}">
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_addressCountry">Address Country</label>
-          <select class="form-control" id="{{ .Prefix }}_addressCountry" name="{{ .Prefix }}_addresses_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .Company.AddressCountry }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_addressCountry" name="{{ .Prefix }}_geographicAddress_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .Company.AddressCountry }}"></select>
         </div>
       </div>
       <div class="col-lg-6">
         <h3>National Identification</h3>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_nationalIdentificationType">Type of National Identification</label>
-          <select class="form-control" id="{{ .Prefix }}_nationalIdentificationType" name="{{ .Prefix }}_identification_type_code" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .Company.NationalIdentifier.TypeCode }}"></select>
+          <select class="form-control" id="{{ .Prefix }}_nationalIdentificationType" name="{{ .Prefix }}_nationalIdentification_nationalIdentifierType" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .Company.NationalIdentifier.TypeCode }}"></select>
         </div>
         <div class="form-group">
           <label class="form-label" for="{{ .Prefix }}_nationalIdentificationNumber">National Identification Number</label>
-          <input type="text" class="form-control" id="{{ .Prefix }}_nationalIdentificationNumber" name="{{ .Prefix }}_identification_number" placeholder="Identification Number" value="{{ .Company.NationalIdentifier.Identifier }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_nationalIdentificationNumber" name="{{ .Prefix }}_nationalIdentification_nationalIdentifier" placeholder="Identification Number" value="{{ .Company.NationalIdentifier.Identifier }}">
         </div>
         <div class="form-group">
           <label class="form-label mb-1" for="{{ .Prefix }}_registrationAuthority">Registration Authority</label>
           <small class="form-text text-body-secondary">
             Should be blank for an LEI, RA-777777 for a Tax ID, or a GLEIF RA number.
           </small>
-          <input type="text" class="form-control" id="{{ .Prefix }}_registrationAuthority" name="{{ .Prefix }}_registration_authority" placeholder="RA-777777" value="{{ .Company.NationalIdentifier.RegistrationAuthority }}">
+          <input type="text" class="form-control" id="{{ .Prefix }}_registrationAuthority" name="{{ .Prefix }}_nationalIdentification_registrationAuthority" placeholder="RA-777777" value="{{ .Company.NationalIdentifier.RegistrationAuthority }}">
         </div>
       </div>
     </div>

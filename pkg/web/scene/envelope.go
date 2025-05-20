@@ -1,6 +1,9 @@
 package scene
 
 import (
+	"encoding/json"
+	"time"
+
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 )
@@ -13,6 +16,11 @@ type Envelope struct {
 // Wraps a *trisa.Error to provide additional UI-specific functionality.
 type Rejection struct {
 	api.Rejection
+}
+
+// Wraps a *generic.Transaction to provide additional UI-specific functionality.
+type TransactionPayload struct {
+	generic.Transaction
 }
 
 //===========================================================================
@@ -47,6 +55,27 @@ func (s Scene) Envelope() *Envelope {
 	return nil
 }
 
+func (s Scene) TransactionPayload() *TransactionPayload {
+	if data, ok := s[APIData]; ok {
+		if payload, ok := data.(*generic.Transaction); ok {
+			return &TransactionPayload{
+				Transaction: generic.Transaction{
+					Txid:        payload.Txid,
+					Originator:  payload.Originator,
+					Beneficiary: payload.Beneficiary,
+					Amount:      payload.Amount,
+					Network:     payload.Network,
+					Timestamp:   payload.Timestamp,
+					ExtraJson:   payload.ExtraJson,
+					AssetType:   payload.AssetType,
+					Tag:         payload.Tag,
+				},
+			}
+		}
+	}
+	return nil
+}
+
 //===========================================================================
 // Envelope Methods
 //===========================================================================
@@ -60,4 +89,26 @@ func (e *Envelope) Transaction() *generic.Transaction {
 		return tx
 	}
 	return &generic.Transaction{}
+}
+
+func (e *Envelope) TransactionJSON() string {
+	if tx := e.TransactionPayload(); tx != nil {
+		data, _ := json.Marshal(tx)
+		return string(data)
+	}
+	return ""
+}
+
+func (e *Envelope) SentAtRepr() string {
+	if e.SentAt != nil {
+		return e.SentAt.Format(time.RFC3339)
+	}
+	return ""
+}
+
+func (e *Envelope) ReceivedAtRepr() string {
+	if e.ReceivedAt != nil {
+		return e.ReceivedAt.Format(time.RFC3339)
+	}
+	return ""
 }

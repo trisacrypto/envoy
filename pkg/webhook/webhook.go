@@ -6,11 +6,13 @@ import (
 	"compress/lzw"
 	"compress/zlib"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -27,9 +29,27 @@ var (
 // New returns a webhook handler that will POST callbacks to the webhook specified by
 // the given URL. If the "mock" scheme is specified for the URL, then a MockCallback
 // handler will be returned for external testing purposes.
-func New(conf config.WebhookConfig) Handler {
+func New(conf config.WebhookConfig) (_ Handler, err error) {
 	if conf.Endpoint().Scheme == mockScheme {
-		return &Mock{}
+		return &Mock{}, nil
+	}
+
+	var transport http.RoundTripper
+	if conf.UseMTLS {
+		var endpoint *url.URL
+		if endpoint, err = url.Parse(conf.URL); err != nil {
+			return nil, fmt.Errorf("could not parse webhook URL: %s", err)
+		}
+
+		var tlsConfig *tls.Config
+		if tlsConfig, err = conf.MTLSConfig.ClientTLSConfig(); err != nil {
+			return nil, err
+		}
+
+		tlsConfig.ServerName = endpoint.Hostname()
+		transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
 	}
 
 	return &Webhook{
@@ -37,9 +57,10 @@ func New(conf config.WebhookConfig) Handler {
 		conf:    conf,
 		authKey: conf.DecodeAuthKey(),
 		client: &http.Client{
-			Timeout: Timeout,
+			Timeout:   Timeout,
+			Transport: transport,
 		},
-	}
+	}, nil
 }
 
 type Handler interface {

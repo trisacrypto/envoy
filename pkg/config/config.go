@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -20,6 +21,18 @@ import (
 // tags. For example, the conf.LogLevel environment variable will be TRISA_LOG_LEVEL
 // because of this prefix and the split_words struct tag in the conf below.
 const Prefix = "trisa"
+
+// If any of the keys are not set or are empty, they will be remapped to the value
+// of the specified environment variable. This is primarily used when we want to be
+// able to override a required environment variable with a different specified value
+// without modifying how a configuration is validated. E.g. to use the same certs for
+// TRISA, TRP, and Webhook if those environment variables are not set.
+var environRemap = map[string]string{
+	"TRISA_TRP_CERTS":     "TRISA_NODE_CERTS",
+	"TRISA_TRP_POOL":      "TRISA_NODE_POOL",
+	"TRISA_WEBHOOK_CERTS": "TRISA_NODE_CERTS",
+	"TRISA_WEBHOOK_POOL":  "TRISA_NODE_POOL",
+}
 
 // Config contains all of the configuration parameters for the trisa node and is
 // loaded from the environment or a configuration file with reasonable defaults for
@@ -122,7 +135,9 @@ type SunriseConfig struct {
 }
 
 type WebhookConfig struct {
+	MTLSConfig
 	URL               string `required:"false" desc:"specify a callback webhook that incoming travel rule messages will be posted to"`
+	UseMTLS           bool   `default:"false" split_words:"true" desc:"if true, the webhook client will use mTLS to secure its connection to the webhook server"`
 	AuthKeyID         string `required:"false" split_words:"true" desc:"used to identify the shared secret key used for hmac authorization"`
 	AuthKeySecret     string `required:"false" split_words:"true" desc:"specify a shared secret key to use for hmac authorization"`
 	RequireServerAuth bool   `default:"false" split_words:"true" desc:"if true, the webhook server will require a valid hmac authorization header in webhook responses"`
@@ -142,6 +157,13 @@ type RegionInfo struct {
 }
 
 func New() (conf Config, err error) {
+	// Use TRISA certs for TRP and Webhook if not otherwise specified.
+	for k, v := range environRemap {
+		if _, ok := os.LookupEnv(k); !ok {
+			os.Setenv(k, os.Getenv(v))
+		}
+	}
+
 	if err = confire.Process(Prefix, &conf); err != nil {
 		return Config{}, err
 	}
@@ -175,6 +197,18 @@ func (c Config) Validate() (err error) {
 		return err
 	}
 
+	if err = c.Node.Validate(); err != nil {
+		return err
+	}
+
+	if err = c.TRP.Validate(); err != nil {
+		return err
+	}
+
+	if err = c.Email.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -204,6 +238,12 @@ func (c WebConfig) Validate() (err error) {
 	return nil
 }
 
+func (c WebConfig) ResetPasswordURL() *url.URL {
+	u, _ := url.Parse(c.Origin)
+	u.Path = "/reset-password"
+	return u
+}
+
 func (c WebhookConfig) Validate() (err error) {
 	if c.Enabled() {
 		if _, err = url.Parse(c.URL); err != nil {
@@ -222,6 +262,12 @@ func (c WebhookConfig) Validate() (err error) {
 
 		if c.RequireServerAuth && (c.AuthKeySecret == "" || c.AuthKeyID == "") {
 			return errors.New("invalid configuration: webhook server auth is enabled but no auth key is specified")
+		}
+
+		if c.UseMTLS {
+			if c.Certs == "" {
+				return errors.New("invalid configuration: specify certificates path for webhook mTLS")
+			}
 		}
 	}
 	return nil

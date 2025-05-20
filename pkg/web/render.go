@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/trisa/pkg/iso3166"
 	"go.rtnl.ai/x/humanize"
 	"go.rtnl.ai/x/typecase"
 )
@@ -174,6 +176,12 @@ func (r *Render) FuncMap() template.FuncMap {
 				}
 				return emoji
 			},
+			"country": func(code string) string {
+				if country, err := iso3166.Find(code); err == nil {
+					return country.Country
+				}
+				return code
+			},
 			"add": func(a, b int) int {
 				return a + b
 			},
@@ -182,6 +190,9 @@ func (r *Render) FuncMap() template.FuncMap {
 			},
 			"fillbr": func(n int) template.HTML {
 				return template.HTML(strings.Repeat("<br />", n))
+			},
+			"base64": func(data []byte) string {
+				return base64.RawStdEncoding.EncodeToString(data)
 			},
 		}
 	}
