@@ -18,6 +18,11 @@ type Rejection struct {
 	api.Rejection
 }
 
+// Wraps a *generic.Transaction to provide additional UI-specific functionality.
+type TransactionPayload struct {
+	generic.Transaction
+}
+
 //===========================================================================
 // Scene Envelope Helpers
 //===========================================================================
@@ -44,6 +49,27 @@ func (s Scene) Envelope() *Envelope {
 		if env, ok := data.(*api.Repair); ok {
 			return &Envelope{
 				Envelope: *env.Envelope,
+			}
+		}
+	}
+	return nil
+}
+
+func (s Scene) TransactionPayload() *TransactionPayload {
+	if data, ok := s[APIData]; ok {
+		if payload, ok := data.(*generic.Transaction); ok {
+			return &TransactionPayload{
+				Transaction: generic.Transaction{
+					Txid:        payload.Txid,
+					Originator:  payload.Originator,
+					Beneficiary: payload.Beneficiary,
+					Amount:      payload.Amount,
+					Network:     payload.Network,
+					Timestamp:   payload.Timestamp,
+					ExtraJson:   payload.ExtraJson,
+					AssetType:   payload.AssetType,
+					Tag:         payload.Tag,
+				},
 			}
 		}
 	}

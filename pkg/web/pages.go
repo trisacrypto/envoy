@@ -166,8 +166,10 @@ func (s *Server) TransactionDetailPage(c *gin.Context) {
 		return
 	}
 
-	ctx := scene.New(c)
+	ctx := scene.New(c).WithToastMessages(c)
 	ctx["ID"] = txID
+
+	s.ClearToastMessages(c)
 	c.HTML(http.StatusOK, "pages/transactions/detail.html", ctx)
 }
 

@@ -14,6 +14,7 @@ import (
 
 	"github.com/trisacrypto/envoy/pkg/web/api/v1/credentials"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/google/go-querystring/query"
@@ -312,6 +313,24 @@ func (s *APIv1) RepairPreview(ctx context.Context, transactionID uuid.UUID) (out
 
 func (s *APIv1) Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (out *Envelope, err error) {
 	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), repairEP)
+	if err = s.Create(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+const completeEP = "complete"
+
+func (s *APIv1) CompletePreview(ctx context.Context, transactionID uuid.UUID) (out *generic.Transaction, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), completeEP)
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) Complete(ctx context.Context, transactionID uuid.UUID, in *generic.Transaction) (out *Envelope, err error) {
+	endpoint, _ := url.JoinPath(transactionsEP, transactionID.String(), completeEP)
 	if err = s.Create(ctx, endpoint, in, &out); err != nil {
 		return nil, err
 	}

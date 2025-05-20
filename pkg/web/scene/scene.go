@@ -45,12 +45,15 @@ const (
 	User            = "User"
 	APIData         = "APIData"
 	Parent          = "Parent"
+	ToastMsgsKey    = "ToastMessages"
 	Organization    = "Organization"
 	TRISAEnabled    = "TRISAEnabled"
 	TRPEnabled      = "TRPEnabled"
 	SunriseEnabled  = "SunriseEnabled"
 	DaybreakEnabled = "DaybreakEnabled"
 )
+
+const ToastCookie = "toast_messages"
 
 type Scene map[string]interface{}
 

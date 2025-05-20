@@ -239,6 +239,21 @@ export class Transaction {
     return null;
   }
 
+  entries() {
+    if (this.data) {
+      const result = [];
+      for (const [key, value] of Object.entries(this.data)) {
+        if (key == "amount") {
+          result.push(["json:amount", value]);
+        } else {
+          result.push([key, value]);
+        }
+      }
+      return result;
+    }
+    return [];
+  }
+
   toJSON() {
     return this.data;
   }
@@ -330,6 +345,13 @@ export class Identity {
     this.data["beneficiary"]["accountNumber"].push(account);
   }
 
+  entries() {
+    if (this.data) {
+      return Object.entries(this.data);
+    }
+    return [];
+  }
+
   toJSON() {
     return this.data;
   }
@@ -418,6 +440,10 @@ export class NaturalPerson {
     }
   }
 
+  entries() {
+    return [["naturalPerson", this.data]];
+  }
+
   toJSON() {
     return {
       "naturalPerson": this.data
@@ -500,6 +526,10 @@ export class LegalPerson {
     } else {
       this.data = {};
     }
+  }
+
+  entries() {
+    return [["legalPerson", this.data]];
   }
 
   toJSON() {

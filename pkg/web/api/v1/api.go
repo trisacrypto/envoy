@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
+	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
 	"go.rtnl.ai/ulid"
 )
 
@@ -49,6 +50,8 @@ type Client interface {
 	Reject(ctx context.Context, transactionID uuid.UUID, in *Rejection) (*Envelope, error)
 	RepairPreview(ctx context.Context, transactionID uuid.UUID) (*Repair, error)
 	Repair(ctx context.Context, transactionID uuid.UUID, in *Envelope) (*Envelope, error)
+	CompletePreview(ctx context.Context, transactionID uuid.UUID) (*generic.Transaction, error)
+	Complete(ctx context.Context, transactionID uuid.UUID, in *generic.Transaction) (*Envelope, error)
 	ArchiveTransaction(context.Context, uuid.UUID) error
 	UnarchiveTransaction(context.Context, uuid.UUID) error
 

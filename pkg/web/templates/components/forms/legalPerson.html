@@ -9,7 +9,7 @@
           The legal name of the entity as registered with the appropriate authority.
         </small>
         <input type="text" class="form-control" id="{{ .Prefix }}_legalPersonName" name="{{ .Prefix }}_name_nameIdentifier_0_legalPersonName" placeholder="Legal Entity Name" value="{{ .Company.LegalName }}">
-        <input type="hidden" id="{{ .Prefix }}_legalPersonNameIdentifierType" name="{{ .Prefix }})_name_nameIdentifier_0_legalPersonNameIdentifierType" placeholder="Legal Entity Name" value="{{ .Company.LegalNameType }}">
+        <input type="hidden" id="{{ .Prefix }}_legalPersonNameIdentifierType" name="{{ .Prefix }}_name_nameIdentifier_0_legalPersonNameIdentifierType" value="{{ .Company.LegalNameType }}">
       </div>
     </div>
     <div class="col-md-6">

@@ -17,6 +17,17 @@
 />
 {{ end }}
 
+{{ define "alerts" }}
+  <div id="alerts" class="position-fixed top-0 end-0 p-3 w-25">
+    {{ range .ToastMessages }}
+    <div class="alert alert-{{ .Type }} alert-dismissible fade show" role="alert">
+      <strong>{{ .Heading }}</strong>: <span>{{ .Message }}</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{ end }}
+  </div>
+{{ end }}
+
 {{ define "page-content" }}
 <section id="transaction" hx-get="/v1/transactions/{{ .ID }}" hx-trigger="load, transactions-updated from:body">
   <div class="card">
