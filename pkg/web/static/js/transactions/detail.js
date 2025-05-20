@@ -10,8 +10,8 @@ import Alerts from '../modules/alerts.js';
 
 
 // Initialize the alerts component.
-const rejectAlerts = new Alerts("#rejectAlerts");
-const completeAlerts = new Alerts("#completeAlerts");
+var rejectAlerts;
+var completeAlerts;
 
 /*
 Pre-flight request configuration for htmx requests.
@@ -50,9 +50,7 @@ document.body.addEventListener("htmx:configRequest", function(e) {
       }
     }
 
-    console.log(e.detail.parameters)
-    e.preventDefault();
-    return false;
+    return;
   }
 
 });
@@ -71,6 +69,10 @@ document.addEventListener("htmx:afterSettle", function(e) {
 
       const select = document.querySelector("select[name='code']");
       if (select) createChoices(select);
+
+      // Initialize the alerts components
+      rejectAlerts = new Alerts("#rejectAlerts");
+      completeAlerts = new Alerts("#completeAlerts");
     }
 });
 

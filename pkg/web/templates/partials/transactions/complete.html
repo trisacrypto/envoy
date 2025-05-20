@@ -2,24 +2,27 @@
 {{ with .TransactionPayload }}
   <div class="form-group">
     <label for="transaction_originator" class="mb-1">Originator Wallet</label>
-    <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Originator }}" id="transaction_originator" name="transaction_originator">
+    <input type="text" readonly class="form-control font-monospace" value="{{ .Originator }}" id="transaction_originator" name="transaction_originator">
   </div>
   <div class="form-group">
     <label for="transaction_beneficiary" class="mb-1">Beneficiary Wallet</label>
-    <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Beneficiary }}" id="transaction_beneficiary" name="transaction_beneficiary">
+    <input type="text" readonly class="form-control font-monospace" value="{{ .Beneficiary }}" id="transaction_beneficiary" name="transaction_beneficiary">
   </div>
-
+  <div class="form-group">
+    <label for="transaction_amount" class="mb-1">Amount</label>
+    <input type="text" readonly class="form-control" value="{{ .Amount }}" id="transaction_amount" name="transaction_amount">
+  </div>
   <div class="row">
     <div class="col-md-6">
       <div class="form-group">
         <label for="transaction_network" class="mb-1">Network</label>
-        <input type="text" readonly disabled class="form-control font-monospace" value="{{ .Network }}" id="transaction_network" name="transaction_network">
+        <input type="text" readonly class="form-control font-monospace" value="{{ .Network }}" id="transaction_network" name="transaction_network">
       </div>
     </div>
     <div class="col-md-6">
       <div class="form-group">
         <label for="transaction_asset_type" class="mb-1">Asset Type</label>
-        <input type="text" readonly disabled class="form-control font-monospace" value="{{ .AssetType }}" id="transaction_asset_type" name="transaction_asset_type">
+        <input type="text" readonly class="form-control font-monospace" value="{{ .AssetType }}" id="transaction_asset_type" name="transaction_asset_type">
       </div>
     </div>
   </div>

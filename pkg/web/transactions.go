@@ -1220,6 +1220,12 @@ func (s *Server) CompleteTransaction(c *gin.Context) {
 		return
 	}
 
+	// Validate the transaction payload is sufficient to complete the transfer
+	if err = api.ValidateTransactionPayload(in, enum.StatusCompleted); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
 	// Verify that the transaction is in a state that we can perform the action on.
 	// Check that transaction is in a repairable state.
 	ctx := c.Request.Context()
@@ -1315,7 +1321,7 @@ func (s *Server) CompleteTransaction(c *gin.Context) {
 	// TODO: Handle Sunrise and TRP Counterparties
 	if packet.Counterparty.Protocol != enum.ProtocolTRISA {
 		c.Error(fmt.Errorf("%s protcol not supported for complete transaction", packet.Counterparty.Protocol))
-		c.JSON(http.StatusNotImplemented, api.Error("only TRISA protocol is supported for this endpoint at this time"))
+		c.JSON(http.StatusBadRequest, api.Error("only the TRISA protocol is supported for this endpoint at this time"))
 		return
 	}
 
