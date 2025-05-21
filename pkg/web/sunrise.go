@@ -131,6 +131,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		return
 	}
 
+	// Handle expired tokens and stop processing.
 	if model.IsExpired() {
 		// The token is expired so send a new token to the user specified.
 		model.Expiration = time.Now().Add(postman.DefaultSunriseExpiration)
@@ -183,6 +184,8 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		c.HTML(http.StatusGone, "sunrise/verify/expired.html", scene.New(c).WithEmail("Support", s.conf.Email.SupportEmail).WithEmail("Compliance", s.conf.Email.ComplianceEmail))
 		return
 	}
+
+	// Continue workflow if sunrise token is valid and not expired
 
 	// If an OTP is not required, set the validation cookie, mark the sunrise token as
 	// verified and redirect the user to the sunrise message preview.
