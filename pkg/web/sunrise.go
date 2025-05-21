@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/postman"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
@@ -26,6 +26,7 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 	"go.rtnl.ai/ulid"
+	"go.rtnl.ai/x/vero"
 )
 
 //===========================================================================
@@ -90,7 +91,6 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		in    *api.URLVerification
 		log   zerolog.Logger
 		model *models.Sunrise
-		token verification.VerificationToken
 	)
 
 	in = &api.URLVerification{}
@@ -111,10 +111,8 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 		return
 	}
 
-	token = in.VerificationToken()
-
 	// Get the sunrise record from the database
-	if model, err = s.store.RetrieveSunrise(ctx, token.RecordID()); err != nil {
+	if model, err = s.store.RetrieveSunrise(ctx, in.RecordULID()); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			s.SunriseMissing(c)
 			return
@@ -126,26 +124,82 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	}
 
 	// Check that the token is valid
-	if secure, err := model.Signature.Verify(token); err != nil || !secure {
+	if secure, err := model.Signature.Verify(in.VerificationToken()); err != nil || !secure {
 		// If the token is not secure or verifiable, return a 404 but be freaked out
 		log.Warn().Err(err).Bool("secure", secure).Msg("a sunrise verification request was made to an existing message but hmac verification failed")
 		s.SunriseMissing(c)
 		return
 	}
 
+	// Handle expired tokens and stop processing.
 	if model.IsExpired() {
-		// The token is expired and has not yet been completed.
-		// TODO: resend a new verification token
-		log.Debug().Msg("received a request with an expired verification token")
-		c.JSON(http.StatusGone, api.Error("verification token has expired"))
+		// The token is expired so send a new token to the user specified.
+		model.Expiration = time.Now().Add(postman.DefaultSunriseExpiration)
+
+		// Create the HMAC verification token for the contact
+		var verification *vero.Token
+		if verification, err = vero.New(model.ID[:], model.Expiration); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunrise)
+			return
+		}
+
+		invite := emails.SunriseInviteData{
+			ComplianceName:  s.GetComplianceName(),
+			BaseURL:         s.conf.Sunrise.InviteURL(),
+			SupportEmail:    s.conf.Email.SupportEmail,
+			ComplianceEmail: s.conf.Email.ComplianceEmail,
+		}
+
+		// Sign the verification token
+		if invite.Token, model.Signature, err = verification.Sign(); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunrise)
+			return
+		}
+
+		// Send the email to the contact
+		var email *emails.Email
+		if email, err = emails.NewSunriseInvite(model.Email, invite); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunrise)
+			return
+		}
+
+		if err = email.Send(); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunrise)
+			return
+		}
+
+		// Update the sunrise record in the database with the token and sent on timestamp
+		model.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
+		if err = s.store.UpdateSunrise(c.Request.Context(), model); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunrise)
+			return
+		}
+
+		log.Debug().Str("sunriseID", model.ID.String()).Msg("sent a new sunrise verification token to replace an expired one")
+		c.HTML(http.StatusGone, "sunrise/verify/expired.html", scene.New(c).WithEmail("Support", s.conf.Email.SupportEmail).WithEmail("Compliance", s.conf.Email.ComplianceEmail))
 		return
 	}
 
-	// If an OTP is not required, set the validation cookie and redirect the user to
-	// the sunrise message preview.
+	// Continue workflow if sunrise token is valid and not expired
+
+	// If an OTP is not required, set the validation cookie, mark the sunrise token as
+	// verified and redirect the user to the sunrise message preview.
 	if !s.conf.Sunrise.RequireOTP {
 		if err = s.SetSunriseAuthCookies(c, model); err != nil {
 			s.SunriseError(c, err)
+			return
+		}
+
+		// Mark the sunrise record as verified (similar to last accessed)
+		model.VerifiedOn = sql.NullTime{Time: time.Now(), Valid: true}
+		if err = s.store.UpdateSunrise(ctx, model); err != nil {
+			c.Error(err)
+			s.SunriseError(c, ErrSunriseRetrieve)
 			return
 		}
 
@@ -156,6 +210,7 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 	// TODO: send one time code to the user's email address
 
 	// Render the OTP form
+	// NOTE: the token will be marked verified in the OTP form handler
 	c.HTML(http.StatusOK, "sunrise/verify/verify.html", scene.New(c))
 }
 

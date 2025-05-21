@@ -19,6 +19,7 @@ var (
 	ErrNoPublicKey          = errors.New("no public key associated with secure envelope")
 	ErrSunriseSubject       = errors.New("invalid subject type for sunrise review")
 	ErrSunriseRetrieve      = errors.New("could not retrieve sunrise record")
+	ErrSunrise              = errors.New("could not complete sunrise request")
 	ErrMissingID            = errors.New("id required for this resource")
 	ErrIDMismatch           = errors.New("resource id does not match target")
 	ErrNotFound             = errors.New("resource not found")

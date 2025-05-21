@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.rtnl.ai/x/vero"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -19,7 +19,7 @@ import (
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
-const defaultSunriseExpiration = 14 * 24 * time.Hour
+const DefaultSunriseExpiration = 14 * 24 * time.Hour
 
 type SunrisePacket struct {
 	Packet
@@ -142,7 +142,7 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 	record := &models.Sunrise{
 		EnvelopeID: uuid.MustParse(s.EnvelopeID()),
 		Email:      contact.Email,
-		Expiration: time.Now().Add(defaultSunriseExpiration),
+		Expiration: time.Now().Add(DefaultSunriseExpiration),
 		Status:     enum.StatusDraft,
 	}
 
@@ -152,7 +152,10 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 	}
 
 	// Create the HMAC verification token for the contact
-	verification := verification.NewToken(record.ID, record.Expiration)
+	var verification *vero.Token
+	if verification, err = vero.New(record.ID[:], record.Expiration); err != nil {
+		return err
+	}
 
 	// Sign the verification token
 	if invite.Token, record.Signature, err = verification.Sign(); err != nil {

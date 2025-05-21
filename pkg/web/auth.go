@@ -14,7 +14,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/envoy/pkg/verification"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
@@ -24,6 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go.rtnl.ai/ulid"
+	"go.rtnl.ai/x/vero"
 )
 
 func (s *Server) Login(c *gin.Context) {
@@ -491,7 +491,6 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		derivedKey string
 		err        error
 		in         *api.ResetPasswordChangeRequest
-		token      verification.VerificationToken
 		link       *models.ResetPasswordLink
 	)
 
@@ -526,11 +525,8 @@ func (s *Server) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// Get the verification token from the token string
-	token = in.URLVerification.VerificationToken()
-
 	// Verify the ResetPasswordLink token
-	if link, err = s.verifyResetPasswordLinkToken(c.Request.Context(), token); err != nil {
+	if link, err = s.verifyResetPasswordLinkToken(c.Request.Context(), &in.URLVerification); err != nil {
 		switch {
 		case errors.Is(err, dberr.ErrNotFound), errors.Is(err, ErrExpiredToken):
 			// If the link is not found or expired, the user needs to try to reset their password again
@@ -617,7 +613,10 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 	}
 
 	// Create the HMAC verification token for the ResetPasswordLink
-	verification := verification.NewToken(record.ID, record.Expiration)
+	var verification *vero.Token
+	if verification, err = vero.New(record.ID[:], record.Expiration); err != nil {
+		return err
+	}
 
 	// Sign the verification token
 	if emailData.Token, record.Signature, err = verification.Sign(); err != nil {
@@ -650,18 +649,18 @@ func (s *Server) sendResetPasswordEmail(ctx context.Context, emailAddr string) (
 }
 
 // Verifies a ResetPasswordLink token and returns the ResetPasswordLink object.
-func (s *Server) verifyResetPasswordLinkToken(ctx context.Context, token verification.VerificationToken) (link *models.ResetPasswordLink, err error) {
+func (s *Server) verifyResetPasswordLinkToken(ctx context.Context, token *api.URLVerification) (link *models.ResetPasswordLink, err error) {
 	// Prepare context and logging
 	log := logger.Tracing(ctx)
 
 	// Get the ResetPasswordLink record from the database
-	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordID()); err != nil {
-		log.Debug().Err(err).Str("link_id", token.RecordID().String()).Msg("could not retrieve reset password link record")
+	if link, err = s.store.RetrieveResetPasswordLink(ctx, token.RecordULID()); err != nil {
+		log.Debug().Err(err).Str("link_id", token.RecordULID().String()).Msg("could not retrieve reset password link record")
 		return nil, err
 	}
 
 	// Check that the token is valid
-	if secure, err := link.Signature.Verify(token); err != nil || !secure {
+	if secure, err := link.Signature.Verify(token.VerificationToken()); err != nil || !secure {
 		// If the token is not secure or verifiable, be freaked out and warn admins
 		log.Warn().Err(err).Str("link_id", link.ID.String()).Bool("secure", secure).Msg("a reset password request hmac verification failed")
 		return nil, ErrNotAllowed
