@@ -10,7 +10,7 @@ import (
 	"github.com/rotationalio/confire"
 	"github.com/stretchr/testify/require"
 	. "github.com/trisacrypto/envoy/pkg/emails"
-	"github.com/trisacrypto/envoy/pkg/verification"
+	"go.rtnl.ai/x/vero"
 )
 
 func TestLiveEmails(t *testing.T) {
@@ -38,7 +38,7 @@ func TestLiveEmails(t *testing.T) {
 			OriginatorName:  "Alice Duncan",
 			BeneficiaryName: "Benedict Smith",
 			BaseURL:         &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/sunrise/verify"},
-			Token:           verification.VerificationToken("abc123"),
+			Token:           vero.VerificationToken("abc123"),
 			SupportEmail:    "support@example.com",
 			ComplianceEmail: "compliance@example.com",
 		}
@@ -68,7 +68,7 @@ func TestLiveEmails(t *testing.T) {
 		data := ResetPasswordEmailData{
 			ContactName:  "Forgetful User",
 			BaseURL:      &url.URL{Scheme: "http", Host: "envoy.local:8000", Path: "/reset-password"},
-			Token:        verification.VerificationToken("abc123"),
+			Token:        vero.VerificationToken("abc123"),
 			SupportEmail: "support@example.com",
 		}
 

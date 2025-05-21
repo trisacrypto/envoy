@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/store/errors"
-	"github.com/trisacrypto/envoy/pkg/verification"
 	"go.rtnl.ai/ulid"
+	"go.rtnl.ai/x/vero"
 )
 
 type User struct {
@@ -220,11 +220,11 @@ func (p *Permission) Params() []any {
 
 type ResetPasswordLink struct {
 	Model
-	UserID     ulid.ULID                 // A foreign key reference to the user's account
-	Email      string                    // Email address of recipient the token was sent to
-	Expiration time.Time                 // The timestamp that the sunrise verification token is no longer valid
-	Signature  *verification.SignedToken // The signed token produced by the sunrise package for verification purposes
-	SentOn     sql.NullTime              // The timestamp that the email message was sent
+	UserID     ulid.ULID         // A foreign key reference to the user's account
+	Email      string            // Email address of recipient the token was sent to
+	Expiration time.Time         // The timestamp that the sunrise verification token is no longer valid
+	Signature  *vero.SignedToken // The signed token produced by the sunrise package for verification purposes
+	SentOn     sql.NullTime      // The timestamp that the email message was sent
 }
 
 // Scans a complete SELECT into the ResetPasswordLink model

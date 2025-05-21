@@ -1,0 +1,50 @@
+{{ template "page.html" . }}
+{{ define "title" }}Sunrise Verification | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Sunrise{{ end }}
+{{ define "pagetitle" }}Verification Token Expired{{ end }}
+
+{{ define "main"  }}
+<div class="card">
+  {{ if .Organization}}
+  <h2 class="card-header my-0 py-0">{{ .Organization }} Secure Travel Rule Data Portal</h2>
+  {{ else }}
+  <h2 class="card-header my-0 py-0">TRISA Envoy Secure Travel Rule Data Portal</h2>
+  {{ end }}
+  <div class="card-body">
+    <p>
+      This verification token has expired. <strong class="text-danger">A new token has been sent to the email address
+      that this travel rule message was originally sent to.</strong> Please delete the original
+      email and use the new token to access this travel rule message. You may close
+      this window and restart your session via the new email address link.
+    </p>
+    <p class="text-secondary mb-0">
+      Because of the private information contained in a travel rule transfer, we take security
+      very seriously. Envoy stores all information in an encrypted format that can only
+      be accessed by the intended counterparty. The verification token you received expires
+      after 14 days and can only be accessed by the intended recipient. If the message has
+      been deleted or revoked, a new token will not be emailed to you.
+    </p>
+
+    <!-- Button -->
+    {{ if or .ComplianceEmail .SupportEmail}}
+    <div class="mt-4">
+      {{ if .ComplianceEmail }}
+      <a href="mailto:{{ .ComplianceEmail }}" class="btn btn-sm btn-primary mt-2">
+        Email {{ .Compliance }}
+      </a>
+      {{ end }}
+
+      {{ if .SupportEmail }}
+      <a href="mailto:{{ .SupportEmail }}" class="btn btn-sm btn-warning mt-2">
+        Email {{ .Support }}
+      </a>
+      {{ end }}
+    <div>
+    {{ end }}
+
+  </div>
+</div>
+{{ end }}
+
+{{ define "appcode" }}
+{{ end }}

@@ -3,7 +3,7 @@ package emails
 import (
 	"net/url"
 
-	"github.com/trisacrypto/envoy/pkg/verification"
+	"go.rtnl.ai/x/vero"
 )
 
 //===========================================================================
@@ -26,7 +26,7 @@ type SunriseInviteData struct {
 	OriginatorName  string
 	BeneficiaryName string
 	BaseURL         *url.URL
-	Token           verification.VerificationToken
+	Token           vero.VerificationToken
 	SupportEmail    string
 	ComplianceEmail string
 }
@@ -78,10 +78,10 @@ func NewResetPasswordEmail(recipient string, data ResetPasswordEmailData) (*Emai
 
 // ResetPasswordEmailData is used to complete the reset_password template.
 type ResetPasswordEmailData struct {
-	ContactName  string                         // the user's name, if available
-	BaseURL      *url.URL                       // the Envoy node's url
-	Token        verification.VerificationToken // verification token for reset password link record
-	SupportEmail string                         // the Envoy node's support email address
+	ContactName  string                 // the user's name, if available
+	BaseURL      *url.URL               // the Envoy node's url
+	Token        vero.VerificationToken // verification token for reset password link record
+	SupportEmail string                 // the Envoy node's support email address
 }
 
 func (s ResetPasswordEmailData) VerifyURL() string {
