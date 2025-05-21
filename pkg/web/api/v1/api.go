@@ -152,6 +152,11 @@ type PageQuery struct {
 	PrevPageToken string `json:"prev_page_token,omitempty" url:"prev_page_token,omitempty" form:"prev_page_token"`
 }
 
+// RoutingQuery manages the counterparty information in a send form URL
+type RoutingQuery struct {
+	CounterpartyID string `json:"cid,omitempty" url:"cid,omitempty" form:"cid"`
+}
+
 // SearchQuery manages fuzzy string searches.
 type SearchQuery struct {
 	Query string `json:"query,omitempty" url:"query,omitempty" form:"query"`
