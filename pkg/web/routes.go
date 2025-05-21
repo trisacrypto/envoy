@@ -140,10 +140,7 @@ func (s *Server) setupRoutes() (err error) {
 		send := ui.Group("/send", authorize(permiss.TravelRuleManage))
 		{
 			send.GET("", s.AvailableProtocols)
-			send.GET("/trisa", s.SendTRISAForm)
-			send.GET("/trp", s.SendTRPForm)
-			// The send sunrise message page for authenticated envoy users.
-			send.GET("/sunrise", s.SendSunriseForm)
+			send.GET("/:protocol", s.SendForm)
 		}
 	}
 

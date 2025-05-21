@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
@@ -96,22 +97,43 @@ func (s *Server) AvailableProtocols(c *gin.Context) {
 	c.HTML(http.StatusOK, "pages/send/choose.html", ctx)
 }
 
-func (s *Server) SendTRISAForm(c *gin.Context) {
-	ctx := scene.New(c)
-	ctx["Protocol"] = "trisa"
-	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
-}
+func (s *Server) SendForm(c *gin.Context) {
+	var (
+		in       *api.RoutingQuery
+		err      error
+		protocol enum.Protocol
+		routing  *api.Routing
+	)
 
-func (s *Server) SendTRPForm(c *gin.Context) {
-	ctx := scene.New(c)
-	ctx["Protocol"] = "trp"
-	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
-}
+	if protocol, err = enum.ParseProtocol(c.Param("protocol")); err != nil {
+		s.NotFound(c)
+		return
+	}
 
-func (s *Server) SendSunriseForm(c *gin.Context) {
-	ctx := scene.New(c)
-	ctx["Protocol"] = "sunrise"
-	ctx["PageTitle"] = "Send a Sunrise Email"
+	in = &api.RoutingQuery{}
+	if err := c.BindQuery(in); err != nil {
+		// Log the error but don't inform user; the form just will not have a
+		// counterparty record pre-filled.
+		c.Error(err)
+	}
+
+	if routing, err = s.CounterpartyRouting(c.Request.Context(), in); err != nil {
+		// Log the error but don't inform user; the form just will not have a
+		// counterparty record pre-filled.
+		c.Error(err)
+	}
+
+	// If routing is nil, then we need to create an empty routing object otherwise
+	// the template will not render the counterparty form.
+	if routing == nil {
+		routing = &api.Routing{}
+	}
+
+	ctx := scene.New(c).With("Protocol", protocol.String()).With("Routing", routing)
+	if protocol == enum.ProtocolSunrise {
+		ctx["PageTitle"] = "Send a Sunrise Email"
+	}
+
 	c.HTML(http.StatusOK, "pages/send/send.html", ctx)
 }
 
