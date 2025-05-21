@@ -1,0 +1,32 @@
+{{ with .SecureEnvelope }}
+<section id="secureEnvelopePayload" data-envelope="{{ .ID }}">
+  <div class="mt-5 mb-3 border-bottom border-light">
+    <h2 class="mb-1">Secure Envelope Payload</h2>
+    <p>Envelope ID: <code>{{ .ID }}</code></p>
+  </div>
+
+  <div class="card">
+    <h3 class="card-header text-danger">Cannot Decrypt Payload</h3>
+    <div class="card-body">
+      <p>
+        Envoy was unable to decrypt the payload of this secure envelope in order to
+        display its contents. This may be due to one of the following reasons:
+      </p>
+      <ul>
+        <li>Envoy does not have the private key associated with the encrypted payload</li>
+        <li>The HMAC signature was not valid on the envelope</li>
+        <li>Payload tampering was detected using the HMAC signature</li>
+        <li>The counterparty did not use a known encryption algorithm</li>
+        <li>The envelope was secured using the recipient's public key</li>
+      </ul>
+      {{ if .PublicKeySignature }}
+      <p>
+        Associated Public Key Signature:
+        <span class="text-info font-monospace">{{ .PublicKeySignature }}</span>
+      </p>
+      {{ end }}
+    </div>
+  </div>
+
+</section>
+{{ end }}

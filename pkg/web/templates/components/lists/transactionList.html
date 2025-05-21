@@ -2,7 +2,7 @@
 <dl class="row">
   {{- if .Txid }}
   <dt class="text-secondary"><small>Tx ID</small></dt>
-  <dd><code>{{ .Txid }}</code></dd>
+  <dd class="font-monospace fs-5">{{ .Txid }}</dd>
   {{- end }}
 
   {{- if .Timestamp }}
@@ -11,10 +11,10 @@
   {{- end }}
 
   <dt class="text-secondary"><small>Originator Wallet</small></dt>
-  <dd><code>{{ .Originator }}</code></dd>
+  <dd class="font-monospace fs-5">{{ .Originator }}</dd>
 
   <dt class="text-secondary"><small>Beneficiary Wallet</small></dt>
-  <dd><code>{{ .Beneficiary }}</code></dd>
+  <dd class="font-monospace fs-5">{{ .Beneficiary }}</dd>
 
   <dt class="text-secondary"><small>Amount</small></dt>
   <dd>{{ .Amount }}</dd>

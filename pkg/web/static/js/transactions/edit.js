@@ -6,6 +6,7 @@ import Alerts from '../modules/alerts.js';
 import { selectNetwork } from '../modules/networks.js';
 import { selectCountry } from '../modules/countries.js';
 import { createFlatpickr } from '../modules/components.js';
+import { isRequestMethod } from '../htmx/helpers.js';
 import { selectAddressType, selectNationalIdentifierType, Envelope } from '../modules/ivms101.js';
 
 
@@ -82,17 +83,22 @@ document.body.addEventListener("htmx:afterSettle", function(e) {
 Configure requests made by htmx before they are sent.
 */
 document.body.addEventListener('htmx:configRequest', function(e) {
-  // Prepare the outgoing data as a nested JSON payload.
-  const envelope = new Envelope(e.target);
 
-  // Convert to a flattened form data object for htmx.
-  e.detail.parameters = new FormData();
-  for (const [key, value] of envelope.entries()) {
-    if (typeof value === "object") {
-      e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
-    } else {
-      e.detail.parameters.append(key, value);
+  if (isRequestMethod(e, "post")) {
+    // Prepare the outgoing data as a nested JSON payload.
+    const envelope = new Envelope(e.target);
+
+    // Convert to a flattened form data object for htmx.
+    e.detail.parameters = new FormData();
+    for (const [key, value] of envelope.entries()) {
+      if (typeof value === "object") {
+        e.detail.parameters.append(`json:${key}`, JSON.stringify(value));
+      } else {
+        e.detail.parameters.append(key, value);
+      }
     }
+
+    return;
   }
 
 });
@@ -105,9 +111,13 @@ document.body.addEventListener("htmx:responseError", (e) => {
   var error;
   try {
     error = JSON.parse(e.detail.xhr.response);
-    console.error(e.detail.requestConfig.path, error.error);
   } catch (e) {
-    console.error(e.detail.requestConfig.path, e);
+    if (e.detail && e.detail.requestConfig && e.detail.requestConfig.path) {
+      console.error(e.detail.requestConfig.path, e);
+    } else {
+      console.error("could not parse JSON response", e);
+    }
+
     error = {
       error: "an unknown error occurred"
     }

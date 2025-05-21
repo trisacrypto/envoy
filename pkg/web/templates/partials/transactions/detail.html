@@ -29,7 +29,7 @@
   <div class="card-header">
     <div class="row">
       <div class="col">
-        <h4 class="card-title">Transfer ID: <span class="text-muted font-monospace ms-1">{{ .ID }}</span></h4>
+        <h4 class="card-title mb-0">Transfer ID: <span class="text-secondary font-monospace ms-1">{{ .ID }}</span></h4>
       </div>
       <div class="col-auto">
         {{- if eq .Source "remote" }}
@@ -55,9 +55,9 @@
         <h3>Transfer Details</h3>
         <dl class="row">
           <dt class="col-4">Originator</dt>
-          <dd class="col-8">{{ .Originator }}<br /><small class="text-muted">{{ .OriginatorAddress }}</small></dd>
+          <dd class="col-8">{{ .Originator }}<br /><small class="text-secondary font-monospace">{{ .OriginatorAddress }}</small></dd>
           <dt class="col-4">Beneficiary</dt>
-          <dd class="col-8">{{ .Beneficiary }}<br /><small class="text-muted">{{ .BeneficiaryAddress }}</small></dd>
+          <dd class="col-8">{{ .Beneficiary }}<br /><small class="text-secondary font-monospace">{{ .BeneficiaryAddress }}</small></dd>
           <dt class="col-4">Counterparty</dt>
           <dd class="col-8"><a href="/counterparties/{{ .CounterpartyID }}">{{ .Counterparty }}</a></dd>
           <dt class="col-4">Amount</dt>
