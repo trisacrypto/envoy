@@ -1,20 +1,91 @@
+<div class="card mb-5">
+  <div class="card-header">
+    <h4 class="card-header-title">All Secure Envelopes</h4>
+  </div>
+
 {{ with .EnvelopeList }}
-{{- if .SecureEnvelopes }}
-  <ul>
-  {{- range .SecureEnvelopes }}
-    <li class="font-monospace">
-      <a href="#" hx-get="/v1/transactions/{{ .EnvelopeID }}/secure-envelopes/{{ .ID }}?decrypt=true"
-         hx-target="#secureEnvelopePayload" hx-swap="outerHTML" hx-trigger="click"
-      >
-        {{ .ID }}
-      </a>
-    </li>
-  {{- end }}
-  </ul>
-{{- end }}
+<div id="secureEnvelopes" class="table-responsive mb-0">
+  <table id="secureEnvelopeList" class="table table-sm table-nowrap table-hover card-table">
+    <thead>
+      <tr>
+        <th>Envoy UUID</th>
+        <th>Direction</th>
+        <th class="text-center">Contents</th>
+        <th>State</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody class="list fs-base">
 
-{{- if .DecryptedEnvelopes }}
-<!-- No decrypted envelope templates yet. -->
-{{ end }}
+    {{- if .SecureEnvelopes }}
+    {{- range .SecureEnvelopes }}
+      <tr>
+        <td class="font-monospace">
+          <a href="#" hx-get="/v1/transactions/{{ .EnvelopeID }}/secure-envelopes/{{ .ID }}?decrypt=true"
+            hx-target="#secureEnvelopePayload" hx-swap="outerHTML" hx-trigger="click"
+          >
+            <i class="fe fe-eye"></i> {{ .ID }}
+          </a>
+        </td>
+        <td>
+          {{- if eq .Direction "in" }}
+          <i class="fe fe-download has-tooltip" title="Incoming message received from counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          Received
+          {{- else if eq .Direction "out" }}
+          <i class="fe fe-upload has-tooltip" title="Outgoing message sent to counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          Sent
+          {{- else }}
+          {{ titlecase .Direction }}
+          {{- end -}}
+        </td>
+        <td class="text-center">
+          {{- if .IsError }}
+          <strong><i class="fe fe-alert-triangle text-danger has-tooltip" title="Contains travel rule workflow error message." data-bs-toggle="tooltip" data-bs-placement="right"></i></strong>
+          {{- else }}
+          {{- if .Sealed }}
+          <strong><i class="fe fe-lock text-dark has-tooltip" title="Payload encrypted by sending party." data-bs-toggle="tooltip" data-bs-placement="right"></i></strong>
+          {{- end }}
+          {{- if .ValidHMAC }}
+          <strong><i class="fe fe-circle-check text-success has-tooltip" title="HMAC signature validated against encrypted payload." data-bs-toggle="tooltip" data-bs-placement="right"></i></strong>
+          {{- end }}
+          {{- end -}}
+        </td>
+        <td>{{ titlecase .TransferState }}</td>
+        <td>{{ .Timestamp.Format "Jan 2, 2006 at 15:04" }}</td>
+      </tr>
+    {{- end }}
+    {{- end }}{{/* end .SecureEnvelopes */}}
 
-{{- end }}
+    {{- if .DecryptedEnvelopes }}
+    {{- range .DecryptedEnvelopes }}
+      <tr>
+        <td class="font-monospace">
+          <a href="#" hx-get="/v1/transactions/{{ .EnvelopeID }}/secure-envelopes/{{ .ID }}?decrypt=true"
+            hx-target="#secureEnvelopePayload" hx-swap="outerHTML" hx-trigger="click"
+          >
+            <i class="fe fe-eye"></i> {{ .ID }}
+          </a>
+        </td>
+        <td>
+          {{- if eq .Direction "in" }}
+          <i class="fe fe-download has-tooltip" title="Incoming message received from counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          Received
+          {{- else if eq .Direction "out" }}
+          <i class="fe fe-upload has-tooltip" title="Outgoing message sent to counterparty" data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          Sent
+          {{- else }}
+          {{ titlecase .Direction }}
+          {{- end -}}
+        </td>
+        <td>{{ .IsError }}</td>
+        <td>{{ titlecase .TransferState }}</td>
+        <td>{{ .Timestamp.Format "Jan 2, 2006 at 15:04" }}</td>
+      </tr>
+    {{- end }}
+    {{- end }}{{/* end .DecryptedEnvelopes */}}
+
+    </tbody>
+  </table>
+</div>
+{{- end }}{{/* end with .EnvelopeList */}}
+</div>
