@@ -1,0 +1,109 @@
+{{ with .Envelope }}
+<section id="secureEnvelopePayload" data-envelope="{{ .ID }}">
+  <div class="mt-5 mb-3 border-bottom border-light">
+    <h2 class="mb-1">Decrypted Secure Envelope Payload</h2>
+    <p>Envelope ID: <code>{{ .ID }}</code></p>
+  </div>
+
+  <div id="envelopeCardTiles" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
+  {{ if .Error }}
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Rejection Information</h3>
+          <dl class="row">
+            <dt class="text-secondary"><small>Error Code</small></dt>
+            <dd class="text-danger"><strong>{{ titlecase .Error.Code.String }}</strong></dd>
+            <dt class="text-secondary"><small>Error Message</small></dt>
+            <dd class="">{{ .Error.Message }}</dd>
+            <dt class="text-secondary"><small>Timestamp</small></dt>
+            <dd class="">{{ .Timestamp }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  {{ else }}
+    <!-- Transaction Information Card -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Transaction Information</h3>
+          {{ template "transactionList" .Transaction }}
+        </div>
+      </div>
+    </div>
+
+
+    {{- with .Identity }}
+    <!-- Originator Card(s) -->
+    {{- range .Originator }}
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Originating Account</h3>
+          {{- if .Person }}
+          {{ template "personList" .Person }}
+          {{- else if .Company }}
+          {{ template "companyList" .Company }}
+          {{- end }}
+        </div>
+      </div>
+    </div>
+    {{- end }}
+
+    <!-- Beneficiary Card(s) -->
+    {{- range .Beneficiary }}
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Beneficiary Account</h3>
+          {{- if .Person }}
+          {{ template "personList" .Person }}
+          {{- else if .Company }}
+          {{ template "companyList" .Company }}
+          {{- end }}
+        </div>
+      </div>
+    </div>
+    {{- end }}
+
+    <!-- Originating VASP Card -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Originating VASP</h3>
+          {{- with .OriginatorVASP }}
+          {{ template "companyList" . }}
+          {{- end }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiary VASP Card -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Beneficiary VASP</h3>
+
+          {{- with .BeneficiaryVASP }}
+          {{ template "companyList" . }}
+          {{- end }}
+        </div>
+      </div>
+    </div>
+    {{ end }}{{/* end with .Identity */}}
+  {{ end }}{{/* end if .Error */}}
+
+    <!-- Secure Envelope Card -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="card-title">Secure Envelope</h3>
+          {{ template "envelopeList" . }}
+        </div>
+      </div>
+    </div>
+  </div><!-- end envelopeCardTiles -->
+
+</section>
+{{ end }}

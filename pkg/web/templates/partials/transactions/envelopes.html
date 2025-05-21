@@ -1,12 +1,14 @@
 {{ with .EnvelopeList }}
-<div class="mb-3 border-bottom border-light">
-    <h2>Secure Envelopes</h2>
-</div>
-
 {{- if .SecureEnvelopes }}
   <ul>
   {{- range .SecureEnvelopes }}
-    <li class="font-monospace">{{ .ID }}</li>
+    <li class="font-monospace">
+      <a href="#" hx-get="/v1/transactions/{{ .EnvelopeID }}/secure-envelopes/{{ .ID }}?decrypt=true"
+         hx-target="#secureEnvelopePayload" hx-swap="outerHTML" hx-trigger="click"
+      >
+        {{ .ID }}
+      </a>
+    </li>
   {{- end }}
   </ul>
 {{- end }}

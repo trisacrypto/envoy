@@ -229,6 +229,7 @@ func (s *Server) setupRoutes() (err error) {
 
 			// Transaction specific actions
 			transactions.POST("/:id/send", authorize(permiss.TravelRuleManage), s.SendEnvelopeForTransaction)
+			transactions.GET("/:id/latest", authorize(permiss.TravelRuleView), s.LatestEnvelope)
 			transactions.GET("/:id/payload", authorize(permiss.TravelRuleView), s.LatestPayloadEnvelope)
 			transactions.GET("/:id/accept", authorize(permiss.TravelRuleView), s.AcceptTransactionPreview)
 			transactions.POST("/:id/accept", authorize(permiss.TravelRuleManage), s.AcceptTransaction)

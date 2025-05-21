@@ -427,6 +427,72 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+func (s *Server) LatestEnvelope(c *gin.Context) {
+	var (
+		err           error
+		in            *api.EnvelopeQuery
+		transactionID uuid.UUID
+		env           *models.SecureEnvelope
+		decrypted     *envelope.Envelope
+		out           *api.Envelope
+	)
+
+	// Parse the transactionID passed in from the URL
+	if transactionID, err = uuid.Parse(c.Param("id")); err != nil {
+		c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+		return
+	}
+
+	// Retrieve the query parameters from the request
+	in = &api.EnvelopeQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse query parameters"))
+		return
+	}
+
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, api.Error(err))
+		return
+	}
+
+	// Should be no error after validation.
+	direction, _ := enum.ParseDirection(in.Direction)
+
+	// Retrieve the latest secure envelope with a payload for the transaction from the database
+	ctx := c.Request.Context()
+	if env, err = s.store.LatestSecureEnvelope(ctx, transactionID, direction); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	// Decrypt the secure envelope using the private keys in the key store
+	if decrypted, err = s.Decrypt(env); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+		return
+	}
+
+	if out, err = api.NewEnvelope(env, decrypted); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "partials/transactions/payload.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+	})
+}
+
 func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 	var (
 		err           error
@@ -488,7 +554,8 @@ func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "transaction_payload.html",
+		HTMLName: "partials/transactions/payload.html",
+		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
 
@@ -1590,7 +1657,8 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 	c.Negotiate(code, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "secure_envelope_detail.html",
+		HTMLName: "partials/transactions/envelope.html",
+		HTMLData: scene.New(c).WithAPIData(out).With("Decrypted", in.Decrypt),
 	})
 }
 
