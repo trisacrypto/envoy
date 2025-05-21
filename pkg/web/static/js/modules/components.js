@@ -174,6 +174,7 @@ export function createPageSizeSelect(elem, list) {
 
 // Initializes a search select for TRISA VASPs, fetching the options from the backend.
 export function selectTRISACounterparty(elem) {
+  const selected = elem.dataset.selected;
   const elementOptions = elem.dataset.counterpartyLookup ? JSON.parse(elem.dataset.counterpartyLookup) : {};
   const options = {
     ...elementOptions,
@@ -196,7 +197,7 @@ export function selectTRISACounterparty(elem) {
       .then(response => response.json())
       .then(data => {
         return data.counterparties.map(counterparty => {
-          return { label: counterparty.name, value: counterparty.id };
+          return { label: counterparty.name, value: counterparty.id, selected: counterparty.id === selected };
         });
       });
   });

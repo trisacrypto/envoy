@@ -1,7 +1,7 @@
 {{- $canEditCounterparties := not .IsViewOnly -}}
 {{- with .CounterpartyList -}}
 {{ if .Counterparties }}
-<div class="card" id="counterpartyList" data-list='{"valueNames": ["item-name", "item-website", "item-country", "item-protocol", "item-date-added"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+<div class="card" id="counterpartyList" data-list='{"valueNames": ["item-name", "item-website", "item-country", "item-protocol", "item-travel-address", "item-date-added"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
@@ -47,6 +47,9 @@
           <th>
             <a class="list-sort text-muted" data-sort="item-protocol" href="#">Protocol</a>
           </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-travel-address" href="#">Travel Address</a>
+          </th>
           <th colspan="2">
             <a class="list-sort text-muted" data-sort="item-date-added" href="#">Added</a>
           </th>
@@ -57,8 +60,9 @@
         <tr>
           <td><span class="item-name">{{ .Name }}</span></td>
           <td><a href="{{ .Website }}" target="_blank"><span class="item-website">{{ .Website }}</span></a></td>
-          <td class="text-center"><span class="item-country">{{ .Country }}</span></td>
+          <td class="text-center">{{ if .Country }}{{ flag .Country }} <span class="item-country">{{ .Country }}</span>{{ else }}<span class="item-country">&mdash;</span>{{ end }}</td>
           <td><span class="item-protocol">{{ .Protocol }}</span></td>
+          <td class="text-truncate font-monospace" style="max-width: 256px"><span class="item-travel-address">{{ if eq .Protocol "sunrise" }}{{ .Endpoint }}{{ else }}{{ .TravelAddress }}{{ end }}</span></td>
           <td>
             {{- if and .VerifiedOn (not .VerifiedOn.IsZero) }}
             <span class="item-date-added d-none">{{ rfc3339 .VerifiedOn }}</span>
@@ -74,9 +78,20 @@
               <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fe fe-more-vertical"></i>
               </a>
+
+              <div class="dropdown-menu dropdown-menu-end">
+                {{ if .Protocol }}
+                <a href="/send/{{ .Protocol }}?cid={{ .ID }}" class="dropdown-item">
+                  Send {{ if eq .Protocol "sunrise" }}Sunrise{{ else }}{{ uppercase .Protocol }}{{ end }} Transfer
+                </a>
+                {{ else }}
+                <a href="/send" class="dropdown-item">
+                  Send Transfer
+                </a>
+                {{ end }}
+
               <!-- TODO: Add this functionality -->
               <!--
-              <div class="dropdown-menu dropdown-menu-end">
                 <a href="#!" class="dropdown-item">
                   View
                 </a>

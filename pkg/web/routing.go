@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -12,7 +13,49 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
+	"go.rtnl.ai/ulid"
 )
+
+func (s *Server) CounterpartyRouting(ctx context.Context, in *api.RoutingQuery) (routing *api.Routing, err error) {
+	var (
+		counterpartyID ulid.ULID
+		counterparty   *models.Counterparty
+	)
+
+	// No counterparty routing requested in query URL
+	if in.CounterpartyID == "" {
+		return nil, nil
+	}
+
+	if counterpartyID, err = ulid.Parse(in.CounterpartyID); err != nil {
+		return nil, fmt.Errorf("could not parse counterparty ID %q: %w", in.CounterpartyID, err)
+	}
+
+	if counterparty, err = s.store.RetrieveCounterparty(ctx, counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			return nil, fmt.Errorf("could not find counterparty %q: %w", counterpartyID, err)
+		}
+		return nil, fmt.Errorf("could not retrieve counterparty %q: %w", counterpartyID, err)
+	}
+
+	routing = &api.Routing{
+		Protocol: counterparty.Protocol.String(),
+	}
+
+	switch counterparty.Protocol {
+	case enum.ProtocolTRISA:
+		routing.CounterpartyID = counterparty.ID
+	case enum.ProtocolSunrise:
+		routing.Counterparty = counterparty.Name
+		routing.EmailAddress = strings.TrimPrefix(counterparty.Endpoint, "mailto:")
+	case enum.ProtocolTRP:
+		if routing.TravelAddress, err = api.EndpointTravelAddress(counterparty.Endpoint, counterparty.Protocol); err != nil {
+			return nil, err
+		}
+	}
+
+	return routing, nil
+}
 
 // Resolves a counterparty from the routing information and validates in the incoming
 // counterparty. If there is an error, this function will return the appropriate error
