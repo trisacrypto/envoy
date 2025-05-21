@@ -10,7 +10,7 @@
     "responseHandling":[
       {"code":"204", "swap": false},
       {"code":"[23]..", "swap": true},
-      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"[45]..", "swap": true, "error":true},
       {"code":"...", "swap": true}
     ]
   }'
@@ -53,7 +53,7 @@
   <h2>Message History (All Secure Envelopes)</h2>
 </div>
 
-<section id="secureEnvelopes" hx-get="/v1/transactions/{{ .ID }}/secure-envelopes" hx-trigger="load">
+<section class="mb-5" id="secureEnvelopes" hx-get="/v1/transactions/{{ .ID }}/secure-envelopes" hx-trigger="load">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

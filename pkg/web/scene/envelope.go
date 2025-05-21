@@ -38,6 +38,15 @@ func (s Scene) Rejection() *Rejection {
 	return nil
 }
 
+func (s Scene) SecureEnvelope() *api.SecureEnvelope {
+	if data, ok := s[APIData]; ok {
+		if env, ok := data.(*api.SecureEnvelope); ok {
+			return env
+		}
+	}
+	return nil
+}
+
 func (s Scene) Envelope() *Envelope {
 	if data, ok := s[APIData]; ok {
 		if env, ok := data.(*api.Envelope); ok {

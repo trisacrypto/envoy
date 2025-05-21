@@ -1,7 +1,7 @@
 {{ define "envelopeList" }}
 <dl class="row">
   <dt class="text-secondary"><small>Envelope ID</small></dt>
-  <dd><code>{{ .EnvelopeID }}</code></dd>
+  <dd class="font-monospace fs-5">{{ .EnvelopeID }}</dd>
 
   {{ if .IsError }}
   <dt class="text-secondary"><small>Error Status</small></dt>
@@ -24,16 +24,16 @@
 
   {{ if .PublicKeySignature }}
   <dt class="text-secondary"><small>Public Key Signature</small></dt>
-  <dd><code>{{ .PublicKeySignature }}</code></dd>
+  <dd class="font-monospace fs-5">{{ .PublicKeySignature }}</dd>
   {{ end }}
 
   {{ if and .SecureEnvelope .SecureEnvelope.HMAC }}
   <dt class="text-secondary"><small>{{ .SecureEnvelope.HMACAlgorithm }}</small></dt>
-  <dd><code>{{ base64 .SecureEnvelope.HMAC }}</code></dd>
+  <dd class="font-monospace fs-5">{{ base64 .SecureEnvelope.HMAC }}</dd>
   {{ end }}
 
   <dt class="text-secondary"><small>Transfer State</small></dt>
-  <dd>{{ titlecase .TransferState }}</dd>
+  <dd class="font-monospace text-info">{{ uppercase .TransferState }}</dd>
 
   <dt class="text-secondary"><small>Timestamp</small></dt>
   <dd>{{ rfc3339 .Timestamp }}</dd>

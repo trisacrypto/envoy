@@ -474,8 +474,22 @@ func (s *Server) LatestEnvelope(c *gin.Context) {
 
 	// Decrypt the secure envelope using the private keys in the key store
 	if decrypted, err = s.Decrypt(env); err != nil {
+		// If we are unable to decrypt the envelope return partial content status.
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+
+		var partial *api.SecureEnvelope
+		if partial, err = api.NewSecureEnvelope(env); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+
+		c.Negotiate(http.StatusPartialContent, gin.Negotiate{
+			Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+			Data:     partial,
+			HTMLName: "partials/transactions/undecrypted.html",
+			HTMLData: scene.New(c).WithAPIData(partial),
+		})
 		return
 	}
 
@@ -540,8 +554,22 @@ func (s *Server) LatestPayloadEnvelope(c *gin.Context) {
 
 	// Decrypt the secure envelope using the private keys in the key store
 	if decrypted, err = s.Decrypt(env); err != nil {
+		// If we are unable to decrypt the envelope return partial content status.
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("this payload cannot be decrypted"))
+
+		var partial *api.SecureEnvelope
+		if partial, err = api.NewSecureEnvelope(env); err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+
+		c.Negotiate(http.StatusPartialContent, gin.Negotiate{
+			Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+			Data:     partial,
+			HTMLName: "partials/transactions/undecrypted.html",
+			HTMLData: scene.New(c).WithAPIData(partial),
+		})
 		return
 	}
 
@@ -1631,13 +1659,25 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 	}
 
 	// TODO: handle archive queries
-	code := http.StatusOK
 	if in.Decrypt {
 		var env *envelope.Envelope
 		if env, err = s.Decrypt(model); err != nil {
 			// If we were unable to decrypt the envelope, use the partial content status
 			c.Error(err)
-			code = http.StatusPartialContent
+
+			if out, err = api.NewSecureEnvelope(model); err != nil {
+				c.Error(err)
+				c.JSON(http.StatusInternalServerError, api.Error(err))
+				return
+			}
+
+			c.Negotiate(http.StatusPartialContent, gin.Negotiate{
+				Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+				Data:     out,
+				HTMLName: "partials/transactions/undecrypted.html",
+				HTMLData: scene.New(c).WithAPIData(out),
+			})
+			return
 		}
 
 		if out, err = api.NewEnvelope(model, env); err != nil {
@@ -1654,7 +1694,7 @@ func (s *Server) SecureEnvelopeDetail(c *gin.Context) {
 		}
 	}
 
-	c.Negotiate(code, gin.Negotiate{
+	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
 		HTMLName: "partials/transactions/envelope.html",

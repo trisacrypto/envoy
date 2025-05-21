@@ -60,7 +60,7 @@ document.body.addEventListener("htmx:configRequest", function(e) {
 Post-event handling after htmx has settled the DOM.
 */
 document.addEventListener("htmx:afterSettle", function(e) {
-    if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}/, "get")) {
+    if (isRequestMatch(e, /^\/v1\/transactions\/[A-Fa-f0-9-]{36}$/, "get")) {
       // Initialize the status tooltips
       const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltips.forEach(tooltip => {
@@ -73,6 +73,13 @@ document.addEventListener("htmx:afterSettle", function(e) {
       // Initialize the alerts components
       rejectAlerts = new Alerts("#rejectAlerts");
       completeAlerts = new Alerts("#completeAlerts");
+      return;
+    }
+
+    if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/secure-envelopes\/[0-7][0-9A-HJKMNP-TV-Z]{25}/, "get")) {
+      const element = document.getElementById("secureEnvelopePayload");
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
     }
 });
 
@@ -93,14 +100,66 @@ document.body.addEventListener("transactions-updated", function(e) {
 Handle any htmx errors that are not swapped by the htmx config.
 */
 document.body.addEventListener("htmx:responseError", function(e) {
+  // Try to parse the error response.
+  var error;
+  try {
+    error = JSON.parse(e.detail.xhr.response);
+    error.statusCode = e.detail.xhr.status;
+  } catch (e) {
+    if (e.detail && e.detail.requestConfig && e.detail.requestConfig.path) {
+      console.error(e.detail.requestConfig.path, e);
+    } else {
+      console.error("could not parse JSON response", e);
+    }
+
+    error = {
+      error: "an unknown error occurred",
+      statusCode: e.detail.xhr.status
+    }
+  }
+
+  if (error.statusCode >= 500) {
+    window.location.href = "/error";
+    return;
+  }
+
   if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/reject/, "post")) {
-    const error = JSON.parse(e.detail.xhr.response);
-    rejectAlerts.danger("Error:", error.error);
+    switch (error.statusCode) {
+      case 400:
+        rejectAlerts.warning("Bad request", error.error);
+        break;
+      case 409:
+        rejectAlerts.danger("Conflict", error.error);
+        break;
+      case 422:
+        rejectAlerts.warning("Validation error", error.error);
+        break;
+      default:
+        throw new Error("Unhandled reject error code: " + error.statusCode + " - " + error.error);
+    }
+
+    // Make sure to exit so we don't rethrow the error.
     return;
   }
 
   if (isRequestMatch(e, /\/v1\/transactions\/[A-Fa-f0-9-]{36}\/complete/, "post")) {
-    const error = JSON.parse(e.detail.xhr.response);
-    completeAlerts.danger("Error:", error.error);
+    switch (error.statusCode) {
+      case 400:
+        completeAlerts.warning("Bad request", error.error);
+        break;
+      case 409:
+        completeAlerts.danger("Conflict", error.error);
+        break;
+      case 422:
+        completeAlerts.warning("Validation error", error.error);
+        break;
+      default:
+        throw new Error("Unhandled complete error code: " + error.statusCode + " - " + error.error);
+    }
+
+    // Make sure to exit so we don't rethrow the error.
+    return;
   }
+
+  throw new Error("Unhandled error code: " + error.statusCode + " - " + error.error);
 });
