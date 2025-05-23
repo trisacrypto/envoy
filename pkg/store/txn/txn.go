@@ -7,7 +7,6 @@ transaction interface as well.
 package txn
 
 import (
-	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -150,7 +149,7 @@ type ResetPasswordLinkTxn interface {
 // NOTE: this is not part of the Txn interface since it is not required for the
 // server to function but is useful for Daybreak-specific operations.
 type DaybreakTxn interface {
-	ListDaybreak(ctx context.Context) (map[string]*models.CounterpartySourceInfo, error)
+	ListDaybreak() (map[string]*models.CounterpartySourceInfo, error)
 	CreateDaybreak(counterparty *models.Counterparty) error
 	UpdateDaybreak(counterparty *models.Counterparty) error
 	DeleteDaybreak(counterpartyID ulid.ULID, ignoreTxns bool) error
