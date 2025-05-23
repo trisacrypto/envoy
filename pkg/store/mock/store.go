@@ -34,6 +34,10 @@ func Open(uri *dsn.DSN) (*Store, error) {
 		return nil, errors.ErrUnknownScheme
 	}
 
+	if uri == nil {
+		uri = &dsn.DSN{ReadOnly: false, Scheme: dsn.Mock}
+	}
+
 	return &Store{
 		callbacks: make(map[string]any),
 		calls:     make(map[string]int),
@@ -416,7 +420,10 @@ func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Sour
 	s.calls["ListCounterpartySourceInfo"]++
 	if fn, ok := s.callbacks["ListCounterpartySourceInfo"]; ok {
 		out, err := fn.(ListStoreFn)(ctx, source)
-		return out.([]*models.CounterpartySourceInfo), err
+		if err != nil {
+			return nil, err
+		}
+		return out.([]*models.CounterpartySourceInfo), nil
 	}
 	panic("ListCounterpartySourceInfo callback not set")
 }
