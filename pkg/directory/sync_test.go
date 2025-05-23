@@ -1,11 +1,14 @@
 package directory_test
 
 import (
+	"context"
+
 	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/directory"
 	"github.com/trisacrypto/envoy/pkg/enum"
-	"github.com/trisacrypto/envoy/pkg/store"
+	store "github.com/trisacrypto/envoy/pkg/store/mock"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 	mockgds "github.com/trisacrypto/envoy/pkg/trisa/gds/mock"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
@@ -48,11 +51,16 @@ func TestStartStop(t *testing.T) {
 	mock := dir.(*gds.MockGDS).GetMock()
 	mock.UseError(mockgds.ListRPC, codes.Unavailable, "service not available")
 
-	store, err := store.Open("mock:///mock")
+	db, err := store.Open(nil)
 	require.NoError(t, err, "could not open mock store")
 
+	// Right now the mock store simply returns the equivalent of an empty database.
+	db.On("ListCounterpartySourceInfo", store.ListStoreFn(func(context.Context, any) (any, error) {
+		return []*models.CounterpartySourceInfo{}, nil
+	}))
+
 	t.Run("Enabled", func(t *testing.T) {
-		sync, err := directory.New(conf.DirectorySync, network, store, nil)
+		sync, err := directory.New(conf.DirectorySync, network, db, nil)
 		require.NoError(t, err, "could not create directory")
 
 		require.ErrorIs(t, sync.Stop(), directory.ErrSyncNotRunning)
