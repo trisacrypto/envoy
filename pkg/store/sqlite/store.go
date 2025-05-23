@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/txn"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,6 +19,13 @@ type Store struct {
 	readonly bool
 	conn     *sql.DB
 	mkta     models.TravelAddressFactory
+}
+
+// Tx implements the store.Tx interface using SQLite3 as the storage backend.
+type Tx struct {
+	tx   *sql.Tx
+	opts *sql.TxOptions
+	mkta models.TravelAddressFactory
 }
 
 func Open(uri *dsn.DSN) (_ *Store, err error) {
@@ -67,7 +75,11 @@ func (s *Store) Close() error {
 	return s.conn.Close()
 }
 
-func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, err error) {
+func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error) {
+	return s.BeginTx(ctx, opts)
+}
+
+func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (_ *Tx, err error) {
 	// Ensure the options respect the read-only option specified by the user.
 	if opts == nil {
 		opts = &sql.TxOptions{ReadOnly: s.readonly}
@@ -75,8 +87,12 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (tx *sql.Tx, e
 		return nil, errors.ErrReadOnly
 	}
 
-	// Create a transaction with the specified context.
-	return s.conn.BeginTx(ctx, opts)
+	var tx *sql.Tx
+	if tx, err = s.conn.BeginTx(ctx, opts); err != nil {
+		return nil, err
+	}
+
+	return &Tx{tx: tx, opts: opts, mkta: s.mkta}, nil
 }
 
 func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
@@ -85,4 +101,28 @@ func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
 
 func (s *Store) Stats() sql.DBStats {
 	return s.conn.Stats()
+}
+
+//===========================================================================
+// Tx methods
+//===========================================================================
+
+func (t *Tx) Commit() error {
+	return t.tx.Commit()
+}
+
+func (t *Tx) Rollback() error {
+	return t.tx.Rollback()
+}
+
+func (t *Tx) Query(query string, args ...any) (*sql.Rows, error) {
+	return t.tx.Query(query, args...)
+}
+
+func (t *Tx) QueryRow(query string, args ...any) *sql.Row {
+	return t.tx.QueryRow(query, args...)
+}
+
+func (t *Tx) Exec(query string, args ...any) (sql.Result, error) {
+	return t.tx.Exec(query, args...)
 }

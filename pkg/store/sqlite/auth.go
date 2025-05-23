@@ -23,12 +23,23 @@ const (
 )
 
 func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (out *models.UserPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListUsers(page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) ListUsers(page *models.UserPageInfo) (out *models.UserPage, err error) {
 	// TODO: handle pagination
 	out = &models.UserPage{
 		Users: make([]*models.User, 0),
@@ -38,17 +49,17 @@ func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (out *
 	// Fetch roles to map onto user information
 	// Since there are less than 10 roles, it's easier to do this in memory than in db
 	var roles map[int64]*models.Role
-	if roles, err = s.fetchRoles(tx); err != nil {
+	if roles, err = t.fetchRoles(); err != nil {
 		return nil, err
 	}
 
 	var rows *sql.Rows
 	if page.Role != "" {
-		if rows, err = tx.Query(filterUsersSQL, sql.Named("role", page.Role)); err != nil {
+		if rows, err = t.tx.Query(filterUsersSQL, sql.Named("role", page.Role)); err != nil {
 			return nil, dbe(err)
 		}
 	} else {
-		if rows, err = tx.Query(listUsersSQL); err != nil {
+		if rows, err = t.tx.Query(listUsersSQL); err != nil {
 			return nil, dbe(err)
 		}
 	}
@@ -69,7 +80,6 @@ func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (out *
 		out.Users = append(out.Users, user)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -79,15 +89,23 @@ const (
 )
 
 func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
-	if !user.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
+
+	if err = tx.CreateUser(user); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) CreateUser(user *models.User) (err error) {
+	if !user.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
 
 	user.ID = ulid.MakeSecure()
 	user.Created = time.Now()
@@ -95,16 +113,16 @@ func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
 
 	// If no roleID is assigned, use the default role
 	if user.RoleID == 0 {
-		if err = tx.QueryRow(defaultRoleSQL).Scan(&user.RoleID); err != nil {
+		if err = t.tx.QueryRow(defaultRoleSQL).Scan(&user.RoleID); err != nil {
 			return err
 		}
 	}
 
-	if _, err = tx.Exec(createUserSQL, user.Params()...); err != nil {
+	if _, err = t.tx.Exec(createUserSQL, user.Params()...); err != nil {
 		return dbe(err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const (
@@ -113,12 +131,23 @@ const (
 )
 
 func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (user *models.User, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if user, err = tx.RetrieveUser(emailOrUserID); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (t *Tx) RetrieveUser(emailOrUserID any) (user *models.User, err error) {
 	var (
 		query string
 		param sql.NamedArg
@@ -137,25 +166,24 @@ func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (user *mode
 
 	// Fetch user details
 	user = &models.User{}
-	if err = user.Scan(tx.QueryRow(query, param)); err != nil {
+	if err = user.Scan(t.tx.QueryRow(query, param)); err != nil {
 		return nil, dbe(err)
 	}
 
 	// Fetch user role information
 	var role *models.Role
-	if role, err = s.fetchRole(tx, user.RoleID); err != nil {
+	if role, err = t.fetchRole(user.RoleID); err != nil {
 		return nil, err
 	}
 	user.SetRole(role)
 
 	// Fetch user permissions
 	var permissions []string
-	if permissions, err = s.fetchUserPermissions(tx, user.ID); err != nil {
+	if permissions, err = t.fetchUserPermissions(user.ID); err != nil {
 		return nil, err
 	}
 	user.SetPermissions(permissions)
 
-	tx.Commit()
 	return user, nil
 }
 
@@ -164,33 +192,49 @@ const (
 )
 
 func (s *Store) UpdateUser(ctx context.Context, user *models.User) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	user.Modified = time.Now()
-
-	var result sql.Result
-	if result, err = tx.Exec(updateUserSQL, user.Params()...); err != nil {
-		return dbe(err)
-	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
-		return dberr.ErrNotFound
+	if err = tx.UpdateUser(user); err != nil {
+		return err
 	}
 
 	return tx.Commit()
 }
 
+func (t *Tx) UpdateUser(user *models.User) (err error) {
+	user.Modified = time.Now()
+
+	var result sql.Result
+	if result, err = t.tx.Exec(updateUserSQL, user.Params()...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return nil
+}
+
 const setUserPasswordSQL = "UPDATE users SET password=:password, modified=:modified WHERE id=:id"
 
 func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password string) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.SetUserPassword(userID, password); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) SetUserPassword(userID ulid.ULID, password string) (err error) {
 	params := []any{
 		sql.Named("password", password),
 		sql.Named("modified", time.Now()),
@@ -198,24 +242,32 @@ func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password 
 	}
 
 	var result sql.Result
-	if result, err = tx.Exec(setUserPasswordSQL, params...); err != nil {
+	if result, err = t.tx.Exec(setUserPasswordSQL, params...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const setUserLastLoginSQL = "UPDATE users SET last_login=:lastLogin, modified=:modified WHERE id=:id"
 
 func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.SetUserLastLogin(userID, lastLogin); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) SetUserLastLogin(userID ulid.ULID, lastLogin time.Time) (err error) {
 	params := []any{
 		sql.Named("id", userID),
 		sql.Named("lastLogin", sql.NullTime{Time: lastLogin, Valid: !lastLogin.IsZero()}),
@@ -223,61 +275,75 @@ func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogi
 	}
 
 	var result sql.Result
-	if result, err = tx.Exec(setUserLastLoginSQL, params...); err != nil {
+	if result, err = t.tx.Exec(setUserLastLoginSQL, params...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const deleteUserSQL = "DELETE FROM users WHERE id=:id"
 
 func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	var result sql.Result
-	if result, err = tx.Exec(deleteUserSQL, sql.Named("id", userID)); err != nil {
-		return dbe(err)
-	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
-		return dberr.ErrNotFound
+	if err = tx.DeleteUser(userID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
 }
 
+func (t *Tx) DeleteUser(userID ulid.ULID) (err error) {
+	var result sql.Result
+	if result, err = t.tx.Exec(deleteUserSQL, sql.Named("id", userID)); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+	return nil
+}
+
 const lookupRoleSQL = "SELECT * FROM roles WHERE title like :role LIMIT 1"
 
 func (s *Store) LookupRole(ctx context.Context, role string) (model *models.Role, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return model, nil
+}
+
+func (t *Tx) LookupRole(role string) (model *models.Role, err error) {
 	// Normalize the role
 	role = strings.TrimSpace(role)
 
 	// Fetch role details
 	model = &models.Role{}
-	if err = model.Scan(tx.QueryRow(lookupRoleSQL, sql.Named("role", role))); err != nil {
+	if err = model.Scan(t.tx.QueryRow(lookupRoleSQL, sql.Named("role", role))); err != nil {
 		return nil, dbe(err)
 	}
 
-	tx.Commit()
 	return model, nil
 }
 
 const fetchRolesQL = "SELECT * FROM roles"
 
-func (s *Store) fetchRoles(tx *sql.Tx) (roles map[int64]*models.Role, err error) {
+func (t *Tx) fetchRoles() (roles map[int64]*models.Role, err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(fetchRolesQL); err != nil {
+	if rows, err = t.tx.Query(fetchRolesQL); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -296,9 +362,9 @@ func (s *Store) fetchRoles(tx *sql.Tx) (roles map[int64]*models.Role, err error)
 
 const fetchRoleSQL = "SELECT * FROM roles WHERE id=:roleID"
 
-func (s *Store) fetchRole(tx *sql.Tx, roleID int64) (role *models.Role, err error) {
+func (t *Tx) fetchRole(roleID int64) (role *models.Role, err error) {
 	role = &models.Role{}
-	if err = role.Scan(tx.QueryRow(fetchRoleSQL, sql.Named("roleID", roleID))); err != nil {
+	if err = role.Scan(t.tx.QueryRow(fetchRoleSQL, sql.Named("roleID", roleID))); err != nil {
 		return nil, dbe(err)
 	}
 	return role, nil
@@ -306,9 +372,9 @@ func (s *Store) fetchRole(tx *sql.Tx, roleID int64) (role *models.Role, err erro
 
 const userPermissionsSQL = "SELECT permission FROM user_permissions WHERE user_id=:userID"
 
-func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions []string, err error) {
+func (t *Tx) fetchUserPermissions(userID ulid.ULID) (permissions []string, err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(userPermissionsSQL, sql.Named("userID", userID)); err != nil {
+	if rows, err = t.tx.Query(userPermissionsSQL, sql.Named("userID", userID)); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -332,19 +398,30 @@ func (s *Store) fetchUserPermissions(tx *sql.Tx, userID ulid.ULID) (permissions 
 const listAPIKeysSQL = "SELECT id, description, client_id, last_seen, created, modified FROM api_keys"
 
 func (s *Store) ListAPIKeys(ctx context.Context, page *models.PageInfo) (out *models.APIKeyPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListAPIKeys(page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) ListAPIKeys(page *models.PageInfo) (out *models.APIKeyPage, err error) {
 	// TODO: handle pagination
 	out = &models.APIKeyPage{
 		APIKeys: make([]*models.APIKey, 0),
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listAPIKeysSQL); err != nil {
+	if rows, err = t.tx.Query(listAPIKeysSQL); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -357,7 +434,6 @@ func (s *Store) ListAPIKeys(ctx context.Context, page *models.PageInfo) (out *mo
 		out.APIKeys = append(out.APIKeys, key)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -367,21 +443,29 @@ const (
 )
 
 func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
-	if !key.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.CreateAPIKey(key); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) CreateAPIKey(key *models.APIKey) (err error) {
+	if !key.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
+
 	key.ID = ulid.MakeSecure()
 	key.Created = time.Now()
 	key.Modified = key.Created
 
-	if _, err = tx.Exec(createKeySQL, key.Params()...); err != nil {
+	if _, err = t.tx.Exec(createKeySQL, key.Params()...); err != nil {
 		return dbe(err)
 	}
 
@@ -395,12 +479,12 @@ func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error
 			sql.Named("modified", key.Modified),
 		}
 
-		if _, err = tx.Exec(createKeyPermSQL, params...); err != nil {
+		if _, err = t.tx.Exec(createKeyPermSQL, params...); err != nil {
 			return dbe(err)
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const (
@@ -409,12 +493,24 @@ const (
 )
 
 func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (key *models.APIKey, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if key, err = tx.RetrieveAPIKey(clientIDOrKeyID); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
+func (t *Tx) RetrieveAPIKey(clientIDOrKeyID any) (key *models.APIKey, err error) {
 	var (
 		query string
 		param sql.NamedArg
@@ -433,18 +529,17 @@ func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (key *m
 
 	// Fetch api key details
 	key = &models.APIKey{}
-	if err = key.Scan(tx.QueryRow(query, param)); err != nil {
+	if err = key.Scan(t.tx.QueryRow(query, param)); err != nil {
 		return nil, dbe(err)
 	}
 
 	// Fetch api key permissions
 	var permissions []string
-	if permissions, err = s.fetchAPIKeyPermissions(tx, key.ID); err != nil {
+	if permissions, err = t.fetchAPIKeyPermissions(key.ID); err != nil {
 		return nil, err
 	}
 	key.SetPermissions(permissions)
 
-	tx.Commit()
 	return key, nil
 }
 
@@ -452,47 +547,62 @@ const updateKeySQL = "UPDATE api_keys SET description=:description, last_seen=:l
 
 // NOTE: the only thing that can be updated on an api key right now is last_seen
 func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.UpdateAPIKey(key); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// NOTE: the only thing that can be updated on an api key right now is last_seen
+func (t *Tx) UpdateAPIKey(key *models.APIKey) (err error) {
 	key.Modified = time.Now()
 	var result sql.Result
-	if result, err = tx.Exec(updateKeySQL, key.Params()...); err != nil {
+	if result, err = t.tx.Exec(updateKeySQL, key.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
-
-	return tx.Commit()
+	return nil
 }
 
 const deleteKeySQL = "DELETE FROM api_keys WHERE id=:id"
 
 func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	var result sql.Result
-	if result, err = tx.Exec(deleteKeySQL, sql.Named("id", keyID)); err != nil {
-		return dbe(err)
-	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
-		return dberr.ErrNotFound
+	if err = tx.DeleteAPIKey(keyID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
 }
 
+func (t *Tx) DeleteAPIKey(keyID ulid.ULID) (err error) {
+	var result sql.Result
+	if result, err = t.tx.Exec(deleteKeySQL, sql.Named("id", keyID)); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+	return nil
+}
+
 const keyPermissionsSQL = "SELECT permission FROM api_key_permission_list WHERE api_key_id=:keyID"
 
-func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions []string, err error) {
+func (t *Tx) fetchAPIKeyPermissions(keyID ulid.ULID) (permissions []string, err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(keyPermissionsSQL, sql.Named("keyID", keyID)); err != nil {
+	if rows, err = t.tx.Query(keyPermissionsSQL, sql.Named("keyID", keyID)); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -516,19 +626,31 @@ func (s *Store) fetchAPIKeyPermissions(tx *sql.Tx, keyID ulid.ULID) (permissions
 const listResetPasswordLinkSQL = "SELECT * FROM reset_password_link"
 
 func (s *Store) ListResetPasswordLinks(ctx context.Context, page *models.PageInfo) (out *models.ResetPasswordLinkPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListResetPasswordLinks(page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (t *Tx) ListResetPasswordLinks(page *models.PageInfo) (out *models.ResetPasswordLinkPage, err error) {
 	// TODO: handle pagination
 	out = &models.ResetPasswordLinkPage{
 		Links: make([]*models.ResetPasswordLink, 0),
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listResetPasswordLinkSQL); err != nil {
+	if rows, err = t.tx.Query(listResetPasswordLinkSQL); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -541,7 +663,6 @@ func (s *Store) ListResetPasswordLinks(ctx context.Context, page *models.PageInf
 		out.Links = append(out.Links, link)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -554,6 +675,23 @@ const (
 // is an existing link for the user and if so, it will return ErrTooSoon if that link
 // is not expired. If the link is expired, it will be deleted and a new one created.
 func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = tx.CreateResetPasswordLink(link); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// Create a ResetPasswordLink record in the database. This method checks to see if there
+// is an existing link for the user and if so, it will return ErrTooSoon if that link
+// is not expired. If the link is expired, it will be deleted and a new one created.
+func (t *Tx) CreateResetPasswordLink(link *models.ResetPasswordLink) (err error) {
 	if !link.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -562,14 +700,8 @@ func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetP
 	link.Created = time.Now()
 	link.Modified = link.Created
 
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, nil); err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
 	existing := &models.ResetPasswordLink{}
-	if err = existing.Scan(tx.QueryRow(checkExistingLinkSQL, sql.Named("userID", link.UserID))); err != nil {
+	if err = existing.Scan(t.tx.QueryRow(checkExistingLinkSQL, sql.Named("userID", link.UserID))); err != nil {
 		if err != sql.ErrNoRows {
 			return dbe(err)
 		}
@@ -582,34 +714,44 @@ func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetP
 		}
 
 		// Delete the existing link if it is expired
-		if _, err = tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", existing.ID)); err != nil {
+		if _, err = t.tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", existing.ID)); err != nil {
 			return dbe(err)
 		}
 	}
 
-	if _, err = tx.Exec(createResetPasswordLinkSQL, link.Params()...); err != nil {
+	if _, err = t.tx.Exec(createResetPasswordLinkSQL, link.Params()...); err != nil {
 		return dbe(err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const retrieveResetPasswordLinkByIDSQL = "SELECT * FROM reset_password_link WHERE id=:id"
 
 // Retrieve a ResetPasswordLink in the database by its ID.
 func (s *Store) RetrieveResetPasswordLink(ctx context.Context, linkID ulid.ULID) (link *models.ResetPasswordLink, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	link = &models.ResetPasswordLink{}
-	if err = link.Scan(tx.QueryRow(retrieveResetPasswordLinkByIDSQL, sql.Named("id", linkID))); err != nil {
-		return nil, dbe(err)
+	if link, err = tx.RetrieveResetPasswordLink(linkID); err != nil {
+		return nil, err
 	}
 
-	tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return link, nil
+}
+
+// Retrieve a ResetPasswordLink in the database by its ID.
+func (t *Tx) RetrieveResetPasswordLink(linkID ulid.ULID) (link *models.ResetPasswordLink, err error) {
+	link = &models.ResetPasswordLink{}
+	if err = link.Scan(t.tx.QueryRow(retrieveResetPasswordLinkByIDSQL, sql.Named("id", linkID))); err != nil {
+		return nil, dbe(err)
+	}
 	return link, nil
 }
 
@@ -618,42 +760,52 @@ const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:si
 // Update a ResetPasswordLink record. Only updates the Signature, SentOn,
 // VerifiedOn, and Modified fields.
 func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
-	link.Modified = time.Now()
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Update a ResetPasswordLink record. Only updates the Signature, SentOn,
+// VerifiedOn, and Modified fields.
+func (t *Tx) UpdateResetPasswordLink(link *models.ResetPasswordLink) (err error) {
+	link.Modified = time.Now()
+
 	var result sql.Result
-	if result, err = tx.Exec(updateResetPasswordLinkSQL, link.UpdateParams()...); err != nil {
+	if result, err = t.tx.Exec(updateResetPasswordLinkSQL, link.UpdateParams()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
 	return nil
 }
 
 const deleteResetPasswordLinkSQL = "DELETE FROM reset_password_link WHERE id=:id"
 
 func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	return tx.Commit()
+}
+
+func (t *Tx) DeleteResetPasswordLink(linkID ulid.ULID) (err error) {
 	var result sql.Result
-	if result, err = tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", linkID)); err != nil {
+	if result, err = t.tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", linkID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
-
-	return tx.Commit()
+	return nil
 }

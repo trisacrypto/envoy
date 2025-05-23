@@ -21,12 +21,23 @@ const listSunriseSQL = "SELECT id, envelope_id, expiration, status, sent_on, ver
 
 // Retrieve sunrise messages from the database and return them as a paginated list.
 func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (out *models.SunrisePage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListSunrise(page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) ListSunrise(page *models.PageInfo) (out *models.SunrisePage, err error) {
 	// TODO: handle pagination
 	out = &models.SunrisePage{
 		Messages: make([]*models.Sunrise, 0),
@@ -34,7 +45,7 @@ func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (out *mo
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listSunriseSQL); err != nil {
+	if rows, err = t.tx.Query(listSunriseSQL); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -50,7 +61,6 @@ func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (out *mo
 		out.Messages = append(out.Messages, msg)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -58,20 +68,13 @@ const createSunriseSQL = "INSERT INTO sunrise (id, envelope_id, email, expiratio
 
 // Create a sunrise message in the database.
 func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
-	// Basic validation
-	// Note: this is duplicated in updateSunrise but better to check before starting a
-	// transaction that will take up system resources.
-	if !msg.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = createSunrise(tx, msg); err != nil {
+	if err = tx.CreateSunrise(msg); err != nil {
 		return err
 	}
 
@@ -81,7 +84,8 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 	return nil
 }
 
-func createSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
+// Create a sunrise message in the database.
+func (t *Tx) CreateSunrise(msg *models.Sunrise) (err error) {
 	// Basic validation
 	if !msg.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
@@ -93,7 +97,7 @@ func createSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 	msg.Modified = msg.Created
 
 	// Execute the insert into the database
-	if _, err = tx.Exec(createSunriseSQL, msg.Params()...); err != nil {
+	if _, err = t.tx.Exec(createSunriseSQL, msg.Params()...); err != nil {
 		return dbe(err)
 	}
 	return nil
@@ -103,23 +107,26 @@ const retrieveSunriseSQL = "SELECT * FROM sunrise WHERE id=:id"
 
 // Retrieve sunrise message detail information.
 func (s *Store) RetrieveSunrise(ctx context.Context, id ulid.ULID) (msg *models.Sunrise, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	if msg, err = retrieveSunrise(tx, id); err != nil {
+	if msg, err = tx.RetrieveSunrise(id); err != nil {
 		return nil, err
 	}
 
-	tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
 	return msg, nil
 }
 
-func retrieveSunrise(tx *sql.Tx, sunriseID ulid.ULID) (msg *models.Sunrise, err error) {
+// Retrieve sunrise message detail information.
+func (t *Tx) RetrieveSunrise(sunriseID ulid.ULID) (msg *models.Sunrise, err error) {
 	msg = &models.Sunrise{}
-	if err = msg.Scan(tx.QueryRow(retrieveSunriseSQL, sql.Named("id", sunriseID))); err != nil {
+	if err = msg.Scan(t.tx.QueryRow(retrieveSunriseSQL, sql.Named("id", sunriseID))); err != nil {
 		return nil, dbe(err)
 	}
 	return msg, nil
@@ -129,30 +136,21 @@ const updateSunriseSQL = "UPDATE sunrise SET envelope_id=:envelopeID, email=:ema
 
 // Update sunrise message information.
 func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
-	// Basic validation
-	// Note: this is duplicated in updateSunrise but better to check before starting a
-	// transaction that will take up system resources.
-	if msg.ID.IsZero() {
-		return dberr.ErrMissingID
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = updateSunrise(tx, msg); err != nil {
+	if err = tx.UpdateSunrise(msg); err != nil {
 		return err
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
-func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
+// Update sunrise message information.
+func (t *Tx) UpdateSunrise(msg *models.Sunrise) (err error) {
 	// Basic validation
 	if msg.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -163,7 +161,7 @@ func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 
 	// Execute the sunrise message into the database
 	var result sql.Result
-	if result, err = tx.Exec(updateSunriseSQL, msg.Params()...); err != nil {
+	if result, err = t.tx.Exec(updateSunriseSQL, msg.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -175,20 +173,20 @@ func updateSunrise(tx *sql.Tx, msg *models.Sunrise) (err error) {
 const updateSunriseStatusSQL = "UPDATE sunrise SET status=:status, modified=:modified WHERE envelope_id=:envelopeID"
 
 func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = updateSunriseStatus(tx, txID, status); err != nil {
+	if err = tx.UpdateSunriseStatus(txID, status); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func updateSunriseStatus(tx *sql.Tx, txID uuid.UUID, status enum.Status) (err error) {
+func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status) (err error) {
 	params := []interface{}{
 		sql.Named("status", status),
 		sql.Named("modified", time.Now()),
@@ -196,7 +194,7 @@ func updateSunriseStatus(tx *sql.Tx, txID uuid.UUID, status enum.Status) (err er
 	}
 
 	var result sql.Result
-	if result, err = tx.Exec(updateSunriseStatusSQL, params...); err != nil {
+	if result, err = t.tx.Exec(updateSunriseStatusSQL, params...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -209,21 +207,26 @@ const deleteSunriseSQL = "DELETE FROM sunrise WHERE id=:id"
 
 // Delete sunrise message from the database.
 func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.DeleteSunrise(id); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// Delete sunrise message from the database.
+func (t *Tx) DeleteSunrise(id ulid.ULID) (err error) {
 	var result sql.Result
-	if result, err = tx.Exec(deleteSunriseSQL, sql.Named("id", id)); err != nil {
+	if result, err = t.tx.Exec(deleteSunriseSQL, sql.Named("id", id)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
-	}
-
-	if err = tx.Commit(); err != nil {
-		return err
 	}
 	return nil
 }
@@ -236,19 +239,31 @@ const (
 
 // Get or create a sunrise counterparty from an email address.
 func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (out *models.Counterparty, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.GetOrCreateSunriseCounterparty(email, name); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Counterparty, err error) {
 	// Attempt the lookup by first looking up a contact with the email address and if
 	// that's not found, by looking up the counterparty by name (case insensitive). Any
 	// ErrNotFound are ignored, which should cause the method to create the counterparty.
 	var counterpartyID ulid.ULID
-	if counterpartyID, err = lookupContactCounterparty(tx, email); err != nil {
+	if counterpartyID, err = t.lookupContactCounterparty(email); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			if counterpartyID, err = lookupCounterpartyName(tx, name); err != nil {
+			if counterpartyID, err = t.lookupCounterpartyName(name); err != nil {
 				if !errors.Is(err, dberr.ErrNotFound) {
 					return nil, err
 				}
@@ -280,17 +295,12 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 
 		out.SetContacts([]*models.Contact{contact})
 
-		if err = s.createCounterparty(tx, out); err != nil {
+		if err = t.CreateCounterparty(out); err != nil {
 			return nil, err
 		}
 	} else {
 		// Retrieve the counterparty that we found earlier
-		if out, err = retrieveCounterparty(tx, counterpartyID); err != nil {
-			return nil, err
-		}
-
-		// Ensure the contacts are set on the counterparty
-		if err = s.listContacts(tx, out); err != nil {
+		if out, err = t.RetrieveCounterparty(counterpartyID); err != nil {
 			return nil, err
 		}
 
@@ -300,12 +310,12 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 		var contact *models.Contact
 		if contact, err = contactFromEmail(email); err == nil {
 			if exists, _ := out.HasContact(contact.Email); !exists {
-				if err = s.createContact(tx, contact); err != nil {
+				if err = t.CreateContact(contact); err != nil {
 					return nil, err
 				}
 
 				// Reset the contacts list with the newly added contact
-				if err = s.listContacts(tx, out); err != nil {
+				if err = t.listCounterpartyContacts(out); err != nil {
 					return nil, err
 				}
 			}
@@ -313,14 +323,11 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 
 	}
 
-	if err = tx.Commit(); err != nil {
-		return nil, err
-	}
 	return out, nil
 }
 
-func lookupContactCounterparty(tx *sql.Tx, email string) (counterpartyID ulid.ULID, err error) {
-	if err = tx.QueryRow(lookupContactEmailSQL, sql.Named("email", email)).Scan(&counterpartyID); err != nil {
+func (t *Tx) lookupContactCounterparty(email string) (counterpartyID ulid.ULID, err error) {
+	if err = t.tx.QueryRow(lookupContactEmailSQL, sql.Named("email", email)).Scan(&counterpartyID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ulid.ULID{}, dberr.ErrNotFound
 		}
@@ -329,9 +336,9 @@ func lookupContactCounterparty(tx *sql.Tx, email string) (counterpartyID ulid.UL
 	return counterpartyID, nil
 }
 
-func lookupCounterpartyName(tx *sql.Tx, name string) (counterpartyID ulid.ULID, err error) {
+func (t *Tx) lookupCounterpartyName(name string) (counterpartyID ulid.ULID, err error) {
 	var count int
-	if err = tx.QueryRow(countCounterpartyNameSQL, sql.Named("name", name)).Scan(&count); err != nil {
+	if err = t.tx.QueryRow(countCounterpartyNameSQL, sql.Named("name", name)).Scan(&count); err != nil {
 		return ulid.ULID{}, err
 	}
 
@@ -343,7 +350,7 @@ func lookupCounterpartyName(tx *sql.Tx, name string) (counterpartyID ulid.ULID, 
 		return ulid.ULID{}, dberr.ErrAmbiguous
 	}
 
-	if err = tx.QueryRow(lookupCounterpartyNameSQL, sql.Named("name", name)).Scan(&counterpartyID); err != nil {
+	if err = t.tx.QueryRow(lookupCounterpartyNameSQL, sql.Named("name", name)).Scan(&counterpartyID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ulid.ULID{}, dberr.ErrNotFound
 		}

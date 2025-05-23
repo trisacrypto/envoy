@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
+	"github.com/rs/zerolog/log"
 	"go.rtnl.ai/ulid"
 
 	"github.com/trisacrypto/envoy/pkg/logger"
@@ -57,15 +58,26 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	log := logger.Tracing(ctx)
 	log.Debug().Str("query", query.Query).Int("limit", query.Limit).Msg("counterparty search")
 
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.SearchCounterparties(query); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) SearchCounterparties(query *models.SearchQuery) (out *models.CounterpartyPage, err error) {
 	// Perform a fuzzy search on all the countparty names in the database.
 	rank := NewSearchRank(query.Query, query.Limit)
-	if err = s.fuzzySearchCounterparties(tx, rank); err != nil {
+	if err = t.fuzzySearchCounterparties(rank); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +87,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	// website and the name of the counterparty.
 	if domainParam := NormURL(query.Query); domainParam != "" {
 		log.Debug().Str("domain", domainParam).Msg("counterparty search website/endpoint match")
-		if err = s.domainSearchCounterparties(tx, domainParam, rank); err != nil {
+		if err = t.domainSearchCounterparties(domainParam, rank); err != nil {
 			return nil, err
 		}
 	}
@@ -92,7 +104,7 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 		log.Trace().Str("name", item.Name).Int("rank", item.Distance).Float64("similarity", item.Similarity).Msg("counterparty search")
 
 		cp := &models.Counterparty{}
-		if err = cp.ScanSummary(tx.QueryRow(counterpartySearchExpandSQL, sql.Named("id", item.ID))); err != nil {
+		if err = cp.ScanSummary(t.tx.QueryRow(counterpartySearchExpandSQL, sql.Named("id", item.ID))); err != nil {
 			return nil, err
 		}
 		out.Counterparties = append(out.Counterparties, cp)
@@ -101,9 +113,9 @@ func (s *Store) SearchCounterparties(ctx context.Context, query *models.SearchQu
 	return out, nil
 }
 
-func (s *Store) fuzzySearchCounterparties(tx *sql.Tx, rank *SearchRank) (err error) {
+func (t *Tx) fuzzySearchCounterparties(rank *SearchRank) (err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(counterpartySearchSQL); err != nil {
+	if rows, err = t.tx.Query(counterpartySearchSQL); err != nil {
 		return dbe(err)
 	}
 	defer rows.Close()
@@ -120,9 +132,9 @@ func (s *Store) fuzzySearchCounterparties(tx *sql.Tx, rank *SearchRank) (err err
 	return rows.Err()
 }
 
-func (s *Store) domainSearchCounterparties(tx *sql.Tx, domain string, rank *SearchRank) (err error) {
+func (t *Tx) domainSearchCounterparties(domain string, rank *SearchRank) (err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(counterpartyDomainSearchSQL, sql.Named("domainParam", "%"+domain+"%")); err != nil {
+	if rows, err = t.tx.Query(counterpartyDomainSearchSQL, sql.Named("domainParam", "%"+domain+"%")); err != nil {
 		return dbe(err)
 	}
 	defer rows.Close()

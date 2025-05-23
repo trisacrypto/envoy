@@ -2,11 +2,13 @@ package mock
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/txn"
 
 	"github.com/google/uuid"
 	"go.rtnl.ai/ulid"
@@ -22,6 +24,10 @@ func Open(uri *dsn.DSN) (*Store, error) {
 
 func (s *Store) Close() error {
 	return nil
+}
+
+func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error) {
+	return &Tx{}, nil
 }
 
 func (s *Store) ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error) {

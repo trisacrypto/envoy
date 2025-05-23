@@ -19,7 +19,21 @@ func (s *Store) ListDaybreak(ctx context.Context) (out map[string]*models.Counte
 	if info, err = s.ListCounterpartySourceInfo(ctx, enum.SourceDaybreak); err != nil {
 		return nil, err
 	}
+	return convertSourceInfoToDaybreak(info), nil
+}
 
+// ListDaybreak returns a map of all the daybreak counterparty sources in the database
+// in order to match the directory ID to the internal database record ID.
+func (tx *Tx) ListDaybreak() (out map[string]*models.CounterpartySourceInfo, err error) {
+	var info []*models.CounterpartySourceInfo
+	if info, err = tx.ListCounterpartySourceInfo(enum.SourceDaybreak); err != nil {
+		return nil, err
+	}
+	return convertSourceInfoToDaybreak(info), nil
+}
+
+// Shared functionality between Store and Tx ListDaybreak methods.
+func convertSourceInfoToDaybreak(info []*models.CounterpartySourceInfo) (out map[string]*models.CounterpartySourceInfo) {
 	out = make(map[string]*models.CounterpartySourceInfo, len(info))
 	for _, src := range info {
 		if src.DirectoryID.Valid {
@@ -28,8 +42,7 @@ func (s *Store) ListDaybreak(ctx context.Context) (out map[string]*models.Counte
 			log.Warn().Str("id", src.ID.String()).Msg("daybreak counterparty missing directory ID and should be removed from database")
 		}
 	}
-
-	return out, nil
+	return out
 }
 
 // Create the counterparty and any associated contacts in the database. If the
@@ -39,32 +52,40 @@ func (s *Store) ListDaybreak(ctx context.Context) (out map[string]*models.Counte
 // associated contacts will be created in a single transaction; if any contact fails to
 // be created, the transaction will be rolled back and an error will be returned.
 func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counterparty) (err error) {
-	if !counterparty.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.CreateDaybreak(counterparty); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) CreateDaybreak(counterparty *models.Counterparty) (err error) {
+	if !counterparty.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
+
 	// Create the counterparty and associated contacts.
-	if err = s.createCounterparty(tx, counterparty); err != nil {
+	if err = t.CreateCounterparty(counterparty); err != nil {
 		// If the counterparty is broken, then attempt to fix and try create again.
 		if errors.Is(err, dberr.ErrAlreadyExists) {
-			if cParty, cerr := lookupCounterparty(tx, "directory_id", counterparty.DirectoryID.String); cerr == nil {
+			if cParty, cerr := t.LookupCounterparty("directory_id", counterparty.DirectoryID.String); cerr == nil {
 				// Counterparty was found by the DirectoryID, see if it's supposed to be a "daybreak" based on the RegisteredDirectory
 				// If so, it wasn't included in the source map; so the source must have been modified somehow.
 				if cParty.RegisteredDirectory.Valid && cParty.RegisteredDirectory.String == "daybreak.rotational.io" {
 					counterparty.ID = cParty.ID
-					if err = s.updateDaybreak(tx, counterparty); err != nil {
+					if err = t.UpdateDaybreak(counterparty); err != nil {
 						log.Warn().Err(err).Str("directory_id", counterparty.DirectoryID.String).Msg("could not fix original daybreak counterparty")
 					} else {
 						// If no error occurred, then we fixed the original counterparty
-						// Need to commit and return here to short-circuit error handling
+						// Need to return here to short-circuit error handling
 						log.Debug().Str("directory_id", counterparty.DirectoryID.String).Msg("fixed original counterparty that was not returned in source info (a rare edge case)")
-						return tx.Commit()
+						return nil
 					}
 				}
 			} else {
@@ -75,8 +96,7 @@ func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counter
 		return err
 	}
 
-	// Commit if we successfully created the counterparty and all contacts.
-	return tx.Commit()
+	return nil
 }
 
 // Updates the counterparty and any associated contacts in the database. All of the
@@ -85,32 +105,32 @@ func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counter
 // counterparty. If any contact fails to be created or updated, the transaction will
 // be rolled back and an error will be returned.
 func (s *Store) UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty) (err error) {
-	if counterparty.ID.IsZero() {
-		return dberr.ErrMissingID
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.updateDaybreak(tx, counterparty); err != nil {
+	if err = tx.UpdateDaybreak(counterparty); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
+	if counterparty.ID.IsZero() {
+		return dberr.ErrMissingID
+	}
+
 	// Update the counterparty record
-	if err = updateCounterparty(tx, counterparty); err != nil {
+	if err = t.UpdateCounterparty(counterparty); err != nil {
 		return err
 	}
 
 	// Retrieve the contacts currently in the DB
 	var currContacts map[string]*models.Contact
-	if currContacts, err = s.listMapCounterpartyContactsByEmail(tx, counterparty.ID); err != nil {
+	if currContacts, err = t.listMapCounterpartyContactsByEmail(counterparty.ID); err != nil {
 		return err
 	}
 
@@ -129,7 +149,7 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 		if currContact, ok := currContacts[contact.Email]; ok {
 			// Contact with this email is present in DB
 			contact.ID = currContact.ID
-			if err = s.updateContact(tx, contact); err != nil {
+			if err = t.UpdateContact(contact); err != nil {
 				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact when updating counterparty")
 				return err
 			}
@@ -138,7 +158,7 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 			if !contact.ID.IsZero() {
 				contact.ID = ulid.Zero
 			}
-			if err = s.createContact(tx, contact); err != nil {
+			if err = t.CreateContact(contact); err != nil {
 				if err == dberr.ErrAlreadyExists {
 					// This email address is proboably associated with a contact for a different counterparty
 					log.Warn().Err(err).Str("contact", contact.Email).Msg("contact is associated with two counterparties")
@@ -162,34 +182,41 @@ func (s *Store) updateDaybreak(tx *sql.Tx, counterparty *models.Counterparty) (e
 // it in the database when `ignoreTxns` is not `true`. This function will only
 // delete Counterparties with `source='daybreak'`.
 func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.DeleteDaybreak(counterpartyID, ignoreTxns); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) DeleteDaybreak(counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
 	if ignoreTxns {
-		if err = s.deleteDaybreakCounterparty(tx, counterpartyID); err != nil {
+		if err = t.deleteDaybreakCounterparty(counterpartyID); err != nil {
 			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
 			return err
 		}
 	} else {
-		if err = s.deleteDaybreakCounterpartyUnlessHasTxns(tx, counterpartyID); err != nil {
+		if err = t.deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID); err != nil {
 			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
 			return err
 		}
 	}
-
-	return tx.Commit()
+	return nil
 }
 
 const deleteDaybreakCounterpartySQL = "DELETE FROM counterparties WHERE id=:id AND source='daybreak'"
 
 // Delete a Daybreak Counterparty. This function will only delete Counterparties
 // with `source='daybreak'`.
-func (s *Store) deleteDaybreakCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
+func (t *Tx) deleteDaybreakCounterparty(counterpartyID ulid.ULID) (err error) {
 	var result sql.Result
-	if result, err = tx.Exec(deleteDaybreakCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
+	if result, err = t.tx.Exec(deleteDaybreakCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -199,15 +226,15 @@ func (s *Store) deleteDaybreakCounterparty(tx *sql.Tx, counterpartyID ulid.ULID)
 
 // Delete a Daybreak Counterparty unless it has transactions associated with it.
 // This function will only delete Counterparties with `source='daybreak'`.
-func (s *Store) deleteDaybreakCounterpartyUnlessHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
-	if has, err := s.counterpartyHasTxns(tx, counterpartyID); has || err != nil {
+func (t *Tx) deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID ulid.ULID) (err error) {
+	if has, err := t.counterpartyHasTxns(counterpartyID); has || err != nil {
 		if err != nil {
 			return err
 		}
 		return dberr.ErrDaybreakHasTxns
 
 	} else {
-		return s.deleteDaybreakCounterparty(tx, counterpartyID)
+		return t.deleteDaybreakCounterparty(counterpartyID)
 	}
 }
 
@@ -218,10 +245,10 @@ func (s *Store) deleteDaybreakCounterpartyUnlessHasTxns(tx *sql.Tx, counterparty
 const counterpartyHasTxnsSQL = "SELECT counterparty_id FROM transactions WHERE counterparty_id=:counterpartyId LIMIT 1"
 
 // Returns `true` if the `counterpartyID` is associated with any transactions, otherwise `false`.
-func (s *Store) counterpartyHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (has bool, err error) {
+func (t *Tx) counterpartyHasTxns(counterpartyID ulid.ULID) (has bool, err error) {
 	// Query
 	var rows *sql.Rows
-	if rows, err = tx.Query(counterpartyHasTxnsSQL, sql.Named("counterpartyId", counterpartyID)); err != nil {
+	if rows, err = t.tx.Query(counterpartyHasTxnsSQL, sql.Named("counterpartyId", counterpartyID)); err != nil {
 		return true, dbe(err)
 	}
 	defer rows.Close()
@@ -234,9 +261,9 @@ func (s *Store) counterpartyHasTxns(tx *sql.Tx, counterpartyID ulid.ULID) (has b
 
 // Returns a mapping of Contacts using their email as the keys; useful for comparing
 // contacts we need to update/create in bulk imports of counterparties.
-func (s *Store) listMapCounterpartyContactsByEmail(tx *sql.Tx, counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {
+func (t *Tx) listMapCounterpartyContactsByEmail(counterpartyID ulid.ULID) (contacts map[string]*models.Contact, err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+	if rows, err = t.tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()

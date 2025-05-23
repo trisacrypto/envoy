@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
@@ -19,12 +18,23 @@ const listAccountsSQL = "SELECT a.id, a.customer_id, a.first_name, a.last_name, 
 // Retrieve summary information for all accounts for the specified page, omitting
 // crypto addresses and any other irrelevant information.
 func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *models.AccountsPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListAccounts(page); err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return out, nil
+}
+
+// Retrieve summary information for all accounts for the specified page, omitting
+// crypto addresses and any other irrelevant information.
+func (t *Tx) ListAccounts(page *models.PageInfo) (out *models.AccountsPage, err error) {
 	// TODO: handle pagination
 	out = &models.AccountsPage{
 		Accounts: make([]*models.Account, 0),
@@ -32,7 +42,7 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listAccountsSQL, sql.Named("null", []byte("null"))); err != nil {
+	if rows, err = t.tx.Query(listAccountsSQL, sql.Named("null", []byte("null"))); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -51,7 +61,6 @@ func (s *Store) ListAccounts(ctx context.Context, page *models.PageInfo) (out *m
 		out.Accounts = append(out.Accounts, account)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -59,16 +68,25 @@ const createAccountSQL = "INSERT INTO accounts (id, customer_id, first_name, las
 
 // Create an account and any crypto addresses associated with the account.
 func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err error) {
-	// Basic validation
-	if !account.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
+
+	if err = tx.CreateAccount(account); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// Create an account and any crypto addresses associated with the account.
+func (t *Tx) CreateAccount(account *models.Account) (err error) {
+	// Basic validation
+	if !account.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
 
 	// Create IDs and model metadata, updating the account in place.
 	account.ID = ulid.MakeSecure()
@@ -76,16 +94,16 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 	account.Modified = account.Created
 
 	// Create the travel address for the crypto address, logging errors without returning
-	if s.mkta != nil {
+	if t.mkta != nil {
 		var travelAddress string
-		if travelAddress, err = s.mkta(account); err != nil {
+		if travelAddress, err = t.mkta(account); err != nil {
 			log.Warn().Err(err).Str("type", "account").Str("id", account.ID.String()).Msg("could not assign travel address")
 		}
 		account.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
 	}
 
 	// Execute the insert into the database
-	if _, err = tx.Exec(createAccountSQL, account.Params()...); err != nil {
+	if _, err = t.tx.Exec(createAccountSQL, account.Params()...); err != nil {
 		return dbe(err)
 	}
 
@@ -94,130 +112,156 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 	for _, addr := range addresses {
 		// Ensure the crypto address is associated with the new account
 		addr.AccountID = account.ID
-		if err = s.createCryptoAddress(tx, addr); err != nil {
+		if err = t.CreateCryptoAddress(addr); err != nil {
 			return err
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const lookupAccountSQL = "SELECT account_id FROM crypto_addresses WHERE crypto_address=:cryptoAddress"
 
 // Lookup an account by an associated crypto address.
 func (s *Store) LookupAccount(ctx context.Context, cryptoAddress string) (account *models.Account, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if account, err = tx.LookupAccount(cryptoAddress); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return account, nil
+}
+
+// Lookup an account by an associated crypto address.
+func (t *Tx) LookupAccount(cryptoAddress string) (account *models.Account, err error) {
 	var accountID ulid.ULID
-	if err = tx.QueryRow(lookupAccountSQL, sql.Named("cryptoAddress", cryptoAddress)).Scan(&accountID); err != nil {
+	if err = t.tx.QueryRow(lookupAccountSQL, sql.Named("cryptoAddress", cryptoAddress)).Scan(&accountID); err != nil {
 		return nil, dbe(err)
 	}
 
-	if account, err = retrieveAccount(tx, accountID); err != nil {
+	if account, err = t.RetrieveAccount(accountID); err != nil {
 		return nil, err
 	}
 
-	// Retrieve associated crypto addresses with the account.
-	if err = s.listCryptoAddresses(tx, account); err != nil {
-		return nil, err
-	}
-
-	tx.Commit()
 	return account, nil
 }
 
 const retreiveAccountSQL = "SELECT * FROM accounts WHERE id=:id"
 
 // Retrieve account detail information including all associated crypto addresses.
-func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (account *models.Account, err error) {
-	var tx *sql.Tx
+func (s *Store) RetrieveAccount(ctx context.Context, accountID ulid.ULID) (account *models.Account, err error) {
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	if account, err = retrieveAccount(tx, id); err != nil {
+	if account, err = tx.RetrieveAccount(accountID); err != nil {
 		return nil, err
 	}
 
-	// Retrieve associated crypto addresses with the account.
-	if err = s.listCryptoAddresses(tx, account); err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
-
-	tx.Commit()
 	return account, nil
 }
 
-func retrieveAccount(tx *sql.Tx, accountID ulid.ULID) (account *models.Account, err error) {
+// Retrieve account detail information including all associated crypto addresses.
+func (t *Tx) RetrieveAccount(accountID ulid.ULID) (account *models.Account, err error) {
 	account = &models.Account{}
-	if err = account.Scan(tx.QueryRow(retreiveAccountSQL, sql.Named("id", accountID))); err != nil {
+	if err = account.Scan(t.tx.QueryRow(retreiveAccountSQL, sql.Named("id", accountID))); err != nil {
 		return nil, dbe(err)
 	}
+
+	// Retrieve associated crypto addresses with the account.
+	if err = t.listCryptoAddressesForAccount(account); err != nil {
+		return nil, err
+	}
+
 	return account, nil
 }
 
 const updateAccountSQL = "UPDATE accounts SET customer_id=:customerID, first_name=:firstName, last_name=:lastName, travel_address=:travelAddress, ivms101=:ivms101, modified=:modified WHERE id=:id"
 
 // Update account information; ignores any associated crypto addresses.
-func (s *Store) UpdateAccount(ctx context.Context, a *models.Account) (err error) {
-	// Basic validation
-	if a.ID.IsZero() {
-		return dberr.ErrMissingID
-	}
-
-	// If the travel address is not set, then generate it (mirroring create behavior).
-	if !a.TravelAddress.Valid && s.mkta != nil {
-		var travelAddress string
-		if travelAddress, err = s.mkta(a); err != nil {
-			log.Warn().Err(err).Str("type", "account").Str("id", a.ID.String()).Msg("could not assign travel address")
-		}
-		a.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
-	}
-
-	var tx *sql.Tx
+func (s *Store) UpdateAccount(ctx context.Context, account *models.Account) (err error) {
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	// Update modified timestamp (in place).
-	a.Modified = time.Now()
-
-	// Execute the update into the database
-	var result sql.Result
-	if result, err = tx.Exec(updateAccountSQL, a.Params()...); err != nil {
-		return dbe(err)
-	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
-		return dberr.ErrNotFound
+	if err = tx.UpdateAccount(account); err != nil {
+		return err
 	}
 
 	return tx.Commit()
 }
 
-const deleteAccountSQL = "DELETE FROM accounts WHERE id=:id"
-
-// Delete account and all associated crypto addresses
-func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) (err error) {
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, nil); err != nil {
-		return err
+// Update account information; ignores any associated crypto addresses.
+func (t *Tx) UpdateAccount(account *models.Account) (err error) {
+	// Basic validation
+	if account.ID.IsZero() {
+		return dberr.ErrMissingID
 	}
-	defer tx.Rollback()
 
+	// If the travel address is not set, then generate it (mirroring create behavior).
+	if !account.TravelAddress.Valid && t.mkta != nil {
+		var travelAddress string
+		if travelAddress, err = t.mkta(account); err != nil {
+			log.Warn().Err(err).Str("type", "account").Str("id", account.ID.String()).Msg("could not assign travel address")
+		}
+		account.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
+	}
+
+	// Update modified timestamp (in place).
+	account.Modified = time.Now()
+
+	// Execute the update into the database
 	var result sql.Result
-	if result, err = tx.Exec(deleteAccountSQL, sql.Named("id", id)); err != nil {
+	if result, err = t.tx.Exec(updateAccountSQL, account.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
 
-	if err = tx.Commit(); err != nil {
+	return nil
+}
+
+const deleteAccountSQL = "DELETE FROM accounts WHERE id=:id"
+
+// Delete account and all associated crypto addresses
+func (s *Store) DeleteAccount(ctx context.Context, accountID ulid.ULID) (err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
+	}
+	defer tx.Rollback()
+
+	if err = tx.DeleteAccount(accountID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// Delete account and all associated crypto addresses
+func (t *Tx) DeleteAccount(accountID ulid.ULID) (err error) {
+	var result sql.Result
+	if result, err = t.tx.Exec(deleteAccountSQL, sql.Named("id", accountID)); err != nil {
+		return dbe(err)
+	}
+
+	if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
 	}
 	return nil
 }
@@ -237,12 +281,25 @@ const listAccountTxnsSQL = `
 // List all transactions that have one of the account wallet addresses in either the
 // originator or beneficiary wallet address fields.
 func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListAccountTransactions(accountID, page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// List all transactions that have one of the account wallet addresses in either the
+// originator or beneficiary wallet address fields.
+func (t *Tx) ListAccountTransactions(accountID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
 	out = &models.TransactionPage{
 		Transactions: make([]*models.Transaction, 0),
 		Page: &models.TransactionPageInfo{
@@ -280,7 +337,7 @@ func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(query, params...); err != nil {
+	if rows, err = t.tx.Query(query, params...); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -293,7 +350,6 @@ func (s *Store) ListAccountTransactions(ctx context.Context, accountID ulid.ULID
 		out.Transactions = append(out.Transactions, transaction)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
@@ -301,15 +357,27 @@ const listCryptoAddressesSQL = "SELECT * FROM crypto_addresses WHERE account_id=
 
 // List crypto addresses associated with the specified accountID.
 func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (out *models.CryptoAddressPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListCryptoAddresses(accountID, page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// List crypto addresses associated with the specified accountID.
+func (t *Tx) ListCryptoAddresses(accountID ulid.ULID, page *models.PageInfo) (out *models.CryptoAddressPage, err error) {
 	// Check to ensure the associated account exists
 	var account *models.Account
-	if account, err = retrieveAccount(tx, accountID); err != nil {
+	if account, err = t.RetrieveAccount(accountID); err != nil {
 		return nil, err
 	}
 
@@ -320,7 +388,7 @@ func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, pa
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listCryptoAddressesSQL, sql.Named("accountID", accountID)); err != nil {
+	if rows, err = t.tx.Query(listCryptoAddressesSQL, sql.Named("accountID", accountID)); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -335,17 +403,19 @@ func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, pa
 		out.CryptoAddresses = append(out.CryptoAddresses, addr)
 	}
 
-	if errors.Is(rows.Err(), sql.ErrNoRows) {
-		return nil, dberr.ErrNotFound
+	if err = rows.Err(); err != nil {
+		return nil, dbe(err)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
-func (s *Store) listCryptoAddresses(tx *sql.Tx, account *models.Account) (err error) {
+// Special list function to retrieve all related crypto addresses for an account, this
+// method is used by the account store not the crypto address store; but is placed here
+// for easy reference to the listCryptoAddressesSQL query.
+func (t *Tx) listCryptoAddressesForAccount(account *models.Account) (err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(listCryptoAddressesSQL, sql.Named("accountID", account.ID)); err != nil {
+	if rows, err = t.tx.Query(listCryptoAddressesSQL, sql.Named("accountID", account.ID)); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -367,23 +437,20 @@ func (s *Store) listCryptoAddresses(tx *sql.Tx, account *models.Account) (err er
 const createCryptoAddressSQL = "INSERT INTO crypto_addresses (id, account_id, crypto_address, network, asset_type, tag, travel_address, created, modified) VALUES (:id, :accountID, :cryptoAddress, :network, :assetType, :tag, :travelAddress, :created, :modified)"
 
 func (s *Store) CreateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.createCryptoAddress(tx, addr); err != nil {
+	if err = tx.CreateCryptoAddress(addr); err != nil {
 		return err
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
-func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err error) {
+func (t *Tx) CreateCryptoAddress(addr *models.CryptoAddress) (err error) {
 	if !addr.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -398,15 +465,15 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 	addr.Modified = addr.Created
 
 	// Create the travel address for the crypto address, logging errors without returning
-	if s.mkta != nil {
+	if t.mkta != nil {
 		var travelAddress string
-		if travelAddress, err = s.mkta(addr); err != nil {
+		if travelAddress, err = t.mkta(addr); err != nil {
 			log.Warn().Err(err).Str("type", "crypto_address").Str("id", addr.ID.String()).Msg("could not assign travel address")
 		}
 		addr.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
 	}
 
-	if _, err = tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
+	if _, err = t.tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
 		return dbe(err)
 	}
 	return nil
@@ -415,20 +482,29 @@ func (s *Store) createCryptoAddress(tx *sql.Tx, addr *models.CryptoAddress) (err
 const retrieveCryptoAddressSQL = "SELECT * FROM crypto_addresses WHERE id=:cryptoAddressID and account_id=:accountID"
 
 func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (addr *models.CryptoAddress, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if addr, err = tx.RetrieveCryptoAddress(accountID, cryptoAddressID); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return addr, nil
+}
+
+func (t *Tx) RetrieveCryptoAddress(accountID, cryptoAddressID ulid.ULID) (addr *models.CryptoAddress, err error) {
 	addr = &models.CryptoAddress{}
-	if err = addr.Scan(tx.QueryRow(retrieveCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID))); err != nil {
+	if err = addr.Scan(t.tx.QueryRow(retrieveCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID))); err != nil {
 		return nil, dbe(err)
 	}
 
 	// TODO: retrieve account and associate it with the crypto address.
-
-	tx.Commit()
 	return addr, nil
 }
 
@@ -436,6 +512,20 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, travel_address=:travelAddress, modified=:modified WHERE id=:id and account_id=:accountID"
 
 func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = tx.UpdateCryptoAddress(addr); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) UpdateCryptoAddress(addr *models.CryptoAddress) (err error) {
 	// Basic validation
 	if addr.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -446,49 +536,50 @@ func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddr
 	}
 
 	// If the travel address is not set, then generate it (mirroring create behavior).
-	if !addr.TravelAddress.Valid && s.mkta != nil {
+	if !addr.TravelAddress.Valid && t.mkta != nil {
 		var travelAddress string
-		if travelAddress, err = s.mkta(addr); err != nil {
+		if travelAddress, err = t.mkta(addr); err != nil {
 			log.Warn().Err(err).Str("type", "crypto_address").Str("id", addr.ID.String()).Msg("could not assign travel address")
 		}
 		addr.TravelAddress = sql.NullString{Valid: travelAddress != "", String: travelAddress}
 	}
-
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, nil); err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	// Update modified timestamp (in place).
 	addr.Modified = time.Now()
 
 	// Execute the update into the database
 	var result sql.Result
-	if result, err = tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
+	if result, err = t.tx.Exec(updateCryptoAddressSQL, addr.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 const deleteCryptoAddressSQL = "DELETE FROM crypto_addresses WHERE id=:cryptoAddressID and account_id=:accountID"
 
 func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+	if err = tx.DeleteCryptoAddress(accountID, cryptoAddressID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID) (err error) {
 	var result sql.Result
-	if result, err = tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
+	if result, err = t.tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
-
-	return tx.Commit()
+	return nil
 }
