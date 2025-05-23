@@ -13,6 +13,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/secrets"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/store/txn"
 
 	"github.com/google/uuid"
 	"go.rtnl.ai/ulid"
@@ -40,7 +41,12 @@ func Open(databaseURL string) (s Store, err error) {
 
 // Store is a generic storage interface allowing multiple storage backends such as
 // SQLite or Postgres to be used based on the preference of the user.
+// NOTE: to prevent import cycles, the txn.Tx interface is in its own package. If an
+// interface is added to the Store interface, it should be added to the txn.Tx interface
+// as well (to ensure the Txn has the same methods as the Store).
 type Store interface {
+	Begin(context.Context, *sql.TxOptions) (txn.Tx, error)
+
 	io.Closer
 	TransactionStore
 	AccountStore
@@ -68,6 +74,12 @@ var (
 	_ Store   = &mock.Store{}
 	_ Store   = &sqlite.Store{}
 	_ Secrets = &secrets.GCP{}
+)
+
+// All Tx implementations must implement the Tx interface
+var (
+	_ txn.Tx = &sqlite.Tx{}
+	_ txn.Tx = &mock.Tx{}
 )
 
 // The Stats interface exposes database statistics if it is available from the backend.

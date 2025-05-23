@@ -20,12 +20,24 @@ const (
 )
 
 func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListCounterparties(page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (t *Tx) ListCounterparties(page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {
 	// TODO: handle pagination
 	out = &models.CounterpartyPage{
 		Counterparties: make([]*models.Counterparty, 0),
@@ -34,11 +46,11 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.Counterpart
 
 	var rows *sql.Rows
 	if page.Source != "" {
-		if rows, err = tx.Query(filterCounterpartiesSQL, sql.Named("source", page.Source)); err != nil {
+		if rows, err = t.tx.Query(filterCounterpartiesSQL, sql.Named("source", page.Source)); err != nil {
 			return nil, dbe(err)
 		}
 	} else {
-		if rows, err = tx.Query(listCounterpartiesSQL); err != nil {
+		if rows, err = t.tx.Query(listCounterpartiesSQL); err != nil {
 			return nil, dbe(err)
 		}
 	}
@@ -58,23 +70,34 @@ func (s *Store) ListCounterparties(ctx context.Context, page *models.Counterpart
 		out.Counterparties = append(out.Counterparties, counterparty)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
 const listCounterpartySourceInfoSQL = "SELECT id, source, directory_id, registered_directory, protocol FROM counterparties WHERE source=:source"
 
 func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Source) (out []*models.CounterpartySourceInfo, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
+	if out, err = tx.ListCounterpartySourceInfo(source); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (t *Tx) ListCounterpartySourceInfo(source enum.Source) (out []*models.CounterpartySourceInfo, err error) {
 	out = make([]*models.CounterpartySourceInfo, 0)
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listCounterpartySourceInfoSQL, sql.Named("source", source)); err != nil {
+	if rows, err = t.tx.Query(listCounterpartySourceInfoSQL, sql.Named("source", source)); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -89,39 +112,38 @@ func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Sour
 		out = append(out, info)
 	}
 
-	tx.Commit()
 	return out, nil
 }
 
 const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, lei, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :lei, :created, :modified)"
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
-	// Basic validation
-	if !counterparty.ID.IsZero() {
-		return dberr.ErrNoIDOnCreate
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.createCounterparty(tx, counterparty); err != nil {
+	if err = tx.CreateCounterparty(counterparty); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (s *Store) createCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+func (t *Tx) CreateCounterparty(counterparty *models.Counterparty) (err error) {
+	// Basic validation
+	if !counterparty.ID.IsZero() {
+		return dberr.ErrNoIDOnCreate
+	}
+
 	// Update the model metadata in place and create a new ID
 	counterparty.ID = ulid.MakeSecure()
 	counterparty.Created = time.Now()
 	counterparty.Modified = counterparty.Created
 
 	// Insert the counterparty
-	if _, err = tx.Exec(createCounterpartySQL, counterparty.Params()...); err != nil {
+	if _, err = t.tx.Exec(createCounterpartySQL, counterparty.Params()...); err != nil {
 		return dbe(err)
 	}
 
@@ -129,7 +151,7 @@ func (s *Store) createCounterparty(tx *sql.Tx, counterparty *models.Counterparty
 	contacts, _ := counterparty.Contacts()
 	for _, contact := range contacts {
 		contact.CounterpartyID = counterparty.ID
-		if err = s.createContact(tx, contact); err != nil {
+		if err = t.CreateContact(contact); err != nil {
 			return err
 		}
 	}
@@ -140,27 +162,30 @@ func (s *Store) createCounterparty(tx *sql.Tx, counterparty *models.Counterparty
 const retreiveCounterpartySQL = "SELECT * FROM counterparties WHERE id=:id"
 
 func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (counterparty *models.Counterparty, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	if counterparty, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+	if counterparty, err = tx.RetrieveCounterparty(counterpartyID); err != nil {
 		return nil, err
 	}
 
-	if err = s.listContacts(tx, counterparty); err != nil {
+	if err = tx.listCounterpartyContacts(counterparty); err != nil {
 		return nil, err
 	}
 
-	tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
 	return counterparty, nil
 }
 
-func retrieveCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (counterparty *models.Counterparty, err error) {
+func (t *Tx) RetrieveCounterparty(counterpartyID ulid.ULID) (counterparty *models.Counterparty, err error) {
 	counterparty = &models.Counterparty{}
-	if err = counterparty.Scan(tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", counterpartyID))); err != nil {
+	if err = counterparty.Scan(t.tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", counterpartyID))); err != nil {
 		return nil, dbe(err)
 	}
 	return counterparty, nil
@@ -172,25 +197,27 @@ const (
 )
 
 func (s *Store) LookupCounterparty(ctx context.Context, field, value string) (counterparty *models.Counterparty, err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	if counterparty, err = lookupCounterparty(tx, field, value); err != nil {
+	if counterparty, err = tx.LookupCounterparty(field, value); err != nil {
 		return nil, err
 	}
 
-	tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
 	return counterparty, nil
 }
 
-func lookupCounterparty(tx *sql.Tx, field, value string) (counterparty *models.Counterparty, err error) {
+func (t *Tx) LookupCounterparty(field, value string) (counterparty *models.Counterparty, err error) {
 	// Check to make sure that the counterparty exists and there is only 1 matching counterparty
 	var count int
 	query := fmt.Sprintf(countCounterpartySQL, field, field)
-	if err = tx.QueryRow(query, sql.Named(field, value)).Scan(&count); err != nil {
+	if err = t.tx.QueryRow(query, sql.Named(field, value)).Scan(&count); err != nil {
 		return nil, dbe(err)
 	}
 
@@ -203,7 +230,7 @@ func lookupCounterparty(tx *sql.Tx, field, value string) (counterparty *models.C
 
 	counterparty = &models.Counterparty{}
 	query = fmt.Sprintf(lookupCounterpartySQL, field, field)
-	if err = counterparty.Scan(tx.QueryRow(query, sql.Named(field, value))); err != nil {
+	if err = counterparty.Scan(t.tx.QueryRow(query, sql.Named(field, value))); err != nil {
 		return nil, dbe(err)
 	}
 
@@ -213,25 +240,20 @@ func lookupCounterparty(tx *sql.Tx, field, value string) (counterparty *models.C
 const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, lei=:lei, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
-	// Basic validation before starting a transaction
-	if counterparty.ID.IsZero() {
-		return dberr.ErrMissingID
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = updateCounterparty(tx, counterparty); err != nil {
+	if err = tx.UpdateCounterparty(counterparty); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func updateCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+func (t *Tx) UpdateCounterparty(counterparty *models.Counterparty) (err error) {
 	if counterparty.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
@@ -241,7 +263,7 @@ func updateCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err erro
 
 	// Execute the update into the database
 	var result sql.Result
-	if result, err = tx.Exec(updateCounterpartySQL, counterparty.Params()...); err != nil {
+	if result, err = t.tx.Exec(updateCounterpartySQL, counterparty.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -253,22 +275,22 @@ func updateCounterparty(tx *sql.Tx, counterparty *models.Counterparty) (err erro
 const deleteCounterpartySQL = "DELETE FROM counterparties WHERE id=:id"
 
 func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.deleteCounterparty(tx, counterpartyID); err != nil {
+	if err = tx.DeleteCounterparty(counterpartyID); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (s *Store) deleteCounterparty(tx *sql.Tx, counterpartyID ulid.ULID) (err error) {
+func (t *Tx) DeleteCounterparty(counterpartyID ulid.ULID) (err error) {
 	var result sql.Result
-	if result, err = tx.Exec(deleteCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
+	if result, err = t.tx.Exec(deleteCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -284,6 +306,23 @@ const listContactsSQL = "SELECT * FROM contacts WHERE counterparty_id=:counterpa
 // attached to all returned contacts. If the model is specified, then the contacts,
 // will be attached to the model.
 func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (out *models.ContactsPage, err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if out, err = tx.ListContacts(counterparty, page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) ListContacts(counterparty any, page *models.PageInfo) (out *models.ContactsPage, err error) {
 	var (
 		counterpartyID    ulid.ULID
 		counterpartyModel *models.Counterparty
@@ -293,12 +332,6 @@ func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models
 		return nil, dberr.ErrMissingAssociation
 	}
 
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
 	// Handle the input counterparty and retrieve the counterparty model if necessary.
 	switch c := counterparty.(type) {
 	case *models.Counterparty:
@@ -306,7 +339,7 @@ func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models
 		counterpartyModel = c
 	case ulid.ULID:
 		counterpartyID = c
-		if counterpartyModel, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+		if counterpartyModel, err = t.RetrieveCounterparty(counterpartyID); err != nil {
 			return nil, err
 		}
 	default:
@@ -320,7 +353,7 @@ func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models
 	}
 
 	var rows *sql.Rows
-	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
+	if rows, err = t.tx.Query(listContactsSQL, sql.Named("counterpartyID", counterpartyID)); err != nil {
 		return nil, dbe(err)
 	}
 	defer rows.Close()
@@ -342,14 +375,15 @@ func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models
 	// Associate the contacts with the counterparty model (useful if a pointer to
 	// a counterparty was passed in).
 	counterpartyModel.SetContacts(out.Contacts)
-
-	tx.Commit()
 	return out, nil
 }
 
-func (s *Store) listContacts(tx *sql.Tx, counterparty *models.Counterparty) (err error) {
+// This is a helper function to list and set contacts for a specific counterparty; it is
+// only used by the RetrieveCounterparty method but is defined here for easy reference
+// to the listContactsSQL query.
+func (t *Tx) listCounterpartyContacts(counterparty *models.Counterparty) (err error) {
 	var rows *sql.Rows
-	if rows, err = tx.Query(listContactsSQL, sql.Named("counterpartyID", counterparty.ID)); err != nil {
+	if rows, err = t.tx.Query(listContactsSQL, sql.Named("counterpartyID", counterparty.ID)); err != nil {
 		return dbe(err)
 	}
 	defer rows.Close()
@@ -372,20 +406,20 @@ func (s *Store) listContacts(tx *sql.Tx, counterparty *models.Counterparty) (err
 const createContactSQL = "INSERT INTO contacts (id, name, email, role, counterparty_id, created, modified) VALUES (:id, :name, :email, :role, :counterpartyID, :created, :modified)"
 
 func (s *Store) CreateContact(ctx context.Context, contact *models.Contact) (err error) {
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.createContact(tx, contact); err != nil {
+	if err = tx.CreateContact(contact); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (s *Store) createContact(tx *sql.Tx, contact *models.Contact) (err error) {
+func (t *Tx) CreateContact(contact *models.Contact) (err error) {
 	if !contact.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -399,7 +433,7 @@ func (s *Store) createContact(tx *sql.Tx, contact *models.Contact) (err error) {
 	contact.Created = time.Now()
 	contact.Modified = contact.Created
 
-	if _, err = tx.Exec(createContactSQL, contact.Params()...); err != nil {
+	if _, err = t.tx.Exec(createContactSQL, contact.Params()...); err != nil {
 		return dbe(err)
 	}
 
@@ -415,6 +449,23 @@ const retrieveContactSQL = "SELECT * FROM contacts WHERE id=:id and counterparty
 // contact. Note that if a pointer to the Counterparty model is specified, it is not
 // modified in place.
 func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any) (contact *models.Contact, err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if contact, err = tx.RetrieveContact(contactID, counterparty); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return contact, err
+}
+
+func (t *Tx) RetrieveContact(contactID, counterparty any) (contact *models.Contact, err error) {
 	var (
 		counterpartyID    ulid.ULID
 		counterpartyModel *models.Counterparty
@@ -424,12 +475,6 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any
 		return nil, dberr.ErrMissingAssociation
 	}
 
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
 	// Handle the input counterparty and retrieve the counterparty model if necessary.
 	switch c := counterparty.(type) {
 	case *models.Counterparty:
@@ -437,7 +482,7 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any
 		counterpartyModel = c
 	case ulid.ULID:
 		counterpartyID = c
-		if counterpartyModel, err = retrieveCounterparty(tx, counterpartyID); err != nil {
+		if counterpartyModel, err = t.RetrieveCounterparty(counterpartyID); err != nil {
 			return nil, err
 		}
 	default:
@@ -446,14 +491,12 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any
 
 	// Retrieve the contact
 	contact = &models.Contact{}
-	if err = contact.Scan(tx.QueryRow(retrieveContactSQL, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID))); err != nil {
+	if err = contact.Scan(t.tx.QueryRow(retrieveContactSQL, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID))); err != nil {
 		return nil, dbe(err)
 	}
 
 	// Associate the contact with the counterparty model.
 	contact.SetCounterparty(counterpartyModel)
-
-	tx.Commit()
 	return contact, nil
 }
 
@@ -461,29 +504,20 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any
 const updateContactSQL = "UPDATE contacts SET name=:name, email=:email, role=:role, modified=:modified WHERE id=:id AND counterparty_id=:counterpartyID"
 
 func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err error) {
-	// Basic validation
-	if contact.ID.IsZero() {
-		return dberr.ErrMissingID
-	}
-
-	if contact.CounterpartyID.IsZero() {
-		return dberr.ErrMissingReference
-	}
-
-	var tx *sql.Tx
+	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = s.updateContact(tx, contact); err != nil {
+	if err = tx.UpdateContact(contact); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (s *Store) updateContact(tx *sql.Tx, contact *models.Contact) (err error) {
+func (t *Tx) UpdateContact(contact *models.Contact) (err error) {
 	// Basic validation
 	if contact.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -498,7 +532,7 @@ func (s *Store) updateContact(tx *sql.Tx, contact *models.Contact) (err error) {
 
 	// Execute the update into the database
 	var result sql.Result
-	if result, err = tx.Exec(updateContactSQL, contact.Params()...); err != nil {
+	if result, err = t.tx.Exec(updateContactSQL, contact.Params()...); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -514,6 +548,19 @@ const deleteContact = "DELETE FROM contacts WHERE id=:id AND counterparty_id=:co
 // ID is specified then the associated counterparty is used to identify the contact to
 // delete. If the model is specified, then the contact is deleted from the model as well.
 func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) (err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = tx.DeleteContact(contactID, counterparty); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (t *Tx) DeleteContact(contactID, counterparty any) (err error) {
 	var (
 		counterpartyID    ulid.ULID
 		counterpartyModel *models.Counterparty
@@ -522,12 +569,6 @@ func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) 
 	if counterparty == nil {
 		return dberr.ErrMissingAssociation
 	}
-
-	var tx *sql.Tx
-	if tx, err = s.BeginTx(ctx, nil); err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	// Handle the input counterparty.
 	switch c := counterparty.(type) {
@@ -541,7 +582,7 @@ func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) 
 	}
 
 	var result sql.Result
-	if result, err = tx.Exec(deleteContact, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID)); err != nil {
+	if result, err = t.tx.Exec(deleteContact, sql.Named("id", contactID), sql.Named("counterpartyID", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
@@ -560,5 +601,5 @@ func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) 
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }

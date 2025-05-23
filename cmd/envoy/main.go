@@ -277,7 +277,7 @@ func remigrate(c *cli.Context) (err error) {
 
 	var (
 		srcdb, dstdb *sqlite.Store
-		srctx, dsttx *sql.Tx
+		srctx, dsttx *sqlite.Tx
 	)
 
 	// Connect to both databases
@@ -719,7 +719,7 @@ func closeDB(c *cli.Context) error {
 	return nil
 }
 
-func connectSqlite3(path string) (dbs *sqlite.Store, tx *sql.Tx, err error) {
+func connectSqlite3(path string) (dbs *sqlite.Store, tx *sqlite.Tx, err error) {
 	var db store.Store
 	if db, err = store.Open("sqlite3:///" + path); err != nil {
 		return nil, nil, err
@@ -733,7 +733,7 @@ func connectSqlite3(path string) (dbs *sqlite.Store, tx *sql.Tx, err error) {
 	return dbs, tx, nil
 }
 
-func sqlite3Tables(tx *sql.Tx) (tables []string, err error) {
+func sqlite3Tables(tx *sqlite.Tx) (tables []string, err error) {
 	tables = make([]string, 0)
 
 	var rows *sql.Rows
