@@ -75,7 +75,7 @@ func (s *Store) Close() error {
 	return s.conn.Close()
 }
 
-func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Tx, error) {
+func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error) {
 	return s.BeginTx(ctx, opts)
 }
 

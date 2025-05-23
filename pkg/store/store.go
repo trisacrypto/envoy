@@ -45,7 +45,7 @@ func Open(databaseURL string) (s Store, err error) {
 // interface is added to the Store interface, it should be added to the txn.Tx interface
 // as well (to ensure the Txn has the same methods as the Store).
 type Store interface {
-	Begin(context.Context, *sql.TxOptions) (txn.Tx, error)
+	Begin(context.Context, *sql.TxOptions) (txn.Txn, error)
 
 	io.Closer
 	TransactionStore
@@ -78,8 +78,8 @@ var (
 
 // All Tx implementations must implement the Tx interface
 var (
-	_ txn.Tx = &sqlite.Tx{}
-	_ txn.Tx = &mock.Tx{}
+	_ txn.Txn = &sqlite.Tx{}
+	_ txn.Txn = &mock.Tx{}
 )
 
 // The Stats interface exposes database statistics if it is available from the backend.

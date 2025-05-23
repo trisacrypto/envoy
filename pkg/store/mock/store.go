@@ -26,7 +26,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Tx, error) {
+func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error) {
 	return &Tx{}, nil
 }
 
