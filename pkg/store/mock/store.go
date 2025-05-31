@@ -242,7 +242,11 @@ func (s *Store) PrepareTransaction(ctx context.Context, id uuid.UUID) (models.Pr
 	if fn, ok := s.callbacks["PrepareTransaction"]; ok {
 		return fn.(func(ctx context.Context, id uuid.UUID) (models.PreparedTransaction, error))(ctx, id)
 	}
-	panic("PrepareTransaction callback not set")
+	// if no callback is set, return a mock PreparedTransaction
+	return &PreparedTransaction{
+		callbacks: make(map[string]any),
+		calls:     make(map[string]int),
+	}, nil
 }
 
 // Set a callback for when "TransactionState()" is called on the mock store.

@@ -29,6 +29,22 @@ type Tx struct {
 // Mock Helper Methods
 //===========================================================================
 
+// Reset all the calls and callbacks in the transaction, if you don't want to
+// create a new one.
+func (tx *Tx) Reset() {
+	// Set maps to nil to free up memory
+	tx.calls = nil
+	tx.callbacks = nil
+
+	// Create new calls and callbacks maps
+	tx.calls = make(map[string]int)
+	tx.callbacks = make(map[string]any)
+
+	// Reset transaction commit/rollback
+	tx.commit = false
+	tx.rollback = false
+}
+
 // Assert that the expected number of calls were made to the given method.
 func (tx *Tx) AssertCalls(t testing.TB, method string, expected int) {
 	require.Equal(t, expected, tx.calls[method], "expected %d calls to %s, got %d", expected, method, tx.calls[method])
