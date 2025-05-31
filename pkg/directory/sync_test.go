@@ -55,9 +55,9 @@ func TestStartStop(t *testing.T) {
 	require.NoError(t, err, "could not open mock store")
 
 	// Right now the mock store simply returns the equivalent of an empty database.
-	db.On("ListCounterpartySourceInfo", store.ListStoreFn(func(context.Context, any) (any, error) {
+	db.OnListCounterpartySourceInfo(func(context.Context, enum.Source) ([]*models.CounterpartySourceInfo, error) {
 		return []*models.CounterpartySourceInfo{}, nil
-	}))
+	})
 
 	t.Run("Enabled", func(t *testing.T) {
 		sync, err := directory.New(conf.DirectorySync, network, db, nil)
