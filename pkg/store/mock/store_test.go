@@ -22,6 +22,15 @@ func setupStore() (store *mock.Store) {
 	return store
 }
 
+// Setup a read-only mock store for tests.
+func setupReadOnlyStore() (store *mock.Store) {
+	var err error
+	if store, err = mock.Open(&dsn.DSN{ReadOnly: true, Scheme: dsn.Mock}); err != nil {
+		panic("Error when setting up the mock store")
+	}
+	return store
+}
+
 //==========================================================================
 // Tests
 //==========================================================================
