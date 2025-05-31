@@ -50,14 +50,24 @@ func (tx *Tx) AssertCalls(t testing.TB, method string, expected int) {
 	require.Equal(t, expected, tx.calls[method], "expected %d calls to %s, got %d", expected, method, tx.calls[method])
 }
 
-// Assert that Commit has been called on the transaction.
+// Assert that Commit has been called on the transaction without rollback.
 func (tx *Tx) AssertCommit(t testing.TB) {
-	require.True(t, tx.commit, "expected Commit to be called")
+	require.True(t, tx.commit && !tx.rollback, "expected Commit to be called but not Rollback")
 }
 
 // Assert that Rollback has been called on the transaction without commit.
 func (tx *Tx) AssertRollback(t testing.TB) {
 	require.True(t, tx.rollback && !tx.commit, "expected Rollback to be called but not Commit")
+}
+
+// Assert that Commit has not been called on the transaction.
+func (tx *Tx) AssertNoCommit(t testing.TB) {
+	require.False(t, tx.commit, "did not expect Commit to be called")
+}
+
+// Assert that Rollback has not been called on the transaction.
+func (tx *Tx) AssertNoRollback(t testing.TB) {
+	require.False(t, tx.rollback, "did not expect Rollback to be called")
 }
 
 // Check is a helper method that determines if the transaction is committed or rolled
@@ -92,15 +102,16 @@ func (tx *Tx) OnCommit(fn func() error) {
 	tx.callbacks["Commit"] = fn
 }
 
-// Calls the callback previously set with "OnCommit()".
+// Calls the callback previously set with "OnCommit()", or completes the
+// "commit" for the transaction.
 func (tx *Tx) Commit() error {
 	tx.calls["Commit"]++
 	if fn, ok := tx.callbacks["Commit"]; ok {
 		return fn.(func() error)()
 	}
 
-	// Prevent calling commit multiple times.
-	if tx.commit {
+	// ensure the transaction is still active
+	if tx.commit || tx.rollback {
 		return sql.ErrTxDone
 	}
 
@@ -113,15 +124,16 @@ func (tx *Tx) OnRollback(fn func() error) {
 	tx.callbacks["Rollback"] = fn
 }
 
-// Calls the callback previously set with "OnRollback()".
+// Calls the callback previously set with "OnRollback()", or completes the
+// "rollback" for the transaction.
 func (tx *Tx) Rollback() error {
 	tx.calls["Rollback"]++
 	if fn, ok := tx.callbacks["Rollback"]; ok {
 		return fn.(func() error)()
 	}
 
-	// Prevent calling rollback multiple times.
-	if tx.rollback {
+	// ensure the transaction is still active
+	if tx.commit || tx.rollback {
 		return sql.ErrTxDone
 	}
 

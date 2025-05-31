@@ -43,14 +43,24 @@ func (p *PreparedTransaction) AssertCalls(t testing.TB, method string, expected 
 	require.Equal(t, expected, p.calls[method], "expected %d calls to %s, got %d", expected, method, p.calls[method])
 }
 
-// Assert that Commit has been called on the PreparedTransaction.
+// Assert that Commit has been called on the transaction without rollback.
 func (p *PreparedTransaction) AssertCommit(t testing.TB) {
-	require.True(t, p.commit, "expected Commit to be called")
+	require.True(t, p.commit && !p.rollback, "expected Commit to be called but not Rollback")
 }
 
-// Assert that Rollback has been called on the PreparedTransaction without commit.
+// Assert that Rollback has been called on the transaction without commit.
 func (p *PreparedTransaction) AssertRollback(t testing.TB) {
 	require.True(t, p.rollback && !p.commit, "expected Rollback to be called but not Commit")
+}
+
+// Assert that Commit has not been called on the transaction.
+func (p *PreparedTransaction) AssertNoCommit(t testing.TB) {
+	require.False(t, p.commit, "did not expect Commit to be called")
+}
+
+// Assert that Rollback has not been called on the transaction.
+func (p *PreparedTransaction) AssertNoRollback(t testing.TB) {
+	require.False(t, p.rollback, "did not expect Rollback to be called")
 }
 
 // Check is a helper method that determines if the PreparedTransaction is committed
@@ -87,7 +97,7 @@ func (p *PreparedTransaction) Created() bool {
 	if fn, ok := p.callbacks["Created"]; ok {
 		return fn.(func() bool)()
 	}
-	panic(fmt.Errorf("Created callback not set"))
+	panic("Created callback not set")
 
 }
 
