@@ -160,7 +160,7 @@ func (p *PreparedTransaction) OnLookupCounterparty(fn func(field, value string) 
 func (p *PreparedTransaction) LookupCounterparty(field, value string) (*models.Counterparty, error) {
 	fn, err := p.check("LookupCounterparty")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return fn.(func(field, value string) (*models.Counterparty, error))(field, value)
