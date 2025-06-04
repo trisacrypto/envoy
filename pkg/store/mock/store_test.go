@@ -56,7 +56,7 @@ func TestStoreClose(t *testing.T) {
 	t.Run("CallbackWithError", func(t *testing.T) {
 		// setup
 		store := setupStore()
-		store.OnClose(func() error { return errors.ErrInternal }) // the error type doesn't matter
+		store.OnClose = func() error { return errors.ErrInternal }
 
 		// test
 		err := store.Close()
@@ -69,17 +69,30 @@ func TestStoreMultipleCallbacksWithReset(t *testing.T) {
 	// setup
 	store := setupStore()
 
-	// test
+	// test call 1
 	err := store.Close()
 	require.NoError(t, err, "there was an error calling Close")
 	store.AssertCalls(t, "Close", 1)
 
+	// test call 2
 	err = store.Close()
 	require.NoError(t, err, "there was an error calling Close")
 	store.AssertCalls(t, "Close", 2)
 
+	// set a callback and test call 3
+	store.OnClose = func() error { return errors.ErrInternal }
+	require.NotNil(t, store.OnClose, "OnClose is not supposed to be nil")
+	err = store.Close()
+	require.Error(t, err, "expected an error calling Close")
+	store.AssertCalls(t, "Close", 3)
+
+	// reset
 	store.Reset()
 
+	// ensure callback is gone now
+	require.Nil(t, store.OnClose, "OnClose is supposed to be nil")
+
+	// call once again to ensure the counter was reset
 	err = store.Close()
 	require.NoError(t, err, "there was an error calling Close")
 	store.AssertCalls(t, "Close", 1)
