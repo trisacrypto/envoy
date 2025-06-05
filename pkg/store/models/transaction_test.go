@@ -64,11 +64,11 @@ func TestTransactionSecureEnvelopes(t *testing.T) {
 }
 
 func TestTransactionNumEnvelopes(t *testing.T) {
-	// test 1: has envelopes
+	// test 1: no envelopes
 	number := getSampleTransaction(true, false).NumEnvelopes()
 	require.Equal(t, int64(0), number, fmt.Sprintf("there should be 0 envelopes but there were %d", number))
 
-	//test 2: no envelopes
+	//test 2: has envelopes
 	number = getSampleTransaction(true, true).NumEnvelopes()
 	require.Equal(t, int64(1), number, fmt.Sprintf("there should be 1 envelopes but there were %d", number))
 
