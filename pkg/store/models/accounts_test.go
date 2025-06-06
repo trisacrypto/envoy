@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"go.rtnl.ai/ulid"
@@ -67,6 +68,30 @@ func TestAccountHasIVMSRecord(t *testing.T) {
 	ok = getSampleAccount(false, false, false).HasIVMSRecord()
 	require.False(t, ok, "should not have an IVMSRecord")
 
+}
+
+func TestAccountScan(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		// setup
+		data := []any{
+			ulid.MakeSecure().String(),    // ID
+			"CustomerID",                  // CustomerID
+			"FirstName",                   // FirstName
+			"LastName",                    // LastName
+			"TravelAddress",               // TravelAddress
+			nil,                           // IVMSRecord
+			time.Now(),                    // Created
+			time.Now().Add(1 * time.Hour), // Modified
+		}
+		mockScanner := &mock.MockScanner{}
+		mockScanner.SetData(data)
+
+		// test
+		account := &models.Account{}
+		err := account.Scan(mockScanner)
+		require.NoError(t, err, "expected no errors from the scanner")
+		mockScanner.AssertScanned(t, len(data)-1) // FIXME: 5 are scanned, but we expect all but IVMSRecord
+	})
 }
 
 //==========================================================================
