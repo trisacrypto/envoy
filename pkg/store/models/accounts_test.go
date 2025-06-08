@@ -70,51 +70,76 @@ func TestAccountHasIVMSRecord(t *testing.T) {
 
 }
 
-func TestAccountScanSuccess(t *testing.T) {
-	// setup
-	data := []any{
-		ulid.MakeSecure().String(),    // ID
-		"CustomerID",                  // CustomerID
-		"FirstName",                   // FirstName
-		"LastName",                    // LastName
-		"TravelAddress",               // TravelAddress
-		nil,                           // IVMSRecord (will not scan)
-		time.Now(),                    // Created
-		time.Now().Add(1 * time.Hour), // Modified
-	}
-	mockScanner := &mock.MockScanner{}
-	mockScanner.SetData(data)
+func TestAccountScan(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		// setup
+		data := []any{
+			ulid.MakeSecure().String(),    // ID
+			"CustomerID",                  // CustomerID
+			"FirstName",                   // FirstName
+			"LastName",                    // LastName
+			"TravelAddress",               // TravelAddress
+			nil,                           // IVMSRecord (will not scan)
+			time.Now(),                    // Created
+			time.Now().Add(1 * time.Hour), // Modified
+		}
+		mockScanner := &mock.MockScanner{}
+		mockScanner.SetData(data)
 
-	// test
-	account := &models.Account{}
-	err := account.Scan(mockScanner)
-	require.NoError(t, err, "expected no errors from the scanner")
-	mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
-
+		// test
+		account := &models.Account{}
+		err := account.Scan(mockScanner)
+		require.NoError(t, err, "expected no errors from the scanner")
+		mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
+	})
 }
 
-func TestCryptoAddressScanSuccess(t *testing.T) {
-	// setup
-	data := []any{
-		ulid.MakeSecure().String(), // ID
-		ulid.MakeSecure().String(), // AccountID
-		"CryptoAddress",            // CryptoAddress
-		"Network",                  // Network
-		"",                         // AssetType (testing the empty string)
-		nil,                        // Tag (testing a null string)
-		"TravelAddress",            // TravelAddress
-		time.Now(),                 // Created
-		time.Time{},                // Modified (testing a zero value time)
-	}
-	mockScanner := &mock.MockScanner{}
-	mockScanner.SetData(data)
+func TestCryptoAddressScan(t *testing.T) {
+	t.Run("SuccessFilled", func(t *testing.T) {
+		// setup
+		data := []any{
+			ulid.MakeSecure().String(), // ID
+			ulid.MakeSecure().String(), // AccountID
+			"CryptoAddress",            // CryptoAddress
+			"Network",                  // Network
+			"AssetType",                // AssetType
+			"Tag",                      // Tag
+			"TravelAddress",            // TravelAddress
+			time.Now(),                 // Created
+			time.Now(),                 // Modified
+		}
+		mockScanner := &mock.MockScanner{}
+		mockScanner.SetData(data)
 
-	// test
-	address := &models.CryptoAddress{}
-	err := address.Scan(mockScanner)
-	require.NoError(t, err, "expected no errors from the scanner")
-	mockScanner.AssertScanned(t, len(data))
+		// test
+		address := &models.CryptoAddress{}
+		err := address.Scan(mockScanner)
+		require.NoError(t, err, "expected no errors from the scanner")
+		mockScanner.AssertScanned(t, len(data))
+	})
 
+	t.Run("SuccessNulls", func(t *testing.T) {
+		// setup
+		data := []any{
+			ulid.MakeSecure().String(), // ID
+			ulid.Zero.String(),         // AccountID (testing a zero ULID)
+			"CryptoAddress",            // CryptoAddress
+			"Network",                  // Network
+			nil,                        // AssetType (testing a null string)
+			nil,                        // Tag (testing a null string)
+			nil,                        // TravelAddress (testing a null string)
+			time.Now(),                 // Created
+			time.Time{},                // Modified (testing a zero value time)
+		}
+		mockScanner := &mock.MockScanner{}
+		mockScanner.SetData(data)
+
+		// test
+		address := &models.CryptoAddress{}
+		err := address.Scan(mockScanner)
+		require.NoError(t, err, "expected no errors from the scanner")
+		mockScanner.AssertScanned(t, len(data))
+	})
 }
 
 //==========================================================================
