@@ -115,6 +115,24 @@ func convertAssign(dst, src any) error {
 			*d = s.Format(time.RFC3339Nano)
 			return nil
 		}
+	case int:
+		switch d := dst.(type) {
+		case *int:
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = s
+			return nil
+		}
+	case float64:
+		switch d := dst.(type) {
+		case *float64:
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = s
+			return nil
+		}
 	case nil:
 		switch d := dst.(type) {
 		case *any:
