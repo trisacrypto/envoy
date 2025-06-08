@@ -70,28 +70,51 @@ func TestAccountHasIVMSRecord(t *testing.T) {
 
 }
 
-func TestAccountScan(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
-		// setup
-		data := []any{
-			ulid.MakeSecure().String(),    // ID
-			"CustomerID",                  // CustomerID
-			"FirstName",                   // FirstName
-			"LastName",                    // LastName
-			"TravelAddress",               // TravelAddress
-			nil,                           // IVMSRecord
-			time.Now(),                    // Created
-			time.Now().Add(1 * time.Hour), // Modified
-		}
-		mockScanner := &mock.MockScanner{}
-		mockScanner.SetData(data)
+func TestAccountScanSuccess(t *testing.T) {
+	// setup
+	data := []any{
+		ulid.MakeSecure().String(),    // ID
+		"CustomerID",                  // CustomerID
+		"FirstName",                   // FirstName
+		"LastName",                    // LastName
+		"TravelAddress",               // TravelAddress
+		nil,                           // IVMSRecord (will not scan)
+		time.Now(),                    // Created
+		time.Now().Add(1 * time.Hour), // Modified
+	}
+	mockScanner := &mock.MockScanner{}
+	mockScanner.SetData(data)
 
-		// test
-		account := &models.Account{}
-		err := account.Scan(mockScanner)
-		require.NoError(t, err, "expected no errors from the scanner")
-		mockScanner.AssertScanned(t, len(data)-1)
-	})
+	// test
+	account := &models.Account{}
+	err := account.Scan(mockScanner)
+	require.NoError(t, err, "expected no errors from the scanner")
+	mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
+
+}
+
+func TestCryptoAddressScanSuccess(t *testing.T) {
+	// setup
+	data := []any{
+		ulid.MakeSecure().String(), // ID
+		ulid.MakeSecure().String(), // AccountID
+		"CryptoAddress",            // CryptoAddress
+		"Network",                  // Network
+		"",                         // AssetType (testing the empty string)
+		nil,                        // Tag (testing a null string)
+		"TravelAddress",            // TravelAddress
+		time.Now(),                 // Created
+		time.Time{},                // Modified (testing a zero value time)
+	}
+	mockScanner := &mock.MockScanner{}
+	mockScanner.SetData(data)
+
+	// test
+	address := &models.CryptoAddress{}
+	err := address.Scan(mockScanner)
+	require.NoError(t, err, "expected no errors from the scanner")
+	mockScanner.AssertScanned(t, len(data))
+
 }
 
 //==========================================================================
