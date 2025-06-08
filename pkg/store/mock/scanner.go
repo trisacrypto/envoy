@@ -138,9 +138,33 @@ func convertAssign(dst, src any) error {
 			*d = int64(s)
 			return nil
 		}
+	case int64:
+		switch d := dst.(type) {
+		case *int64: // int64 into int64
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = s
+			return nil
+		case *int: // int64 into int
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = int(s)
+			return nil
+		}
 	case float64:
 		switch d := dst.(type) {
 		case *float64: // float64 into float64
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = s
+			return nil
+		}
+	case bool:
+		switch d := dst.(type) {
+		case *bool: // bool into bool
 			if d == nil {
 				return ErrNilPtr
 			}

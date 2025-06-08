@@ -15,21 +15,23 @@ import (
 // A model to test MockScanner with.
 type MockTestModel struct {
 
-	// null types
+	// null types with Scanner
 	TestNullULID    ulid.NullULID
 	TestNullTime    sql.NullTime
 	TestNullInt64   sql.NullInt64
 	TestNullFloat64 sql.NullFloat64
 	TestNullString  sql.NullString
 
-	// base types
+	// base types without Scanner covered in `convertAssign`
 	TestULID         ulid.ULID
 	TestTime         time.Time
 	TestStringToTime string
 	TestInt          int
+	TestInt64        int64
 	TestFloat64      float64
 	TestString       string
 	TestBytes        []byte
+	TestBool         bool
 
 	// "no scan" test (`convertAssign()` should fail for `time.Duration`)
 	TestNoScan time.Duration
@@ -47,9 +49,11 @@ func (m *MockTestModel) Scan(scanner models.Scanner) error {
 		&m.TestTime,
 		&m.TestStringToTime,
 		&m.TestInt,
+		&m.TestInt64,
 		&m.TestFloat64,
 		&m.TestString,
 		&m.TestBytes,
+		&m.TestBool,
 		&m.TestNoScan,
 	)
 }
@@ -67,20 +71,24 @@ func TestScanner(t *testing.T) {
 			time.Now(),                         // i = 6  (TestTime)
 			"2025-01-01T12:34:56.123456-10:00", // i = 7  (TestStringToTime)
 			808,                                // i = 8  (TestInt)
-			3.14159,                            // i = 9  (TestFloat64)
-			"Mauka",                            // i = 10 (TestString)
-			[]byte("Makai"),                    // i = 11 (TestBytes)
-			nil,                                // i = 12 (TestNoScan)
+			int64(808),                         // i = 9  (TestInt64)
+			3.14159,                            // i = 10 (TestFloat64)
+			"Mauka",                            // i = 11 (TestString)
+			[]byte("Makai"),                    // i = 12 (TestBytes)
+			true,                               // i = 13 (TestBool)
+			nil,                                // i = 14 (TestNoScan)
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)
+		shouldNotScan := 1 // "TestNoScan" type shouldn't scan properly in `convertAssign`
+		shouldScan := len(data) - shouldNotScan
 
 		// test
 		model := &MockTestModel{}
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
-		mockScanner.AssertScanned(t, len(data)-1)
-		mockScanner.AssertNotScanned(t, 1) // TestNoScan shouldn't scan with `convertAssign()`
+		mockScanner.AssertScanned(t, shouldScan)
+		mockScanner.AssertNotScanned(t, shouldNotScan)
 	})
 
 	t.Run("SetError", func(t *testing.T) {
