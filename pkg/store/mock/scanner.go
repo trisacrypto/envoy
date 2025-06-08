@@ -65,38 +65,46 @@ func (m *MockScanner) Scan(dest ...any) (err error) {
 	return nil
 }
 
+// Assigns `src` to `dst`, doing some conversions if necessary.
 func convertAssign(dst, src any) error {
 	switch s := src.(type) {
 	case string:
 		switch d := dst.(type) {
-		case *string:
+		case *string: // string into string
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = s
 			return nil
-		case *[]byte:
+		case *[]byte: // string into byte
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = []byte(s)
 			return nil
+		case *time.Time: // string into time
+			t, err := time.Parse("", s)
+			if err != nil {
+				return err
+			}
+			*d = t
+			return nil
 		}
 	case []byte:
 		switch d := dst.(type) {
-		case *string:
+		case *string: // bytes into string
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = string(s)
 			return nil
-		case *any:
+		case *any: // bytes into any
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = bytes.Clone(s)
 			return nil
-		case *[]byte:
+		case *[]byte: // bytes into bytes
 			if d == nil {
 				return ErrNilPtr
 			}
@@ -105,10 +113,10 @@ func convertAssign(dst, src any) error {
 		}
 	case time.Time:
 		switch d := dst.(type) {
-		case *time.Time:
+		case *time.Time: // time into time
 			*d = s
 			return nil
-		case *string:
+		case *string: // time into string
 			if d == nil {
 				return ErrNilPtr
 			}
@@ -117,16 +125,22 @@ func convertAssign(dst, src any) error {
 		}
 	case int:
 		switch d := dst.(type) {
-		case *int:
+		case *int: // int into int
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = s
 			return nil
+		case *int64: // int into int64
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = int64(s)
+			return nil
 		}
 	case float64:
 		switch d := dst.(type) {
-		case *float64:
+		case *float64: // float64 into float64
 			if d == nil {
 				return ErrNilPtr
 			}
@@ -135,13 +149,13 @@ func convertAssign(dst, src any) error {
 		}
 	case nil:
 		switch d := dst.(type) {
-		case *any:
+		case *any: // nil into any
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = nil
 			return nil
-		case *[]byte:
+		case *[]byte: // nil into bytes
 			if d == nil {
 				return ErrNilPtr
 			}
@@ -150,7 +164,7 @@ func convertAssign(dst, src any) error {
 		}
 	}
 
-	// Could not conver the type src or dst unrecognized.
+	// Could not convert: the type src or dst unrecognized.
 	return ErrUnknownType
 }
 
