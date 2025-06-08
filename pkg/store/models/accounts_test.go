@@ -87,10 +87,21 @@ func TestAccountScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		account := &models.Account{}
-		err := account.Scan(mockScanner)
+		model := &models.Account{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
+
+		// make sure scanned data matches the fields they were supposed to scan into
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.CustomerID.String, "expected field CustomerID to match data[1]")
+		require.Equal(t, data[2], model.FirstName.String, "expected field FirstName to match data[2]")
+		require.Equal(t, data[3], model.LastName.String, "expected field LastName to match data[3]")
+		require.Equal(t, data[4], model.TravelAddress.String, "expected field TravelAddress to match data[4]")
+		require.Equal(t, data[6], model.Created, "expected field Created to match data[6]")
+		require.Equal(t, data[7], model.Modified, "expected field Modified to match data[7]")
 	})
 }
 
@@ -112,10 +123,21 @@ func TestCryptoAddressScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.CryptoAddress{}
-		err := address.Scan(mockScanner)
+		model := &models.CryptoAddress{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.AccountID.String(), "expected field AccountID to match data[1]")
+		require.Equal(t, data[2], model.CryptoAddress, "expected field CryptoAddress to match data[2]")
+		require.Equal(t, data[3], model.Network, "expected field Network to match data[3]")
+		require.Equal(t, data[4], model.AssetType.String, "expected field AssetType to match data[4]")
+		require.Equal(t, data[5], model.Tag.String, "expected field Tag to match data[5]")
+		require.Equal(t, data[6], model.TravelAddress.String, "expected field TravelAddress to match data[6]")
+		require.Equal(t, data[7], model.Created, "expected field Created to match data[7]")
+		require.Equal(t, data[8], model.Modified, "expected field Modified to match data[8]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
@@ -135,8 +157,8 @@ func TestCryptoAddressScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.CryptoAddress{}
-		err := address.Scan(mockScanner)
+		model := &models.CryptoAddress{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data))
 	})

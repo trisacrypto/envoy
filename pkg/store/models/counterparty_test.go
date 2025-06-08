@@ -102,10 +102,29 @@ func TestCounterpartyScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.Counterparty{}
-		err := address.Scan(mockScanner)
+		model := &models.Counterparty{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Source.String(), "expected field Source to match data[1]")
+		require.Equal(t, data[2], model.DirectoryID.String, "expected field DirectoryID to match data[2]")
+		require.Equal(t, data[3], model.RegisteredDirectory.String, "expected field RegisteredDirectory to match data[3]")
+		require.Equal(t, data[4], model.Protocol.String(), "expected field Protocol to match data[4]")
+		require.Equal(t, data[5], model.CommonName, "expected field CommonName to match data[5]")
+		require.Equal(t, data[6], model.Endpoint, "expected field Endpoint to match data[6]")
+		require.Equal(t, data[7], model.Name, "expected field Name to match data[7]")
+		require.Equal(t, data[8], model.Website.String, "expected field Website to match data[8]")
+		require.Equal(t, data[9], model.Country.String, "expected field Country to match data[9]")
+		require.Equal(t, data[10], model.BusinessCategory.String, "expected field BusinessCategory to match data[10]")
+		vaspCategoriesExp := models.VASPCategories(models.VASPCategories{"Category One", "Category 2"}) // special construction for expected value
+		require.Equal(t, vaspCategoriesExp, model.VASPCategories, "expected field VASPCategories to match data[11]")
+		require.Equal(t, data[12], model.VerifiedOn.Time, "expected field VerifiedOn to match data[12]")
+		require.Equal(t, data[14], model.Created, "expected field Created to match data[14]")
+		require.Equal(t, data[15], model.Modified, "expected field Modified to match data[15]")
+		require.Equal(t, data[16], model.LEI.String, "expected field LEI to match data[16]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
@@ -133,8 +152,8 @@ func TestCounterpartyScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.Counterparty{}
-		err := address.Scan(mockScanner)
+		model := &models.Counterparty{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data)-1) // IVMSRecord will not scan
 	})
@@ -164,8 +183,8 @@ func TestCounterpartyScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.Counterparty{}
-		err := address.Scan(mockScanner)
+		model := &models.Counterparty{}
+		err := model.Scan(mockScanner)
 		require.Error(t, err, "expected an error from the scanner")
 		require.ErrorContains(t, err, "invalid protocol", "expected an 'invalid protocol' error from the scanner")
 	})
@@ -195,8 +214,8 @@ func TestCounterpartyScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.Counterparty{}
-		err := address.Scan(mockScanner)
+		model := &models.Counterparty{}
+		err := model.Scan(mockScanner)
 		require.Error(t, err, "expected an error from the scanner")
 		require.ErrorContains(t, err, "invalid source", "expected an 'invalid source' error from the scanner")
 	})
@@ -218,10 +237,19 @@ func TestContactScan(t *testing.T) {
 		mockScanner.SetData(data)
 
 		// test
-		address := &models.Contact{}
-		err := address.Scan(mockScanner)
+		model := &models.Contact{}
+		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Name, "expected field Name to match data[1]")
+		require.Equal(t, data[2], model.Email, "expected field Email to match data[2]")
+		require.Equal(t, data[3], model.Role, "expected field Role to match data[3]")
+		require.Equal(t, data[4], model.CounterpartyID.String(), "expected field CounterpartyID to match data[4]")
+		require.Equal(t, data[5], model.Created, "expected field Created to match data[5]")
+		require.Equal(t, data[6], model.Modified, "expected field Modified to match data[6]")
 	})
 }
 

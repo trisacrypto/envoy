@@ -131,11 +131,33 @@ func convertAssign(dst, src any) error {
 			}
 			*d = s
 			return nil
+		case *int32: // int into int32
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = int32(s)
+			return nil
+
 		case *int64: // int into int64
 			if d == nil {
 				return ErrNilPtr
 			}
 			*d = int64(s)
+			return nil
+		}
+	case int32:
+		switch d := dst.(type) {
+		case *int32: // int32 into int32
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = s
+			return nil
+		case *int: // int32 into int
+			if d == nil {
+				return ErrNilPtr
+			}
+			*d = int(s)
 			return nil
 		}
 	case int64:

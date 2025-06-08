@@ -130,6 +130,16 @@ func TestUserScan(t *testing.T) {
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors when scanning")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Name.String, "expected field Name to match data[1]")
+		require.Equal(t, data[2], model.Email, "expected field Email to match data[2]")
+		require.Equal(t, data[3], model.Password, "expected field Password to match data[3]")
+		require.Equal(t, data[4], model.RoleID, "expected field RoleID to match data[4]")
+		require.Equal(t, data[5], model.LastLogin.Time, "expected field LastLogin to match data[5]")
+		require.Equal(t, data[6], model.Created, "expected field Created to match data[6]")
+		require.Equal(t, data[7], model.Modified, "expected field Modified to match data[7]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
@@ -175,6 +185,15 @@ func TestAPIKeyScan(t *testing.T) {
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors when scanning")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Description.String, "expected field Description to match data[1]")
+		require.Equal(t, data[2], model.ClientID, "expected field ClientID to match data[2]")
+		require.Equal(t, data[3], model.Secret, "expected field Secret to match data[3]")
+		require.Equal(t, data[4], model.LastSeen.Time, "expected field LastSeen to match data[4]")
+		require.Equal(t, data[5], model.Created, "expected field Created to match data[5]")
+		require.Equal(t, data[6], model.Modified, "expected field Modified to match data[6]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
@@ -218,6 +237,14 @@ func TestRoleScan(t *testing.T) {
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors when scanning")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID, "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Title, "expected field Title to match data[1]")
+		require.Equal(t, data[2], model.Description, "expected field Description to match data[2]")
+		require.Equal(t, data[3], model.IsDefault, "expected field IsDefault to match data[3]")
+		require.Equal(t, data[4], model.Created, "expected field Created to match data[4]")
+		require.Equal(t, data[5], model.Modified, "expected field Modified to match data[5]")
 	})
 }
 
@@ -239,6 +266,13 @@ func TestPermissionScan(t *testing.T) {
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors when scanning")
 		mockScanner.AssertScanned(t, len(data))
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID, "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.Title, "expected field Title to match data[1]")
+		require.Equal(t, data[2], model.Description, "expected field Description to match data[2]")
+		require.Equal(t, data[3], model.Created, "expected field Created to match data[3]")
+		require.Equal(t, data[4], model.Modified, "expected field Modified to match dat4[5]")
 	})
 }
 
@@ -263,6 +297,15 @@ func TestResetPasswordLinkScan(t *testing.T) {
 		err := model.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors when scanning")
 		mockScanner.AssertScanned(t, len(data)-1) // will not scan Signature
+
+		// make sure scanned data matches the fields they were supposed to scan into
+		require.Equal(t, data[0], model.ID.String(), "expected field ID to match data[0]")
+		require.Equal(t, data[1], model.UserID.String(), "expected field UserID to match data[1]")
+		require.Equal(t, data[2], model.Email, "expected field Email to match data[2]")
+		require.Equal(t, data[3], model.Expiration, "expected field Expiration to match data[3]")
+		require.Equal(t, data[5], model.SentOn.Time, "expected field SentOn to match data[5]")
+		require.Equal(t, data[6], model.Created, "expected field Created to match data[6]")
+		require.Equal(t, data[7], model.Modified, "expected field Modified to match data[7]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
