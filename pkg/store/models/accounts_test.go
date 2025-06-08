@@ -90,7 +90,7 @@ func TestAccountScan(t *testing.T) {
 		account := &models.Account{}
 		err := account.Scan(mockScanner)
 		require.NoError(t, err, "expected no errors from the scanner")
-		mockScanner.AssertScanned(t, len(data)-1) // FIXME: 5 are scanned, but we expect all but IVMSRecord
+		mockScanner.AssertScanned(t, len(data)-1)
 	})
 }
 
