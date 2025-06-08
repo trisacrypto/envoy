@@ -95,4 +95,30 @@ func TestScanner(t *testing.T) {
 		require.Equal(t, errors.ErrInternal, err, "expected errors.ErrInternal from the scanner")
 
 	})
+
+	t.Run("Panics", func(t *testing.T) {
+		// setup
+		data := []any{
+			ulid.MakeSecure().String(),         // i = 0  (TestNullULID)
+			time.Now(),                         // i = 1  (TestNullTime)
+			808,                                // i = 2  (TestNullInt64)
+			3.14159,                            // i = 3  (TestNullFloat64)
+			"Mahalo",                           // i = 4  (TestNullString)
+			ulid.MakeSecure().String(),         // i = 5  (TestULID)
+			time.Now(),                         // i = 6  (TestTime)
+			"2025-01-01T12:34:56.123456-10:00", // i = 7  (TestStringToTime)
+			808,                                // i = 8  (TestInt)
+			3.14159,                            // i = 9  (TestFloat64)
+			"Mauka",                            // i = 10 (TestString)
+			[]byte("Makai"),                    // i = 11 (TestBytes)
+			// CAUSES A PANIC BY COMMENTING OUT LAST ITEM
+			// nil,                                // i = 12 (TestNoScan)
+		}
+		mockScanner := &mock.MockScanner{}
+		mockScanner.SetData(data)
+
+		// test
+		model := &MockTestModel{}
+		require.Panics(t, func() { _ = model.Scan(mockScanner) }, "should panic, not enough data items")
+	})
 }
