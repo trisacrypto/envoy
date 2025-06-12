@@ -94,7 +94,7 @@ func (s *storeTestSuite) SetupSuite() {
 
 func (s *storeTestSuite) CreateDB() {
 	var err error
-	require := s.Assert()
+	require := s.Require()
 
 	// Only create the database path on the first call to CreateDB. Otherwise the call
 	// to TempDir() will be prefixed with the name of the subtest, which will cause an
