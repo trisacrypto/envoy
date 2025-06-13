@@ -92,6 +92,10 @@ func (s *storeTestSuite) SetupSuite() {
 	s.CreateDB()
 }
 
+func (s *storeTestSuite) SetupTest() {
+	s.ResetDB()
+}
+
 func (s *storeTestSuite) CreateDB() {
 	var err error
 	require := s.Require()
