@@ -1,13 +1,11 @@
 package models_test
 
 import (
-	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
@@ -19,7 +17,7 @@ import (
 
 func TestSunriseParams(t *testing.T) {
 	// setup a model
-	theModel := getSampleSunrise(true)
+	theModel := mock.GetSampleSunrise(true)
 
 	// create the model public field name comparison list
 	fields := GetPublicFieldNames(*theModel)
@@ -92,37 +90,4 @@ func TestSunriseScan(t *testing.T) {
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data)-1) // Signature won't scan
 	})
-}
-
-//==========================================================================
-// Helpers
-//==========================================================================
-
-// Returns a sample Sunrise.
-func getSampleSunrise(includeNulls bool) (model *models.Sunrise) {
-	id := ulid.MakeSecure()
-	envId := uuid.New()
-	timeNow := time.Now()
-
-	model = &models.Sunrise{
-		Model: models.Model{
-			ID:       id,
-			Created:  timeNow,
-			Modified: timeNow,
-		},
-		EnvelopeID: envId,
-		Email:      "email@example.com",
-		Expiration: timeNow.Add(1 * time.Hour),
-		Signature:  nil,
-		Status:     enum.StatusDraft,
-		SentOn:     sql.NullTime{},
-		VerifiedOn: sql.NullTime{},
-	}
-
-	if includeNulls {
-		model.SentOn = sql.NullTime{Time: timeNow, Valid: true}
-		model.VerifiedOn = sql.NullTime{Time: timeNow, Valid: true}
-	}
-
-	return model
 }

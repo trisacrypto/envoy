@@ -1,7 +1,6 @@
 package models_test
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
-	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"go.rtnl.ai/ulid"
 )
 
@@ -20,7 +18,7 @@ import (
 
 func TestAccountParams(t *testing.T) {
 	// setup a model
-	theModel := getSampleAccount(true, true, true)
+	theModel := mock.GetSampleAccount(true, true, true)
 
 	// create the model public field name comparison list
 	fields := GetPublicFieldNames(*theModel)
@@ -36,12 +34,12 @@ func TestAccountParams(t *testing.T) {
 
 func TestAccountCryptoAddresses(t *testing.T) {
 	// test 1: has addresses
-	addresses, err := getSampleAccount(true, true, true).CryptoAddresses()
+	addresses, err := mock.GetSampleAccount(true, true, true).CryptoAddresses()
 	require.NotNil(t, addresses, "addresses should not be nil")
 	require.Nil(t, err, "error should be nil")
 
 	//test 2: no addresses
-	addresses, err = getSampleAccount(false, false, false).CryptoAddresses()
+	addresses, err = mock.GetSampleAccount(false, false, false).CryptoAddresses()
 	require.Nil(t, addresses, "addresses should be nil")
 	require.Error(t, err, "error should not be nil")
 	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
@@ -50,22 +48,22 @@ func TestAccountCryptoAddresses(t *testing.T) {
 
 func TestAccountNumAddresses(t *testing.T) {
 	// test 1: has addresses
-	number := getSampleAccount(true, true, true).NumAddresses()
+	number := mock.GetSampleAccount(true, true, true).NumAddresses()
 	require.Equal(t, int64(2), number, fmt.Sprintf("should have 2 addresses: %d", number))
 
 	//test 2: no addresses
-	number = getSampleAccount(false, false, false).NumAddresses()
+	number = mock.GetSampleAccount(false, false, false).NumAddresses()
 	require.Equal(t, int64(0), number, fmt.Sprintf("should have 0 addresses: %d", number))
 
 }
 
 func TestAccountHasIVMSRecord(t *testing.T) {
 	// test 1: has IVMSRecord
-	ok := getSampleAccount(true, true, true).HasIVMSRecord()
+	ok := mock.GetSampleAccount(true, true, true).HasIVMSRecord()
 	require.True(t, ok, "should have an IVMSRecord")
 
 	//test 2: no IVMSRecord
-	ok = getSampleAccount(false, false, false).HasIVMSRecord()
+	ok = mock.GetSampleAccount(false, false, false).HasIVMSRecord()
 	require.False(t, ok, "should not have an IVMSRecord")
 
 }
@@ -162,70 +160,4 @@ func TestCryptoAddressScan(t *testing.T) {
 		require.NoError(t, err, "expected no errors from the scanner")
 		mockScanner.AssertScanned(t, len(data))
 	})
-}
-
-//==========================================================================
-// Helpers
-//==========================================================================
-
-// Returns a sample Account. Can add the IVMS101 and CryptoAddresses and include
-// or exclude `NullType` values.
-func getSampleAccount(includeNulls bool, addIvms101 bool, addCrypto bool) (account *models.Account) {
-	id := ulid.MakeSecure()
-	timeNow := time.Now()
-
-	account = &models.Account{
-		Model: models.Model{
-			ID:       id,
-			Created:  timeNow,
-			Modified: timeNow},
-		CustomerID:    sql.NullString{},
-		FirstName:     sql.NullString{},
-		LastName:      sql.NullString{},
-		TravelAddress: sql.NullString{},
-		IVMSRecord:    nil,
-	}
-
-	if includeNulls {
-		account.CustomerID = sql.NullString{String: "CustomerID", Valid: true}
-		account.FirstName = sql.NullString{String: "FirstName", Valid: true}
-		account.LastName = sql.NullString{String: "LastName", Valid: true}
-		account.TravelAddress = sql.NullString{String: "TravelAddress", Valid: true}
-	}
-
-	if addIvms101 {
-		account.IVMSRecord = &ivms101.Person{
-			Person: &ivms101.Person_NaturalPerson{
-				NaturalPerson: &ivms101.NaturalPerson{
-					Name: &ivms101.NaturalPersonName{
-						NameIdentifiers: []*ivms101.NaturalPersonNameId{
-							{
-								PrimaryIdentifier:   "FirstName",
-								SecondaryIdentifier: "LastName",
-								NameIdentifierType:  ivms101.NaturalPersonNameTypeCode_NATURAL_PERSON_NAME_TYPE_CODE_LEGL,
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	if addCrypto {
-		addresses := []*models.CryptoAddress{
-			{
-				AccountID:     ulid.MakeSecure(),
-				CryptoAddress: "CryptoAddress",
-				Network:       "BTC",
-			},
-			{
-				AccountID:     ulid.MakeSecure(),
-				CryptoAddress: "CryptoAddress",
-				Network:       "BTC",
-			},
-		}
-		account.SetCryptoAddresses(addresses)
-	}
-
-	return account
 }
