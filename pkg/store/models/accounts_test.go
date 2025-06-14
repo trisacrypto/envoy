@@ -18,7 +18,7 @@ import (
 
 func TestAccountParams(t *testing.T) {
 	// setup a model
-	theModel := mock.GetSampleAccount(true, true, true, false)
+	theModel := mock.GetSampleAccount(true, true, true)
 
 	// create the model public field name comparison list
 	fields := GetPublicFieldNames(*theModel)
@@ -34,12 +34,12 @@ func TestAccountParams(t *testing.T) {
 
 func TestAccountCryptoAddresses(t *testing.T) {
 	// test 1: has addresses
-	addresses, err := mock.GetSampleAccount(true, true, true, false).CryptoAddresses()
+	addresses, err := mock.GetSampleAccount(true, true, true).CryptoAddresses()
 	require.NotNil(t, addresses, "addresses should not be nil")
 	require.Nil(t, err, "error should be nil")
 
 	//test 2: no addresses
-	addresses, err = mock.GetSampleAccount(false, false, false, false).CryptoAddresses()
+	addresses, err = mock.GetSampleAccount(false, false, false).CryptoAddresses()
 	require.Nil(t, addresses, "addresses should be nil")
 	require.Error(t, err, "error should not be nil")
 	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
@@ -48,22 +48,22 @@ func TestAccountCryptoAddresses(t *testing.T) {
 
 func TestAccountNumAddresses(t *testing.T) {
 	// test 1: has addresses
-	number := mock.GetSampleAccount(true, true, true, false).NumAddresses()
+	number := mock.GetSampleAccount(true, true, true).NumAddresses()
 	require.Equal(t, int64(2), number, fmt.Sprintf("should have 2 addresses: %d", number))
 
 	//test 2: no addresses
-	number = mock.GetSampleAccount(false, false, false, false).NumAddresses()
+	number = mock.GetSampleAccount(false, false, false).NumAddresses()
 	require.Equal(t, int64(0), number, fmt.Sprintf("should have 0 addresses: %d", number))
 
 }
 
 func TestAccountHasIVMSRecord(t *testing.T) {
 	// test 1: has IVMSRecord
-	ok := mock.GetSampleAccount(true, true, true, false).HasIVMSRecord()
+	ok := mock.GetSampleAccount(true, true, true).HasIVMSRecord()
 	require.True(t, ok, "should have an IVMSRecord")
 
 	//test 2: no IVMSRecord
-	ok = mock.GetSampleAccount(false, false, false, false).HasIVMSRecord()
+	ok = mock.GetSampleAccount(false, false, false).HasIVMSRecord()
 	require.False(t, ok, "should not have an IVMSRecord")
 
 }
