@@ -319,6 +319,10 @@ func (s *Store) LookupRole(ctx context.Context, role string) (model *models.Role
 	}
 	defer tx.Rollback()
 
+	if model, err = tx.LookupRole(role); err != nil {
+		return nil, err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
