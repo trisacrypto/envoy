@@ -117,7 +117,8 @@ func GetSampleUser(includeNulls bool) (model *models.User) {
 	return model
 }
 
-// Returns a sample APIKey. Can include or exclude any `NullType` types.
+// Returns a sample APIKey. Can include or exclude any `NullType` types. The
+// client id and secret will be random ULID strings.
 func GetSampleAPIKey(includeNulls bool) (model *models.APIKey) {
 	id := ulid.MakeSecure()
 	timeNow := time.Now()
@@ -129,8 +130,8 @@ func GetSampleAPIKey(includeNulls bool) (model *models.APIKey) {
 			Modified: timeNow,
 		},
 		Description: sql.NullString{},
-		ClientID:    "ClientID",
-		Secret:      "Secret",
+		ClientID:    ulid.MakeSecure().String(),
+		Secret:      ulid.MakeSecure().String(),
 		LastSeen:    sql.NullTime{},
 	}
 
