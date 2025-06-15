@@ -319,6 +319,10 @@ func (s *Store) LookupRole(ctx context.Context, role string) (model *models.Role
 	}
 	defer tx.Rollback()
 
+	if model, err = tx.LookupRole(role); err != nil {
+		return nil, err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -766,6 +770,10 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 	}
 	defer tx.Rollback()
 
+	if err := tx.UpdateResetPasswordLink(link); err != nil {
+		return err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return err
 	}
@@ -796,6 +804,10 @@ func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (
 		return err
 	}
 	defer tx.Rollback()
+
+	if err := tx.DeleteResetPasswordLink(linkID); err != nil {
+		return err
+	}
 
 	return tx.Commit()
 }
