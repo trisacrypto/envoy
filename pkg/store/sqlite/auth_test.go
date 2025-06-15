@@ -804,15 +804,55 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 		require.True(newTime.Time.Equal(link.SentOn.Time), "expected the new sent on time")
 		require.Equal(oldEmail, link.Email, "expected the email to remain the same")
 	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
+		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(link, "there was no link")
+
+		link.ID = ulid.MakeSecure()
+
+		//test
+		err = s.store.UpdateResetPasswordLink(ctx, link)
+		require.NoError(err, "expected no error")
+
+		link, err = s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(link, "expected a nil link")
+	})
 }
 
 func (s *storeTestSuite) TestDeleteResetPasswordLink() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		err := s.store.DeleteResetPasswordLink(ctx, linkId)
+		require.NoError(err, "expected no error")
+
+		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(link, "expected a nil link")
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MakeSecure()
+
+		//test
+		err := s.store.DeleteResetPasswordLink(ctx, linkId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }

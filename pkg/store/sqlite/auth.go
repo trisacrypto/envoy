@@ -805,6 +805,10 @@ func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (
 	}
 	defer tx.Rollback()
 
+	if err := tx.DeleteResetPasswordLink(linkID); err != nil {
+		return err
+	}
+
 	return tx.Commit()
 }
 
