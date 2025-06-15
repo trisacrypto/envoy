@@ -215,7 +215,8 @@ func GetSampleResetPasswordLink(includeNulls bool) (model *models.ResetPasswordL
 	return model
 }
 
-// Returns a sample Counterparty.
+// Returns a sample Counterparty. This counterparty will be unique, using it's
+// ID for the CommonName and Endpoint ("ULID_STRING.sample.example.com").
 func GetSampleCounterparty(includeNulls bool, includeContacts bool) (model *models.Counterparty) {
 	id := ulid.MakeSecure()
 	timeNow := time.Now()
@@ -226,13 +227,13 @@ func GetSampleCounterparty(includeNulls bool, includeContacts bool) (model *mode
 			Created:  timeNow,
 			Modified: timeNow,
 		},
-		Source:              enum.SourceDirectorySync,
+		Source:              enum.SourceUserEntry,
 		DirectoryID:         sql.NullString{},
 		RegisteredDirectory: sql.NullString{},
 		Protocol:            enum.ProtocolTRISA,
-		CommonName:          "CommonName",
-		Endpoint:            "schema://endpoint",
-		Name:                "Name",
+		CommonName:          fmt.Sprintf("%s.sample.example.com", id.String()),
+		Endpoint:            fmt.Sprintf("https://%s.sample.example.com:808/api/v1", id.String()),
+		Name:                "Sample Counterparty",
 		Website:             sql.NullString{},
 		Country:             sql.NullString{},
 		BusinessCategory:    sql.NullString{},
@@ -243,17 +244,22 @@ func GetSampleCounterparty(includeNulls bool, includeContacts bool) (model *mode
 	}
 
 	if includeNulls {
-		model.DirectoryID = sql.NullString{String: "DirectoryID", Valid: true}
+		model.DirectoryID = sql.NullString{String: uuid.NewString(), Valid: true}
 		model.RegisteredDirectory = sql.NullString{String: "RegisteredDirectory", Valid: true}
-		model.Website = sql.NullString{String: "Website", Valid: true}
-		model.Country = sql.NullString{String: "Country", Valid: true}
+		model.Website = sql.NullString{String: "https://sample.example.com", Valid: true}
+		model.Country = sql.NullString{String: "US", Valid: true}
 		model.BusinessCategory = sql.NullString{String: "BusinessCategory", Valid: true}
+		model.VASPCategories = models.VASPCategories{"Category One", "Category Two"}
 		model.VerifiedOn = sql.NullTime{Time: timeNow, Valid: true}
-		model.LEI = sql.NullString{String: "LEI", Valid: true}
+		model.LEI = sql.NullString{String: id.String(), Valid: true}
 	}
 
 	if includeContacts {
-		model.SetContacts([]*models.Contact{GetSampleContact("email@example.com"), GetSampleContact("")})
+		model.SetContacts([]*models.Contact{
+			GetSampleContact(""),
+			GetSampleContact(""),
+			GetSampleContact(""),
+		})
 	}
 
 	return model
