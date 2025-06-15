@@ -818,12 +818,8 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 
 		//test
 		err = s.store.UpdateResetPasswordLink(ctx, link)
-		require.NoError(err, "expected no error")
-
-		link, err = s.store.RetrieveResetPasswordLink(ctx, linkId)
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-		require.Nil(link, "expected a nil link")
 	})
 }
 
