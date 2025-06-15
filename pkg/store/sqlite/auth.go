@@ -770,6 +770,10 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 	}
 	defer tx.Rollback()
 
+	if err := tx.UpdateResetPasswordLink(link); err != nil {
+		return err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return err
 	}

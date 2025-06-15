@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	"go.rtnl.ai/ulid"
+	"go.rtnl.ai/x/vero"
 )
 
 // ============================================================================
@@ -183,6 +184,16 @@ func GetSampleResetPasswordLink(includeNulls bool) (model *models.ResetPasswordL
 	id := ulid.MakeSecure()
 	userid := ulid.MakeSecure()
 	timeNow := time.Now()
+	expiration := timeNow.Add(1 * time.Hour)
+
+	token, err := vero.New(id.Bytes(), expiration)
+	if err != nil {
+		panic(err)
+	}
+	_, sig, err := token.Sign()
+	if err != nil {
+		panic(err)
+	}
 
 	model = &models.ResetPasswordLink{
 		Model: models.Model{
@@ -192,8 +203,8 @@ func GetSampleResetPasswordLink(includeNulls bool) (model *models.ResetPasswordL
 		},
 		UserID:     userid,
 		Email:      "email@example.com",
-		Expiration: timeNow.Add(1 * time.Hour),
-		Signature:  nil, // these tokens are tested in their package
+		Expiration: expiration,
+		Signature:  sig,
 		SentOn:     sql.NullTime{},
 	}
 

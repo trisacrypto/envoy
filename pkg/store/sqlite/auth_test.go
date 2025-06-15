@@ -2,6 +2,7 @@ package sqlite_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -512,80 +513,297 @@ func (s *storeTestSuite) TestCreateAPIKey() {
 }
 
 func (s *storeTestSuite) TestRetrieveAPIKey() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("SuccessKeyID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(apiKey, "api key should not be nil")
+		require.Equal(keyId, apiKey.ID, fmt.Sprintf("id should be %s, but found %s", keyId, apiKey.ID))
+		require.Equal("Full permissions keys", apiKey.Description.String, "expected a different api key description")
+
+		permissions := apiKey.Permissions()
+		require.NotNil(permissions, "permissions should not be nil")
+		require.Len(permissions, 17, fmt.Sprintf("expected 17 permissions, got %d", len(permissions)))
+	})
+
+	s.Run("SuccessClientID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		clientId := "ISoIuDiGkpVpAyCrLGYrKU"
+
+		//test
+		apiKey, err := s.store.RetrieveAPIKey(ctx, clientId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(apiKey, "api key should not be nil")
+		require.Equal(clientId, apiKey.ClientID, fmt.Sprintf("client id should be %s, but found %s", clientId, apiKey.ClientID))
+		require.Equal("Full permissions keys", apiKey.Description.String, "expected a different api key description")
+
+		permissions := apiKey.Permissions()
+		require.NotNil(permissions, "permissions should not be nil")
+		require.Len(permissions, 17, fmt.Sprintf("expected 17 permissions, got %d", len(permissions)))
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		clientId := "this_is_not_a_client_id"
+
+		//test
+		apiKey, err := s.store.RetrieveAPIKey(ctx, clientId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(apiKey, "api key should be nil")
+	})
+
+	s.Run("FailureInvalidType", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		invalidType := int64(808)
+
+		//test
+		apiKey, err := s.store.RetrieveAPIKey(ctx, invalidType)
+		require.Error(err, "expected an error")
+		require.ErrorContains(err, "unkown type", "expected 'unknown type' error")
+		require.Nil(apiKey, "api key should be nil")
+	})
 }
 
 func (s *storeTestSuite) TestUpdateAPIKey() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
+		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(apiKey, "api key should not be nil")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		newDescription := sql.NullString{String: "New Description 83r29123e89", Valid: true}
+		apiKey.Description = newDescription
+
+		//test
+		err = s.store.UpdateAPIKey(ctx, apiKey)
+		require.NoError(err, "expected no errors")
+
+		apiKey, err = s.store.RetrieveAPIKey(ctx, keyId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(apiKey, "api key should not be nil")
+		require.Equal(newDescription, apiKey.Description, "expected the new description")
+
+		permissions := apiKey.Permissions()
+		require.NotNil(permissions, "permissions should not be nil")
+		require.Len(permissions, 17, fmt.Sprintf("expected 17 permissions, got %d", len(permissions)))
+
+	})
+
+	s.Run("FailureNotFoundRandomID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		apiKey := mock.GetSampleAPIKey(true)
+
+		//test
+		err := s.store.UpdateAPIKey(ctx, apiKey)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureNotFoundZeroID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		apiKey := mock.GetSampleAPIKey(true)
+		apiKey.ID = ulid.Zero
+
+		//test
+		err := s.store.UpdateAPIKey(ctx, apiKey)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }
 
 func (s *storeTestSuite) TestDeleteAPIKey() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		err := s.store.DeleteAPIKey(ctx, keyId)
+		require.NoError(err, "expected no error")
+
+		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(apiKey, "api key should be nil")
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		keyId := ulid.MakeSecure()
+
+		//test
+		err := s.store.DeleteAPIKey(ctx, keyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }
 
 func (s *storeTestSuite) TestListResetPasswordLinks() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		links, err := s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		require.Len(links.Links, 1, fmt.Sprintf("there should be 1 link, but there was %d", len(links.Links)))
+	})
+
+	s.Run("SuccessNilPageInfo", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+
+		//test
+		links, err := s.store.ListResetPasswordLinks(ctx, nil)
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		require.Len(links.Links, 1, fmt.Sprintf("there should be 1 link, but there was %d", len(links.Links)))
+	})
 }
 
 func (s *storeTestSuite) TestCreateResetPasswordLink() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("SuccessAddLink", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		link := mock.GetSampleResetPasswordLink(true)
+		link.ID = ulid.Zero
+		link.UserID = ulid.MustParse("01HWQE29RW1S1D8ZN58M528A1M")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		links, err := s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		beforeLength := len(links.Links) // there should be 1 more after
+
+		err = s.store.CreateResetPasswordLink(ctx, link)
+		require.NoError(err, "expected no errors")
+
+		links, err = s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		require.Len(links.Links, beforeLength+1, fmt.Sprintf("there should be %d links, but there was %d", beforeLength+1, len(links.Links)))
+	})
+
+	s.Run("SuccessOverwriteLink", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		link := mock.GetSampleResetPasswordLink(true)
+		link.ID = ulid.Zero
+		link.UserID = ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
+
+		//test
+		links, err := s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		beforeLength := len(links.Links) // there should be the same number before as after
+
+		err = s.store.CreateResetPasswordLink(ctx, link)
+		require.NoError(err, "expected no errors")
+
+		links, err = s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
+		require.NoError(err, "expected no errors")
+		require.NotNil(links.Links, "there were no links")
+		require.Len(links.Links, beforeLength, fmt.Sprintf("there should be %d link, but there was %d", beforeLength, len(links.Links)))
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		link := mock.GetSampleResetPasswordLink(true)
+		link.ID = ulid.Zero
+
+		//test
+		err := s.store.CreateResetPasswordLink(ctx, link)
+		require.Error(err, "expected an error")
+		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
+		// instead of an ErrNotFound as would be logical, because in the `dbe()`
+		// function we return an ErrAlreadyExists for any SQLite constraint error
+		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
+	})
 }
 
 func (s *storeTestSuite) TestRetrieveResetPasswordLink() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		//test
+		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(link, "there was no link")
+		require.Equal("observer@example.com", link.Email, fmt.Sprintf("expected 'observer@example.com' email, got '%s'", link.Email))
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MakeSecure()
+
+		//test
+		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.Error(err, "expected an error")
+		require.Error(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(link, "expected a nil link")
+	})
 }
 
 func (s *storeTestSuite) TestUpdateResetPasswordLink() {
-	//setup
-	require := s.Require()
-	ctx := context.Background()
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
+		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(link, "there was no link")
 
-	//test
-	//TODO
-	_ = require
-	_ = ctx
+		oldEmail := link.Email
+		link.Email = "new_email_addy@example.com"
+		newTime := sql.NullTime{Time: time.Now(), Valid: true}
+		link.SentOn = newTime
+
+		//test
+		err = s.store.UpdateResetPasswordLink(ctx, link)
+		require.NoError(err, "expected no error")
+
+		link, err = s.store.RetrieveResetPasswordLink(ctx, linkId)
+		require.NoError(err, "expected no errors")
+		require.NotNil(link, "there was no link")
+		require.True(newTime.Valid, "expected valid new time")
+		require.True(newTime.Time.Equal(link.SentOn.Time), "expected the new sent on time")
+		require.Equal(oldEmail, link.Email, "expected the email to remain the same")
+	})
 }
 
 func (s *storeTestSuite) TestDeleteResetPasswordLink() {
