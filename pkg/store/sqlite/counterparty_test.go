@@ -551,13 +551,340 @@ func (s *storeTestSuite) TestCreateContact() {
 }
 
 func (s *storeTestSuite) TestRetrieveContact() {
-	//TODO
+	s.Run("SuccessByID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+
+		//test
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+	})
+
+	s.Run("SuccessByCounterparty", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		counterparty, err := s.store.RetrieveCounterparty(ctx, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(counterparty, "expected a non-nil counterparty")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+
+		//test
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterparty)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+
+		counterparty2, err := contact.Counterparty()
+		require.NoError(err, "expected no error")
+		require.Equal(counterpartyId, counterparty2.ID, "expected the same counterparty attached to contact")
+	})
+
+	s.Run("FailureNotFoundCounterpartyID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MakeSecure()
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+
+		//test
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(contact, "expected contact to be nil")
+	})
+
+	s.Run("FailureNotFoundContactID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MakeSecure()
+
+		//test
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(contact, "expected contact to be nil")
+	})
+
+	s.Run("FailureNotFoundCounterparty", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := mock.GetSampleCounterparty(true, false)
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+
+		//test
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(contact, "expected contact to be nil")
+	})
 }
 
 func (s *storeTestSuite) TestUpdateContact() {
-	//TODO
+	s.Run("SuccessByID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+
+		newEmail := "new_email_addy@contact.example.com"
+		contact.Email = newEmail
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.NoError(err, "expected no error")
+
+		contact, err = s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		require.Equal(contact.Email, newEmail, "expected the new email address")
+	})
+
+	s.Run("FailureNotFoundRandomID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.ID = ulid.MakeSecure()
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureZeroContactID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.ID = ulid.Zero
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
+	})
+
+	s.Run("FailureZeroCounterpartyID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.CounterpartyID = ulid.Zero
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrMissingReference, err, "expected ErrMissingReference")
+	})
+
+	s.Run("FailureNotFoundContactID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.ID = ulid.MakeSecure()
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureNotFoundCounterpartyIDValid", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.CounterpartyID = ulid.MustParse("01HWR7KB31557CRQN4WCX054MV")
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureNotFoundCounterpartyIDInvalid", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		contact, err := s.store.RetrieveContact(ctx, contactId, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.CounterpartyID = ulid.MakeSecure()
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureUniqueEmail", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+		email := "FailureUniqueEmail@example.com"
+
+		// setup: create a contact
+		contact1 := mock.GetSampleContact(email)
+		contact1.ID = ulid.Zero
+		contact1.CounterpartyID = counterpartyId
+		err := s.store.CreateContact(ctx, contact1)
+		require.NoError(err, "expected no error")
+
+		// setup: create another contact
+		contact := mock.GetSampleContact("")
+		contact.CounterpartyID = counterpartyId
+		contact.ID = ulid.Zero
+		err = s.store.CreateContact(ctx, contact)
+		require.NoError(err, "expected no error")
+
+		// setup: retrieve the contact just created and then we'll try to
+		// update it's email with the email from the first contact
+		contact, err = s.store.RetrieveContact(ctx, contact.ID, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(contact, "expected contact to be non-nil")
+		contact.Email = email
+
+		//test
+		err = s.store.UpdateContact(ctx, contact)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
+	})
 }
 
-func (s *storeTestSuite) TestDeleteContact() {
-	//TODO
+func (s *storeTestSuite) TestDeleteContactSuccessByID() {
+	// NOTE: "DeleteSuccess" tests in it's own func because we only have 1 SQL contact
+
+	//setup
+	require := s.Require()
+	ctx := context.Background()
+	contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+	counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+
+	//test
+	err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+	require.NoError(err, "expected no error")
+}
+
+func (s *storeTestSuite) TestDeleteContactSuccessByCounterparty() {
+	// NOTE: "DeleteSuccess" tests in it's own func because we only have 1 SQL contact
+
+	//setup
+	require := s.Require()
+	ctx := context.Background()
+	contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+	counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+	counterparty, err := s.store.RetrieveCounterparty(ctx, counterpartyId)
+	require.NoError(err, "expected no error")
+	require.NotNil(counterparty, "expected a non-nil counterparty")
+
+	//test
+	err = s.store.DeleteContact(ctx, contactId, counterparty)
+	require.NoError(err, "expected no error")
+}
+
+func (s *storeTestSuite) TestDeleteFailures() {
+	s.Run("NotFoundByRandomContactID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		contactId := ulid.MakeSecure()
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+
+		//test
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("NotFoundByRandomCounterpartyID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		counterpartyId := ulid.MakeSecure()
+
+		//test
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("NotFoundByZeroContactID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		contactId := ulid.Zero
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+
+		//test
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("NotFoundByZeroCounterpartyID", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		counterpartyId := ulid.Zero
+
+		//test
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("NotFoundByCounterparty", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		contactId := ulid.MustParse("01JXTW2Y53KRDB033ZT5P3B007")
+		counterpartyId := ulid.MustParse("01HWR7KB31557CRQN4WCX054MV")
+		counterparty, err := s.store.RetrieveCounterparty(ctx, counterpartyId)
+		require.NoError(err, "expected no error")
+		require.NotNil(counterparty, "expected a non-nil counterparty")
+
+		//test
+		err = s.store.DeleteContact(ctx, contactId, counterparty)
+		require.Error(err, "expected an error")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }
