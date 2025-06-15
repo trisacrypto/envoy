@@ -256,7 +256,7 @@ func GetSampleCounterparty(includeNulls bool, includeContacts bool) (model *mode
 
 	if includeContacts {
 		model.SetContacts([]*models.Contact{
-			GetSampleContact(""),
+			GetSampleContact("CA6DF33A-26D9-4E0E-B5F7-66D1964BE696@example.com"),
 			GetSampleContact(""),
 			GetSampleContact(""),
 		})

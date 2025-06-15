@@ -61,7 +61,7 @@ func TestCounterpartyContacts(t *testing.T) {
 }
 func TestCounterpartyHasContact(t *testing.T) {
 	// test 1: has contact
-	exists, err := mock.GetSampleCounterparty(true, true).HasContact("email@example.com")
+	exists, err := mock.GetSampleCounterparty(true, true).HasContact("CA6DF33A-26D9-4E0E-B5F7-66D1964BE696@example.com")
 	require.True(t, exists, "contact should be present")
 	require.Nil(t, err, "error should be nil")
 
