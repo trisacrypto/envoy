@@ -39,3 +39,9 @@ INSERT INTO api_key_permissions (api_key_id, permission_id, created, modified) V
     (x'018f2eea7377bbde57a557d86d5597a0', 14, '2024-04-30T07:11:08.023-05:00', '2024-04-30T07:11:08.023-05:00'),
     (x'018f2eea7377bbde57a557d86d5597a0', 17, '2024-04-30T07:11:08.023-05:00', '2024-04-30T07:11:08.023-05:00')
 ;
+
+INSERT INTO reset_password_link (id, user_id, email, expiration, signature, sent_on, created, modified) VALUES
+    -- For the user "Observer User" (ID: "01JXTGSFRC88HAY8V173976Z9D")
+    -- NOTE: the signature's timestamp will differ from the created/sent/modified timestamp but the signature will load in vero
+    (x'0197750cbf0c4222af236138d2737d2d', x'018f2ee1d49935bf09d5913b8c13d51a', "observer@example.com", '2024-11-16T17:43:53-05:00', x'0197750cbf0c4222af236138d2737d2db0ccb8e986f8a8c93097ffe008098fb5a6f3d5b5844b140accf8033974223d6f390fb4fdd3afe5f991a1c6ba56395cd93013783b0c5174a3362c22e0fa1f9f40d23b4abf4405cd24b60eacf0ef001a3abc0c9e803118ee98bb7ffbd563cd021c95bde00a88f26b4a55', '2024-11-16T17:28:45-05:00', '2024-11-16T17:28:57-05:00', '2024-11-16T17:28:57-05:00')
+;
