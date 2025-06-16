@@ -317,16 +317,17 @@ func GetSampleSunrise(includeNulls bool) (model *models.Sunrise) {
 	return model
 }
 
-// Returns a sample Transaction.
-func GetSampleTransaction(includeNulls bool, includeEnvelopes bool) (model *models.Transaction) {
+// Returns a sample Transaction. The counterparty, beneficiary, originator, and
+// crypto addresses are unique using the ID of the returned model.
+func GetSampleTransaction(includeNulls bool, includeEnvelopes bool, archived bool) (model *models.Transaction) {
 	id := uuid.New()
 	timeNow := time.Now()
 
 	model = &models.Transaction{
 		ID:                 id,
-		Source:             enum.SourceDirectorySync,
+		Source:             enum.SourceLocal,
 		Status:             enum.StatusAccepted,
-		Counterparty:       "Counterparty",
+		Counterparty:       "Counterparty_" + id.String(),
 		CounterpartyID:     ulid.NullULID{},
 		Originator:         sql.NullString{},
 		OriginatorAddress:  sql.NullString{},
@@ -343,17 +344,24 @@ func GetSampleTransaction(includeNulls bool, includeEnvelopes bool) (model *mode
 
 	if includeNulls {
 		model.CounterpartyID = ulid.NullULID{ULID: ulid.MakeSecure(), Valid: true}
-		model.Originator = sql.NullString{String: "Originator", Valid: true}
-		model.OriginatorAddress = sql.NullString{String: "OriginatorAddress", Valid: true}
-		model.Beneficiary = sql.NullString{String: "Beneficiary", Valid: true}
-		model.BeneficiaryAddress = sql.NullString{String: "BeneficiaryAddress", Valid: true}
-		model.Archived = true
-		model.ArchivedOn = sql.NullTime{Time: timeNow, Valid: true}
+		model.Originator = sql.NullString{String: "Originator_" + id.String(), Valid: true}
+		model.OriginatorAddress = sql.NullString{String: "O_" + id.String(), Valid: true}
+		model.Beneficiary = sql.NullString{String: "Beneficiary_" + id.String(), Valid: true}
+		model.BeneficiaryAddress = sql.NullString{String: "B_" + id.String(), Valid: true}
 		model.LastUpdate = sql.NullTime{Time: timeNow, Valid: true}
 	}
 
 	if includeEnvelopes {
-		model.SetSecureEnvelopes([]*models.SecureEnvelope{GetSampleSecureEnvelope(true, false)})
+		env1 := GetSampleSecureEnvelope(true, false)
+		env1.SetTransaction(model)
+		env2 := GetSampleSecureEnvelope(true, false)
+		env2.SetTransaction(model)
+		model.SetSecureEnvelopes([]*models.SecureEnvelope{env1, env2})
+	}
+
+	if archived {
+		model.Archived = true
+		model.ArchivedOn = sql.NullTime{Time: timeNow, Valid: true}
 	}
 
 	return model
@@ -388,11 +396,13 @@ func GetSampleSecureEnvelope(includeNulls bool, includeTransaction bool) (model 
 		model.Remote = sql.NullString{String: "Remote", Valid: true}
 		model.ReplyTo = ulid.NullULID{ULID: ulid.MakeSecure(), Valid: true}
 		model.ValidHMAC = sql.NullBool{Bool: false, Valid: true}
-		model.PublicKey = sql.NullString{String: "PublicKey", Valid: true}
+		model.PublicKey = sql.NullString{String: "PK_" + id.String(), Valid: true}
 	}
 
 	if includeTransaction {
-		model.SetTransaction(GetSampleTransaction(true, false))
+		txn := GetSampleTransaction(true, false, false)
+		txn.SetSecureEnvelopes([]*models.SecureEnvelope{model})
+		model.SetTransaction(txn)
 	}
 
 	return model

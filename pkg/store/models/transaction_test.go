@@ -19,7 +19,7 @@ import (
 
 func TestTransactionParams(t *testing.T) {
 	// setup a model
-	theModel := mock.GetSampleTransaction(true, false)
+	theModel := mock.GetSampleTransaction(true, false, false)
 
 	// create the model public field name comparison list
 	fields := GetPublicFieldNames(*theModel)
@@ -50,12 +50,12 @@ func TestSecureEnvelopeParams(t *testing.T) {
 
 func TestTransactionSecureEnvelopes(t *testing.T) {
 	// test 1: has envelopes
-	envelopes, err := mock.GetSampleTransaction(true, true).SecureEnvelopes()
+	envelopes, err := mock.GetSampleTransaction(true, true, false).SecureEnvelopes()
 	require.NotNil(t, envelopes, "envelopes should not be nil")
 	require.Nil(t, err, "error should be nil")
 
 	//test 2: no envelopes
-	envelopes, err = mock.GetSampleTransaction(true, false).SecureEnvelopes()
+	envelopes, err = mock.GetSampleTransaction(true, false, false).SecureEnvelopes()
 	require.Nil(t, envelopes, "envelopes should be nil")
 	require.Error(t, err, "error should not be nil")
 	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
@@ -64,11 +64,11 @@ func TestTransactionSecureEnvelopes(t *testing.T) {
 
 func TestTransactionNumEnvelopes(t *testing.T) {
 	// test 1: no envelopes
-	number := mock.GetSampleTransaction(true, false).NumEnvelopes()
+	number := mock.GetSampleTransaction(true, false, false).NumEnvelopes()
 	require.Equal(t, int64(0), number, fmt.Sprintf("there should be 0 envelopes but there were %d", number))
 
 	//test 2: has envelopes
-	number = mock.GetSampleTransaction(true, true).NumEnvelopes()
+	number = mock.GetSampleTransaction(true, true, false).NumEnvelopes()
 	require.Equal(t, int64(1), number, fmt.Sprintf("there should be 1 envelopes but there were %d", number))
 
 }
