@@ -20,7 +20,38 @@ func (s *storeTestSuite) TestListAccounts() {
 	accounts, err := s.store.ListAccounts(ctx, nil)
 	require.NoError(err, "expected no errors")
 	require.NotNil(accounts.Accounts, "there were no accounts")
-	require.Len(accounts.Accounts, 2, fmt.Sprintf("there should be 2 accounts, but there were %d", len(accounts.Accounts)))
+	require.Len(accounts.Accounts, 5, fmt.Sprintf("there should be 5 accounts, but there were %d", len(accounts.Accounts)))
+}
+
+func (s *storeTestSuite) TestAccountIVMSRecords() {
+	//setup
+	require := s.Require()
+	ctx := context.Background()
+
+	//test
+	accounts, err := s.store.ListAccounts(ctx, nil)
+	require.NoError(err, "expected no errors")
+	require.NotNil(accounts, "there is no accounts page")
+	require.NotNil(accounts.Accounts, "there is no accounts list")
+
+	for _, account := range accounts.Accounts {
+		// ensure accounts from the test data SQL have correct IMVS records
+		switch account.FirstName.String {
+		case "Frank":
+			require.False(account.HasIVMSRecord(), "expected a nil IVMS record for Frank")
+		case "Mary":
+			require.False(account.HasIVMSRecord(), "expected a nil IVMS record for Mary")
+		case "Julius":
+			require.True(account.HasIVMSRecord(), "expected an IVMS record for Julius")
+		case "Yami":
+			require.True(account.HasIVMSRecord(), "expected an IVMS record for Yami")
+		case "Rakuro":
+			require.True(account.HasIVMSRecord(), "expected an IVMS record for Rakuro")
+		default:
+			// not added to test yet: fail it
+			require.True(false, fmt.Sprintf("%s %s has not been added to the IVMS test", account.FirstName.String, account.LastName.String))
+		}
+	}
 }
 
 func (s *storeTestSuite) TestCreateAccount() {
