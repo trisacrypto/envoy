@@ -22,7 +22,7 @@ type Account struct {
 	TravelAddress sql.NullString   // Generated TravelAddress for this user
 	IVMSRecord    *ivms101.Person  // IVMS101 record for the account
 	addresses     []*CryptoAddress // Associated crypto addresses
-	hasIVMSRecord bool             // Whether the account has an IVMS101 record
+	hasIVMSRecord sql.NullBool     // Whether the account has an IVMS101 record
 	numAddresses  int64            // Number of associated crypto addresses
 }
 
@@ -110,7 +110,7 @@ func (a *Account) HasIVMSRecord() bool {
 	if a.IVMSRecord != nil && a.IVMSRecord.GetNaturalPerson() != nil {
 		return true
 	}
-	return a.hasIVMSRecord
+	return a.hasIVMSRecord.Valid && a.hasIVMSRecord.Bool
 }
 
 // Scans a complete SELECT into the CryptoAddress model

@@ -12,15 +12,12 @@ import (
 )
 
 func (s *storeTestSuite) TestListAccounts() {
-	s.T().SkipNow() //FIXME: skipped until fixed
-
 	//setup
 	require := s.Require()
 	ctx := context.Background()
 
 	//test
 	accounts, err := s.store.ListAccounts(ctx, nil)
-	//FIXME: (accounts_test.go:21) "sql: Scan error on column index 5, name "a.ivms101 != :null": sql/driver: couldn't convert <nil> (<nil>) into type bool"
 	require.NoError(err, "expected no errors")
 	require.NotNil(accounts.Accounts, "there were no accounts")
 	require.Len(accounts.Accounts, 2, fmt.Sprintf("there should be 2 accounts, but there were %d", len(accounts.Accounts)))
