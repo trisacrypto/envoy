@@ -37,6 +37,66 @@ func (s *storeTestSuite) TestListTransactions() {
 	}
 }
 
+func (s *storeTestSuite) TestCreateTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestRetrieveTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestUpdateTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestDeleteTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestArchiveTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestUnarchiveTransaction() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestCountTransactions() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestTransactionState() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestListSecureEnvelopes() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestCreateSecureEnvelope() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestRetrieveSecureEnvelope() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestUpdateSecureEnvelope() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestDeleteSecureEnvelope() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestLatestSecureEnvelope() {
+	//TODO
+}
+
+func (s *storeTestSuite) TestLatestPayloadEnvelope() {
+	//TODO
+}
+
 func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	defer s.ResetDB()
 	require := s.Require()
