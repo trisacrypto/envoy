@@ -175,6 +175,7 @@ func (s *storeTestSuite) TestUpdateUser() {
 		require.NoError(err, "expected no error")
 		require.NotNil(user, "user should not be nil")
 
+		prevMod := user.Modified
 		newEmail := "here_is_the_new_email@example.com"
 		user.Email = newEmail
 
@@ -187,6 +188,7 @@ func (s *storeTestSuite) TestUpdateUser() {
 		require.NoError(err, "expected no error")
 		require.NotNil(user2, "user should not be nil")
 		require.Equal(newEmail, user2.Email, fmt.Sprintf("expected email %s, got email %s", newEmail, user2.Email))
+		require.True(prevMod.Before(user.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureNotFound", func() {
@@ -586,6 +588,7 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		require.NoError(err, "expected no errors")
 		require.NotNil(apiKey, "api key should not be nil")
 
+		prevMod := apiKey.Modified
 		newDescription := sql.NullString{String: "New Description 83r29123e89", Valid: true}
 		apiKey.Description = newDescription
 
@@ -597,6 +600,7 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		require.NoError(err, "expected no errors")
 		require.NotNil(apiKey, "api key should not be nil")
 		require.Equal(newDescription, apiKey.Description, "expected the new description")
+		require.True(prevMod.Before(apiKey.Modified), "expected the modified time to be newer")
 
 		permissions := apiKey.Permissions()
 		require.NotNil(permissions, "permissions should not be nil")
@@ -788,6 +792,7 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 		require.NoError(err, "expected no errors")
 		require.NotNil(link, "there was no link")
 
+		prevMod := link.Modified
 		oldEmail := link.Email
 		link.Email = "new_email_addy@example.com"
 		newTime := sql.NullTime{Time: time.Now(), Valid: true}
@@ -803,6 +808,7 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 		require.True(newTime.Valid, "expected valid new time")
 		require.True(newTime.Time.Equal(link.SentOn.Time), "expected the new sent on time")
 		require.Equal(oldEmail, link.Email, "expected the email to remain the same")
+		require.True(prevMod.Before(link.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureNotFound", func() {

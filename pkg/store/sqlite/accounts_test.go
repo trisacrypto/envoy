@@ -161,6 +161,7 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		account, err := s.store.RetrieveAccount(ctx, accountId)
 		require.NoError(err, "expected no error")
 
+		prevMod := account.Modified
 		newFirstName := sql.NullString{String: account.FirstName.String + "extrastuff", Valid: true}
 		account.FirstName = newFirstName
 		newLastName := sql.NullString{String: account.LastName.String + "extrastuff", Valid: true}
@@ -174,6 +175,7 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		require.NoError(err, "expected no error")
 		require.Equal(newFirstName, account.FirstName)
 		require.Equal(newLastName, account.LastName)
+		require.True(prevMod.Before(account.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureZeroID", func() {
@@ -531,6 +533,7 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
 		require.NoError(err, "expected no error")
 
+		prevMod := address.Modified
 		newNetwork := "LTC"
 		if address.Network == "LTC" {
 			newNetwork = "BTC"
@@ -544,6 +547,7 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address, err = s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
 		require.NoError(err, "expected no error")
 		require.Equal(newNetwork, address.Network)
+		require.True(prevMod.Before(address.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureZeroID", func() {

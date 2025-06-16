@@ -290,6 +290,7 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		require.NoError(err, "expected no error")
 		require.NotNil(counterparty, "expected counterparty to be non-nil")
 
+		prevMod := counterparty.Modified
 		newName := "New Counterparty Name"
 		counterparty.Name = newName
 
@@ -301,6 +302,7 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		require.NoError(err, "expected no error")
 		require.NotNil(counterparty, "expected counterparty to be non-nil")
 		require.Equal(newName, counterparty.Name, "expected the new counterparty name")
+		require.True(prevMod.Before(counterparty.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureZeroID", func() {
@@ -638,6 +640,7 @@ func (s *storeTestSuite) TestUpdateContact() {
 		require.NoError(err, "expected no error")
 		require.NotNil(contact, "expected contact to be non-nil")
 
+		prevMod := contact.Modified
 		newEmail := "new_email_addy@contact.example.com"
 		contact.Email = newEmail
 
@@ -649,6 +652,7 @@ func (s *storeTestSuite) TestUpdateContact() {
 		require.NoError(err, "expected no error")
 		require.NotNil(contact, "expected contact to be non-nil")
 		require.Equal(contact.Email, newEmail, "expected the new email address")
+		require.True(prevMod.Before(contact.Modified), "expected the modified time to be newer")
 	})
 
 	s.Run("FailureNotFoundRandomID", func() {
