@@ -125,7 +125,7 @@ func (t *Tx) CreateTransaction(transaction *models.Transaction) (err error) {
 	return nil
 }
 
-const retrieveTransactionSQL = "SELECT id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, archived, archived_on, last_update, modified, created FROM transactions WHERE id=:id"
+const retrieveTransactionSQL = "SELECT id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, archived, archived_on, last_update, created, modified FROM transactions WHERE id=:id"
 
 // Retrieve a transaction record by its ID and any related secure envelopes.
 func (s *Store) RetrieveTransaction(ctx context.Context, id uuid.UUID) (transaction *models.Transaction, err error) {
