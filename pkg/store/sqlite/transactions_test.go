@@ -3,12 +3,16 @@ package sqlite_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/enum"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
+	"go.rtnl.ai/ulid"
 )
 
 func (s *storeTestSuite) TestListTransactions() {
@@ -38,63 +42,414 @@ func (s *storeTestSuite) TestListTransactions() {
 }
 
 func (s *storeTestSuite) TestCreateTransaction() {
-	//TODO
+	s.Run("Success", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txn := mock.GetSampleTransaction(true, true, false)
+
+		txn.ID = uuid.Nil
+		txn.CounterpartyID = ulid.NullULID{ULID: ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ"), Valid: true}
+
+		txns, err := s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		expectedLen := len(txns.Transactions) + 1
+
+		//test
+		err = s.store.CreateTransaction(ctx, txn)
+		require.NoError(err, "expected no error when creating transaction")
+
+		txns, err = s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		require.Len(txns.Transactions, expectedLen, fmt.Sprintf("expected %d transactions, got %d", expectedLen, len(txns.Transactions)))
+	})
+
+	s.Run("FailureNonZeroUUID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txn := mock.GetSampleTransaction(true, true, false)
+		txn.CounterpartyID = ulid.NullULID{ULID: ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ"), Valid: true}
+
+		txns, err := s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		expectedLen := len(txns.Transactions)
+
+		//test
+		err = s.store.CreateTransaction(ctx, txn)
+		require.Error(err, "expected an error when creating transaction")
+		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
+
+		txns, err = s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		require.Len(txns.Transactions, expectedLen, fmt.Sprintf("expected %d transactions, got %d", expectedLen, len(txns.Transactions)))
+	})
+
+	s.Run("FailureUnknownCounterparty", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txn := mock.GetSampleTransaction(true, true, false)
+		txn.ID = uuid.Nil
+
+		txns, err := s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		expectedLen := len(txns.Transactions)
+
+		//test
+		err = s.store.CreateTransaction(ctx, txn)
+		require.Error(err, "expected an error when creating transaction")
+		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
+		// instead of an ErrNotFound as would be logical, because in the `dbe()`
+		// function we return an ErrAlreadyExists for any SQLite constraint error
+		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
+
+		txns, err = s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error when listing transactions")
+		require.NotNil(txns, "expected a non-nil transactions page")
+		require.Len(txns.Transactions, expectedLen, fmt.Sprintf("expected %d transactions, got %d", expectedLen, len(txns.Transactions)))
+	})
 }
 
 func (s *storeTestSuite) TestRetrieveTransaction() {
-	//TODO
+	s.Run("Success", func() {
+		//FIXME: fails to load binary data from envelopes
+		s.T().SkipNow()
+
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("2c891c75-14fa-4c71-aa07-6405b98db7a3")
+
+		//test
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving transaction")
+		require.NotNil(txn, "expected a non-nil transaction")
+
+		require.Equal("01HWR5VWW8V7ZFFVJVBEC7AV8A", txn.CounterpartyID.ULID.String(), "expected a different counterparty ID")
+		require.Equal(4, txn.NumEnvelopes(), fmt.Sprintf("expected 4 envelopes, got %d", txn.NumEnvelopes()))
+	})
+
+	s.Run("FailureNotFoundRandomID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.New()
+
+		//test
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when retrieving transaction")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(txn, "expected a nil transaction")
+	})
+
+	s.Run("FailureNotFoundNilID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.Nil
+
+		//test
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when retrieving transaction")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(txn, "expected a nil transaction")
+	})
 }
 
 func (s *storeTestSuite) TestUpdateTransaction() {
-	//TODO
+	s.Run("Success", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving transaction")
+		require.NotNil(txn, "expected a non-nil transaction")
+
+		prevUpd := txn.LastUpdate
+		prevMod := txn.Modified
+		newAmount := 808.808
+		txn.Amount = newAmount
+
+		//test
+		err = s.store.UpdateTransaction(ctx, txn)
+		require.NoError(err, "expected no error when updating transaction")
+
+		txn = nil
+		txn, err = s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving transaction")
+		require.NotNil(txn, "expected a non-nil transaction")
+		require.Equal(newAmount, txn.Amount, "transaction amount did not update")
+		require.True(prevUpd.Time.Equal(txn.LastUpdate.Time), "expected the last update time to be the same")
+		require.True(prevMod.Before(txn.Modified), "expected the modified time to be newer")
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+		transaction, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving transaction")
+		require.NotNil(transaction, "expected a non-nil transaction")
+
+		transaction.ID = uuid.New()
+
+		//test
+		err = s.store.UpdateTransaction(ctx, transaction)
+		require.Error(err, "expected an error when updating transaction")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureNilUUID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+		transaction, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving transaction")
+		require.NotNil(transaction, "expected a non-nil transaction")
+
+		transaction.ID = uuid.Nil
+
+		//test
+		err = s.store.UpdateTransaction(ctx, transaction)
+		require.Error(err, "expected an error when updating transaction")
+		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
+	})
 }
 
 func (s *storeTestSuite) TestDeleteTransaction() {
-	//TODO
+	s.Run("Success", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+
+		//test
+		err := s.store.DeleteTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when deleting transaction")
+
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when retrieving deleted txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.Nil(txn, "expected a nil txn")
+	})
+
+	s.Run("FailureNotFoundRandomID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.New()
+
+		//test
+		err := s.store.DeleteTransaction(ctx, txnId)
+		require.Error(err, "expected an error when deleting txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureNotFoundNilID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.Nil
+
+		//test
+		err := s.store.DeleteTransaction(ctx, txnId)
+		require.Error(err, "expected an error when deleting txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }
 
-func (s *storeTestSuite) TestArchiveTransaction() {
-	//TODO
-}
+func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
+	s.Run("SuccessArchiveThenUnarchive", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+		beforeTxn := time.Now()
 
-func (s *storeTestSuite) TestUnarchiveTransaction() {
-	//TODO
+		//test ArchiveTransaction
+		err := s.store.ArchiveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when deleting transaction")
+
+		txn, err := s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving txn")
+		require.NotNil(txn, "expected a non-nil txn")
+		require.True(txn.Archived, "expected transaction to be archived")
+		require.True(txn.ArchivedOn.Valid, "expected a valid archived timestamp")
+		require.True(beforeTxn.Before(txn.ArchivedOn.Time), "expected archived timestamp to be more recent")
+		require.True(beforeTxn.Before(txn.Modified), "expected modified timestamp to be more recent")
+
+		//test UnarchiveTransaction
+		err = s.store.UnarchiveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when deleting transaction")
+
+		txn = nil
+		txn, err = s.store.RetrieveTransaction(ctx, txnId)
+		require.NoError(err, "expected no error when retrieving txn")
+		require.NotNil(txn, "expected a non-nil txn")
+		require.False(txn.Archived, "expected transaction to be unarchived")
+		require.False(txn.ArchivedOn.Valid, "expected an invalid archived timestamp")
+		require.True(beforeTxn.Before(txn.Modified), "expected modified timestamp to be more recent")
+	})
+
+	s.Run("FailureArchiveNotFoundRandomID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.New()
+
+		//test
+		err := s.store.ArchiveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when archiving txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureArchiveNotFoundNilID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.Nil
+
+		//test
+		err := s.store.ArchiveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when archiving txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureUnarchiveNotFoundRandomID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.New()
+
+		//test
+		err := s.store.UnarchiveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when unarchiving txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
+
+	s.Run("FailureUnarchiveNotFoundNilID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.Nil
+
+		//test
+		err := s.store.UnarchiveTransaction(ctx, txnId)
+		require.Error(err, "expected an error when unarchiving txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	})
 }
 
 func (s *storeTestSuite) TestCountTransactions() {
-	//TODO
+	s.Run("Success", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		expected := &models.TransactionCounts{
+			Active: map[string]int{
+				"completed": 1,
+				"draft":     1,
+				"pending":   1,
+				"review":    1,
+			},
+			Archived: map[string]int{
+				"draft": 1,
+			},
+		}
+
+		//test
+		counts, err := s.store.CountTransactions(ctx)
+		require.NoError(err, "expected no error when counting transactions")
+		require.NotNil(counts, "expected counts to be non-nil")
+		require.Equal(expected, counts, "expected different counts")
+	})
 }
 
 func (s *storeTestSuite) TestTransactionState() {
-	//TODO
+	s.Run("Success", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
+
+		//test
+		archived, status, err := s.store.TransactionState(ctx, txnId)
+		require.NoError(err, "expected no error when checking txn state")
+		require.False(archived, "expected an unarchived txn")
+		require.Equal(enum.StatusDraft, status, "expected a 'draft' txn")
+	})
+
+	s.Run("FailureNotFoundRandomID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.New()
+
+		//test
+		archived, status, err := s.store.TransactionState(ctx, txnId)
+		require.Error(err, "expected an error when deleting txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.False(archived, "expected an unarchived txn")
+		require.Equal(enum.Status(0), status, "expected an zero txn status for an error")
+	})
+
+	s.Run("FailureNotFoundNilID", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		txnId := uuid.Nil
+
+		//test
+		archived, status, err := s.store.TransactionState(ctx, txnId)
+		require.Error(err, "expected an error when deleting txn")
+		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+		require.False(archived, "expected an unarchived txn")
+		require.Equal(enum.Status(0), status, "expected an zero txn status for an error")
+	})
 }
 
 func (s *storeTestSuite) TestListSecureEnvelopes() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestCreateSecureEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestRetrieveSecureEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestUpdateSecureEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestDeleteSecureEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestLatestSecureEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestLatestPayloadEnvelope() {
-	//TODO
+	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestPreparedTransaction_Created() {
