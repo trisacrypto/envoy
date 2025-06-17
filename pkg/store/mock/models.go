@@ -288,7 +288,8 @@ func GetSampleContact(email string) (model *models.Contact) {
 	return model
 }
 
-// Returns a sample Sunrise.
+// Returns a sample Sunrise. It won't have a signature unless includeNulls is true,
+// and the email will be unique on the message ID.
 func GetSampleSunrise(includeNulls bool) (model *models.Sunrise) {
 	id := ulid.MakeSecure()
 	envId := uuid.New()
@@ -301,15 +302,24 @@ func GetSampleSunrise(includeNulls bool) (model *models.Sunrise) {
 			Modified: timeNow,
 		},
 		EnvelopeID: envId,
-		Email:      "email@example.com",
+		Email:      id.String() + "@example.com",
 		Expiration: timeNow.Add(1 * time.Hour),
 		Signature:  nil,
-		Status:     enum.StatusDraft,
+		Status:     enum.StatusPending,
 		SentOn:     sql.NullTime{},
 		VerifiedOn: sql.NullTime{},
 	}
 
 	if includeNulls {
+		veroToken, err := vero.New(id.Bytes(), timeNow.Add(1*time.Hour))
+		if err != nil {
+			panic(err)
+		}
+		_, sig, err := veroToken.Sign()
+		if err != nil {
+			panic(err)
+		}
+		model.Signature = sig
 		model.SentOn = sql.NullTime{Time: timeNow, Valid: true}
 		model.VerifiedOn = sql.NullTime{Time: timeNow, Valid: true}
 	}
