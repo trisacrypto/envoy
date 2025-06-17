@@ -298,6 +298,7 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		err = s.store.UpdateCounterparty(ctx, counterparty)
 		require.NoError(err, "expected no error")
 
+		counterparty = nil
 		counterparty, err = s.store.RetrieveCounterparty(ctx, counterpartyId)
 		require.NoError(err, "expected no error")
 		require.NotNil(counterparty, "expected counterparty to be non-nil")
@@ -648,6 +649,7 @@ func (s *storeTestSuite) TestUpdateContact() {
 		err = s.store.UpdateContact(ctx, contact)
 		require.NoError(err, "expected no error")
 
+		contact = nil
 		contact, err = s.store.RetrieveContact(ctx, contactId, counterpartyId)
 		require.NoError(err, "expected no error")
 		require.NotNil(contact, "expected contact to be non-nil")

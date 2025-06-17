@@ -184,10 +184,11 @@ func (s *storeTestSuite) TestUpdateUser() {
 		require.NoError(err, "expected no error")
 		require.NotNil(user, "user should not be nil")
 
-		user2, err := s.store.RetrieveUser(ctx, userId)
+		user = nil
+		user, err = s.store.RetrieveUser(ctx, userId)
 		require.NoError(err, "expected no error")
-		require.NotNil(user2, "user should not be nil")
-		require.Equal(newEmail, user2.Email, fmt.Sprintf("expected email %s, got email %s", newEmail, user2.Email))
+		require.NotNil(user, "user should not be nil")
+		require.Equal(newEmail, user.Email, fmt.Sprintf("expected email %s, got email %s", newEmail, user.Email))
 		require.True(prevMod.Before(user.Modified), "expected the modified time to be newer")
 	})
 
@@ -596,6 +597,7 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		err = s.store.UpdateAPIKey(ctx, apiKey)
 		require.NoError(err, "expected no errors")
 
+		apiKey = nil
 		apiKey, err = s.store.RetrieveAPIKey(ctx, keyId)
 		require.NoError(err, "expected no errors")
 		require.NotNil(apiKey, "api key should not be nil")
@@ -802,6 +804,7 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 		err = s.store.UpdateResetPasswordLink(ctx, link)
 		require.NoError(err, "expected no error")
 
+		link = nil
 		link, err = s.store.RetrieveResetPasswordLink(ctx, linkId)
 		require.NoError(err, "expected no errors")
 		require.NotNil(link, "there was no link")

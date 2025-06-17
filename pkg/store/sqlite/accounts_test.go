@@ -171,6 +171,7 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		err = s.store.UpdateAccount(ctx, account)
 		require.NoError(err, "expected no error")
 
+		account = nil
 		account, err = s.store.RetrieveAccount(ctx, accountId)
 		require.NoError(err, "expected no error")
 		require.Equal(newFirstName, account.FirstName)
@@ -544,6 +545,7 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		err = s.store.UpdateCryptoAddress(ctx, address)
 		require.NoError(err, "expected no error")
 
+		address = nil
 		address, err = s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
 		require.NoError(err, "expected no error")
 		require.Equal(newNetwork, address.Network)
