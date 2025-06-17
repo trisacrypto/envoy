@@ -394,7 +394,7 @@ func (s *storeTestSuite) TestListContacts() {
 		contacts, err := s.store.ListContacts(ctx, counterpartyId, &models.PageInfo{})
 		require.NoError(err, "expected no error")
 		require.NotNil(contacts, "expected contacts to be non-nil")
-		require.Len(contacts.Contacts, 1, fmt.Sprintf("expected 1 contact, got %d", len(contacts.Contacts)))
+		require.Len(contacts.Contacts, 2, fmt.Sprintf("expected 2 contact, got %d", len(contacts.Contacts)))
 
 		require.Equal(counterpartyId, contacts.Contacts[0].CounterpartyID, "unexpected counterparty ID on contact")
 		counterparty, err := contacts.Contacts[0].Counterparty()
@@ -415,7 +415,7 @@ func (s *storeTestSuite) TestListContacts() {
 		contacts, err := s.store.ListContacts(ctx, counterparty, &models.PageInfo{})
 		require.NoError(err, "expected no error")
 		require.NotNil(contacts, "expected contacts to be non-nil")
-		require.Len(contacts.Contacts, 1, fmt.Sprintf("expected 1 contact, got %d", len(contacts.Contacts)))
+		require.Len(contacts.Contacts, 2, fmt.Sprintf("expected 2 contact, got %d", len(contacts.Contacts)))
 
 		require.Equal(counterpartyId, contacts.Contacts[0].CounterpartyID, "unexpected counterparty ID on contact")
 		counterparty2, err := contacts.Contacts[0].Counterparty()

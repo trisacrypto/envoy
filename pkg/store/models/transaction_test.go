@@ -69,7 +69,7 @@ func TestTransactionNumEnvelopes(t *testing.T) {
 
 	//test 2: has envelopes
 	number = mock.GetSampleTransaction(true, true, false).NumEnvelopes()
-	require.Equal(t, int64(1), number, fmt.Sprintf("there should be 1 envelopes but there were %d", number))
+	require.Equal(t, int64(2), number, fmt.Sprintf("there should be 2 envelopes but there were %d", number))
 
 }
 
