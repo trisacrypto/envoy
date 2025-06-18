@@ -3,6 +3,8 @@ package sqlite_test
 import (
 	"context"
 	"fmt"
+	"net/mail"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -375,6 +377,124 @@ func (s *storeTestSuite) TestDeleteSunrise() {
 }
 
 func (s *storeTestSuite) TestGetOrCreateSunriseCounterparty() {
-	//TODO
-	s.T().SkipNow()
+
+	testcases := []string{
+		"compliance@daybreak.example.com",                          //regular
+		"Compliance@Daybreak.Example.Com",                          //caps
+		"Compliance Officer <compliance@daybreak.example.com>",     //regular
+		"Compliance Officer <Compliance@Daybreak.Example.Com>",     //caps
+		"\"Compliance Officer\" <Compliance@Daybreak.Example.Com>", //quoted
+	}
+	for i, contactEmail := range testcases {
+		s.Run(fmt.Sprintf("SuccessFoundContactEmail_%d", i), func() {
+			//setup
+			ctx := context.Background()
+			require := s.Require()
+			counterpartyName := "Example Daybreak Counterparty"
+			counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+
+			//test
+			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, "bananna")
+			require.NoError(err, "expected no errors when getting sunrise counterparty by email")
+			require.NotNil(counterparty, "expected a non-nil counterparty")
+			require.Equal(counterpartyId, counterparty.ID, "expected a different counterparty ID")
+			require.Equal(counterpartyName, counterparty.Name, "expected a different counterparty name")
+
+			addr, err := mail.ParseAddress(contactEmail)
+			require.NoError(err, "expected no errors when parsing email")
+			ok, err := counterparty.HasContact(strings.ToLower(addr.Address))
+			require.NoError(err, "expected no error when finding the contact by email on the counterparty")
+			require.True(ok, "expected the counterparty to have a contact with the same email address")
+		})
+	}
+
+	s.Run("SuccessFoundCounterpartyName", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		contactEmail := "bananna@bananna.example.com"
+		counterpartyName := "Example Daybreak Counterparty"
+		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
+
+		//test
+		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName)
+		require.NoError(err, "expected no errors when getting sunrise counterparty by email")
+		require.NotNil(counterparty, "expected a non-nil counterparty")
+		require.Equal(counterpartyId, counterparty.ID, "expected a different counterparty")
+		require.Equal(counterpartyName, counterparty.Name, "expected a different counterparty name")
+
+		ok, err := counterparty.HasContact(contactEmail)
+		require.NoError(err, "expected no error when finding the contact by email on the counterparty")
+		require.True(ok, "expected the counterparty to have a contact with the same email address")
+	})
+
+	s.Run("SuccessCreatedNewCounterparty", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		contactEmail := "mango@mango.example.com"
+		counterpartyName := "Mango Counterparty"
+
+		counterparties, err := s.store.ListCounterparties(ctx, &models.CounterpartyPageInfo{})
+		require.NoError(err, "expected no errors listing counterparties")
+		require.NotNil(counterparties, "expceted counterparties to be non-nil")
+		require.NotNil(counterparties.Counterparties, "expceted counterparties.Counterparties to be non-nil")
+		expLen := len(counterparties.Counterparties) + 1
+
+		//test
+		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName)
+		require.NoError(err, "expected no errors when getting sunrise counterparty by email")
+		require.NotNil(counterparty, "expected a non-nil counterparty")
+		require.Equal(counterpartyName, counterparty.Name, "expected a different counterparty name")
+
+		ok, err := counterparty.HasContact(contactEmail)
+		require.NoError(err, "expected no error when finding the contact by email on the counterparty")
+		require.True(ok, "expected the counterparty to have a contact with the same email address")
+
+		counterparties, err = s.store.ListCounterparties(ctx, &models.CounterpartyPageInfo{})
+		require.NoError(err, "expected no errors listing counterparties")
+		require.NotNil(counterparties, "expceted counterparties to be non-nil")
+		require.NotNil(counterparties.Counterparties, "expceted counterparties.Counterparties to be non-nil")
+		require.Len(counterparties.Counterparties, expLen, fmt.Sprintf("expected %d counterparties, got %d", expLen, len(counterparties.Counterparties)))
+	})
+
+	s.Run("FailureUnparseableEmails", func() {
+		//setup
+		ctx := context.Background()
+		require := s.Require()
+		testcases := []string{
+			// general stuff
+			"",                                     //blank
+			"user#example.com",                     // missing @ / invalid symbol
+			"user[at]example[dot]com",              // weird format
+			"user@email@example.com",               // extra @
+			"user@example.co.uk \"",                // trailing quote
+			"\"First Last\" <username@example.com", // RFC format missing closing bracket
+			"\"First Last <username@example.com>",  // RFC format hanging quote
+			// invalid chars in RFC name
+			"error:achieved <username@example.com>", // unqoted colon
+			"2<3 <username@example.com>",            // unqoted less than
+			"4>3 <username@example.com>",            // unqoted greater than
+			// invalid chars in username
+			"user name@example.com",         // space
+			"\"user@example.co.uk",          // hanging quote
+			"user+pass:invalid@example.com", // colon
+			"2<3@example.com",               // less than
+			"4>3@example.com",               // greater than
+			// invalid chars in domain
+			"username@dmain example.com",        // space
+			"username@\"domain\".co.uk",         // quote
+			"username@pass:invalid.example.com", // colon
+			"username@2<3.com",                  // less than
+			"username@4>3.com",                  // greater than
+		}
+
+		//test
+		for _, email := range testcases {
+			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, email, "name")
+			require.Error(err, fmt.Sprintf("case %s: expected an error for invalid email", email))
+			require.ErrorContains(err, "could not parse the provided email address", fmt.Sprintf("case %s: expected an email parsing error", email))
+			require.Nil(counterparty, fmt.Sprintf("case %s: expected a nil counterparty", email))
+		}
+	})
 }
