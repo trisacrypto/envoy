@@ -257,11 +257,18 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 }
 
 func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Counterparty, err error) {
+	// Parse the email address to separate the parts if it's RFC spec and put it
+	// into a Contact to use later
+	var contact *models.Contact
+	if contact, err = contactFromEmail(email); err != nil {
+		return nil, fmt.Errorf("could not parse the provided email address: %w", err)
+	}
+
 	// Attempt the lookup by first looking up a contact with the email address and if
 	// that's not found, by looking up the counterparty by name (case insensitive). Any
 	// ErrNotFound are ignored, which should cause the method to create the counterparty.
 	var counterpartyID ulid.ULID
-	if counterpartyID, err = t.lookupContactCounterparty(email); err != nil {
+	if counterpartyID, err = t.lookupContactCounterparty(contact.Email); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			if counterpartyID, err = t.lookupCounterpartyName(name); err != nil {
 				if !errors.Is(err, dberr.ErrNotFound) {
@@ -278,8 +285,8 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Cou
 		out = &models.Counterparty{
 			Source:     enum.SourceUserEntry,
 			Protocol:   enum.ProtocolSunrise,
-			CommonName: domainFromEmail(email),
-			Endpoint:   fmt.Sprintf("mailto:%s", email),
+			CommonName: domainFromEmail(contact.Email),
+			Endpoint:   fmt.Sprintf("mailto:%s", contact.Email),
 			Name:       name,
 		}
 
@@ -288,11 +295,6 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Cou
 		}
 
 		// Add contact to the counterparty
-		var contact *models.Contact
-		if contact, err = contactFromEmail(email); err != nil {
-			return nil, fmt.Errorf("contact is required to create counterparty: %w", err)
-		}
-
 		out.SetContacts([]*models.Contact{contact})
 
 		if err = t.CreateCounterparty(out); err != nil {
@@ -305,22 +307,17 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Cou
 		}
 
 		// Add the email address to the contacts if it didn't already exist
-		// If the email isn't passed in or is empty just ignore, assuming the
-		// counterparty already has contacts associated with it.
-		var contact *models.Contact
-		if contact, err = contactFromEmail(email); err == nil {
-			if exists, _ := out.HasContact(contact.Email); !exists {
-				if err = t.CreateContact(contact); err != nil {
-					return nil, err
-				}
+		if exists, _ := out.HasContact(contact.Email); !exists {
+			contact.CounterpartyID = out.ID
+			if err = t.CreateContact(contact); err != nil {
+				return nil, err
+			}
 
-				// Reset the contacts list with the newly added contact
-				if err = t.listCounterpartyContacts(out); err != nil {
-					return nil, err
-				}
+			// Reset the contacts list with the newly added contact
+			if err = t.listCounterpartyContacts(out); err != nil {
+				return nil, err
 			}
 		}
-
 	}
 
 	return out, nil
