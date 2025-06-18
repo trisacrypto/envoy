@@ -118,7 +118,7 @@ func (s *storeTestSuite) TestCreateTransaction() {
 
 func (s *storeTestSuite) TestRetrieveTransaction() {
 	s.Run("Success", func() {
-		//FIXME: fails to load binary data from envelopes
+		//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 		s.T().SkipNow()
 
 		//setup
@@ -418,37 +418,37 @@ func (s *storeTestSuite) TestTransactionState() {
 }
 
 func (s *storeTestSuite) TestListSecureEnvelopes() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestCreateSecureEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestRetrieveSecureEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestUpdateSecureEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestDeleteSecureEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestLatestSecureEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
 func (s *storeTestSuite) TestLatestPayloadEnvelope() {
-	//FIXME: do this test once we can make secure envelope fixtures that are valid
+	//TODO: need to get valid secure envelope data, added a ticket to follow up (sc-32397)
 	s.T().SkipNow()
 }
 
