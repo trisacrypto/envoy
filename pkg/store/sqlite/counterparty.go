@@ -168,11 +168,8 @@ func (s *Store) RetrieveCounterparty(ctx context.Context, counterpartyID ulid.UL
 	}
 	defer tx.Rollback()
 
+	// tx.RetrieveCounterparty returns the counterparty with it's contacts
 	if counterparty, err = tx.RetrieveCounterparty(counterpartyID); err != nil {
-		return nil, err
-	}
-
-	if err = tx.listCounterpartyContacts(counterparty); err != nil {
 		return nil, err
 	}
 
@@ -188,6 +185,12 @@ func (t *Tx) RetrieveCounterparty(counterpartyID ulid.ULID) (counterparty *model
 	if err = counterparty.Scan(t.tx.QueryRow(retreiveCounterpartySQL, sql.Named("id", counterpartyID))); err != nil {
 		return nil, dbe(err)
 	}
+
+	// Add associated contacts to this counterparty
+	if err = t.listCounterpartyContacts(counterparty); err != nil {
+		return nil, err
+	}
+	
 	return counterparty, nil
 }
 
