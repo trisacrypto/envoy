@@ -98,10 +98,6 @@ document.body.addEventListener("htmx:configRequest", function(e) {
           }
 
           obj = obj.nameIdentifier[idx];
-
-          if (key === "nationalIdentifier" && value !== "") {
-            hasNationalIdentifier = true;
-          }
         }
 
       } else if (key.startsWith("geographicAddress_")) {
@@ -128,6 +124,9 @@ document.body.addEventListener("htmx:configRequest", function(e) {
         key = key.replace("nationalIdentification_", "");
         obj = obj.nationalIdentification;
 
+        if (key === "nationalIdentifier" && value !== "") {
+          hasNationalIdentifier = true;
+        }
       } else if (key.startsWith("dateAndPlaceOfBirth_")) {
         key = key.replace("dateAndPlaceOfBirth_", "");
         obj = obj.dateAndPlaceOfBirth;
