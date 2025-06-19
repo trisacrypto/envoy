@@ -190,7 +190,7 @@ func (t *Tx) RetrieveCounterparty(counterpartyID ulid.ULID) (counterparty *model
 	if err = t.listCounterpartyContacts(counterparty); err != nil {
 		return nil, err
 	}
-	
+
 	return counterparty, nil
 }
 

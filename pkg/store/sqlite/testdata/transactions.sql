@@ -1,16 +1,20 @@
 -- Counterparty Fixtures
 INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, created, modified) VALUES
+    -- ID: "01HWR5VWW8V7ZFFVJVBEC7AV8A"
     (x'018f305df388d9fef7ee5b5b98756d0a', 'gds', '83237113-db52-4b75-bea0-1c60d6662370', 'trisatest.dev', 'trisa', 'api.alice.vaspbot.com', 'api.alice.vaspbot.com:443', 'Alice VASP', 'https://alice.vaspbot.com', 'US', 'PRIVATE_ORGANIZATION', '["Exchange","DEX"]', '2023-04-08T18:19:44+00:00', null, '2024-04-30T13:56:54.664-05:00', '2024-04-30T13:56:54.664-05:00'),
+    -- ID: "01HWR68SNXH2PZCZX5Y9M5EMC3"
     (x'018f306466bd88adf67fa5f268575183', 'user', null, null, 'trp', 'bob.vaspbot.com', 'https://api.bob.vaspbot.com', 'Bob VASP', 'https://bob.vaspbot.com', 'GB', 'PRIVATE_ORGANIZATION', '["DEX"]', null, null, '2024-04-30T14:03:57.373-05:00', '2024-04-30T14:03:57.373-05:00'),
+    -- ID: "01HWR7KB31557CRQN4WCX054MV"
     (x'018f3079ac61294ecc5ea4e33a02929b', 'gds', '2666abb0-5e92-4d02-a9ba-5539323e9683', 'trisatest.dev', 'trisa', 'zip.vaspbot.com', 'zip.vaspbot.com:443', 'Zip Wallet, Inc.', 'https://zip.vaspbot.com', 'BR', 'PRIVATE_ORGANIZATION', '["Exchange","Custodial"]', '2023-04-08T18:19:44+00:00', null, '2024-04-30T14:27:11.457-05:00', '2024-04-30T14:27:11.457-05:00')
 ;
 
 -- Transaction Fixtures
-INSERT INTO transactions (id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, last_update, created, modified) VALUES
-    ('c20a7cdf-5c23-4b44-b7cd-a29cd00761a3', 'local', 'pending', 'AliceVASP', x'018f305df388d9fef7ee5b5b98756d0a', 'Mary Tilcott', 'mjJ9xufmdSfZLRUXV6Ac3r64M6bbrxCu48', 'Sarah Radfeld', '19nFejdNSUhzkAAdwAvP3wc53o8dL326QQ', 'BTC', 0.0003842, '2024-04-30T14:09:57-05:00', '2024-04-30T14:09:57-05:00', '2024-04-30T14:09:57-05:00'),
-    ('2c891c75-14fa-4c71-aa07-6405b98db7a3', 'local', 'completed', 'AliceVASP', x'018f305df388d9fef7ee5b5b98756d0a', 'Mary Tilcott', '0x2FDCB3960B79A4DE2224BAE781337B727AE817BE', 'James Demarco', '0x78C4F1D614051E2D5F32DCCF6BC90235602C5866', 'ETH', 100.21111, '2024-05-15T11:23:11-04:00', '2024-05-15T10:48:57-04:00', '2024-05-15T11:23:11-04:00'),
-    ('82624eee-2dab-45e6-abc0-df931fe2d832', 'remote', 'review', 'BobVASP', x'018f306466bd88adf67fa5f268575183', 'Rebecca St. James', 'msEcmMQMiyHotN8QSw1Y5XyzzD7okUUnbr', 'Robert Franklin', 'mzyKugUmYBmzkMQijyEFyu39FKjdz3QrGu', 'LTC', 213.000031, '2024-05-16T22:01:32-04:00', '2024-05-15T10:50:58-04:00', '2024-05-16T22:01:32-04:00'),
-    ('b04dc71c-7214-46a5-a514-381ef0bcc494', 'local', 'draft', 'BobVASP', x'018f306466bd88adf67fa5f268575183', 'Mary Tilcott', 'mjJ9xufmdSfZLRUXV6Ac3r64M6bbrxCu48', 'Frank Jeffers', 'n4RmmDzqaJiq86NYTp55P1yi1XGRczskFy', 'LTC', 32.121334, NULL, '2024-05-20T15:51:21-05:00', '2024-05-20T15:51:21-05:00')
+INSERT INTO transactions (id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, last_update, created, modified, archived, archived_on) VALUES
+    ('c20a7cdf-5c23-4b44-b7cd-a29cd00761a3', 'local', 'pending', 'AliceVASP', x'018f305df388d9fef7ee5b5b98756d0a', 'Mary Tilcott', 'mjJ9xufmdSfZLRUXV6Ac3r64M6bbrxCu48', 'Sarah Radfeld', '19nFejdNSUhzkAAdwAvP3wc53o8dL326QQ', 'BTC', 0.0003842, '2024-04-30T14:09:57-05:00', '2024-04-30T14:09:57-05:00', '2024-04-30T14:09:57-05:00', 0, null),
+    ('2c891c75-14fa-4c71-aa07-6405b98db7a3', 'local', 'completed', 'AliceVASP', x'018f305df388d9fef7ee5b5b98756d0a', 'Mary Tilcott', '0x2FDCB3960B79A4DE2224BAE781337B727AE817BE', 'James Demarco', '0x78C4F1D614051E2D5F32DCCF6BC90235602C5866', 'ETH', 100.21111, '2024-05-15T11:23:11-04:00', '2024-05-15T10:48:57-04:00', '2024-05-15T11:23:11-04:00', 0, null),
+    ('82624eee-2dab-45e6-abc0-df931fe2d832', 'remote', 'review', 'BobVASP', x'018f306466bd88adf67fa5f268575183', 'Rebecca St. James', 'msEcmMQMiyHotN8QSw1Y5XyzzD7okUUnbr', 'Robert Franklin', 'mzyKugUmYBmzkMQijyEFyu39FKjdz3QrGu', 'LTC', 213.000031, '2024-05-16T22:01:32-04:00', '2024-05-15T10:50:58-04:00', '2024-05-16T22:01:32-04:00', 0, null),
+    ('b04dc71c-7214-46a5-a514-381ef0bcc494', 'local', 'draft', 'BobVASP', x'018f306466bd88adf67fa5f268575183', 'Mary Tilcott', 'mjJ9xufmdSfZLRUXV6Ac3r64M6bbrxCu48', 'Frank Jeffers', 'n4RmmDzqaJiq86NYTp55P1yi1XGRczskFy', 'LTC', 32.121334, NULL, '2024-05-20T15:51:21-05:00', '2024-05-20T15:51:21-05:00', 0, null),
+    ('17c802fb-0c7d-4288-8a3a-bb49c95b85c7', 'local', 'draft', 'BobVASP', x'018f306466bd88adf67fa5f268575183', 'Mary Tilcott', 'mjJ9xufmdSfZLRUXV6Ac3r64M6bbrxCu48', 'Frank Jeffers', 'n4RmmDzqaJiq86NYTp55P1yi1XGRczskFy', 'BTC', 76.67856, '2024-05-22T17:11:51-05:00', '2024-05-21T14:53:31-05:00', '2024-05-21T16:53:23-05:00', 1, '2024-05-22T17:11:51-05:00')
 ;
 
 -- Secure Envelope Fixtures

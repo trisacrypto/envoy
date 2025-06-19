@@ -39,6 +39,9 @@ func dbe(err error) error {
 	var sqliteErr sqlite3.Error
 	if errors.As(err, &sqliteErr) {
 		if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
+			// TODO: (ticket sc-32339) requires a minor fix to increase
+			// the granularity of the returned error because ErrConstraint
+			// can be a result of different types of constraint errors
 			return dberr.ErrAlreadyExists
 		}
 	}

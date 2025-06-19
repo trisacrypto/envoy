@@ -43,7 +43,7 @@ type trisaTestSuite struct {
 }
 
 func (s *trisaTestSuite) SetupSuite() {
-	assert := s.Assert()
+	require := s.Require()
 	logger.Discard()
 
 	s.conn = bufconn.New()
@@ -66,46 +66,46 @@ func (s *trisaTestSuite) SetupSuite() {
 
 	var err error
 	s.network, err = network.NewMocked(&s.conf)
-	assert.NoError(err, "could not create TRISA network manager")
+	require.NoError(err, "could not create TRISA network manager")
 
 	s.store, err = store.Open("mock:///")
-	assert.NoError(err, "could not create mock store")
+	require.NoError(err, "could not create mock store")
 
 	s.svc, err = trisa.New(s.conf, s.network, s.store, nil, s.echan)
-	assert.NoError(err, "could not create a new TRISA server")
+	require.NoError(err, "could not create a new TRISA server")
 
 	// Run the TRISA server on the bufconn for tests
 	go s.svc.Run(s.conn.Sock())
 
 	// Load client credentials
 	creds, err := loadClientCredentials(bufconn.Endpoint, "testdata/certs/client.trisatest.dev.pem")
-	assert.NoError(err, "could not load client credentials")
+	require.NoError(err, "could not load client credentials")
 
 	// Create the network client for testing (health client created seperately)
 	var cc *grpc.ClientConn
 	cc, err = s.conn.Connect(context.Background(), creds)
-	assert.NoError(err, "could not connect to bufconn client")
+	require.NoError(err, "could not connect to bufconn client")
 
 	s.client = api.NewTRISANetworkClient(cc)
 }
 
 func (s *trisaTestSuite) TearDownSuite() {
-	assert := s.Assert()
+	require := s.Require()
 	logger.ResetLogger()
 
-	assert.NoError(s.svc.Shutdown(), "could not shutdown the TRISA server")
-	assert.NoError(s.conn.Close(), "could not close the bufconn")
+	require.NoError(s.svc.Shutdown(), "could not shutdown the TRISA server")
+	require.NoError(s.conn.Close(), "could not close the bufconn")
 }
 
 func (s *trisaTestSuite) BeforeTest(_, _ string) {
-	assert := s.Assert()
+	require := s.Require()
 
 	// Ensure the client is part of the directory service mock
 	gds, err := s.network.Directory()
-	assert.NoError(err, "could not get mock directory from network")
+	require.NoError(err, "could not get mock directory from network")
 
 	err = gds.(*directory.MockGDS).GetMock().UseFixture(gdsmock.LookupRPC, "testdata/gds/lookup.json")
-	assert.NoError(err, "could not configure directory mock to identify client")
+	require.NoError(err, "could not configure directory mock to identify client")
 
 }
 
