@@ -2,7 +2,10 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -156,6 +159,20 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 
 	// The source of the counterparty created by the API is user entry
 	counterparty.Source = enum.SourceUserEntry
+
+	// ensure the website has a protocol (default to `https://`)
+	if counterparty.Website.Valid {
+		if !strings.Contains(counterparty.Website.String, "://") {
+			counterparty.Website.String = fmt.Sprintf("https://%s", counterparty.Website.String)
+		}
+		parsed, err := url.Parse(counterparty.Website.String)
+		if err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+		counterparty.Website.String = parsed.String()
+	}
 
 	// Create the model in the database (which will update the pointer)
 	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty); err != nil {
@@ -375,6 +392,20 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	// Ensure that the source is always set to the original source for API updates
 	// (e.g. overwrite source unknown)
 	counterparty.Source = original.Source
+
+	// ensure the website has a protocol (default to `https://`)
+	if counterparty.Website.Valid {
+		if !strings.Contains(counterparty.Website.String, "://") {
+			counterparty.Website.String = fmt.Sprintf("https://%s", counterparty.Website.String)
+		}
+		parsed, err := url.Parse(counterparty.Website.String)
+		if err != nil {
+			c.Error(err)
+			c.JSON(http.StatusInternalServerError, api.Error(err))
+			return
+		}
+		counterparty.Website.String = parsed.String()
+	}
 
 	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {

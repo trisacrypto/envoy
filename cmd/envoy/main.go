@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -590,6 +591,19 @@ func daybreakImport(c *cli.Context) (err error) {
 		if !modelCounterparty.RegisteredDirectory.Valid || modelCounterparty.RegisteredDirectory.String != "daybreak.rotational.io" {
 			log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("registered directory must be 'daybreak.rotational.io' to import")
 			continue
+		}
+
+		// ensure the website has a protocol (default to `https://`)
+		if modelCounterparty.Website.Valid {
+			if !strings.Contains(modelCounterparty.Website.String, "://") {
+				modelCounterparty.Website.String = fmt.Sprintf("https://%s", modelCounterparty.Website.String)
+			}
+			parsed, err := url.Parse(modelCounterparty.Website.String)
+			if err != nil {
+				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("there was an error parsing the website string")
+				continue
+			}
+			modelCounterparty.Website.String = parsed.String()
 		}
 
 		// Set the contacts onto the model to be added to the database.
