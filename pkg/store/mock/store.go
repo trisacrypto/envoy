@@ -97,6 +97,8 @@ type Store struct {
 	OnRetrieveResetPasswordLink      func(ctx context.Context, linkID ulid.ULID) (*models.ResetPasswordLink, error)
 	OnUpdateResetPasswordLink        func(ctx context.Context, link *models.ResetPasswordLink) error
 	OnDeleteResetPasswordLink        func(ctx context.Context, linkID ulid.ULID) (err error)
+	OnListComplianceAuditLogs        func(ctx context.Context, page *models.PageInfo) (*models.ComplianceAuditLogPage, error)
+	OnCreateComplianceAuditLog       func(ctx context.Context, log *models.ComplianceAuditLog) error
 }
 
 // Open a new mock store. Generally, the nil uri can be used to create the mock;
@@ -845,4 +847,26 @@ func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (
 		return s.OnDeleteResetPasswordLink(ctx, linkID)
 	}
 	panic("DeleteResetPasswordLink callback not set")
+}
+
+//===========================================================================
+// Compliance Audit Log Store Methods
+//===========================================================================
+
+// Calls the callback previously set with `s.OnListComplianceAuditLog = ...`
+func (s *Store) ListComplianceAuditLogs(ctx context.Context, page *models.PageInfo) (*models.ComplianceAuditLogPage, error) {
+	s.calls["ListComplianceAuditLogs"]++
+	if s.OnListComplianceAuditLogs != nil {
+		return s.OnListComplianceAuditLogs(ctx, page)
+	}
+	panic("ListComplianceAuditLogs callback not set")
+}
+
+// Calls the callback previously set with `s.OnCreateComplianceAuditLog = ...`
+func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.ComplianceAuditLog) error {
+	s.calls["CreateComplianceAuditLog"]++
+	if s.OnCreateComplianceAuditLog != nil {
+		return s.OnCreateComplianceAuditLog(ctx, log)
+	}
+	panic("CreateComplianceAuditLog callback not set")
 }

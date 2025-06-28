@@ -77,3 +77,36 @@ func (l *ComplianceAuditLog) Verify() (bool, error) {
 	valid := false //FIXME: this is a placeholder; validate using the public cert
 	return valid, nil
 }
+
+// Options for listing ComplianceAuditLog objects from the store interface.
+type ComplianceAuditLogPageInfo struct {
+	PageInfo
+	// ResourceTypes filters results to include only these resource types
+	ResourceTypes []enum.Resource `json:"resource_types,omitempty"`
+	// ResourceID filters results by a specific resource ID
+	ResourceID []byte `json:"resource_id,omitempty"`
+	// ResourceTypes filters results to include only these actor types
+	ActorTypes []enum.Actor `json:"actor_types,omitempty"`
+	// ActorID filters results by a specific actor ID
+	ActorID []byte `json:"actor_id,omitempty"`
+	// After filters results to include logs created on or after this time (inclusive)
+	After time.Time `json:"after,omitempty"`
+	// Before filters results to include logs created before this time (exclusive)
+	Before time.Time `json:"before,omitempty"`
+}
+
+// Copies the page info from the input into a new object, or creates a new
+// zero'ed object if the input is nil.
+func ComplianceAuditLogPageInfoFrom(in *ComplianceAuditLogPageInfo) (out *ComplianceAuditLogPageInfo) {
+	out = &ComplianceAuditLogPageInfo{}
+	if in != nil {
+		out.PageInfo = *PageInfoFrom(&in.PageInfo)
+		out.ResourceTypes = in.ResourceTypes
+		out.ResourceID = in.ResourceID
+		out.ActorTypes = in.ActorTypes
+		out.ActorID = in.ActorID
+		out.After = in.After
+		out.Before = in.Before
+	}
+	return out
+}

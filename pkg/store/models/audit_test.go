@@ -97,6 +97,6 @@ func TestComplianceAuditLogScan(t *testing.T) {
 	})
 }
 
-// TODO: tests for Sign()
+// FIXME: tests for Sign()
 
-// TODO: tests for Verify()
+// FIXME: tests for Verify()

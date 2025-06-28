@@ -1174,6 +1174,40 @@ func (tx *Tx) DeleteResetPasswordLink(id ulid.ULID) error {
 }
 
 //===========================================================================
+// Compliance Audit Log Store Methods
+//===========================================================================
+
+// Set a callback for when "ListComplianceAuditLogs()" is called on the mock Txn.
+func (tx *Tx) OnListComplianceAuditLogs(fn func(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)) {
+	tx.callbacks["ListComplianceAuditLogs"] = fn
+}
+
+// Calls the callback previously set with "OnListComplianceAuditLogs()".
+func (tx *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error) {
+	fn, err := tx.check("ListComplianceAuditLogs", false)
+	if err != nil {
+		return nil, err
+	}
+
+	return fn.(func(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error))(page)
+}
+
+// Set a callback for when "CreateComplianceAuditLog()" is called on the mock Txn.
+func (tx *Tx) OnCreateComplianceAuditLog(fn func(log *models.ComplianceAuditLog) error) {
+	tx.callbacks["CreateComplianceAuditLog"] = fn
+}
+
+// Calls the callback previously set with "OnCreateComplianceAuditLog()".
+func (tx *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) error {
+	fn, err := tx.check("CreateComplianceAuditLog", true)
+	if err != nil {
+		return err
+	}
+
+	return fn.(func(log *models.ComplianceAuditLog) error)(log)
+}
+
+//===========================================================================
 // Daybreak Interface Methods
 //===========================================================================
 
