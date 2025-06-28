@@ -97,7 +97,7 @@ type Store struct {
 	OnRetrieveResetPasswordLink      func(ctx context.Context, linkID ulid.ULID) (*models.ResetPasswordLink, error)
 	OnUpdateResetPasswordLink        func(ctx context.Context, link *models.ResetPasswordLink) error
 	OnDeleteResetPasswordLink        func(ctx context.Context, linkID ulid.ULID) (err error)
-	OnListComplianceAuditLogs        func(ctx context.Context, page *models.PageInfo) (*models.ComplianceAuditLogPage, error)
+	OnListComplianceAuditLogs        func(ctx context.Context, page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
 	OnCreateComplianceAuditLog       func(ctx context.Context, log *models.ComplianceAuditLog) error
 }
 
@@ -854,7 +854,7 @@ func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (
 //===========================================================================
 
 // Calls the callback previously set with `s.OnListComplianceAuditLog = ...`
-func (s *Store) ListComplianceAuditLogs(ctx context.Context, page *models.PageInfo) (*models.ComplianceAuditLogPage, error) {
+func (s *Store) ListComplianceAuditLogs(ctx context.Context, page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error) {
 	s.calls["ListComplianceAuditLogs"]++
 	if s.OnListComplianceAuditLogs != nil {
 		return s.OnListComplianceAuditLogs(ctx, page)
