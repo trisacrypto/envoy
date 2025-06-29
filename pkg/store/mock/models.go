@@ -426,9 +426,9 @@ func GetComplianceAuditLog(includeMeta bool, signIt bool) (model *models.Complia
 	model = &models.ComplianceAuditLog{
 		ID:                 id,
 		Timestamp:          timeNow,
-		ActorID:            ulid.MakeSecure().Bytes(),
+		ActorID:            ulid.MakeSecure().String(),
 		ActorType:          enum.ActorUser,
-		ResourceID:         ulid.MakeSecure().Bytes(),
+		ResourceID:         uuid.New().String(),
 		ResourceType:       enum.ResourceTransaction,
 		Action:             enum.ActionCreate,
 		ResourceActionMeta: sql.NullString{},
@@ -436,7 +436,7 @@ func GetComplianceAuditLog(includeMeta bool, signIt bool) (model *models.Complia
 	}
 
 	if includeMeta {
-		model.ResourceActionMeta = sql.NullString{Valid: true, String: "ResourceActionMeta"}
+		model.ResourceActionMeta = sql.NullString{Valid: true, String: "ResourceActionMeta_" + ulid.MakeSecure().String()}
 	}
 
 	if signIt {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -74,13 +73,13 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 	// After timestamp (inclusive)
 	if !out.Page.After.IsZero() {
 		filters = append(filters, ":after <= timestamp")
-		params = append(params, sql.Named("after", string(out.Page.After.Format(time.RFC3339))))
+		params = append(params, sql.Named("after", out.Page.After))
 	}
 
 	// Before timestamp (exclusive)
 	if !out.Page.Before.IsZero() {
 		filters = append(filters, "timestamp < :before")
-		params = append(params, sql.Named("before", string(out.Page.Before.Format(time.RFC3339))))
+		params = append(params, sql.Named("before", out.Page.Before))
 	}
 
 	// Resource filtering (if ResourceID is set, prefer it over of ResourceTypes)
@@ -88,7 +87,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 		filters = append(filters, "resource_id = :resourceId")
 		params = append(params, sql.Named("resourceId", string(out.Page.ResourceID)))
 	} else if 0 < len(out.Page.ResourceTypes) {
-		inquery, inparams := listParametrize(out.Page.ResourceTypes, "s")
+		inquery, inparams := listParametrize(out.Page.ResourceTypes, "r")
 		filters = append(filters, "resource_type IN "+inquery)
 		params = append(params, inparams...)
 	}
@@ -98,7 +97,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 		filters = append(filters, "actor_id = :actorId")
 		params = append(params, sql.Named("actorId", string(out.Page.ActorID)))
 	} else if 0 < len(out.Page.ActorTypes) {
-		inquery, inparams := listParametrize(out.Page.ActorTypes, "s")
+		inquery, inparams := listParametrize(out.Page.ActorTypes, "a")
 		filters = append(filters, "actor_type IN "+inquery)
 		params = append(params, inparams...)
 	}

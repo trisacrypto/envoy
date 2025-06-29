@@ -33,9 +33,9 @@ func TestComplianceAuditLogScan(t *testing.T) {
 		data := []any{
 			uuid.New().String(),        // ID
 			time.Now(),                 // Timestamp
-			ulid.MakeSecure().Bytes(),  // ActorID
+			uuid.New().String(),        // ActorID
 			"user",                     // ActorType
-			ulid.MakeSecure().Bytes(),  // ResourceID
+			ulid.MakeSecure().String(), // ResourceID
 			"transaction",              // ResourceType
 			"update",                   // Action
 			ulid.MakeSecure().String(), // ResourceActionMeta
@@ -65,15 +65,15 @@ func TestComplianceAuditLogScan(t *testing.T) {
 	t.Run("SuccessNoMeta", func(t *testing.T) {
 		//setup
 		data := []any{
-			uuid.New().String(),       // ID
-			time.Now(),                // Timestamp
-			ulid.MakeSecure().Bytes(), // ActorID
-			"user",                    // ActorType
-			ulid.MakeSecure().Bytes(), // ResourceID
-			"transaction",             // ResourceType
-			"update",                  // Action
-			nil,                       // ResourceActionMeta
-			ulid.MakeSecure().Bytes(), // Signature (a fake)
+			uuid.New().String(),        // ID
+			time.Now(),                 // Timestamp
+			ulid.MakeSecure().String(), // ActorID
+			"user",                     // ActorType
+			uuid.New().String(),        // ResourceID
+			"transaction",              // ResourceType
+			"update",                   // Action
+			nil,                        // ResourceActionMeta
+			ulid.MakeSecure().Bytes(),  // Signature (a fake)
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)

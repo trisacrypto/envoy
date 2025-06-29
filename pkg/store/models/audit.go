@@ -20,11 +20,11 @@ type ComplianceAuditLog struct {
 	// Timestamp is the time the log was created and signed
 	Timestamp time.Time
 	// ActorID can be a ULID or UUID, depending on the ActorType
-	ActorID []byte
+	ActorID string
 	// ActorType allows us to decode the ActorID and is human-readable
 	ActorType enum.Actor
 	// ResourceID can be a ULID or UUID, depending on the ResourceType
-	ResourceID []byte
+	ResourceID string
 	// ResourceType allows us to decode the ResourceID and is human-readable
 	ResourceType enum.Resource
 	// Action is the type of change made in the database
@@ -73,9 +73,8 @@ func (l *ComplianceAuditLog) Sign() error {
 
 // Returns true if the Signature on the ComplianceAuditLog is valid for the
 // data in the other fields.
-func (l *ComplianceAuditLog) Verify() (bool, error) {
-	valid := false //FIXME: this is a placeholder; validate using the public cert
-	return valid, nil
+func (l *ComplianceAuditLog) Verify() bool {
+	return true //FIXME: this is a placeholder; validate using the public cert
 }
 
 // Options for listing ComplianceAuditLog objects from the store interface.
