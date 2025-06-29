@@ -79,16 +79,21 @@ func (l *ComplianceAuditLog) Verify() (bool, error) {
 }
 
 // Options for listing ComplianceAuditLog objects from the store interface.
+// ResourceTypes and ResourceID are mutually exclusive, as well as ActorTypes
+// and ActorID; if both of either pair are provided in an object, then only the
+// ID field(s) will be used to filter the result. After and Before may be used
+// with any other combination. These options will be concatenated into the SQL
+// query using 'AND' logic.
 type ComplianceAuditLogPageInfo struct {
 	PageInfo
-	// ResourceTypes filters results to include only these resource types
-	ResourceTypes []enum.Resource `json:"resource_types,omitempty"`
+	// ResourceTypes filters results to include only these enum.Resource values
+	ResourceTypes []string `json:"resource_types,omitempty"`
 	// ResourceID filters results by a specific resource ID
-	ResourceID []byte `json:"resource_id,omitempty"`
-	// ResourceTypes filters results to include only these actor types
-	ActorTypes []enum.Actor `json:"actor_types,omitempty"`
+	ResourceID string `json:"resource_id,omitempty"`
+	// ResourceTypes filters results to include only these enum.Actor values
+	ActorTypes []string `json:"actor_types,omitempty"`
 	// ActorID filters results by a specific actor ID
-	ActorID []byte `json:"actor_id,omitempty"`
+	ActorID string `json:"actor_id,omitempty"`
 	// After filters results to include logs created on or after this time (inclusive)
 	After time.Time `json:"after,omitempty"`
 	// Before filters results to include logs created before this time (exclusive)

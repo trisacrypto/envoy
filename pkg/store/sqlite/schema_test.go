@@ -60,6 +60,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Reset Password Link",
 			Path: "0008_reset_password_link.sql",
 		},
+		{
+			ID:   9,
+			Name: "Compliance Audit Log",
+			Path: "0009_compliance_audit_log.sql",
+		},
 	}
 
 	for i, migration := range migrations {
