@@ -160,18 +160,15 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	// The source of the counterparty created by the API is user entry
 	counterparty.Source = enum.SourceUserEntry
 
-	// ensure the website has a protocol (default to `https://`)
+	// Parse and ensure the website has a protocol (default to `https://`)
 	if counterparty.Website.Valid {
-		if !strings.Contains(counterparty.Website.String, "://") {
-			counterparty.Website.String = fmt.Sprintf("https://%s", counterparty.Website.String)
-		}
-		parsed, err := url.Parse(counterparty.Website.String)
-		if err != nil {
+		if website, err := counterparty.NormalizedWebsite(); err != nil {
 			c.Error(err)
-			c.JSON(http.StatusInternalServerError, api.Error(err))
+			c.JSON(http.StatusBadRequest, api.Error("cannot parse counterparty website string"))
 			return
+		} else {
+			counterparty.Website.String = website
 		}
-		counterparty.Website.String = parsed.String()
 	}
 
 	// Create the model in the database (which will update the pointer)

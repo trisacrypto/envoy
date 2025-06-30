@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -593,17 +592,14 @@ func daybreakImport(c *cli.Context) (err error) {
 			continue
 		}
 
-		// ensure the website has a protocol (default to `https://`)
+		// Parse and ensure the website has a protocol (default to `https://`)
 		if modelCounterparty.Website.Valid {
-			if !strings.Contains(modelCounterparty.Website.String, "://") {
-				modelCounterparty.Website.String = fmt.Sprintf("https://%s", modelCounterparty.Website.String)
-			}
-			parsed, err := url.Parse(modelCounterparty.Website.String)
-			if err != nil {
-				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("there was an error parsing the website string")
+			if website, err := modelCounterparty.NormalizedWebsite(); err != nil {
+				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Str("website", modelCounterparty.Website.String).Msg("cannot parse counterparty website string")
 				continue
+			} else {
+				modelCounterparty.Website.String = website
 			}
-			modelCounterparty.Website.String = parsed.String()
 		}
 
 		// Set the contacts onto the model to be added to the database.
