@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -592,13 +593,11 @@ func daybreakImport(c *cli.Context) (err error) {
 			continue
 		}
 
-		// Parse and ensure the website has a protocol (default to `https://`)
-		if modelCounterparty.Website.Valid {
-			if website, err := modelCounterparty.NormalizedWebsite(); err != nil {
+		// Ensure the website has a protocol (only return if a valid string is unparseable)
+		if modelCounterparty.Website.String, err = modelCounterparty.NormalizedWebsite(); err != nil {
+			if !errors.Is(err, dberr.ErrNullString) {
 				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Str("website", modelCounterparty.Website.String).Msg("cannot parse counterparty website string")
 				continue
-			} else {
-				modelCounterparty.Website.String = website
 			}
 		}
 

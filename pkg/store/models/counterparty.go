@@ -161,9 +161,10 @@ func (c *Counterparty) NormalizedWebsite() (out string, err error) {
 		}
 
 		return parsed.String(), nil
-	} else {
-		return "", errors.ErrInvalidString
 	}
+
+	return "", errors.ErrNullString
+
 }
 
 // ###########################################################################

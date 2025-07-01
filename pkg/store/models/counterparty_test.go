@@ -57,8 +57,7 @@ func TestCounterpartyContacts(t *testing.T) {
 	//test 2: no contacts
 	contacts, err = mock.GetSampleCounterparty(true, false).Contacts()
 	require.Nil(t, contacts, "contacts should be nil")
-	require.Error(t, err, "error should not be nil")
-	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
+	require.ErrorIs(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
 }
 func TestCounterpartyHasContact(t *testing.T) {
 	// test 1: has contact
@@ -69,8 +68,7 @@ func TestCounterpartyHasContact(t *testing.T) {
 	//test 2: no contact
 	exists, err = mock.GetSampleCounterparty(true, false).HasContact("email@example.com")
 	require.False(t, exists, "there should be no contact")
-	require.Error(t, err, "error should not be nil")
-	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
+	require.ErrorIs(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
 
 }
 
@@ -366,8 +364,7 @@ func TestNormalizedWebsite(t *testing.T) {
 
 		//test
 		website, err := counterparty.NormalizedWebsite()
-		require.Error(t, err, "expected an error")
-		require.Equal(t, err, errors.ErrInvalidString, "expected ErrInvalidString")
+		require.ErrorIs(t, err, errors.ErrNullString, "expected ErrInvalidString")
 		require.Equal(t, website, "", "expected the empty string")
 	})
 }
