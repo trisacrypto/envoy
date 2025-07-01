@@ -56,6 +56,7 @@ type Store interface {
 	UserStore
 	APIKeyStore
 	ResetPasswordLinkStore
+	ComplianceAuditLogStore
 }
 
 // Secrets is a generic storage interface for storing secrets such as private key
@@ -200,6 +201,12 @@ type ResetPasswordLinkStore interface {
 	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
 	UpdateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
 	DeleteResetPasswordLink(context.Context, ulid.ULID) error
+}
+
+type ComplianceAuditLogStore interface {
+	ListComplianceAuditLogs(context.Context, *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
+	CreateComplianceAuditLog(context.Context, *models.ComplianceAuditLog) error
+	// NOTE: ComplianceAuditLogs are required to be immutable; do not create Update or Delete functions
 }
 
 // Methods required for managing Daybreak records in the database. This interface allows
