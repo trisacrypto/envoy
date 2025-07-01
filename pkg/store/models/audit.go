@@ -44,15 +44,15 @@ type ComplianceAuditLog struct {
 
 // Adds a signature value to the ComplianceAuditLog, replacing any value present.
 func (l *ComplianceAuditLog) Sign() error {
-	l.Signature = ulid.MakeSecure().Bytes() //FIXME: this is a placeholder; sign using the private cert
-	l.KeyID = ulid.MakeSecure().String()    //FIXME: this is a placeholder; put the public cert's ID here
+	l.Signature = ulid.MakeSecure().Bytes() //TODO (sc-32721): this is a placeholder; sign using the private cert
+	l.KeyID = ulid.MakeSecure().String()    //TODO (sc-32721): this is a placeholder; put the public cert's ID here
 	return nil
 }
 
 // Returns true if the signature on the ComplianceAuditLog is valid for the
 // data in the other fields.
 func (l *ComplianceAuditLog) Verify() bool {
-	return true //FIXME: this is a placeholder; validate using the public cert
+	return false //TODO(sc-32721): this is a placeholder; validate using the public cert
 }
 
 // ###########################################################################

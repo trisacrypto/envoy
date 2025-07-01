@@ -247,7 +247,9 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
 		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
 		require.NotNil(log.Signature, "expected a non-nil log signature")
-		require.True(log.Verify(), "could not verify log signature")
+		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the False test
+		// require.True(log.Verify(), "could not verify log signature")
+		require.False(log.Verify(), "log verification is not implemented yet")
 	})
 
 	s.Run("SuccessNoMeta", func() {
@@ -267,7 +269,9 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
 		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
 		require.NotNil(log.Signature, "expected a non-nil log signature")
-		require.True(log.Verify(), "could not verify log signature")
+		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the False test
+		// require.True(log.Verify(), "could not verify log signature")
+		require.False(log.Verify(), "log verification is not implemented yet")
 	})
 
 	s.Run("FailureNonZeroID", func() {

@@ -105,6 +105,6 @@ func TestComplianceAuditLogScan(t *testing.T) {
 	})
 }
 
-// FIXME: tests for Sign()
+// TODO (sc-32721): tests for ComplianceAuditLog.Sign()
 
-// FIXME: tests for Verify()
+// TODO (sc-32721): tests for ComplianceAuditLog.Verify()
