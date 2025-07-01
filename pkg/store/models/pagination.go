@@ -60,6 +60,11 @@ type ResetPasswordLinkPage struct {
 	Page  *PageInfo            `json:"page"`
 }
 
+type ComplianceAuditLogPage struct {
+	Logs []*ComplianceAuditLog       `json:"logs"`
+	Page *ComplianceAuditLogPageInfo `json:"page"`
+}
+
 func PageInfoFrom(in *PageInfo) (out *PageInfo) {
 	out = &PageInfo{
 		PageSize: DefaultPageSize,

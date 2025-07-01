@@ -63,6 +63,9 @@ func GetParamsNames(p Paramsable, exceptions map[string]string) (params []string
 		if param, ok := param.(sql.NamedArg); ok {
 			name := ConvertNameForComparison(param.Name)
 			if replacement, ok := exceptions[name]; ok {
+				if replacement == "" {
+					continue
+				}
 				params = append(params, replacement)
 			} else {
 				params = append(params, name)

@@ -32,6 +32,7 @@ type Txn interface {
 	UserTxn
 	APIKeyTxn
 	ResetPasswordLinkTxn
+	ComplianceAuditLogTxn
 }
 
 // TransactionTxn stores some lightweight information about specific transactions
@@ -140,6 +141,12 @@ type ResetPasswordLinkTxn interface {
 	RetrieveResetPasswordLink(ulid.ULID) (*models.ResetPasswordLink, error)
 	UpdateResetPasswordLink(*models.ResetPasswordLink) error
 	DeleteResetPasswordLink(ulid.ULID) error
+}
+
+type ComplianceAuditLogTxn interface {
+	ListComplianceAuditLogs(*models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
+	CreateComplianceAuditLog(*models.ComplianceAuditLog) error
+	// NOTE: ComplianceAuditLogs are required to be immutable; do not create Update or Delete functions
 }
 
 // Methods required for managing Daybreak records in the database. This interface allows
