@@ -420,19 +420,22 @@ func GetSampleSecureEnvelope(includeNulls bool, includeTransaction bool) (model 
 
 // Returns a sample ComplianceAuditLog. ResourceActionMeta is optional, as is signing it before returning.
 func GetComplianceAuditLog(includeMeta bool, signIt bool) (model *models.ComplianceAuditLog) {
-	id := uuid.New()
+	id := ulid.MakeSecure()
 	timeNow := time.Now()
+	resourceId, err := uuid.New().MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
 
 	model = &models.ComplianceAuditLog{
 		ID:                 id,
-		Timestamp:          timeNow,
-		ActorID:            ulid.MakeSecure().String(),
+		ActorID:            ulid.MakeSecure().Bytes(),
 		ActorType:          enum.ActorUser,
-		ResourceID:         uuid.New().String(),
+		ResourceID:         resourceId,
 		ResourceType:       enum.ResourceTransaction,
+		ResourceModified:   timeNow,
 		Action:             enum.ActionCreate,
 		ResourceActionMeta: sql.NullString{},
-		Signature:          nil,
 	}
 
 	if includeMeta {

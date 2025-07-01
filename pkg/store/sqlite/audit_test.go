@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"go.rtnl.ai/ulid"
 )
 
 func (s *storeTestSuite) TestListComplianceAuditLogs() {
@@ -234,14 +234,14 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
-		log := mock.GetComplianceAuditLog(true, false)
-		log.ID = uuid.Nil
+		log := mock.GetComplianceAuditLog(true, true)
+		log.ID = ulid.Zero
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
 		require.NoError(err, "no error was expected")
 
-		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.Timestamp})
+		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
 		require.NoError(err, "expected no error")
 		require.NotNil(logs, "logs should not be nil")
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
@@ -254,14 +254,14 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
-		log := mock.GetComplianceAuditLog(false, false)
-		log.ID = uuid.Nil
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
 		require.NoError(err, "no error was expected")
 
-		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.Timestamp})
+		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
 		require.NoError(err, "expected no error")
 		require.NotNil(logs, "logs should not be nil")
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
@@ -274,14 +274,14 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
-		log := mock.GetComplianceAuditLog(false, false)
+		log := mock.GetComplianceAuditLog(false, true)
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
 		require.Error(err, "an error was expected")
 		require.Equal(err, errors.ErrNoIDOnCreate, "expected ErrNoIDOnCreate")
 
-		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.Timestamp})
+		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
 		require.NoError(err, "expected no error")
 		require.NotNil(logs, "logs should not be nil")
 		require.Len(logs.Logs, 0, fmt.Sprintf("expected 0 logs, got %d", len(logs.Logs)))
@@ -291,10 +291,10 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
-		log := mock.GetComplianceAuditLog(false, false)
-		log.ID = uuid.Nil
-		oldTimestamp := log.Timestamp
-		log.Timestamp = time.Time{}
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+		oldTimestamp := log.ResourceModified
+		log.ResourceModified = time.Time{}
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)

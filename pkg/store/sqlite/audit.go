@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/google/uuid"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"go.rtnl.ai/ulid"
 )
 
 // #####################################################
@@ -54,7 +54,7 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 // # ComplianceAuditLogTxn implementation for SQLite #
 // ###################################################
 
-const listComplianceAuditLogsSQL = "SELECT id, timestamp, actor_id, actor_type, resource_id, resource_type, action, resource_action_meta, signature FROM compliance_audit_log ORDER BY timestamp DESC"
+const listComplianceAuditLogsSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, resource_action_meta, signature, key_id FROM compliance_audit_log ORDER BY resource_modified DESC"
 
 func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (out *models.ComplianceAuditLogPage, err error) {
 
@@ -70,15 +70,15 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 	params := make([]any, 0, 4)
 	filters := make([]string, 0, 4)
 
-	// After timestamp (inclusive)
+	// After resource_modified (inclusive)
 	if !out.Page.After.IsZero() {
-		filters = append(filters, ":after <= timestamp")
+		filters = append(filters, ":after <= resource_modified")
 		params = append(params, sql.Named("after", out.Page.After))
 	}
 
-	// Before timestamp (exclusive)
+	// Before resource_modified (exclusive)
 	if !out.Page.Before.IsZero() {
-		filters = append(filters, "timestamp < :before")
+		filters = append(filters, "resource_modified < :before")
 		params = append(params, sql.Named("before", out.Page.Before))
 	}
 
@@ -125,23 +125,23 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 	return out, nil
 }
 
-const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, timestamp, actor_id, actor_type, resource_id, resource_type, action, resource_action_meta, signature) VALUES (:id, :timestamp, :actorId, :actorType, :resourceId, :resourceType, :action, :resourceActionMeta, :signature)"
+const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, resource_action_meta, signature, key_id) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :resourceActionMeta, :signature, :keyId)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
-	// Ensure the log has a timestamp
+	// Ensure the log has a ResourceModified timestamp
 	// NOTE: this is different from most 'create' functions because we want the
 	// modified time for the resource being modified to equal the timestamp, so
 	// it should already be populated in the log because the log will be created
 	// after the resource.
-	if log.Timestamp.IsZero() {
+	if log.ResourceModified.IsZero() {
 		return dberr.ErrMissingTimestamp
 	}
 
 	// Complete the log with an ID, ensuring one wasn't set already
-	if log.ID != uuid.Nil {
+	if log.ID != ulid.Zero {
 		return dberr.ErrNoIDOnCreate
 	}
-	log.ID = uuid.New()
+	log.ID = ulid.MakeSecure()
 
 	// Sign the log now that it is complete with an ID
 	if err := log.Sign(); err != nil {

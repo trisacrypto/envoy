@@ -18,55 +18,80 @@ const (
 	ResourceCounterparty
 	ResourceAccount
 	ResourceSunrise
+
+	// The terminator is used to determine the last value of the enum. It should be
+	// the last value in the list and is automatically incremented when enums are
+	// added above it.
+	// NOTE: you should not reorder the enums, just append them to the list above
+	// to add new values.
+	resourceTerminator
 )
 
-var nameToResource map[string]Resource = map[string]Resource{
-	"unknown":      ResourceUnknown,
-	"transaction":  ResourceTransaction,
-	"user":         ResourceUser,
-	"api_key":      ResourceAPIKey,
-	"counterparty": ResourceCounterparty,
-	"account":      ResourceAccount,
-	"sunrise":      ResourceSunrise,
+var resourceNames = [7]string{
+	"unknown",
+	"transaction",
+	"user",
+	"api_key",
+	"counterparty",
+	"account",
+	"sunrise",
 }
 
-var resourceToName map[Resource]string = map[Resource]string{
-	ResourceUnknown:      "unknown",
-	ResourceTransaction:  "transaction",
-	ResourceUser:         "user",
-	ResourceAPIKey:       "api_key",
-	ResourceCounterparty: "counterparty",
-	ResourceAccount:      "account",
-	ResourceSunrise:      "sunrise",
+// Returns true if the provided resource is valid (e.g. parseable), false otherwise.
+func ValidResource(t interface{}) bool {
+	if r, err := ParseResource(t); err != nil || r >= resourceTerminator {
+		return false
+	}
+	return true
 }
 
-func ParseResource(a interface{}) (Resource, error) {
-	switch a := a.(type) {
+// Returns true if the resource is equal to one of the target resources. Any parse
+// errors for the resource are returned.
+func CheckResource(t interface{}, targets ...Resource) (_ bool, err error) {
+	var r Resource
+	if r, err = ParseResource(t); err != nil {
+		return false, err
+	}
+
+	for _, target := range targets {
+		if r == target {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// Parse the resource from the provided value.
+func ParseResource(t interface{}) (Resource, error) {
+	switch t := t.(type) {
 	case string:
-		a = strings.ToLower(a)
-		if a == "" {
+		t = strings.ToLower(t)
+		if t == "" {
 			return ResourceUnknown, nil
 		}
 
-		if resource, ok := nameToResource[a]; ok {
-			return resource, nil
+		for i, name := range resourceNames {
+			if name == t {
+				return Resource(i), nil
+			}
 		}
-
-		return ResourceUnknown, fmt.Errorf("invalid resource: %q", a)
+		return ResourceUnknown, fmt.Errorf("invalid resource: %q", t)
 	case uint8:
-		return Resource(a), nil
+		return Resource(t), nil
 	case Resource:
-		return a, nil
+		return t, nil
 	default:
-		return ResourceUnknown, fmt.Errorf("cannot parse %T into a resource", a)
+		return ResourceUnknown, fmt.Errorf("cannot parse %T into a resource", t)
 	}
 }
 
+// Return a string representation of the resource.
 func (r Resource) String() string {
-	if name, ok := resourceToName[r]; ok {
-		return name
+	if r >= resourceTerminator {
+		return resourceNames[0]
 	}
-	return resourceToName[ResourceUnknown]
+	return resourceNames[r]
 }
 
 //===========================================================================

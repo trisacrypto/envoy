@@ -15,49 +15,77 @@ const (
 	ActorUser
 	ActorAPIKey
 	ActorSunrise
+
+	// The terminator is used to determine the last value of the enum. It should be
+	// the last value in the list and is automatically incremented when enums are
+	// added above it.
+	// NOTE: you should not reorder the enums, just append them to the list above
+	// to add new values.
+	actorTerminator
 )
 
-var nameToActor map[string]Actor = map[string]Actor{
-	"unknown": ActorUnknown,
-	"user":    ActorUser,
-	"api_key": ActorAPIKey,
-	"sunrise": ActorSunrise,
+var actorNames = [4]string{
+	"unknown",
+	"user",
+	"api_key",
+	"sunrise",
 }
 
-var actorToName map[Actor]string = map[Actor]string{
-	ActorUnknown: "unknown",
-	ActorUser:    "user",
-	ActorAPIKey:  "api_key",
-	ActorSunrise: "sunrise",
+// Returns true if the provided actor is valid (e.g. parseable), false otherwise.
+func ValidActor(t interface{}) bool {
+	if r, err := ParseActor(t); err != nil || r >= actorTerminator {
+		return false
+	}
+	return true
 }
 
-func ParseActor(a interface{}) (Actor, error) {
-	switch a := a.(type) {
+// Returns true if the actor is equal to one of the target actors. Any parse
+// errors for the actor are returned.
+func CheckActor(t interface{}, targets ...Actor) (_ bool, err error) {
+	var r Actor
+	if r, err = ParseActor(t); err != nil {
+		return false, err
+	}
+
+	for _, target := range targets {
+		if r == target {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// Parse the actor from the provided value.
+func ParseActor(t interface{}) (Actor, error) {
+	switch t := t.(type) {
 	case string:
-		a = strings.ToLower(a)
-		if a == "" {
+		t = strings.ToLower(t)
+		if t == "" {
 			return ActorUnknown, nil
 		}
 
-		if actor, ok := nameToActor[a]; ok {
-			return actor, nil
+		for i, name := range actorNames {
+			if name == t {
+				return Actor(i), nil
+			}
 		}
-
-		return ActorUnknown, fmt.Errorf("invalid actor: %q", a)
+		return ActorUnknown, fmt.Errorf("invalid actor: %q", t)
 	case uint8:
-		return Actor(a), nil
+		return Actor(t), nil
 	case Actor:
-		return a, nil
+		return t, nil
 	default:
-		return ActorUnknown, fmt.Errorf("cannot parse %T into an actor", a)
+		return ActorUnknown, fmt.Errorf("cannot parse %T into an actor", t)
 	}
 }
 
-func (a Actor) String() string {
-	if name, ok := actorToName[a]; ok {
-		return name
+// Return a string representation of the actor.
+func (r Actor) String() string {
+	if r >= actorTerminator {
+		return actorNames[0]
 	}
-	return actorToName[ActorUnknown]
+	return actorNames[r]
 }
 
 //===========================================================================
