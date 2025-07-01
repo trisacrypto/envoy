@@ -157,6 +157,15 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	// The source of the counterparty created by the API is user entry
 	counterparty.Source = enum.SourceUserEntry
 
+	// Ensure the website has a protocol (only return if a valid string is unparseable)
+	if counterparty.Website.String, err = counterparty.NormalizedWebsite(); err != nil {
+		if !errors.Is(err, dberr.ErrNullString) {
+			c.Error(err)
+			c.JSON(http.StatusBadRequest, api.Error("invalid website url"))
+			return
+		}
+	}
+
 	// Create the model in the database (which will update the pointer)
 	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty); err != nil {
 		// TODO: are there other error types we need to handle to return a 400?
@@ -376,6 +385,16 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	// (e.g. overwrite source unknown)
 	counterparty.Source = original.Source
 
+	// Ensure the website has a protocol (only return if a valid string is unparseable)
+	if counterparty.Website.String, err = counterparty.NormalizedWebsite(); err != nil {
+		if !errors.Is(err, dberr.ErrNullString) {
+			c.Error(err)
+			c.JSON(http.StatusBadRequest, api.Error("invalid website url"))
+			return
+		}
+	}
+
+	// Execute the update
 	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))

@@ -1,6 +1,7 @@
 package models_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -56,8 +57,7 @@ func TestCounterpartyContacts(t *testing.T) {
 	//test 2: no contacts
 	contacts, err = mock.GetSampleCounterparty(true, false).Contacts()
 	require.Nil(t, contacts, "contacts should be nil")
-	require.Error(t, err, "error should not be nil")
-	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
+	require.ErrorIs(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
 }
 func TestCounterpartyHasContact(t *testing.T) {
 	// test 1: has contact
@@ -68,8 +68,7 @@ func TestCounterpartyHasContact(t *testing.T) {
 	//test 2: no contact
 	exists, err = mock.GetSampleCounterparty(true, false).HasContact("email@example.com")
 	require.False(t, exists, "there should be no contact")
-	require.Error(t, err, "error should not be nil")
-	require.Equal(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
+	require.ErrorIs(t, errors.ErrMissingAssociation, err, "error should be ErrMissingAssociation")
 
 }
 
@@ -247,5 +246,125 @@ func TestContactScan(t *testing.T) {
 		require.Equal(t, data[4], model.CounterpartyID.String(), "expected field CounterpartyID to match data[4]")
 		require.Equal(t, data[5], model.Created, "expected field Created to match data[5]")
 		require.Equal(t, data[6], model.Modified, "expected field Modified to match data[6]")
+	})
+}
+
+func TestNormalizedWebsite(t *testing.T) {
+	type SuccessCase struct {
+		Input    string
+		Expected string
+	}
+	testcases := []SuccessCase{
+		// missing schemas
+		{
+			Input:    "example.com",
+			Expected: "https://example.com",
+		},
+		{
+			Input:    "www.example.com",
+			Expected: "https://www.example.com",
+		},
+		{
+			Input:    "localhost",
+			Expected: "https://localhost",
+		},
+		{
+			Input:    "127.0.0.1",
+			Expected: "https://127.0.0.1",
+		},
+		{
+			Input:    "username:password@the-weird-one.even_longer.example.website:12345/path/to/something/long?param1=123&secondparam=astringthistime",
+			Expected: "https://username:password@the-weird-one.even_longer.example.website:12345/path/to/something/long?param1=123&secondparam=astringthistime",
+		},
+		// has schemas
+		{
+			Input:    "http://example.com",
+			Expected: "http://example.com",
+		},
+		{
+			Input:    "http://www.example.com",
+			Expected: "http://www.example.com",
+		},
+		{
+			Input:    "http://localhost",
+			Expected: "http://localhost",
+		},
+		{
+			Input:    "http://127.0.0.1",
+			Expected: "http://127.0.0.1",
+		},
+		{
+			Input:    "http://[fd18:74e8:d33f:ffff::]",
+			Expected: "http://[fd18:74e8:d33f:ffff::]",
+		},
+		{
+			Input:    "gopher://username:password@the-weird-one.even_longer.example.website:12345/path/to/something/long?param1=123&secondparam=astringthistime",
+			Expected: "gopher://username:password@the-weird-one.even_longer.example.website:12345/path/to/something/long?param1=123&secondparam=astringthistime",
+		},
+	}
+
+	for idx, tc := range testcases {
+		t.Run(fmt.Sprintf("SuccessCase%d", idx), func(t *testing.T) {
+			//setup
+			counterparty := &models.Counterparty{}
+			counterparty.Website.String = tc.Input
+			if tc.Input != "" {
+				counterparty.Website.Valid = true
+			}
+
+			//test
+			website, err := counterparty.NormalizedWebsite()
+			require.NoError(t, err, "expected no error")
+			require.Equal(t, tc.Expected, website, "expected '%s', got '%s'")
+		})
+	}
+
+	t.Run("FailureIPV6NoSchema", func(t *testing.T) {
+		//setup
+		counterparty := &models.Counterparty{}
+		counterparty.Website.String = "[fd18:74e8:d33f:ffff::]"
+		counterparty.Website.Valid = true
+
+		//test
+		website, err := counterparty.NormalizedWebsite()
+		require.Error(t, err, "expected an error")
+		require.ErrorContains(t, err, "first path segment in URL cannot contain colon", "expected error to contain 'first path segment in URL cannot contain colon'")
+		require.Equal(t, website, "", "expected the empty string")
+	})
+
+	t.Run("ParsingFailureNull", func(t *testing.T) {
+		//setup
+		counterparty := &models.Counterparty{}
+		counterparty.Website.String = "\x00"
+		counterparty.Website.Valid = true
+
+		//test
+		website, err := counterparty.NormalizedWebsite()
+		require.Error(t, err, "expected an error")
+		require.ErrorContains(t, err, "invalid control character in URL", "expected error to contain 'invalid control character in URL'")
+		require.Equal(t, website, "", "expected the empty string")
+	})
+
+	t.Run("ParsingFailureHTTPSNull", func(t *testing.T) {
+		//setup
+		counterparty := &models.Counterparty{}
+		counterparty.Website.String = "https://\x00"
+		counterparty.Website.Valid = true
+
+		//test
+		website, err := counterparty.NormalizedWebsite()
+		require.Error(t, err, "expected an error")
+		require.ErrorContains(t, err, "invalid control character in URL", "expected error to contain 'invalid control character in URL'")
+		require.Equal(t, website, "", "expected the empty string")
+	})
+
+	t.Run("InvalidString", func(t *testing.T) {
+		//setup
+		counterparty := &models.Counterparty{}
+
+		//test
+		website, err := counterparty.NormalizedWebsite()
+		require.ErrorIs(t, err, errors.ErrNullString, "expected ErrInvalidString")
+		require.Equal(t, website, "", "expected the empty string")
 	})
 }

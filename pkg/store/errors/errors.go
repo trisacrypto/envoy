@@ -22,4 +22,5 @@ var (
 	ErrInternal           = errors.New("something critical went wrong, please try again later")
 	ErrDaybreakHasTxns    = errors.New("daybreak counterparty will not be deleted because it has transactions")
 	ErrMissingTimestamp   = errors.New("missing a timestamp for resource")
+	ErrNullString         = errors.New("cannot apply string method to a null value")
 )

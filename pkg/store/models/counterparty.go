@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/mail"
+	"net/url"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
@@ -18,6 +19,10 @@ const (
 	FieldName       = "name"
 	FieldLEI        = "lei"
 )
+
+// ###########################################################################
+// Counterparty
+// ###########################################################################
 
 // TODO: how to incorporate the TRIXO form into this model?
 type Counterparty struct {
@@ -134,6 +139,38 @@ func (c *Counterparty) HasContact(email string) (bool, error) {
 	return false, nil
 }
 
+// Returns the Website as a string after it has been parsed with `url.Parse`,
+// attempting to detect missing schemas and other parsing errors. This function
+// will return an error if Website.String cannot be parsed by url.Parse or if
+// Website.Valid is false.
+func (c *Counterparty) NormalizedWebsite() (out string, err error) {
+	if c.Website.Valid {
+		var parsed *url.URL
+		if parsed, err = url.Parse(c.Website.String); err != nil {
+			return "", err
+		}
+
+		// This is a HACK but it's the best we can do right now. When there is no
+		// schema, then usually the hostname is put into the schema and there is no
+		// Host value, so we check for this and if so we will add the schema and
+		// try again
+		if parsed.Host == "" {
+			if parsed, err = url.Parse("https://" + c.Website.String); err != nil {
+				return "", err
+			}
+		}
+
+		return parsed.String(), nil
+	}
+
+	return "", errors.ErrNullString
+
+}
+
+// ###########################################################################
+// Contact
+// ###########################################################################
+
 type Contact struct {
 	Model
 	Name           string        // The full name of the contact
@@ -190,6 +227,10 @@ func (c *Contact) Address() *mail.Address {
 	}
 }
 
+// ###########################################################################
+// CounterpartySourceInfo
+// ###########################################################################
+
 type CounterpartySourceInfo struct {
 	ID                  ulid.ULID
 	Source              string         // either directory or locally created
@@ -207,6 +248,10 @@ func (c *CounterpartySourceInfo) Scan(scanner Scanner) error {
 		&c.Protocol,
 	)
 }
+
+// ###########################################################################
+// VASPCategories
+// ###########################################################################
 
 // VASPCategories allows the string list to be stored in the database as a JSON array.
 type VASPCategories []string

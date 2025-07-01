@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -590,6 +591,14 @@ func daybreakImport(c *cli.Context) (err error) {
 		if !modelCounterparty.RegisteredDirectory.Valid || modelCounterparty.RegisteredDirectory.String != "daybreak.rotational.io" {
 			log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("registered directory must be 'daybreak.rotational.io' to import")
 			continue
+		}
+
+		// Ensure the website has a protocol (only return if a valid string is unparseable)
+		if modelCounterparty.Website.String, err = modelCounterparty.NormalizedWebsite(); err != nil {
+			if !errors.Is(err, dberr.ErrNullString) {
+				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Str("website", modelCounterparty.Website.String).Msg("cannot parse counterparty website string")
+				continue
+			}
 		}
 
 		// Set the contacts onto the model to be added to the database.
