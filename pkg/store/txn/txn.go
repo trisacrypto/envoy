@@ -146,6 +146,7 @@ type ResetPasswordLinkTxn interface {
 type ComplianceAuditLogTxn interface {
 	ListComplianceAuditLogs(*models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
 	CreateComplianceAuditLog(*models.ComplianceAuditLog) error
+	RetrieveComplianceAuditLog(ulid.ULID) (*models.ComplianceAuditLog, error)
 	// NOTE: ComplianceAuditLogs are required to be immutable; do not create Update or Delete functions
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"go.rtnl.ai/ulid"
 )
 
@@ -32,27 +33,57 @@ type ComplianceAuditLog struct {
 	ResourceModified time.Time
 	// Action is the type of change made in the database
 	Action enum.Action
-	// ResourceActionMeta is an optional string specific to the ResourceType and
-	// Action that can include further details, such as a JSON changeset or a note
-	ResourceActionMeta sql.NullString
+	// ChangeNotes is an optional string that can include further details
+	ChangeNotes sql.NullString
+
 	// Signature is a cryptographic Signature that can be used to verify that an
 	// instance of a ComplianceAuditLog was not modified
 	Signature []byte
 	// KeyID is the identification for the public key that can verify this log
 	KeyID string
+	// Algorithm is the identification for the algorithm that can verify this log
+	Algorithm string
 }
 
-// Adds a signature value to the ComplianceAuditLog, replacing any value present.
+// ###########################################################################
+// ComplianceAuditLog Signatures and Verification
+// ###########################################################################
+
+// Adds a Signature value to the ComplianceAuditLog, replacing any value present.
 func (l *ComplianceAuditLog) Sign() error {
+	// Prepare the data to be signed
+	data := l.concatenateData()
+	_ = data
+
 	l.Signature = ulid.MakeSecure().Bytes() //TODO (sc-32721): this is a placeholder; sign using the private cert
 	l.KeyID = ulid.MakeSecure().String()    //TODO (sc-32721): this is a placeholder; put the public cert's ID here
 	return nil
 }
 
-// Returns true if the signature on the ComplianceAuditLog is valid for the
-// data in the other fields.
-func (l *ComplianceAuditLog) Verify() bool {
-	return false //TODO(sc-32721): this is a placeholder; validate using the public cert
+// Returns true if the Signature on the ComplianceAuditLog is valid against its
+// field data. A valid signature is indicated by returning a nil error.
+func (l *ComplianceAuditLog) Verify() error {
+	// Prepare the data to be verified
+	data := l.concatenateData()
+	_ = data
+
+	return errors.ErrNotImplemented //TODO(sc-32721): this is a placeholder; validate using the public cert
+}
+
+func (l *ComplianceAuditLog) concatenateData() (data []byte) {
+	// Append each field, one after the other, in the struct order above
+	data = append(data, l.ID.Bytes()...)
+	data = append(data, l.ActorID...)
+	data = append(data, []byte(l.ActorType.String())...)
+	data = append(data, l.ResourceID...)
+	data = append(data, []byte(l.ResourceType.String())...)
+	data = append(data, []byte(l.ResourceModified.String())...)
+	data = append(data, []byte(l.Action.String())...)
+	if l.ChangeNotes.Valid {
+
+		data = append(data, []byte(l.ChangeNotes.String)...)
+	}
+	return data
 }
 
 // ###########################################################################
@@ -68,9 +99,22 @@ func (l *ComplianceAuditLog) Scan(scanner Scanner) error {
 		&l.ResourceType,
 		&l.ResourceModified,
 		&l.Action,
-		&l.ResourceActionMeta,
+		&l.ChangeNotes,
 		&l.Signature,
 		&l.KeyID,
+		&l.Algorithm,
+	)
+}
+
+func (l *ComplianceAuditLog) ScanSummary(scanner Scanner) error {
+	return scanner.Scan(
+		&l.ID,
+		&l.ActorID,
+		&l.ActorType,
+		&l.ResourceID,
+		&l.ResourceType,
+		&l.ResourceModified,
+		&l.Action,
 	)
 }
 
@@ -83,9 +127,10 @@ func (l *ComplianceAuditLog) Params() []any {
 		sql.Named("resourceType", l.ResourceType),
 		sql.Named("resourceModified", l.ResourceModified),
 		sql.Named("action", l.Action),
-		sql.Named("resourceActionMeta", l.ResourceActionMeta),
+		sql.Named("changeNotes", l.ChangeNotes),
 		sql.Named("signature", l.Signature),
 		sql.Named("keyId", l.KeyID),
+		sql.Named("algorithm", l.Algorithm),
 	}
 }
 

@@ -1207,6 +1207,21 @@ func (tx *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) error {
 	return fn.(func(log *models.ComplianceAuditLog) error)(log)
 }
 
+// Set a callback for when "RetrieveComplianceAuditLog()" is called on the mock Txn.
+func (tx *Tx) OnRetrieveComplianceAuditLog(fn func(id ulid.ULID) (*models.ComplianceAuditLog, error)) {
+	tx.callbacks["RetrieveComplianceAuditLog"] = fn
+}
+
+// Calls the callback previously set with "OnCreateComplianceAuditLog()".
+func (tx *Tx) RetrieveComplianceAuditLog(id ulid.ULID) (*models.ComplianceAuditLog, error) {
+	fn, err := tx.check("RetrieveComplianceAuditLog", true)
+	if err != nil {
+		return nil, err
+	}
+
+	return fn.(func(id ulid.ULID) (*models.ComplianceAuditLog, error))(id)
+}
+
 //===========================================================================
 // Daybreak Interface Methods
 //===========================================================================

@@ -206,6 +206,7 @@ type ResetPasswordLinkStore interface {
 type ComplianceAuditLogStore interface {
 	ListComplianceAuditLogs(context.Context, *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
 	CreateComplianceAuditLog(context.Context, *models.ComplianceAuditLog) error
+	RetrieveComplianceAuditLog(context.Context, ulid.ULID) (*models.ComplianceAuditLog, error)
 	// NOTE: ComplianceAuditLogs are required to be immutable; do not create Update or Delete functions
 }
 

@@ -50,14 +50,31 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 	return nil
 }
 
+func (s *Store) RetrieveComplianceAuditLog(ctx context.Context, id ulid.ULID) (log *models.ComplianceAuditLog, err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: false}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if log, err = tx.RetrieveComplianceAuditLog(id); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return log, err
+}
+
 // ###################################################
 // # ComplianceAuditLogTxn implementation for SQLite #
 // ###################################################
 
-const listComplianceAuditLogsSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, resource_action_meta, signature, key_id FROM compliance_audit_log ORDER BY resource_modified DESC"
+const listComplianceAuditLogsSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action FROM compliance_audit_log ORDER BY resource_modified DESC"
 
 func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (out *models.ComplianceAuditLogPage, err error) {
-
 	// Setup out variable with page info
 	out = &models.ComplianceAuditLogPage{
 		Logs: make([]*models.ComplianceAuditLog, 0),
@@ -116,7 +133,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 
 	for rows.Next() {
 		log := &models.ComplianceAuditLog{}
-		if err = log.Scan(rows); err != nil {
+		if err = log.ScanSummary(rows); err != nil {
 			return nil, err
 		}
 		out.Logs = append(out.Logs, log)
@@ -125,7 +142,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 	return out, nil
 }
 
-const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, resource_action_meta, signature, key_id) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :resourceActionMeta, :signature, :keyId)"
+const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :changeNotes, :signature, :keyId, :algorithm)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
 	// Ensure the log has a ResourceModified timestamp
@@ -153,4 +170,14 @@ func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error
 	}
 
 	return nil
+}
+
+const retrieveComplianceAuditLogSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm FROM compliance_audit_log WHERE id = :id"
+
+func (t *Tx) RetrieveComplianceAuditLog(id ulid.ULID) (log *models.ComplianceAuditLog, err error) {
+	log = &models.ComplianceAuditLog{}
+	if err = log.Scan(t.tx.QueryRow(retrieveComplianceAuditLogSQL, sql.Named("id", id))); err != nil {
+		return nil, dbe(err)
+	}
+	return log, nil
 }

@@ -418,8 +418,8 @@ func GetSampleSecureEnvelope(includeNulls bool, includeTransaction bool) (model 
 	return model
 }
 
-// Returns a sample ComplianceAuditLog. ResourceActionMeta is optional, as is signing it before returning.
-func GetComplianceAuditLog(includeMeta bool, signIt bool) (model *models.ComplianceAuditLog) {
+// Returns a sample ComplianceAuditLog. ChangeNotes is optional, as is signing it before returning.
+func GetComplianceAuditLog(includeChangeNotes bool, signIt bool) (model *models.ComplianceAuditLog) {
 	id := ulid.MakeSecure()
 	timeNow := time.Now()
 	resourceId, err := uuid.New().MarshalBinary()
@@ -428,18 +428,18 @@ func GetComplianceAuditLog(includeMeta bool, signIt bool) (model *models.Complia
 	}
 
 	model = &models.ComplianceAuditLog{
-		ID:                 id,
-		ActorID:            ulid.MakeSecure().Bytes(),
-		ActorType:          enum.ActorUser,
-		ResourceID:         resourceId,
-		ResourceType:       enum.ResourceTransaction,
-		ResourceModified:   timeNow,
-		Action:             enum.ActionCreate,
-		ResourceActionMeta: sql.NullString{},
+		ID:               id,
+		ActorID:          ulid.MakeSecure().Bytes(),
+		ActorType:        enum.ActorUser,
+		ResourceID:       resourceId,
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: timeNow,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      sql.NullString{},
 	}
 
-	if includeMeta {
-		model.ResourceActionMeta = sql.NullString{Valid: true, String: "ResourceActionMeta_" + ulid.MakeSecure().String()}
+	if includeChangeNotes {
+		model.ChangeNotes = sql.NullString{Valid: true, String: "ChangeNotes_" + ulid.MakeSecure().String()}
 	}
 
 	if signIt {
