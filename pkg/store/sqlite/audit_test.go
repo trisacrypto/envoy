@@ -230,7 +230,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogs() {
 }
 
 func (s *storeTestSuite) TestCreateComplianceAuditLog() {
-	s.Run("SuccessWithMeta", func() {
+	s.Run("SuccessWithChangeNotes", func() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
@@ -241,18 +241,18 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		err := s.store.CreateComplianceAuditLog(ctx, log)
 		require.NoError(err, "no error was expected")
 
-		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
+		log2, err := s.store.RetrieveComplianceAuditLog(ctx, log.ID)
 		require.NoError(err, "expected no error")
-		require.NotNil(logs, "logs should not be nil")
-		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
-		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
-		require.NotNil(log.Signature, "expected a non-nil log signature")
+		require.NotNil(log2, "log2 should not be nil")
+		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
+		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
+		require.NotNil(log2.Signature, "expected a non-nil log signature")
 		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
 		// require.NoError(log.Verify(), "could not verify log signature")
-		require.Error(log.Verify(), "log verification is not implemented yet")
+		require.Error(log2.Verify(), "log verification is not implemented yet")
 	})
 
-	s.Run("SuccessNoMeta", func() {
+	s.Run("SuccessNoChangeNotes", func() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
@@ -263,15 +263,15 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		err := s.store.CreateComplianceAuditLog(ctx, log)
 		require.NoError(err, "no error was expected")
 
-		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
+		log2, err := s.store.RetrieveComplianceAuditLog(ctx, log.ID)
 		require.NoError(err, "expected no error")
-		require.NotNil(logs, "logs should not be nil")
-		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
-		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
-		require.NotNil(log.Signature, "expected a non-nil log signature")
+		require.NotNil(log2, "log2 should not be nil")
+		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
+		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
+		require.NotNil(log2.Signature, "expected a non-nil log signature")
 		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
 		// require.NoError(log.Verify(), "could not verify log signature")
-		require.Error(log.Verify(), "log verification is not implemented yet")
+		require.Error(log2.Verify(), "log verification is not implemented yet")
 	})
 
 	s.Run("FailureNonZeroID", func() {
