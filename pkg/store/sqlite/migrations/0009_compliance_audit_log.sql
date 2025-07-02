@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS compliance_audit_log (
     resource_type TEXT NOT NULL,
     resource_modified DATETIME NOT NULL,
     action TEXT NOT NULL,
-    resource_action_meta TEXT DEFAULT NULL,
+    change_notes TEXT DEFAULT NULL,
     signature BLOB NOT NULL,
-    key_id TEXT NOT NULL
+    key_id TEXT NOT NULL,
+    algorithm TEXT NOT NULL
 );
 
 -- Timestamp indexes are often useful for sorting/filtering by resource_modified time.

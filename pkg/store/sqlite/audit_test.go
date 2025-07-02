@@ -247,9 +247,9 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
 		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
 		require.NotNil(log.Signature, "expected a non-nil log signature")
-		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the False test
-		// require.True(log.Verify(), "could not verify log signature")
-		require.False(log.Verify(), "log verification is not implemented yet")
+		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
+		// require.NoError(log.Verify(), "could not verify log signature")
+		require.Error(log.Verify(), "log verification is not implemented yet")
 	})
 
 	s.Run("SuccessNoMeta", func() {
@@ -269,9 +269,9 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Len(logs.Logs, 1, fmt.Sprintf("expected 1 log, got %d", len(logs.Logs)))
 		require.Equal(log.ID, logs.Logs[0].ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, logs.Logs[0].ID))
 		require.NotNil(log.Signature, "expected a non-nil log signature")
-		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the False test
-		// require.True(log.Verify(), "could not verify log signature")
-		require.False(log.Verify(), "log verification is not implemented yet")
+		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
+		// require.NoError(log.Verify(), "could not verify log signature")
+		require.Error(log.Verify(), "log verification is not implemented yet")
 	})
 
 	s.Run("FailureNonZeroID", func() {
@@ -309,5 +309,21 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.NoError(err, "expected no error")
 		require.NotNil(logs, "logs should not be nil")
 		require.Len(logs.Logs, 0, fmt.Sprintf("expected 0 logs, got %d", len(logs.Logs)))
+	})
+}
+
+func (s *storeTestSuite) TestRetrieveComplianceAuditLogs() {
+	s.Run("Success", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		id := ulid.MustParse("01JZ1HNFJ9KTA3Z6Q4RB3X9W2T")
+
+		//test
+		log, err := s.store.RetrieveComplianceAuditLog(ctx, id)
+		require.NoError(err, "expected no errors")
+		require.NotNil(log, "expected a non-nil log")
+		require.True(log.ChangeNotes.Valid, "expected change notes")
+		require.Equal("test_user_create_account", log.ChangeNotes.String, "expected a different value")
 	})
 }

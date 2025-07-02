@@ -99,6 +99,7 @@ type Store struct {
 	OnDeleteResetPasswordLink        func(ctx context.Context, linkID ulid.ULID) (err error)
 	OnListComplianceAuditLogs        func(ctx context.Context, page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
 	OnCreateComplianceAuditLog       func(ctx context.Context, log *models.ComplianceAuditLog) error
+	OnRetrieveComplianceAuditLog     func(ctx context.Context, id ulid.ULID) (*models.ComplianceAuditLog, error)
 }
 
 // Open a new mock store. Generally, the nil uri can be used to create the mock;
@@ -869,4 +870,13 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 		return s.OnCreateComplianceAuditLog(ctx, log)
 	}
 	panic("CreateComplianceAuditLog callback not set")
+}
+
+// Calls the callback previously set with `s.OnRetrieveComplianceAuditLog = ...`
+func (s *Store) RetrieveComplianceAuditLog(ctx context.Context, id ulid.ULID) (*models.ComplianceAuditLog, error) {
+	s.calls["RetrieveComplianceAuditLog"]++
+	if s.OnRetrieveComplianceAuditLog != nil {
+		return s.OnRetrieveComplianceAuditLog(ctx, id)
+	}
+	panic("RetrieveComplianceAuditLog callback not set")
 }
