@@ -82,6 +82,10 @@ func TestConnectClose(t *testing.T) {
 	})
 }
 
+//===========================================================================
+// Store Test Suite
+//===========================================================================
+
 type storeTestSuite struct {
 	suite.Suite
 	dbpath string

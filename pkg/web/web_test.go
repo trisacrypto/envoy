@@ -4,10 +4,14 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/store"
+	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web"
 )
@@ -241,4 +245,97 @@ func TestServerEnabled(t *testing.T) {
 		require.Equal(t, http.StatusServiceUnavailable, code)
 	})
 
+}
+
+//===========================================================================
+// Web Test Suite
+//===========================================================================
+
+type webTestSuite struct {
+	suite.Suite
+	s     *web.Server
+	store *mock.Store
+}
+
+// Sets up a web test suite by creating a mocked server (mock store and network)
+func (w *webTestSuite) SetupSuite() {
+	w.CreateServer()
+}
+
+// Resets the state of the web test suite before tests
+func (w *webTestSuite) SetupTest() {
+	// Reset the mock store
+	w.store.Reset()
+}
+
+// Creates a web.Server from mock components
+func (w *webTestSuite) CreateServer() {
+	// Setup the http server
+	srv := &http.Server{
+		Addr: "localhost:4000",
+	}
+
+	// Setup the mock store
+	sto, err := store.Open("mock:///")
+	if err != nil {
+		panic(err)
+	}
+	w.store = sto.(*mock.Store)
+
+	// Setup the mock trisa network
+	network, err := network.NewMocked(&config.TRISAConfig{
+		Maintenance: false,
+		Enabled:     true,
+		BindAddr:    "bufnet",
+		MTLSConfig: config.MTLSConfig{
+			Certs: "../trisa/testdata/certs/alice.vaspbot.com.pem",
+			Pool:  "../trisa/testdata/certs/trisatest.dev.pem",
+		},
+		KeyExchangeCacheTTL: 60 * time.Second,
+		Directory: config.DirectoryConfig{
+			Insecure:        true,
+			Endpoint:        bufconn.Endpoint,
+			MembersEndpoint: bufconn.Endpoint,
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// Setup the configuration
+	conf := config.Config{
+		Maintenance:  false,
+		Organization: "Envoy Testing",
+		Mode:         "testing",
+		ConsoleLog:   true,
+		Web: config.WebConfig{
+			Enabled:    true,
+			APIEnabled: true,
+			UIEnabled:  false,
+			BindAddr:   ":4000",
+			Origin:     "http://localhost:4000",
+		},
+	}
+
+	// Create the server
+	w.s, err = web.Debug(conf, w.store, network, srv)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func TestWeb(t *testing.T) {
+	suite.Run(t, new(webTestSuite))
+}
+
+// FIXME: this is temporary for testing the web test suite to make sure it works
+func (w *webTestSuite) TestMockServerStatus() {
+	//setup
+	require := w.Require()
+
+	//test
+	resp, err := http.Get("http://localhost:4000/status")
+	require.NoError(err, "error in the http client")
+	require.NotNil(resp, "expected a non-nil response")
+	require.Equalf(resp.StatusCode, 200, "non-200 status code: %d", resp.StatusCode)
 }
