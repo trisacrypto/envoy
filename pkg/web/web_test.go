@@ -1,7 +1,9 @@
 package web_test
 
 import (
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -253,27 +255,37 @@ func TestServerEnabled(t *testing.T) {
 
 type webTestSuite struct {
 	suite.Suite
-	s     *web.Server
-	store *mock.Store
+	s       *web.Server
+	store   *mock.Store
+	httpsrv *httptest.Server
 }
 
-// Sets up a web test suite by creating a mocked server (mock store and network)
+// Sets up a web test suite by creating a web.Server from mock components
 func (w *webTestSuite) SetupSuite() {
 	w.CreateServer()
 }
 
+// Shuts down the test servers gracefully
+func (w *webTestSuite) TeardownSuite() {
+	w.httpsrv.Close()
+	w.s.Shutdown()
+
+}
+
 // Resets the state of the web test suite before tests
 func (w *webTestSuite) SetupTest() {
-	// Reset the mock store
-	w.store.Reset()
+	w.ResetAllComponents()
+}
+
+// Resets the state of the web test suite before sub-tests
+func (w *webTestSuite) SetupSubTest() {
+	w.ResetAllComponents()
 }
 
 // Creates a web.Server from mock components
 func (w *webTestSuite) CreateServer() {
-	// Setup the http server
-	srv := &http.Server{
-		Addr: "localhost:4000",
-	}
+	// Setup the http test server (handler doesn't matter, it will be replaced)
+	w.httpsrv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 	// Setup the mock store
 	sto, err := store.Open("mock:///")
@@ -317,25 +329,56 @@ func (w *webTestSuite) CreateServer() {
 		},
 	}
 
-	// Create the server
-	w.s, err = web.Debug(conf, w.store, network, srv)
+	// Create the web.Server
+	w.s, err = web.Debug(conf, w.store, network, w.httpsrv.Config)
 	if err != nil {
 		panic(err)
 	}
 }
 
+// Resets all of the suite components
+func (w *webTestSuite) ResetAllComponents() {
+	// Reset the mock store
+	w.store.Reset()
+
+	// Close all connections on the HTTP test server
+	w.httpsrv.CloseClientConnections()
+
+	// Close any client connections not in use (should be all of them)
+	w.httpsrv.Client().CloseIdleConnections()
+}
+
+// Runs the tests that are part of the webTestSuite
 func TestWeb(t *testing.T) {
 	suite.Run(t, new(webTestSuite))
 }
 
-// FIXME: this is temporary for testing the web test suite to make sure it works
-func (w *webTestSuite) TestMockServerStatus() {
+func (w *webTestSuite) TestWebTestSuiteServerStatus() {
 	//setup
 	require := w.Require()
+	type statusResponse struct {
+		Status  string
+		Version string
+		Uptime  string
+	}
 
 	//test
-	resp, err := http.Get("http://localhost:4000/status")
-	require.NoError(err, "error in the http client")
+	resp, err := w.httpsrv.Client().Get(w.httpsrv.URL + "/v1/status")
+	require.NoError(err, "couldn't make an HTTP request to the status endpoint")
 	require.NotNil(resp, "expected a non-nil response")
-	require.Equalf(resp.StatusCode, 200, "non-200 status code: %d", resp.StatusCode)
+	require.Equalf(200, resp.StatusCode, "non-200 status code: %d", resp.StatusCode)
+
+	body := make([]byte, 76)
+	n, err := resp.Body.Read(body)
+	if err != nil {
+		// This reader can return a nil or an "EOF" error but n should not be zero
+		require.ErrorContains(err, "EOF", "expected only EOF errors")
+		require.Greater(n, 0, "expected read byte count to be larger than zero")
+	}
+
+	stat := &statusResponse{}
+	err = json.Unmarshal(body, stat)
+	require.NoError(err, "couldn't unmarshal the response status JSON")
+	//FIXME: get an "unhealthy" status response here:
+	require.Equalf("ok", stat.Status, `expected status 'ok', got '%s'`, stat.Status)
 }
