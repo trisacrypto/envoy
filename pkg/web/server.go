@@ -164,3 +164,8 @@ func (s *Server) Localparty(ctx context.Context) (_ *models.Counterparty, err er
 	}
 	return s.vasp, nil
 }
+
+// Used to fetch the access token issuer to authenticate tests.
+func (s *Server) Issuer() *auth.ClaimsIssuer {
+	return s.issuer
+}
