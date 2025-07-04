@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/trisacrypto/trisa/pkg/trust"
 )
@@ -123,4 +124,53 @@ func (c *MTLSConfig) load() (err error) {
 func (c *MTLSConfig) Reset() {
 	c.pool = nil
 	c.certs = nil
+}
+
+func (c *MTLSConfig) CommonName() string {
+	var (
+		err   error
+		certs *x509.Certificate
+	)
+
+	if certs, err = c.GetLeafCertificate(); err != nil {
+		return ""
+	}
+
+	return certs.Subject.CommonName
+}
+
+func (c *MTLSConfig) IssuedAt() time.Time {
+	var (
+		err   error
+		certs *x509.Certificate
+	)
+
+	if certs, err = c.GetLeafCertificate(); err != nil {
+		return time.Time{}
+	}
+
+	return certs.NotBefore
+}
+
+func (c *MTLSConfig) Expires() time.Time {
+	var (
+		err   error
+		certs *x509.Certificate
+	)
+
+	if certs, err = c.GetLeafCertificate(); err != nil {
+		return time.Time{}
+	}
+
+	return certs.NotAfter
+}
+
+func (c *MTLSConfig) GetLeafCertificate() (_ *x509.Certificate, err error) {
+	if c.certs == nil {
+		if err = c.load(); err != nil {
+			return nil, err
+		}
+	}
+
+	return c.certs.GetLeafCertificate()
 }

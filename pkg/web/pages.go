@@ -296,17 +296,32 @@ func (s *Server) APIKeysListPage(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) AboutPage(c *gin.Context) {
+	var (
+		err        error
+		localparty *models.Counterparty
+	)
+
 	ctx := scene.New(c)
 	ctx.Update(scene.Scene{
-		"Version":       fmt.Sprintf("%d.%d.%d", pkg.VersionMajor, pkg.VersionMinor, pkg.VersionPatch),
-		"Revision":      pkg.GitVersion,
-		"Release":       fmt.Sprintf("%s-%d", pkg.VersionReleaseLevel, pkg.VersionReleaseNumber),
-		"Region":        s.conf.RegionInfo,
-		"Config":        s.conf,
-		"TRISA":         s.conf.Node,
+		"Version":  fmt.Sprintf("%d.%d.%d", pkg.VersionMajor, pkg.VersionMinor, pkg.VersionPatch),
+		"Revision": pkg.GitVersion,
+		"Release":  fmt.Sprintf("%s-%d", pkg.VersionReleaseLevel, pkg.VersionReleaseNumber),
+		"Region":   s.conf.RegionInfo,
+		"Config":   s.conf,
+		"TRISA":    s.conf.Node,
+		"Certificates": map[string]string{
+			"CommonName": s.conf.Node.CommonName(),
+			"IssuedAt":   s.conf.Node.IssuedAt().Format("Jan 2, 2006 at 15:04:05 MST"),
+			"Expires":    s.conf.Node.Expires().Format("Jan 2, 2006 at 15:04:05 MST"),
+		},
 		"DirectorySync": s.conf.DirectorySync,
 	})
 
+	if localparty, err = s.Localparty(c.Request.Context()); err != nil {
+		log.Error().Err(err).Msg("could not retrieve counterparty local party information")
+	}
+
+	ctx = ctx.WithLocalparty(localparty, err)
 	c.HTML(http.StatusOK, "pages/settings/about.html", ctx)
 }
 
