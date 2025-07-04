@@ -11,8 +11,8 @@ import (
 	"go.rtnl.ai/ulid"
 )
 
-func (s *storeTestSuite) TestListComplianceAuditLogs() {
-	s.Run("SuccessNilPageInfo", func() {
+func (s *storeTestSuite) TestListComplianceAuditLogsViews() {
+	s.Run("SuccessSummaryNilPageInfo", func() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
@@ -22,9 +22,15 @@ func (s *storeTestSuite) TestListComplianceAuditLogs() {
 		require.NoError(err, "expected no errors")
 		require.NotNil(logs.Logs, "there were no logs")
 		require.Len(logs.Logs, 6, fmt.Sprintf("there should be 6 logs, but there were %d", len(logs.Logs)))
+		for idx, log := range logs.Logs {
+			require.Falsef(log.ChangeNotes.Valid, "%d: expected an invalid change notes string", idx)
+			require.Nilf(log.Signature, "%d: expected a nil signature", idx)
+			require.Equalf("", log.KeyID, "%d: expected a blank key id", idx)
+			require.Equalf("", log.Algorithm, "%d: expected a blank algorithm", idx)
+		}
 	})
 
-	s.Run("SuccessZeroPageInfo", func() {
+	s.Run("SuccessSummaryZeroPageInfo", func() {
 		//setup
 		require := s.Require()
 		ctx := context.Background()
@@ -34,8 +40,38 @@ func (s *storeTestSuite) TestListComplianceAuditLogs() {
 		require.NoError(err, "expected no errors")
 		require.NotNil(logs.Logs, "there were no logs")
 		require.Len(logs.Logs, 6, fmt.Sprintf("there should be 6 logs, but there were %d", len(logs.Logs)))
+		for idx, log := range logs.Logs {
+			require.Falsef(log.ChangeNotes.Valid, "%d: expected an invalid change notes string", idx)
+			require.Nilf(log.Signature, "%d: expected a nil signature", idx)
+			require.Equalf("", log.KeyID, "%d: expected a blank key id", idx)
+			require.Equalf("", log.Algorithm, "%d: expected a blank algorithm", idx)
+		}
 	})
 
+	s.Run("SuccessDetailedLogs", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		pageInfo := &models.ComplianceAuditLogPageInfo{
+			DetailedLogs: true,
+		}
+
+		//test
+		logs, err := s.store.ListComplianceAuditLogs(ctx, pageInfo)
+		require.NoError(err, "expected no errors")
+		require.NotNil(logs.Logs, "there were no logs")
+		require.Len(logs.Logs, 6, fmt.Sprintf("there should be 6 logs, but there were %d", len(logs.Logs)))
+		for idx, log := range logs.Logs {
+			require.Truef(log.ChangeNotes.Valid, "%d: expected a valid change notes NullString", idx)
+			require.NotEqualf("", log.ChangeNotes.String, "%d: expected change notes", idx)
+			require.NotNilf(log.Signature, "%d: expected a non-nil signature", idx)
+			require.NotEqualf("", log.KeyID, "%d: expected a key id", idx)
+			require.NotEqualf("", log.Algorithm, "%d: expected an algorithm", idx)
+		}
+	})
+}
+
+func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByTime", func() {
 		//setup
 		require := s.Require()
@@ -249,7 +285,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
 		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
 		// require.NoError(log.Verify(), "could not verify log signature")
-		require.Error(log2.Verify(), "log verification is not implemented yet")
+		require.ErrorIs(log2.Verify(), errors.ErrNotImplemented, "log verification is not implemented yet")
 	})
 
 	s.Run("SuccessNoChangeNotes", func() {
@@ -271,7 +307,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
 		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
 		// require.NoError(log.Verify(), "could not verify log signature")
-		require.Error(log2.Verify(), "log verification is not implemented yet")
+		require.ErrorIs(log2.Verify(), errors.ErrNotImplemented, "log verification is not implemented yet")
 	})
 
 	s.Run("FailureNonZeroID", func() {
@@ -282,8 +318,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
-		require.Error(err, "an error was expected")
-		require.Equal(err, errors.ErrNoIDOnCreate, "expected ErrNoIDOnCreate")
+		require.ErrorIs(err, errors.ErrNoIDOnCreate, "expected ErrNoIDOnCreate")
 
 		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: log.ResourceModified})
 		require.NoError(err, "expected no error")
@@ -302,8 +337,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
-		require.Error(err, "an error was expected")
-		require.Equal(err, errors.ErrMissingTimestamp, "expected ErrMissingTimestamp")
+		require.ErrorIs(err, errors.ErrMissingTimestamp, "expected ErrMissingTimestamp")
 
 		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{After: oldTimestamp})
 		require.NoError(err, "expected no error")
@@ -325,5 +359,17 @@ func (s *storeTestSuite) TestRetrieveComplianceAuditLogs() {
 		require.NotNil(log, "expected a non-nil log")
 		require.True(log.ChangeNotes.Valid, "expected change notes")
 		require.Equal("test_user_create_account", log.ChangeNotes.String, "expected a different value")
+	})
+
+	s.Run("FailureNotFound", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		id := ulid.MustParse("01JZ1HNFJ9KTA3Z6Q4R0ABCXYZ")
+
+		//test
+		log, err := s.store.RetrieveComplianceAuditLog(ctx, id)
+		require.ErrorIsf(err, errors.ErrNotFound, "expected ErrNotFound, got %s", err)
+		require.Nil(log, "expected a nil log")
 	})
 }

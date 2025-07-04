@@ -72,6 +72,8 @@ func (l *ComplianceAuditLog) Verify() error {
 
 func (l *ComplianceAuditLog) concatenateData() (data []byte) {
 	// Append each field, one after the other, in the struct order above
+	// NOTE: do not include the signature, key id, or algorithm fields, as those
+	// are considered metadata for the signature and not part of the log
 	data = append(data, l.ID.Bytes()...)
 	data = append(data, l.ActorID...)
 	data = append(data, []byte(l.ActorType.String())...)
@@ -146,6 +148,9 @@ func (l *ComplianceAuditLog) Params() []any {
 // query using 'AND' logic.
 type ComplianceAuditLogPageInfo struct {
 	PageInfo
+
+	// FILTERING OPTIONS
+
 	// ResourceTypes filters results to include only these enum.Resource values
 	ResourceTypes []string `json:"resource_types,omitempty"`
 	// ResourceID filters results by a specific resource ID
@@ -158,6 +163,12 @@ type ComplianceAuditLogPageInfo struct {
 	After time.Time `json:"after,omitempty"`
 	// Before filters results to include logs with ResourceModified before this time (exclusive)
 	Before time.Time `json:"before,omitempty"`
+
+	// DISPLAY OPTIONS
+
+	// DetailedLogs will return the full log entry if true (otherwise List
+	// returns only summary info)
+	DetailedLogs bool
 }
 
 // Copies the page info from the input into a new object, or creates a new
@@ -172,6 +183,7 @@ func ComplianceAuditLogPageInfoFrom(in *ComplianceAuditLogPageInfo) (out *Compli
 		out.ActorID = in.ActorID
 		out.After = in.After
 		out.Before = in.Before
+		out.DetailedLogs = in.DetailedLogs
 	}
 	return out
 }
