@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/trisacrypto/envoy/pkg/postman"
@@ -40,6 +41,11 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 	// Get originator VASP information from database
 	if originatorVASP, err = s.Localparty(c.Request.Context()); err != nil {
 		c.Error(err)
+		if errors.Is(err, ErrNoLocalparty) {
+			c.JSON(http.StatusPreconditionFailed, api.Error("no IVMS101 information found for local party; node is incorrectly configured or directory sync has failed"))
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete prepare request"))
 		return
 	}
