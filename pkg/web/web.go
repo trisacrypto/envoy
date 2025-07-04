@@ -74,6 +74,13 @@ func Debug(conf config.Config, store store.Store, network network.Network, srv *
 		return nil, err
 	}
 
+	// Note that Serve() is not called, so any setup Serve performs that is not related
+	// to the socket or the server entry point needs to be duplicated here.
+	// HACK: if Serve() is extensive, we should decouple the prepatory work to
+	// s.prepare(); then call that in both Serve() and here.
+	s.SetStatus(true, true)
+	s.started = time.Now()
+
 	// Replace the http server with the one specified
 	s.srv = nil
 	s.srv = srv

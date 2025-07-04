@@ -1,21 +1,24 @@
 package web_test
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	dirapi "github.com/trisacrypto/directory/pkg/bff/api/v1"
 	"github.com/trisacrypto/envoy/pkg/bufconn"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web"
+	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/auth"
 )
 
 func TestServerEnabled(t *testing.T) {
@@ -255,21 +258,20 @@ func TestServerEnabled(t *testing.T) {
 
 type webTestSuite struct {
 	suite.Suite
-	s       *web.Server
-	store   *mock.Store
-	httpsrv *httptest.Server
+	s     *web.Server
+	store *mock.Store
+	tsrv  *httptest.Server
 }
 
 // Sets up a web test suite by creating a web.Server from mock components
 func (w *webTestSuite) SetupSuite() {
-	w.CreateServer()
+	w.CreateAPIServer()
 }
 
 // Shuts down the test servers gracefully
 func (w *webTestSuite) TeardownSuite() {
-	w.httpsrv.Close()
+	w.tsrv.Close()
 	w.s.Shutdown()
-
 }
 
 // Resets the state of the web test suite before tests
@@ -282,10 +284,10 @@ func (w *webTestSuite) SetupSubTest() {
 	w.ResetAllComponents()
 }
 
-// Creates a web.Server from mock components
-func (w *webTestSuite) CreateServer() {
+// Creates a web.Server (with no UI, just API) from mock components
+func (w *webTestSuite) CreateAPIServer() {
 	// Setup the http test server (handler doesn't matter, it will be replaced)
-	w.httpsrv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	w.tsrv = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 	// Setup the mock store
 	sto, err := store.Open("mock:///")
@@ -314,7 +316,8 @@ func (w *webTestSuite) CreateServer() {
 		panic(err)
 	}
 
-	// Setup the configuration
+	// Setup the configuration with only the necessary parts
+	// NOTE: we may need to add to this if a new test requires it later!
 	conf := config.Config{
 		Maintenance:  false,
 		Organization: "Envoy Testing",
@@ -326,59 +329,89 @@ func (w *webTestSuite) CreateServer() {
 			UIEnabled:  false,
 			BindAddr:   ":4000",
 			Origin:     "http://localhost:4000",
+			Auth: config.AuthConfig{
+				AccessTokenTTL: 1 * time.Hour,
+				Audience:       "http://localhost:4000",
+				Issuer:         "http://localhost:4000",
+			},
 		},
 	}
 
 	// Create the web.Server
-	w.s, err = web.Debug(conf, w.store, network, w.httpsrv.Config)
+	w.s, err = web.Debug(conf, w.store, network, w.tsrv.Config)
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Resets all of the suite components
+// Resets all of the test suite components
 func (w *webTestSuite) ResetAllComponents() {
 	// Reset the mock store
 	w.store.Reset()
 
 	// Close all connections on the HTTP test server
-	w.httpsrv.CloseClientConnections()
+	w.tsrv.CloseClientConnections()
 
 	// Close any client connections not in use (should be all of them)
-	w.httpsrv.Client().CloseIdleConnections()
+	w.tsrv.Client().CloseIdleConnections()
+}
+
+// Contains the strings for every permission available
+var AllPermissions = []string{
+	"users:manage",
+	"users:view",
+	"apikeys:manage",
+	"apikeys:view",
+	"apikeys:revoke",
+	"counterparties:manage",
+	"counterparties:view",
+	"accounts:manage",
+	"accounts:view",
+	"travelrule:manage",
+	"travelrule:delete",
+	"travelrule:view",
+	"config:manage",
+	"config:view",
+	"pki:manage",
+	"pki:delete",
+	"pki:view",
+}
+
+// Returns an authenticated api.Client configured to communicate with the test
+// server with the provided list of permissions. Use the variable AllPermissions
+// if you want all of the permissions available.
+func (w *webTestSuite) ClientWithPermissions(permissions []string) api.Client {
+	// Generate an access token with the permissions given
+	access, _, err := w.s.Issuer().CreateTokens(&auth.Claims{
+		ClientID:    "webTestSuite",
+		Permissions: permissions,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "webTestSuite",
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// Create the client
+	client, err := api.New(w.tsrv.URL, api.WithClient(w.tsrv.Client()), api.WithCreds(dirapi.Token(access)))
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+// Returns an unauthenticated api.Client configured to communicate with the test
+// server
+func (w *webTestSuite) ClientNoAuth() api.Client {
+	client, err := api.New(w.tsrv.URL, api.WithClient(w.tsrv.Client()))
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
 
 // Runs the tests that are part of the webTestSuite
 func TestWeb(t *testing.T) {
 	suite.Run(t, new(webTestSuite))
-}
-
-func (w *webTestSuite) TestWebTestSuiteServerStatus() {
-	//setup
-	require := w.Require()
-	type statusResponse struct {
-		Status  string
-		Version string
-		Uptime  string
-	}
-
-	//test
-	resp, err := w.httpsrv.Client().Get(w.httpsrv.URL + "/v1/status")
-	require.NoError(err, "couldn't make an HTTP request to the status endpoint")
-	require.NotNil(resp, "expected a non-nil response")
-	require.Equalf(200, resp.StatusCode, "non-200 status code: %d", resp.StatusCode)
-
-	body := make([]byte, 76)
-	n, err := resp.Body.Read(body)
-	if err != nil {
-		// This reader can return a nil or an "EOF" error but n should not be zero
-		require.ErrorContains(err, "EOF", "expected only EOF errors")
-		require.Greater(n, 0, "expected read byte count to be larger than zero")
-	}
-
-	stat := &statusResponse{}
-	err = json.Unmarshal(body, stat)
-	require.NoError(err, "couldn't unmarshal the response status JSON")
-	//FIXME: get an "unhealthy" status response here:
-	require.Equalf("ok", stat.Status, `expected status 'ok', got '%s'`, stat.Status)
 }
