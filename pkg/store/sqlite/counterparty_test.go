@@ -156,7 +156,7 @@ func (s *storeTestSuite) TestCreateCounterparty() {
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// which is correct but it is for the contact, so we should try and
 		// still figure out a way to pass that info along somehow if possible
-		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
+		require.ErrorIs(err, errors.ErrAlreadyExists)
 	})
 }
 

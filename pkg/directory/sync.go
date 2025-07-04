@@ -11,6 +11,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/txn"
 	"github.com/trisacrypto/envoy/pkg/trisa/gds"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 
@@ -28,14 +29,14 @@ type Sync struct {
 	sync.Mutex
 	conf  config.DirectorySyncConfig
 	gds   gds.Directory
-	store store.CounterpartyStore
+	store store.Store
 	echan chan<- error
 	stop  chan struct{}
 	done  chan struct{}
 }
 
 // Creates a new directory synchronization service but does not run it.
-func New(conf config.DirectorySyncConfig, network network.Network, store store.CounterpartyStore, echan chan<- error) (s *Sync, err error) {
+func New(conf config.DirectorySyncConfig, network network.Network, store store.Store, echan chan<- error) (s *Sync, err error) {
 	// Only return a sync stub if not enabled
 	if !conf.Enabled {
 		return &Sync{conf: conf}, nil
@@ -142,37 +143,75 @@ func (s *Sync) Sync() (err error) {
 	upserts := make(map[ulid.ULID]struct{})
 	updated, created, deleted := 0, 0, 0
 
+	// Create a closure to handle each member sync operation. This closure will
+	// create a new transaction for each member to ensure isolation and rollback on
+	// failure. It will also handle the creation and update of the counterparty
+	// in the local database, including contacts.
+	syncMember := func(member *members.VASPMember) error {
+		// Create a new transaction for each member to ensure isolation
+		var tx txn.Txn
+		if tx, err = s.store.Begin(context.Background(), &sql.TxOptions{ReadOnly: false}); err != nil {
+			return err
+		}
+		defer tx.Rollback()
+
+		var vasp *models.Counterparty
+		if vasp, err = s.Counterparty(member.Id); err != nil {
+			log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not fetch vasp member details")
+			return nil
+		}
+
+		// Lookup the counterparty in the local table to determine if update or create is required
+		var update bool
+		vasp.ID, update = local[member.Id]
+
+		// Remove the contacts from the counterparty so that we can handle them spearately
+		// TODO: allow many to many contacts to counterparties
+		contacts, _ := vasp.Contacts()
+		vasp.SetContacts(nil)
+
+		if update {
+			if err = tx.UpdateCounterparty(vasp); err != nil {
+				// TODO: handle database specific errors including constraint violations
+				log.Warn().Err(err).Str("id", vasp.ID.String()).Str("vaspID", member.Id).Msg("could not update vasp member counterparty")
+			} else {
+				updated++
+			}
+
+			// TODO: update contacts for the counterparty
+
+		} else {
+			if err = tx.CreateCounterparty(vasp); err != nil {
+				// TODO: handle database specific errors including constraint violations
+				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
+			} else {
+				created++
+			}
+
+			// Create the contacts for the counterparty
+			for _, contact := range contacts {
+				contact.CounterpartyID = vasp.ID
+				if err = tx.CreateContact(contact); err != nil {
+					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create contact for vasp member counterparty")
+				}
+			}
+		}
+
+		if err = tx.Commit(); err != nil {
+			return err
+		}
+
+		upserts[vasp.ID] = struct{}{}
+		return nil
+	}
+
 	// Fetch members from the GDS and iterate over pages.
 	iter := ListMembers(s.gds)
 	for iter.Next() {
 		for _, member := range iter.Members() {
-			var vasp *models.Counterparty
-			if vasp, err = s.Counterparty(member.Id); err != nil {
-				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not fetch vasp member details")
-				continue
+			if err = syncMember(member); err != nil {
+				return err
 			}
-
-			// Lookup the counterparty in the local table to determine if update or create is required
-			var update bool
-			vasp.ID, update = local[member.Id]
-
-			if update {
-				if err = s.store.UpdateCounterparty(context.Background(), vasp); err != nil {
-					// TODO: handle database specific errors including constraint violations
-					log.Warn().Err(err).Str("id", vasp.ID.String()).Str("vaspID", member.Id).Msg("could not update vasp member counterparty")
-				} else {
-					updated++
-				}
-			} else {
-				if err = s.store.CreateCounterparty(context.Background(), vasp); err != nil {
-					// TODO: handle database specific errors including constraint violations
-					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
-				} else {
-					created++
-				}
-			}
-
-			upserts[vasp.ID] = struct{}{}
 		}
 	}
 

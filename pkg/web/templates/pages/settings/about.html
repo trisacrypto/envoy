@@ -12,6 +12,60 @@
 {{ define "main"  }}
 <div class="row justify-content-between align-items-center mb-5">
   <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">TRISA Information</h3>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-5">Endpoint</dt>
+          <dd class="col-7"><code>{{ .TRISA.Endpoint }}</code></dd>
+          <dt class="col-5">Directory Endpoint</dt>
+          <dd class="col-7"><code>{{ .TRISA.Directory.Endpoint }}</code></dd>
+          <dt class="col-5">Members Endpoint</dt>
+          <dd class="col-7"><code>{{ .TRISA.Directory.MembersEndpoint }}</code></dd>
+          <dt class="col-5">Directory Sync</dt>
+          <dd class="col-7">{{ if .DirectorySync.Enabled }}Every {{ .DirectorySync.Interval }}{{ else }}Disabled{{ end }}</dd>
+          <dt class="col-5">Key Cache TTL</dt>
+          <dd class="col-7">{{ .TRISA.KeyExchangeCacheTTL }}</dd>
+        </dl>
+
+        <hr class="mt-3 mb-4">
+        <h4 class="mb-3">Certificate Information</h4>
+        <dl class="row">
+          <dt class="col-5">Common Name</dt>
+          <dd class="col-7"><code>{{ .Certificates.CommonName }}</code></dd>
+          <dt class="col-5">Issued At</dt>
+          <dd class="col-7">{{ .Certificates.IssuedAt }}</dd>
+          <dt class="col-5">Expires</dt>
+          <dd class="col-7">{{ .Certificates.Expires }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Localparty Information</h3>
+      </div>
+      <div class="card-body">
+        {{- with .Localparty }}
+        {{- if .Error }}
+        <p>An error occurred while retrieving the IVMS 101 information associated with the local party defined by the mTLS certificates:</p>
+        <div class="alert alert-danger" role="alert">
+          {{ .Error }}
+        </div>
+        <p>This error may be resolved when the Envoy node syncs with the TRISA Directory and retrieves your verified information. If it does not, the error is likely due to a misconfiguration between the common name in your TRISA certificates, the TRISA endpoint defined in settings, or the verification/expiration status of your registration on the GDS.</p>
+        {{- else }}
+        {{ template "companyList" .Company }}
+        {{- end }}
+        {{- end}}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6">
     <div class="card" style="min-height: 248px;">
       <div class="card-header">
         <h3 class="card-title">Application Info</h3>

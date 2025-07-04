@@ -152,7 +152,7 @@ func (t *Tx) CreateCounterparty(counterparty *models.Counterparty) (err error) {
 	for _, contact := range contacts {
 		contact.CounterpartyID = counterparty.ID
 		if err = t.CreateContact(contact); err != nil {
-			return err
+			return fmt.Errorf("could not create contact for counterparty: %w", err)
 		}
 	}
 
