@@ -152,17 +152,17 @@ type ComplianceAuditLogPageInfo struct {
 	// FILTERING OPTIONS
 
 	// ResourceTypes filters results to include only these enum.Resource values
-	ResourceTypes []string `json:"resource_types,omitempty"`
+	ResourceTypes []string
 	// ResourceID filters results by a specific resource ID
-	ResourceID string `json:"resource_id,omitempty"`
+	ResourceID string
 	// ResourceTypes filters results to include only these enum.Actor values
-	ActorTypes []string `json:"actor_types,omitempty"`
+	ActorTypes []string
 	// ActorID filters results by a specific actor ID
-	ActorID string `json:"actor_id,omitempty"`
+	ActorID string
 	// After filters results to include logs with ResourceModified on or after this time (inclusive)
-	After time.Time `json:"after,omitempty"`
+	After time.Time
 	// Before filters results to include logs with ResourceModified before this time (exclusive)
-	Before time.Time `json:"before,omitempty"`
+	Before time.Time
 
 	// DISPLAY OPTIONS
 
