@@ -72,7 +72,8 @@ func (s *Store) RetrieveComplianceAuditLog(ctx context.Context, id ulid.ULID) (l
 // # ComplianceAuditLogTxn implementation for SQLite #
 // ###################################################
 
-const listComplianceAuditLogsSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action FROM compliance_audit_log ORDER BY resource_modified DESC"
+const listComplianceAuditLogsSummarySQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action FROM compliance_audit_log ORDER BY resource_modified DESC"
+const listComplianceAuditLogsDetailedSQL = "SELECT id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm FROM compliance_audit_log ORDER BY resource_modified DESC"
 
 func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (out *models.ComplianceAuditLogPage, err error) {
 	// Setup out variable with page info
@@ -82,8 +83,13 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 		Page: models.ComplianceAuditLogPageInfoFrom(page),
 	}
 
-	// Setup base query and lists for filters/params
-	query := listComplianceAuditLogsSQL
+	// Setup base query (by default return 'summary' information only)
+	query := listComplianceAuditLogsSummarySQL
+	if out.Page.DetailedLogs {
+		query = listComplianceAuditLogsDetailedSQL
+	}
+
+	// Create lists for filters/params then process each filter option
 	params := make([]any, 0, 4)
 	filters := make([]string, 0, 4)
 
@@ -121,7 +127,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 
 	// Concatenate filters with AND if there are any
 	if len(filters) != 0 {
-		query = "WITH logs AS (" + listComplianceAuditLogsSQL + ") SELECT * FROM logs WHERE "
+		query = "WITH logs AS (" + query + ") SELECT * FROM logs WHERE "
 		query += strings.Join(filters, " AND ")
 	}
 
@@ -133,9 +139,18 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 
 	for rows.Next() {
 		log := &models.ComplianceAuditLog{}
-		if err = log.ScanSummary(rows); err != nil {
-			return nil, err
+
+		// Scan the summary info only unless the user has requested detailed logs
+		if !out.Page.DetailedLogs {
+			if err = log.ScanSummary(rows); err != nil {
+				return nil, err
+			}
+		} else {
+			if err = log.Scan(rows); err != nil {
+				return nil, err
+			}
 		}
+
 		out.Logs = append(out.Logs, log)
 	}
 
