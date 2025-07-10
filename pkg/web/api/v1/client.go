@@ -767,6 +767,7 @@ func (s *APIv1) ListAPIKeys(ctx context.Context, in *PageQuery) (out *APIKeyList
 	}
 	return out, nil
 }
+
 func (s *APIv1) CreateAPIKey(ctx context.Context, in *APIKey) (out *APIKey, err error) {
 	if err = s.Create(ctx, apikeysEP, in, &out); err != nil {
 		return nil, err
@@ -780,6 +781,7 @@ func (s *APIv1) APIKeyDetail(ctx context.Context, keyID ulid.ULID) (out *APIKey,
 	}
 	return out, nil
 }
+
 func (s *APIv1) UpdateAPIKey(ctx context.Context, in *APIKey) (out *APIKey, err error) {
 	endpoint, _ := url.JoinPath(apikeysEP, in.ID.String())
 	if err = s.Update(ctx, endpoint, in, &out); err != nil {
@@ -787,9 +789,31 @@ func (s *APIv1) UpdateAPIKey(ctx context.Context, in *APIKey) (out *APIKey, err 
 	}
 	return out, nil
 }
+
 func (s *APIv1) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
 	endpoint, _ := url.JoinPath(apikeysEP, keyID.String())
 	return s.Delete(ctx, endpoint)
+}
+
+//===========================================================================
+// ComplianceAuditLogs Resource
+//===========================================================================
+
+const complianceauditlogsEP = "/v1/complianceauditlogs"
+
+func (s *APIv1) ListComplianceAuditLogs(ctx context.Context, in *ComplianceAuditLogQuery) (out *ComplianceAuditLogList, err error) {
+	if err = s.List(ctx, complianceauditlogsEP, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) ComplianceAuditLogDetail(ctx context.Context, logID ulid.ULID) (out *ComplianceAuditLog, err error) {
+	endpoint, _ := url.JoinPath(complianceauditlogsEP, logID.String())
+	if err = s.Detail(ctx, endpoint, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 //===========================================================================
