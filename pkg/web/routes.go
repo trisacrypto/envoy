@@ -304,6 +304,23 @@ func (s *Server) setupRoutes() (err error) {
 			apikeys.DELETE("/:id", authorize(permiss.APIKeysRevoke), s.DeleteAPIKey)
 		}
 
+		// Compliance Audit Logs Resource
+		complianceAuditLogs := v1.Group("/complianceauditlogs", authenticate)
+		{
+			// Permissions included are the "view" permissions for any objects
+			// which have their changes logged by the CAL system
+			viewLogsAuthHandler := authorize(
+				permiss.UsersView,
+				permiss.APIKeysView,
+				permiss.CounterpartiesView,
+				permiss.AccountsView,
+				permiss.TravelRuleView,
+			)
+			complianceAuditLogs.GET("", viewLogsAuthHandler, s.ListComplianceAuditLogs)
+			complianceAuditLogs.GET("/:id", viewLogsAuthHandler, s.ComplianceAuditLogDetail)
+
+		}
+
 		// Utilities
 		utils := v1.Group("/utilities", authenticate)
 		{

@@ -108,6 +108,10 @@ type Client interface {
 	UpdateAPIKey(context.Context, *APIKey) (*APIKey, error)
 	DeleteAPIKey(context.Context, ulid.ULID) error
 
+	// ComplianceAuditLog Resource
+	ListComplianceAuditLogs(context.Context, *ComplianceAuditLogQuery) (*ComplianceAuditLogList, error)
+	ComplianceAuditLogDetail(context.Context, ulid.ULID) (*ComplianceAuditLog, error)
+
 	// Utilities
 	EncodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
 	DecodeTravelAddress(context.Context, *TravelAddress) (*TravelAddress, error)
