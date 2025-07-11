@@ -167,8 +167,14 @@ type TravelAddressStore interface {
 	UseTravelAddressFactory(models.TravelAddressFactory)
 }
 
+// KeyChainStore is the interface used by ComplianceAuditLogs to sign and verify
+// audit log data.
 type KeyChainStore interface {
-	UseKeyChain(keychain.KeyChain)
+	UseKeyChain(*keychain.KeyChain)
+	Sign(data []byte) ([]byte, error)
+	VerificationKeySignature() (string, error)
+	SignatureAlgorithm() string
+	Verify(data, dataSignature []byte, keySignature string) error
 }
 
 // Sunrise store manages both contacts and counterparties.

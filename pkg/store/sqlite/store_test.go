@@ -82,6 +82,23 @@ func TestConnectClose(t *testing.T) {
 	})
 }
 
+func (s *storeTestSuite) TestSignVerify() {
+	//FIXME: fix this test and the keychain mocking in CreateDB()
+	s.T().SkipNow()
+
+	//setup
+	require := s.Require()
+	data := []byte("ZeroOneTwoThreeFourFiveSixSevenEightNine")
+
+	// tests
+	signature, err := s.store.Sign(data)
+	require.NoError(err, "couldn't sign the data")
+	require.NotNil(signature, "signature shouldn't be nil")
+
+	err = s.store.Verify(data, signature, "")
+	require.NoError(err, "data was not verified")
+}
+
 //===========================================================================
 // Store Test Suite
 //===========================================================================
@@ -103,6 +120,24 @@ func (s *storeTestSuite) SetupTest() {
 func (s *storeTestSuite) CreateDB() {
 	var err error
 	require := s.Require()
+
+	// FIXME start
+	// // Load Certificate fixture with private keys
+	// sz, err := trust.NewSerializer(false)
+	// require.NoError(err, "could not create serializer to load fixture")
+
+	// provider, err := sz.ReadFile("testdata/certs.pem")
+	// require.NoError(err, "could not read test fixture")
+
+	// certs, err := keys.FromProvider(provider)
+	// require.NoError(err, "could not create Key from provider")
+	// require.True(certs.IsPrivate(), "expected test certs fixture to be private")
+
+	// // Setup a mock KeyChain
+	// kc, err := keychain.New(keychain.WithDefaultKey(certs))
+	// require.NoError(err, "could not create a KeyChain")
+	// s.store.UseKeyChain(&kc)
+	// FIXME end
 
 	// Only create the database path on the first call to CreateDB. Otherwise the call
 	// to TempDir() will be prefixed with the name of the subtest, which will cause an

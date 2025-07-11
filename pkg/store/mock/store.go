@@ -192,7 +192,19 @@ func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error)
 }
 
 // UseKeyChain is a no-op function for the mock Store.
-func (s *Store) UseKeyChain(_ keychain.KeyChain) {}
+func (s *Store) UseKeyChain(_ *keychain.KeyChain) {}
+
+// Sign is a no-op function for the mock Store.
+func (s *Store) Sign(_ []byte) ([]byte, error) { return nil, nil }
+
+// VerificationKeySignature is a no-op function for the mock Store.
+func (s *Store) VerificationKeySignature() (string, error) { return "", nil }
+
+// SignatureAlgorithm is a no-op function for the mock Store.
+func (s *Store) SignatureAlgorithm() string { return "" }
+
+// Verify is a no-op function for the mock Store.
+func (s *Store) Verify(_, _ []byte, _ string) error { return nil }
 
 //===========================================================================
 // Transaction Store Methods

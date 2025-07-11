@@ -105,14 +105,17 @@ func New(conf config.Config) (node *Node, err error) {
 		Msg("trisa initialized")
 
 	// Add the node's keychain.KeyChain (created in the network) to the Store
-	// for ComlianceAuditLog signatures and verification
+	// for ComlianceAuditLog signatures and verification. NOTE: ComplianceAuditLogs
+	// are currently required, so it is required that we have a keychain.KeyChain
+	// at this step.
 	var kc keychain.KeyChain
 	if kc, err = node.network.KeyChain(); err != nil {
-		// NOTE: ComplianceAuditLogs are currently required, so it is required
-		// that we have a keychain.KeyChain at this step.
 		return nil, err
 	}
-	node.store.UseKeyChain(kc)
+	if kc == nil {
+		return nil, errors.New("keychain must be configured for audit logging")
+	}
+	node.store.UseKeyChain(&kc)
 
 	// Create the admin web ui server if it is enabled
 	if node.admin, err = web.New(conf, node.store, node.network); err != nil {
