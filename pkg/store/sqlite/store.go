@@ -10,6 +10,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/txn"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -19,6 +20,7 @@ type Store struct {
 	readonly bool
 	conn     *sql.DB
 	mkta     models.TravelAddressFactory
+	kc       keychain.KeyChain
 }
 
 // Tx implements the store.Tx interface using SQLite3 as the storage backend.
@@ -27,6 +29,10 @@ type Tx struct {
 	opts *sql.TxOptions
 	mkta models.TravelAddressFactory
 }
+
+//===========================================================================
+// Store methods
+//===========================================================================
 
 func Open(uri *dsn.DSN) (_ *Store, err error) {
 	// Ensure that only SQLite3 connections can be opened.
@@ -101,6 +107,12 @@ func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
 
 func (s *Store) Stats() sql.DBStats {
 	return s.conn.Stats()
+}
+
+// The store will use the given keychain.KeyChain for signing and verification
+// of ComplianceAuditLog entries.
+func (s *Store) UseKeyChain(kc keychain.KeyChain) {
+	s.kc = kc
 }
 
 //===========================================================================

@@ -68,14 +68,15 @@ var _ KeyChain = &Cache{}
 // An error is returned if no sealing key is available (or the cache has expired),
 // requiring a KeyExchange or a key lookup from the GDS.
 // This method operates on the external source (e.g. keys from external counterparties).
-func (c *Cache) SealingKey(commonName string) (pubkey keys.PublicKey, err error) {
+func (c *Cache) SealingKey(commonName, signature string) (pubkey keys.PublicKey, err error) {
 	c.RLock()
 	defer c.RUnlock()
 
 	// Identify the signature from the common name, use default signature if not mapped.
-	var signature string
-	if signature, err = c.lookup(commonName, ExternalSource); err != nil {
-		return nil, err
+	if signature == "" {
+		if signature, err = c.lookup(commonName, ExternalSource); err != nil {
+			return nil, err
+		}
 	}
 
 	// Check if the key has expired (if there is no TTL, it is expired)
@@ -192,6 +193,18 @@ func (c *Cache) ExchangeKey(commonName string) (pubkey keys.PublicKey, err error
 	}
 
 	return pubkey, nil
+}
+
+// Returns the default node keys.PrivateKey to be used for signing.
+func (c *Cache) SigningKey() (privkey keys.PrivateKey, err error) {
+	return c.UnsealingKey("", "")
+}
+
+// Returns the keys.PublicKey with the given signature for signature
+// verification. If signature is the empty string, then the default local node
+// signature verification key will be returned.
+func (c *Cache) VerificationKey(signature string) (privkey keys.PublicKey, err error) {
+	return c.SealingKey("", signature)
 }
 
 // Cache a public key received from the remote Peer during a key exchange.
