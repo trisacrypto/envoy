@@ -65,7 +65,6 @@ func (l *ComplianceAuditLog) Data() (data []byte) {
 	data = append(data, []byte(l.ResourceModified.String())...)
 	data = append(data, []byte(l.Action.String())...)
 	if l.ChangeNotes.Valid {
-
 		data = append(data, []byte(l.ChangeNotes.String)...)
 	}
 

@@ -22,7 +22,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.10.0
 	github.com/trisacrypto/directory v1.10.1
-	github.com/trisacrypto/trisa v1.6.2-0.20250702183603-9cd3faa16329
+	github.com/trisacrypto/trisa v1.7.0
 	github.com/urfave/cli/v2 v2.27.6
 	go.rtnl.ai/ulid v1.1.1
 	go.rtnl.ai/x v1.4.0

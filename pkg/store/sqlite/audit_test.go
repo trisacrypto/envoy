@@ -283,9 +283,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
 		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
-		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
-		// require.NoError(log.Verify(), "could not verify log signature")
-		require.ErrorIs(log2.Verify(), errors.ErrNotImplemented, "log verification is not implemented yet")
+		require.NoError(s.store.Verify(log2.Data(), log2.Signature, log2.KeyID), "could not verify log signature")
 	})
 
 	s.Run("SuccessNoChangeNotes", func() {
@@ -305,9 +303,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
 		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
-		// TODO (sc-32721): when signatures are implemented, uncomment below and remove the Error test
-		// require.NoError(log.Verify(), "could not verify log signature")
-		require.ErrorIs(log2.Verify(), errors.ErrNotImplemented, "log verification is not implemented yet")
+		require.NoError(s.store.Verify(log2.Data(), log2.Signature, log2.KeyID), "could not verify log signature")
 	})
 
 	s.Run("FailureNonZeroID", func() {

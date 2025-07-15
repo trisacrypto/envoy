@@ -39,6 +39,25 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 	}
 	defer tx.Rollback()
 
+	// Ensure the log has a ResourceModified timestamp (this should be)
+	if log.ResourceModified.IsZero() {
+		return dberr.ErrMissingTimestamp
+	}
+
+	// Complete the log with an ID, ensuring one wasn't set already
+	if log.ID != ulid.Zero {
+		return dberr.ErrNoIDOnCreate
+	}
+	log.ID = ulid.MakeSecure()
+
+	// Sign the log now that it is complete with an ID
+	var signature []byte
+	if signature, err = s.Sign(log.Data()); err != nil {
+		return dberr.ErrInternal
+	}
+	log.Signature = signature
+
+	// Perform the transaction to insert the log
 	if err = tx.CreateComplianceAuditLog(log); err != nil {
 		return err
 	}
@@ -160,26 +179,6 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :changeNotes, :signature, :keyId, :algorithm)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
-	// Ensure the log has a ResourceModified timestamp
-	// NOTE: this is different from most 'create' functions because we want the
-	// modified time for the resource being modified to equal the timestamp, so
-	// it should already be populated in the log because the log will be created
-	// after the resource.
-	if log.ResourceModified.IsZero() {
-		return dberr.ErrMissingTimestamp
-	}
-
-	// Complete the log with an ID, ensuring one wasn't set already
-	if log.ID != ulid.Zero {
-		return dberr.ErrNoIDOnCreate
-	}
-	log.ID = ulid.MakeSecure()
-
-	// Sign the log now that it is complete with an ID
-	if err := log.Sign(); err != nil {
-		return dberr.ErrInternal
-	}
-
 	if _, err = t.tx.Exec(createComplianceAuditLogsSQL, log.Params()...); err != nil {
 		return dbe(err)
 	}
