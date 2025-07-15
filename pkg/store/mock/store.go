@@ -14,7 +14,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/txn"
-	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 
 	"github.com/google/uuid"
 	"go.rtnl.ai/ulid"
@@ -190,21 +189,6 @@ func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error)
 		calls:     make(map[string]int),
 	}, nil
 }
-
-// UseKeyChain is a no-op function for the mock Store.
-func (s *Store) UseKeyChain(_ *keychain.KeyChain) {}
-
-// Sign is a no-op function for the mock Store.
-func (s *Store) Sign(_ []byte) ([]byte, error) { return nil, nil }
-
-// VerificationKeySignature is a no-op function for the mock Store.
-func (s *Store) VerificationKeySignature() (string, error) { return "", nil }
-
-// SignatureAlgorithm is a no-op function for the mock Store.
-func (s *Store) SignatureAlgorithm() string { return "" }
-
-// Verify is a no-op function for the mock Store.
-func (s *Store) Verify(_, _ []byte, _ string) error { return nil }
 
 //===========================================================================
 // Transaction Store Methods

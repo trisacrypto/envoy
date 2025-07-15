@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
@@ -50,12 +51,10 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 	}
 	log.ID = ulid.MakeSecure()
 
-	// Sign the log now that it is complete with an ID
-	var signature []byte
-	if signature, err = s.Sign(log.Data()); err != nil {
-		return dberr.ErrInternal
+	// Sign the log now that it is complete
+	if err = audit.Sign(log); err != nil {
+		return err
 	}
-	log.Signature = signature
 
 	// Perform the transaction to insert the log
 	if err = tx.CreateComplianceAuditLog(log); err != nil {

@@ -418,7 +418,8 @@ func GetSampleSecureEnvelope(includeNulls bool, includeTransaction bool) (model 
 	return model
 }
 
-// Returns a sample ComplianceAuditLog. ChangeNotes is optional, as is signing it before returning.
+// Returns a sample ComplianceAuditLog. ChangeNotes is optional, as is signing
+// it (with a fake signature which will not validate) before returning.
 func GetComplianceAuditLog(includeChangeNotes bool, signIt bool) (model *models.ComplianceAuditLog) {
 	id := ulid.MakeSecure()
 	timeNow := time.Now()
@@ -443,10 +444,11 @@ func GetComplianceAuditLog(includeChangeNotes bool, signIt bool) (model *models.
 	}
 
 	if signIt {
-		// FIXME: fix the Sign call below, which is now in the Store
-		// if err := model.Sign(); err != nil {
-		// 	panic(err)
-		// }
+		// NOTE: faking the signature and its metadata
+		fake := ulid.MakeSecure()
+		model.Signature = fake[:]
+		model.KeyID = fake.String()
+		model.Algorithm = "ULID-MOCK"
 	}
 
 	return model

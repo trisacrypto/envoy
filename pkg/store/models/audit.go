@@ -54,21 +54,19 @@ func (l *ComplianceAuditLog) Data() (data []byte) {
 	// Concatenate all of the fields as bytes in the order they appear in the
 	// ComplianceAuditLog. Do not include the signature, key id, or algorithm
 	// fields, as those are considered metadata for the signature and not part
-	// of the log. DO NOT change the order of these fields in the future, or
-	// else verification for old logs could fail; if you add any fields, append
-	// to the very end of the byte slice!
+	// of the log. DO NOT change the order or format of these fields in the
+	// future, or else verification for old logs could fail; if you add any
+	// fields, append to the very end of the byte slice!
 	data = append(data, l.ID.Bytes()...)
 	data = append(data, l.ActorID...)
 	data = append(data, []byte(l.ActorType.String())...)
 	data = append(data, l.ResourceID...)
 	data = append(data, []byte(l.ResourceType.String())...)
-	data = append(data, []byte(l.ResourceModified.String())...)
+	data = append(data, []byte(l.ResourceModified.Format(time.RFC3339))...)
 	data = append(data, []byte(l.Action.String())...)
 	if l.ChangeNotes.Valid {
 		data = append(data, []byte(l.ChangeNotes.String)...)
 	}
-
-	// TODO: append any new fields immediately above this comment; do not reorder!
 
 	return data
 }

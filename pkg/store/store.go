@@ -14,7 +14,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/secrets"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/store/txn"
-	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 
 	"github.com/google/uuid"
 	"go.rtnl.ai/ulid"
@@ -58,7 +57,6 @@ type Store interface {
 	APIKeyStore
 	ResetPasswordLinkStore
 	ComplianceAuditLogStore
-	KeyChainStore
 }
 
 // Secrets is a generic storage interface for storing secrets such as private key
@@ -165,16 +163,6 @@ type ContactStore interface {
 
 type TravelAddressStore interface {
 	UseTravelAddressFactory(models.TravelAddressFactory)
-}
-
-// KeyChainStore is the interface used by ComplianceAuditLogs to sign and verify
-// audit log data.
-type KeyChainStore interface {
-	UseKeyChain(*keychain.KeyChain)
-	Sign(data []byte) ([]byte, error)
-	VerificationKeySignature() (string, error)
-	SignatureAlgorithm() string
-	Verify(data, dataSignature []byte, keySignature string) error
 }
 
 // Sunrise store manages both contacts and counterparties.

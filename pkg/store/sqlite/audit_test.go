@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -280,10 +281,9 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		log2, err := s.store.RetrieveComplianceAuditLog(ctx, log.ID)
 		require.NoError(err, "expected no error")
 		require.NotNil(log2, "log2 should not be nil")
-		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
-		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
+		require.Equal(log.Data(), log2.Data(), "log data doesn't match")
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
-		require.NoError(s.store.Verify(log2.Data(), log2.Signature, log2.KeyID), "could not verify log signature")
+		require.NoError(audit.Verify(log2), "could not verify log signature")
 	})
 
 	s.Run("SuccessNoChangeNotes", func() {
@@ -303,7 +303,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.Equal(log.ID, log2.ID, fmt.Sprintf("log ID should be %s, found %s instead", log.ID, log2.ID))
 		require.Equal(log.ChangeNotes, log2.ChangeNotes, "log change notes don't match")
 		require.NotNil(log2.Signature, "expected a non-nil log signature")
-		require.NoError(s.store.Verify(log2.Data(), log2.Signature, log2.KeyID), "could not verify log signature")
+		require.NoError(audit.Verify(log2), "could not verify log signature")
 	})
 
 	s.Run("FailureNonZeroID", func() {

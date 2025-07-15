@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
@@ -85,20 +86,6 @@ func TestConnectClose(t *testing.T) {
 	})
 }
 
-func (s *storeTestSuite) TestSignVerify() {
-	//setup
-	require := s.Require()
-	data := []byte("ZeroOneTwoThreeFourFiveSixSevenEightNine")
-
-	// tests
-	signature, err := s.store.Sign(data)
-	require.NoError(err, "couldn't sign the data")
-	require.NotNil(signature, "signature shouldn't be nil")
-
-	err = s.store.Verify(data, signature, "")
-	require.NoError(err, "data was not verified")
-}
-
 //===========================================================================
 // Store Test Suite
 //===========================================================================
@@ -111,6 +98,7 @@ type storeTestSuite struct {
 
 func (s *storeTestSuite) SetupSuite() {
 	s.CreateDB()
+	loadAuditKeyChainFixture(s.T())
 }
 
 func (s *storeTestSuite) SetupTest() {
@@ -120,22 +108,6 @@ func (s *storeTestSuite) SetupTest() {
 func (s *storeTestSuite) CreateDB() {
 	var err error
 	require := s.Require()
-
-	// Load Certificate fixture with private keys
-	sz, err := trust.NewSerializer(false)
-	require.NoError(err, "could not create serializer to load fixture")
-
-	provider, err := sz.ReadFile("testdata/certs.pem")
-	require.NoError(err, "could not read test fixture")
-
-	certs, err := keys.FromProvider(provider)
-	require.NoError(err, "could not create Key from provider")
-	require.True(certs.IsPrivate(), "expected test certs fixture to be private")
-
-	// Setup a mock KeyChain
-	kc, err := keychain.New(keychain.WithDefaultKey(certs))
-	require.NoError(err, "could not create a KeyChain")
-	s.store.UseKeyChain(&kc)
 
 	// Only create the database path on the first call to CreateDB. Otherwise the call
 	// to TempDir() will be prefixed with the name of the subtest, which will cause an
@@ -212,4 +184,22 @@ func loadFixture(path string, obj proto.Message) (err error) {
 	}
 
 	return json.Unmarshal(data, obj)
+}
+
+func loadAuditKeyChainFixture(t *testing.T) {
+	// Load Certificate fixture with private keys
+	sz, err := trust.NewSerializer(false)
+	require.NoError(t, err, "could not create serializer to load fixture")
+
+	provider, err := sz.ReadFile("testdata/certs.pem")
+	require.NoError(t, err, "could not read test fixture")
+
+	certs, err := keys.FromProvider(provider)
+	require.NoError(t, err, "could not create Key from provider")
+	require.True(t, certs.IsPrivate(), "expected test certs fixture to be private")
+
+	// Setup a mock KeyChain
+	kc, err := keychain.New(keychain.WithCacheDuration(1*time.Hour), keychain.WithDefaultKey(certs))
+	require.NoError(t, err, "could not create a KeyChain")
+	audit.UseKeyChain(&kc)
 }
