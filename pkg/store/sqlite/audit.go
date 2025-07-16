@@ -38,6 +38,7 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: false}); err != nil {
 		return err
 	}
+
 	defer tx.Rollback()
 	if err = tx.CreateComplianceAuditLog(log); err != nil {
 		return err
@@ -160,7 +161,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :changeNotes, :signature, :keyId, :algorithm)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
-	// Ensure the log has a ResourceModified timestamp (this should be)
+	// Ensure the log has a ResourceModified timestamp
 	if log.ResourceModified.IsZero() {
 		return dberr.ErrMissingTimestamp
 	}
