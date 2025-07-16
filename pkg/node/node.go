@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/directory"
 	"github.com/trisacrypto/envoy/pkg/emails"
@@ -16,6 +17,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/trisa"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/trp"
 	"github.com/trisacrypto/envoy/pkg/web"
@@ -102,6 +104,19 @@ func New(conf config.Config) (node *Node, err error) {
 		Str("gds", conf.Node.Directory.Endpoint).
 		Str("members", conf.Node.Directory.MembersEndpoint).
 		Msg("trisa initialized")
+
+	// Add the node's keychain.KeyChain (created in the network) to the audit package
+	// for ComlianceAuditLog signatures and verification. NOTE: ComplianceAuditLogs
+	// are currently required, so it is required that we have a keychain.KeyChain
+	// at this step.
+	var kc keychain.KeyChain
+	if kc, err = node.network.KeyChain(); err != nil {
+		return nil, err
+	}
+	if kc == nil {
+		return nil, errors.New("keychain must be configured for audit logging")
+	}
+	audit.UseKeyChain(&kc)
 
 	// Create the admin web ui server if it is enabled
 	if node.admin, err = web.New(conf, node.store, node.network); err != nil {
