@@ -18,6 +18,9 @@ const (
 	ResourceCounterparty
 	ResourceAccount
 	ResourceSunrise
+	ResourceSecureEnvelope
+	ResourceCryptoAddress
+	ResourceContact
 
 	// The terminator is used to determine the last value of the enum. It should be
 	// the last value in the list and is automatically incremented when enums are
@@ -27,7 +30,7 @@ const (
 	resourceTerminator
 )
 
-var resourceNames = [7]string{
+var resourceNames = [10]string{
 	"unknown",
 	"transaction",
 	"user",
@@ -35,6 +38,9 @@ var resourceNames = [7]string{
 	"counterparty",
 	"account",
 	"sunrise",
+	"secure_envelope",
+	"crypto_address",
+	"contact",
 }
 
 // Returns true if the provided resource is valid (e.g. parseable), false otherwise.
