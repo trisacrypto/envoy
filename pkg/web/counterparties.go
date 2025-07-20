@@ -167,7 +167,8 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	}
 
 	// Create the model in the database (which will update the pointer)
-	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty, &models.ComplianceAuditLog{}); err != nil {
 		// TODO: are there other error types we need to handle to return a 400?
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
@@ -395,7 +396,8 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 	}
 
 	// Execute the update
-	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.UpdateCounterparty(c.Request.Context(), counterparty, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
 			return
@@ -452,7 +454,8 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.DeleteCounterparty(c.Request.Context(), counterpartyID); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.DeleteCounterparty(c.Request.Context(), counterpartyID, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
 			return
@@ -561,7 +564,8 @@ func (s *Server) CreateContact(c *gin.Context) {
 	model.CounterpartyID = counterpartyID
 
 	// Create the model in the database
-	if err = s.store.CreateContact(c.Request.Context(), model); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.CreateContact(c.Request.Context(), model, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
 			return
@@ -687,7 +691,8 @@ func (s *Server) UpdateContact(c *gin.Context) {
 	model.CounterpartyID = counterpartyID
 
 	// Update the model in the database (which will update the pointer).
-	if err = s.store.UpdateContact(c.Request.Context(), model); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.UpdateContact(c.Request.Context(), model, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("contact or counterparty not found"))
 			return
@@ -732,7 +737,8 @@ func (s *Server) DeleteContact(c *gin.Context) {
 	}
 
 	// Delete the contact from the database
-	if err = s.store.DeleteContact(c.Request.Context(), contactID, counterpartyID); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.DeleteContact(c.Request.Context(), contactID, counterpartyID, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("contact or counterparty not found"))
 			return

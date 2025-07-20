@@ -184,9 +184,8 @@ func (s *Store) Begin(ctx context.Context, opts *sql.TxOptions) (txn.Txn, error)
 
 	// return a mock for the Txn interface
 	return &Tx{
-		opts:      opts,
-		callbacks: make(map[string]any),
-		calls:     make(map[string]int),
+		opts:  opts,
+		calls: make(map[string]int),
 	}, nil
 }
 

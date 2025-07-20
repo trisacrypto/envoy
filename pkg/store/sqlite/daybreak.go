@@ -71,7 +71,8 @@ func (t *Tx) CreateDaybreak(counterparty *models.Counterparty) (err error) {
 	}
 
 	// Create the counterparty and associated contacts.
-	if err = t.CreateCounterparty(counterparty); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = t.CreateCounterparty(counterparty, &models.ComplianceAuditLog{}); err != nil {
 		// If the counterparty is broken, then attempt to fix and try create again.
 		if errors.Is(err, dberr.ErrAlreadyExists) {
 			if cParty, cerr := t.LookupCounterparty("directory_id", counterparty.DirectoryID.String); cerr == nil {
@@ -124,7 +125,8 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 	}
 
 	// Update the counterparty record
-	if err = t.UpdateCounterparty(counterparty); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = t.UpdateCounterparty(counterparty, &models.ComplianceAuditLog{}); err != nil {
 		return err
 	}
 
@@ -149,7 +151,8 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 		if currContact, ok := currContacts[contact.Email]; ok {
 			// Contact with this email is present in DB
 			contact.ID = currContact.ID
-			if err = t.UpdateContact(contact); err != nil {
+			//FIXME: COMPLETE AUDIT LOG
+			if err = t.UpdateContact(contact, &models.ComplianceAuditLog{}); err != nil {
 				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact when updating counterparty")
 				return err
 			}
@@ -158,7 +161,8 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 			if !contact.ID.IsZero() {
 				contact.ID = ulid.Zero
 			}
-			if err = t.CreateContact(contact); err != nil {
+			//FIXME: COMPLETE AUDIT LOG
+			if err = t.CreateContact(contact, &models.ComplianceAuditLog{}); err != nil {
 				if err == dberr.ErrAlreadyExists {
 					// This email address is proboably associated with a contact for a different counterparty
 					log.Warn().Err(err).Str("contact", contact.Email).Msg("contact is associated with two counterparties")

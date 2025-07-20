@@ -63,7 +63,8 @@ func (s *storeTestSuite) TestCreateAccount() {
 		account.ID = ulid.Zero
 
 		//test
-		err := s.store.CreateAccount(ctx, account)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
 		require.NoError(err, "no error was expected")
 
 		account2, err := s.store.RetrieveAccount(ctx, account.ID)
@@ -79,7 +80,8 @@ func (s *storeTestSuite) TestCreateAccount() {
 		account := mock.GetSampleAccount(true, true, true)
 
 		//test
-		err := s.store.CreateAccount(ctx, account)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
 	})
@@ -168,7 +170,8 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		account.LastName = newLastName
 
 		//test
-		err = s.store.UpdateAccount(ctx, account)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		account = nil
@@ -190,7 +193,8 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		account.ID = ulid.Zero
 
 		//test
-		err = s.store.UpdateAccount(ctx, account)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
 	})
@@ -206,7 +210,8 @@ func (s *storeTestSuite) TestUpdateAccount() {
 		account.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateAccount(ctx, account)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
 	})
@@ -220,7 +225,8 @@ func (s *storeTestSuite) TestDeleteAccount() {
 		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
 
 		//test
-		err := s.store.DeleteAccount(ctx, accountId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		account, err := s.store.RetrieveAccount(ctx, accountId)
@@ -236,7 +242,8 @@ func (s *storeTestSuite) TestDeleteAccount() {
 		accountId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteAccount(ctx, accountId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
 	})
@@ -392,7 +399,8 @@ func (s *storeTestSuite) TestCreateCryptoAddress() {
 		require.NotNil(addresses, "addresses should not be nil")
 		require.Len(addresses.CryptoAddresses, 2, fmt.Sprintf("expected 2 crypto addresses, got %d", len(addresses.CryptoAddresses)))
 
-		err = s.store.CreateCryptoAddress(ctx, cryptoAddress)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
 		require.NoError(err, "no error was expected")
 
 		addresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
@@ -409,7 +417,8 @@ func (s *storeTestSuite) TestCreateCryptoAddress() {
 		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
 
 		//test
-		err := s.store.CreateCryptoAddress(ctx, cryptoAddress)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -425,7 +434,8 @@ func (s *storeTestSuite) TestCreateCryptoAddress() {
 		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
 
 		//test
-		err := s.store.CreateCryptoAddress(ctx, cryptoAddress)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		require.Equal(errors.ErrMissingReference, err, "expected error ErrMissingReference")
 	})
@@ -439,7 +449,8 @@ func (s *storeTestSuite) TestCreateCryptoAddress() {
 		cryptoAddress.ID = ulid.MakeSecure()
 
 		//test
-		err := s.store.CreateCryptoAddress(ctx, cryptoAddress)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected error ErrNoIDOnCreate")
 	})
@@ -542,7 +553,8 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address.Network = newNetwork
 
 		//test
-		err = s.store.UpdateCryptoAddress(ctx, address)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		address = nil
@@ -564,7 +576,8 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address.ID = ulid.Zero
 
 		//test
-		err = s.store.UpdateCryptoAddress(ctx, address)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
 	})
@@ -581,7 +594,8 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address.AccountID = ulid.Zero
 
 		//test
-		err = s.store.UpdateCryptoAddress(ctx, address)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingReference, err, "expected an ErrMissingReference error")
 	})
@@ -598,7 +612,8 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateCryptoAddress(ctx, address)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
 	})
@@ -615,7 +630,8 @@ func (s *storeTestSuite) TestUpdateCryptoAddress() {
 		address.AccountID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateCryptoAddress(ctx, address)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
 	})
@@ -635,7 +651,8 @@ func (s *storeTestSuite) TestDeleteCryptoAddress() {
 		require.NotNil(cryptoAddresses.CryptoAddresses, "there were no crypto addresses")
 		require.Len(cryptoAddresses.CryptoAddresses, 2, fmt.Sprintf("there should be 2 crypto addresses, but there were %d", len(cryptoAddresses.CryptoAddresses)))
 
-		err = s.store.DeleteCryptoAddress(ctx, accountId, addressId)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
 		require.Nil(err, "expected no error")
 
 		cryptoAddresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
@@ -652,7 +669,8 @@ func (s *storeTestSuite) TestDeleteCryptoAddress() {
 		addressId := ulid.MustParse("01HV6RV08YNR2GH8MEEKB7DH2W")
 
 		//test
-		err := s.store.DeleteCryptoAddress(ctx, accountId, addressId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
 		require.NotNil(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -665,7 +683,8 @@ func (s *storeTestSuite) TestDeleteCryptoAddress() {
 		addressId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteCryptoAddress(ctx, accountId, addressId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
 		require.NotNil(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})

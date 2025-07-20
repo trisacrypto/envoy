@@ -2,6 +2,8 @@ package mock
 
 import (
 	"database/sql"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -115,6 +117,18 @@ func (tx *Tx) Reset() {
 	// Reset transaction commit/rollback
 	tx.commit = false
 	tx.rollback = false
+
+	// reset the callbacks using reflection
+	v := reflect.ValueOf(tx)
+	v = v.Elem() // tx is a pointer
+	t := v.Type()
+	for _, f := range reflect.VisibleFields(t) {
+		// only reset functions named `OnSomething`
+		if strings.HasPrefix(f.Name, "On") && f.Type.Kind() == reflect.Func {
+			fv := v.FieldByIndex(f.Index)
+			fv.SetZero()
+		}
+	}
 }
 
 // Assert that the expected number of calls were made to the given method.

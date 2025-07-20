@@ -60,7 +60,8 @@ func (s *storeTestSuite) TestCreateSunrise() {
 		expectedLen := len(messages.Messages) + 1
 
 		//test
-		err = s.store.CreateSunrise(ctx, message)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateSunrise(ctx, message, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when creating sunrise message")
 
 		messages = nil
@@ -80,7 +81,8 @@ func (s *storeTestSuite) TestCreateSunrise() {
 		message.Email = "compliance@daybreak.example.com"
 
 		//test
-		err := s.store.CreateSunrise(ctx, message)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateSunrise(ctx, message, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating sunrise message")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 	})
@@ -95,7 +97,8 @@ func (s *storeTestSuite) TestCreateSunrise() {
 		message.Email = "compliance@daybreak.example.com"
 
 		//test
-		err := s.store.CreateSunrise(ctx, message)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateSunrise(ctx, message, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating sunrise message")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -113,7 +116,8 @@ func (s *storeTestSuite) TestCreateSunrise() {
 		message.Email = uuid.NewString() + "@example.com"
 
 		//test
-		err := s.store.CreateSunrise(ctx, message)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateSunrise(ctx, message, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating sunrise message")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -131,7 +135,8 @@ func (s *storeTestSuite) TestCreateSunrise() {
 		message.Email = "compliance@daybreak.example.com"
 
 		//test
-		err := s.store.CreateSunrise(ctx, message)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateSunrise(ctx, message, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating sunrise message")
 		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
 	})
@@ -196,7 +201,8 @@ func (s *storeTestSuite) TestUpdateSunrise() {
 		msg.Email = newEmail
 
 		//test
-		err = s.store.UpdateSunrise(ctx, msg)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateSunrise(ctx, msg, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when updating sunrise msg")
 
 		msg = nil
@@ -225,7 +231,8 @@ func (s *storeTestSuite) TestUpdateSunrise() {
 		msg.ID = ulid.Zero
 
 		//test
-		err = s.store.UpdateSunrise(ctx, msg)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateSunrise(ctx, msg, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating sunrise msg")
 		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
 
@@ -255,7 +262,8 @@ func (s *storeTestSuite) TestUpdateSunrise() {
 		msg.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateSunrise(ctx, msg)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateSunrise(ctx, msg, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating sunrise msg")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
@@ -280,7 +288,8 @@ func (s *storeTestSuite) TestUpdateSunriseStatusSuccess() {
 	newStatus := enum.StatusRejected
 
 	//test
-	err := s.store.UpdateSunriseStatus(ctx, envId, newStatus)
+	//FIXME: COMPLETE AUDIT LOG
+	err := s.store.UpdateSunriseStatus(ctx, envId, newStatus, &models.ComplianceAuditLog{})
 	require.NoError(err, "expected no error when updating sunrise status")
 
 	msg, err := s.store.RetrieveSunrise(ctx, msgId)
@@ -301,7 +310,8 @@ func (s *storeTestSuite) TestUpdateSunriseStatusFailures() {
 		newStatus := enum.StatusRejected
 
 		//test
-		err := s.store.UpdateSunriseStatus(ctx, envId, newStatus)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UpdateSunriseStatus(ctx, envId, newStatus, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating sunrise status")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
@@ -322,7 +332,8 @@ func (s *storeTestSuite) TestUpdateSunriseStatusFailures() {
 		newStatus := enum.StatusRejected
 
 		//test
-		err := s.store.UpdateSunriseStatus(ctx, envId, newStatus)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UpdateSunriseStatus(ctx, envId, newStatus, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating sunrise status")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
@@ -342,7 +353,8 @@ func (s *storeTestSuite) TestDeleteSunrise() {
 		msgId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 
 		//test
-		err := s.store.DeleteSunrise(ctx, msgId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteSunrise(ctx, msgId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting sunrise msg")
 
 		msg, err := s.store.RetrieveSunrise(ctx, msgId)
@@ -358,7 +370,8 @@ func (s *storeTestSuite) TestDeleteSunrise() {
 		msgId := ulid.Zero
 
 		//test
-		err := s.store.DeleteSunrise(ctx, msgId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteSunrise(ctx, msgId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting sunrise msg")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -370,7 +383,8 @@ func (s *storeTestSuite) TestDeleteSunrise() {
 		msgId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteSunrise(ctx, msgId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteSunrise(ctx, msgId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting sunrise msg")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -394,7 +408,8 @@ func (s *storeTestSuite) TestGetOrCreateSunriseCounterparty() {
 			counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 			//test
-			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, "bananna")
+			//FIXME: COMPLETE AUDIT LOG
+			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, "bananna", &models.ComplianceAuditLog{})
 			require.NoError(err, "expected no errors when getting sunrise counterparty by email")
 			require.NotNil(counterparty, "expected a non-nil counterparty")
 			require.Equal(counterpartyId, counterparty.ID, "expected a different counterparty ID")
@@ -417,7 +432,8 @@ func (s *storeTestSuite) TestGetOrCreateSunriseCounterparty() {
 		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 		//test
-		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName)
+		//FIXME: COMPLETE AUDIT LOG
+		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no errors when getting sunrise counterparty by email")
 		require.NotNil(counterparty, "expected a non-nil counterparty")
 		require.Equal(counterpartyId, counterparty.ID, "expected a different counterparty")
@@ -442,7 +458,8 @@ func (s *storeTestSuite) TestGetOrCreateSunriseCounterparty() {
 		expLen := len(counterparties.Counterparties) + 1
 
 		//test
-		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName)
+		//FIXME: COMPLETE AUDIT LOG
+		counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, contactEmail, counterpartyName, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no errors when getting sunrise counterparty by email")
 		require.NotNil(counterparty, "expected a non-nil counterparty")
 		require.Equal(counterpartyName, counterparty.Name, "expected a different counterparty name")
@@ -491,7 +508,8 @@ func (s *storeTestSuite) TestGetOrCreateSunriseCounterparty() {
 
 		//test
 		for _, email := range testcases {
-			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, email, "name")
+			//FIXME: COMPLETE AUDIT LOG
+			counterparty, err := s.store.GetOrCreateSunriseCounterparty(ctx, email, "name", &models.ComplianceAuditLog{})
 			require.Error(err, fmt.Sprintf("case %s: expected an error for invalid email", email))
 			require.ErrorContains(err, "could not parse the provided email address", fmt.Sprintf("case %s: expected an email parsing error", email))
 			require.Nil(counterparty, fmt.Sprintf("case %s: expected a nil counterparty", email))

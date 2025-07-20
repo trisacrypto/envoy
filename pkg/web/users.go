@@ -123,7 +123,8 @@ func (s *Server) CreateUser(c *gin.Context) {
 	}
 
 	// Create the model in the database (which will update the pointer)
-	if err = s.store.CreateUser(c.Request.Context(), user); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.CreateUser(c.Request.Context(), user, &models.ComplianceAuditLog{}); err != nil {
 		// TODO: handle other error types that would return a 400
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
@@ -273,7 +274,8 @@ func (s *Server) UpdateUser(c *gin.Context) {
 	// Set the role on the user for update
 	user.SetRole(role)
 
-	if err = s.store.UpdateUser(c.Request.Context(), user); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.UpdateUser(c.Request.Context(), user, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("user not found"))
 			return
@@ -314,7 +316,8 @@ func (s *Server) DeleteUser(c *gin.Context) {
 
 	// Delete the user from the database
 	// TODO: for audit purposes we may simply want to move the user to a revoked table.
-	if err = s.store.DeleteUser(c.Request.Context(), userID); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.store.DeleteUser(c.Request.Context(), userID, &models.ComplianceAuditLog{}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("user not found"))
 			return

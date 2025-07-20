@@ -57,7 +57,8 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions) + 1
 
 		//test
-		err = s.store.CreateTransaction(ctx, txn)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when creating transaction")
 
 		txns, err = s.store.ListTransactions(ctx, &models.TransactionPageInfo{})
@@ -79,7 +80,8 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions)
 
 		//test
-		err = s.store.CreateTransaction(ctx, txn)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating transaction")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 
@@ -102,7 +104,8 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions)
 
 		//test
-		err = s.store.CreateTransaction(ctx, txn)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating transaction")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -178,7 +181,8 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		txn.Amount = newAmount
 
 		//test
-		err = s.store.UpdateTransaction(ctx, txn)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when updating transaction")
 
 		txn = nil
@@ -202,7 +206,8 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		transaction.ID = uuid.New()
 
 		//test
-		err = s.store.UpdateTransaction(ctx, transaction)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateTransaction(ctx, transaction, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating transaction")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -219,7 +224,8 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		transaction.ID = uuid.Nil
 
 		//test
-		err = s.store.UpdateTransaction(ctx, transaction)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateTransaction(ctx, transaction, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating transaction")
 		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
 	})
@@ -233,7 +239,8 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 
 		//test
-		err := s.store.DeleteTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
 		txn, err := s.store.RetrieveTransaction(ctx, txnId)
@@ -249,7 +256,8 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 		txnId := uuid.New()
 
 		//test
-		err := s.store.DeleteTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -261,7 +269,8 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 		txnId := uuid.Nil
 
 		//test
-		err := s.store.DeleteTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -276,7 +285,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		beforeTxn := time.Now()
 
 		//test ArchiveTransaction
-		err := s.store.ArchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
 		txn, err := s.store.RetrieveTransaction(ctx, txnId)
@@ -288,7 +298,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		require.True(beforeTxn.Before(txn.Modified), "expected modified timestamp to be more recent")
 
 		//test UnarchiveTransaction
-		err = s.store.UnarchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
 		txn = nil
@@ -307,7 +318,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		txnId := uuid.New()
 
 		//test
-		err := s.store.ArchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when archiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -319,7 +331,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		txnId := uuid.Nil
 
 		//test
-		err := s.store.ArchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when archiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -331,7 +344,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		txnId := uuid.New()
 
 		//test
-		err := s.store.UnarchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when unarchiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -343,7 +357,8 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		txnId := uuid.Nil
 
 		//test
-		err := s.store.UnarchiveTransaction(ctx, txnId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when unarchiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -458,7 +473,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	ctx := context.Background()
 
 	envelopeID := uuid.New()
-	db, err := s.store.PrepareTransaction(ctx, envelopeID)
+	//FIXME: COMPLETE AUDIT LOG
+	db, err := s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not start prepared transaction")
 	defer db.Rollback()
 
@@ -471,7 +487,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 		RegisteredDirectory: sql.NullString{Valid: true, String: "trisatest.dev"},
 	}
 
-	err = db.AddCounterparty(counterparty)
+	//FIXME: COMPLETE AUDIT LOG
+	err = db.AddCounterparty(counterparty, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not add counterparty to database")
 
 	// Should be able to update the transaction record
@@ -486,7 +503,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 		Amount:             0.46602501,
 		LastUpdate:         sql.NullTime{Valid: true, Time: time.Now()},
 	}
-	err = db.Update(record)
+	//FIXME: COMPLETE AUDIT LOG
+	err = db.Update(record, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not update record in database")
 
 	// Add a secure envelope to the transaction
@@ -499,7 +517,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	env, _, err = env.Encrypt()
 	require.NoError(err, "cannot encrypt envelope")
 
-	err = db.AddEnvelope(models.FromEnvelope(env))
+	//FIXME: COMPLETE AUDIT LOG
+	err = db.AddEnvelope(models.FromEnvelope(env), &models.ComplianceAuditLog{})
 	require.NoError(err, "could not add envelope to transactio")
 
 	require.NoError(db.Commit(), "could not commit transaction to database")
@@ -520,7 +539,8 @@ func (s *storeTestSuite) TestPreparedTransaction_Exists() {
 	ctx := context.Background()
 
 	envelopeID := uuid.MustParse("c20a7cdf-5c23-4b44-b7cd-a29cd00761a3")
-	db, err := s.store.PrepareTransaction(ctx, envelopeID)
+	//FIXME: COMPLETE AUDIT LOG
+	db, err := s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not start prepared transaction")
 	defer db.Rollback()
 

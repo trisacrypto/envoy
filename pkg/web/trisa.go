@@ -33,13 +33,15 @@ func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) 
 		return fmt.Errorf("could not fetch storage key: %w", err)
 	}
 
-	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not store outgoing envelope: %w", err)
 	}
 
 	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
 	// sent during the key exchange process of the transfer).
-	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not store incoming message: %w", err)
 	}
 

@@ -147,7 +147,8 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 	}
 
 	// Create the ID in the database of the sunrise record.
-	if err = s.DB.CreateSunrise(record); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.CreateSunrise(record, &models.ComplianceAuditLog{}); err != nil {
 		return err
 	}
 
@@ -177,7 +178,8 @@ func (s *SunrisePacket) SendEmail(contact *models.Contact, invite emails.Sunrise
 	record.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
 	record.Status = enum.StatusPending
 
-	if err = s.DB.UpdateSunrise(record); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.UpdateSunrise(record, &models.ComplianceAuditLog{}); err != nil {
 		return err
 	}
 
@@ -283,7 +285,8 @@ func (s *SunrisePacket) Create(storageKey keys.PublicKey) (err error) {
 	}
 
 	// Add the counterparty to the transaction
-	if err = s.DB.AddCounterparty(s.Counterparty); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.AddCounterparty(s.Counterparty, &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not associate counterparty with transaction: %w", err)
 	}
 
@@ -303,7 +306,8 @@ func (s *SunrisePacket) Create(storageKey keys.PublicKey) (err error) {
 	s.Transaction.LastUpdate = sql.NullTime{Valid: true, Time: time.Now()}
 
 	// Update the transaction in the database
-	if err = s.DB.Update(s.Transaction); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.Update(s.Transaction, &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not update transaction in database: %w", err)
 	}
 
@@ -319,12 +323,14 @@ func (s *SunrisePacket) Create(storageKey keys.PublicKey) (err error) {
 	}
 
 	// Add envelopes to the database
-	if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.AddEnvelope(s.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
 		s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
 		return fmt.Errorf("could not store outgoing sunrise message: %w", err)
 	}
 
-	if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.AddEnvelope(s.In.Model(), &models.ComplianceAuditLog{}); err != nil {
 		s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
 		return fmt.Errorf("could not store incoming sunrise message: %w", err)
 	}
@@ -359,12 +365,14 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 	}
 
 	// Update the transaction in the database
-	if err = s.DB.Update(s.Transaction); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.Update(s.Transaction, &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not update transaction in database: %w", err)
 	}
 
 	// Update all sunrise messages with the new transaction status
-	if err = s.DB.UpdateSunriseStatus(s.Transaction.ID, s.Transaction.Status); err != nil {
+	//FIXME: COMPLETE AUDIT LOG
+	if err = s.DB.UpdateSunriseStatus(s.Transaction.ID, s.Transaction.Status, &models.ComplianceAuditLog{}); err != nil {
 		return fmt.Errorf("could not update sunrise status: %w", err)
 	}
 
@@ -381,23 +389,27 @@ func (s *SunrisePacket) Save(storageKey keys.PublicKey) (err error) {
 
 	// Add envelopes to the database in the reply to order
 	if s.reply == enum.DirectionIncoming {
-		if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+		//FIXME: COMPLETE AUDIT LOG
+		if err = s.DB.AddEnvelope(s.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
 			s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
 			return fmt.Errorf("could not store outgoing sunrise message: %w", err)
 		}
 
-		if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+		//FIXME: COMPLETE AUDIT LOG
+		if err = s.DB.AddEnvelope(s.In.Model(), &models.ComplianceAuditLog{}); err != nil {
 			s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
 			return fmt.Errorf("could not store incoming sunrise message: %w", err)
 		}
 
 	} else {
-		if err = s.DB.AddEnvelope(s.In.Model()); err != nil {
+		//FIXME: COMPLETE AUDIT LOG
+		if err = s.DB.AddEnvelope(s.In.Model(), &models.ComplianceAuditLog{}); err != nil {
 			s.Log.Debug().Err(err).Msg("could not store incoming sunrise message")
 			return fmt.Errorf("could not store incoming sunrise message: %w", err)
 		}
 
-		if err = s.DB.AddEnvelope(s.Out.Model()); err != nil {
+		//FIXME: COMPLETE AUDIT LOG
+		if err = s.DB.AddEnvelope(s.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
 			s.Log.Debug().Err(err).Msg("could not store outgoing sunrise message")
 			return fmt.Errorf("could not store outgoing sunrise message: %w", err)
 		}
@@ -452,7 +464,8 @@ func (s *SunrisePacket) UpdateCounterparty(vasp *ivms101.LegalPerson) (err error
 	}
 
 	if updated {
-		return s.DB.UpdateCounterparty(s.Counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		return s.DB.UpdateCounterparty(s.Counterparty, &models.ComplianceAuditLog{})
 	}
 	return nil
 }

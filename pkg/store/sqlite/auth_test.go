@@ -44,7 +44,8 @@ func (s *storeTestSuite) TestCreateUser() {
 		user.ID = ulid.Zero
 
 		//test
-		err := s.store.CreateUser(ctx, user)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
 		require.NoError(err, "no error was expected")
 
 		user2, err := s.store.RetrieveUser(ctx, user.ID)
@@ -60,7 +61,8 @@ func (s *storeTestSuite) TestCreateUser() {
 		user := mock.GetSampleUser(true)
 
 		//test
-		err := s.store.CreateUser(ctx, user)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
 	})
@@ -75,7 +77,8 @@ func (s *storeTestSuite) TestCreateUser() {
 		user.RoleID = 808
 
 		//test
-		err := s.store.CreateUser(ctx, user)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
 		require.Error(err, "an error was expected")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -180,7 +183,8 @@ func (s *storeTestSuite) TestUpdateUser() {
 		user.Email = newEmail
 
 		//test
-		err = s.store.UpdateUser(ctx, user)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateUser(ctx, user, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 		require.NotNil(user, "user should not be nil")
 
@@ -204,7 +208,8 @@ func (s *storeTestSuite) TestUpdateUser() {
 		user.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateUser(ctx, user)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateUser(ctx, user, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -331,7 +336,8 @@ func (s *storeTestSuite) TestDeleteUser() {
 		require.NoError(err, "expected no error")
 		require.NotNil(user, "user should not be nil")
 
-		err = s.store.DeleteUser(ctx, userId)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.DeleteUser(ctx, userId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		user, err = s.store.RetrieveUser(ctx, userId)
@@ -347,7 +353,8 @@ func (s *storeTestSuite) TestDeleteUser() {
 		userId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteUser(ctx, userId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteUser(ctx, userId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected no error")
 		require.Equal(errors.ErrNotFound, err, "expected user to be missing")
 	})
@@ -439,7 +446,8 @@ func (s *storeTestSuite) TestCreateAPIKey() {
 		apiKey.ID = ulid.Zero
 
 		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no errors")
 
 		apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
@@ -475,7 +483,8 @@ func (s *storeTestSuite) TestCreateAPIKey() {
 		})
 
 		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no errors")
 
 		apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
@@ -492,7 +501,8 @@ func (s *storeTestSuite) TestCreateAPIKey() {
 		apiKey := mock.GetSampleAPIKey(true)
 
 		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 	})
@@ -506,7 +516,8 @@ func (s *storeTestSuite) TestCreateAPIKey() {
 		apiKey.SetPermissions([]string{"permission_that_doesn't_exist"})
 
 		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -594,7 +605,8 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		apiKey.Description = newDescription
 
 		//test
-		err = s.store.UpdateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no errors")
 
 		apiKey = nil
@@ -617,7 +629,8 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		apiKey := mock.GetSampleAPIKey(true)
 
 		//test
-		err := s.store.UpdateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -630,7 +643,8 @@ func (s *storeTestSuite) TestUpdateAPIKey() {
 		apiKey.ID = ulid.Zero
 
 		//test
-		err := s.store.UpdateAPIKey(ctx, apiKey)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -644,7 +658,8 @@ func (s *storeTestSuite) TestDeleteAPIKey() {
 		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
 
 		//test
-		err := s.store.DeleteAPIKey(ctx, keyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteAPIKey(ctx, keyId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
@@ -660,7 +675,8 @@ func (s *storeTestSuite) TestDeleteAPIKey() {
 		keyId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteAPIKey(ctx, keyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteAPIKey(ctx, keyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})

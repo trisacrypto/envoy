@@ -92,21 +92,21 @@ func (t *Tx) ListTransactions(page *models.TransactionPageInfo) (out *models.Tra
 
 const createTransactionSQL = "INSERT INTO transactions (id, source, status, counterparty, counterparty_id, originator, originator_address, beneficiary, beneficiary_address, virtual_asset, amount, archived, archived_on, last_update, created, modified) VALUES (:id, :source, :status, :counterparty, :counterpartyID, :originator, :originatorAddress, :beneficiary, :beneficiaryAddress, :virtualAsset, :amount, :archived, :archivedOn, :lastUpdate, :created, :modified)"
 
-func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Transaction) (err error) {
+func (s *Store) CreateTransaction(ctx context.Context, transaction *models.Transaction, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateTransaction(transaction); err != nil {
+	if err = tx.CreateTransaction(transaction, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateTransaction(transaction *models.Transaction) (err error) {
+func (t *Tx) CreateTransaction(transaction *models.Transaction, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if transaction.ID != uuid.Nil {
 		return dberr.ErrNoIDOnCreate
@@ -121,6 +121,9 @@ func (t *Tx) CreateTransaction(transaction *models.Transaction) (err error) {
 	if _, err = t.tx.Exec(createTransactionSQL, transaction.Params()...); err != nil {
 		return dbe(err)
 	}
+
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
 
 	return nil
 }
@@ -170,20 +173,20 @@ func (t *Tx) retrieveTransaction(transactionID uuid.UUID) (transaction *models.T
 
 const updateTransactionSQL = "UPDATE transactions SET source=:source, status=:status, counterparty=:counterparty, counterparty_id=:counterpartyID, originator=:originator, originator_address=:originatorAddress, beneficiary=:beneficiary, beneficiary_address=:beneficiaryAddress, virtual_asset=:virtualAsset, amount=:amount, archived=:archived, archived_on=:archivedOn, last_update=:lastUpdate, modified=:modified WHERE id=:id"
 
-func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction) (err error) {
+func (s *Store) UpdateTransaction(ctx context.Context, t *models.Transaction, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateTransaction(t); err != nil {
+	if err = tx.UpdateTransaction(t, auditLog); err != nil {
 		return err
 	}
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateTransaction(transaction *models.Transaction) (err error) {
+func (t *Tx) UpdateTransaction(transaction *models.Transaction, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if transaction.ID == uuid.Nil {
 		return dberr.ErrMissingID
@@ -204,26 +207,29 @@ func (t *Tx) UpdateTransaction(transaction *models.Transaction) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
 const deleteTransactionSQL = "DELETE FROM transactions WHERE id=:id"
 
-func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) (err error) {
+func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteTransaction(id); err != nil {
+	if err = tx.DeleteTransaction(id, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteTransaction(id uuid.UUID) (err error) {
+func (t *Tx) DeleteTransaction(id uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteTransactionSQL, sql.Named("id", id)); err != nil {
 		return dbe(err)
@@ -233,26 +239,29 @@ func (t *Tx) DeleteTransaction(id uuid.UUID) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
 const archiveTransactionSQL = "UPDATE transactions SET archived=:archived, archived_on=:archivedOn, modified=:modified WHERE id=:id"
 
-func (s *Store) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+func (s *Store) ArchiveTransaction(ctx context.Context, transactionID uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.ArchiveTransaction(transactionID); err != nil {
+	if err = tx.ArchiveTransaction(transactionID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) ArchiveTransaction(transactionID uuid.UUID) (err error) {
+func (t *Tx) ArchiveTransaction(transactionID uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	timestamp := time.Now()
 	params := []any{
 		sql.Named("id", transactionID),
@@ -270,24 +279,27 @@ func (t *Tx) ArchiveTransaction(transactionID uuid.UUID) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
-func (s *Store) UnarchiveTransaction(ctx context.Context, transactionID uuid.UUID) (err error) {
+func (s *Store) UnarchiveTransaction(ctx context.Context, transactionID uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UnarchiveTransaction(transactionID); err != nil {
+	if err = tx.UnarchiveTransaction(transactionID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UnarchiveTransaction(transactionID uuid.UUID) (err error) {
+func (t *Tx) UnarchiveTransaction(transactionID uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
 	params := []any{
 		sql.Named("id", transactionID),
 		sql.Named("archived", false),
@@ -303,6 +315,9 @@ func (t *Tx) UnarchiveTransaction(transactionID uuid.UUID) (err error) {
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
 
 	return nil
 }
@@ -477,21 +492,21 @@ func (t *Tx) associateSecureEnvelopes(transaction *models.Transaction) (err erro
 
 const createSecureEnvelopeSQL = "INSERT INTO secure_envelopes (id, envelope_id, direction, remote, reply_to, is_error, encryption_key, hmac_secret, valid_hmac, timestamp, public_key, transfer_state, envelope, created, modified) VALUES (:id, :envelopeID, :direction, :remote, :replyTo, :isError, :encryptionKey, :hmacSecret, :validHMAC, :timestamp, :publicKey, :transferState, :envelope, :created, :modified)"
 
-func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
+func (s *Store) CreateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateSecureEnvelope(env); err != nil {
+	if err = tx.CreateSecureEnvelope(env, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateSecureEnvelope(env *models.SecureEnvelope) (err error) {
+func (t *Tx) CreateSecureEnvelope(env *models.SecureEnvelope, auditLog *models.ComplianceAuditLog) (err error) {
 	if !env.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -508,6 +523,9 @@ func (t *Tx) CreateSecureEnvelope(env *models.SecureEnvelope) (err error) {
 	if _, err = t.tx.Exec(createSecureEnvelopeSQL, env.Params()...); err != nil {
 		return dbe(err)
 	}
+
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
 
 	return nil
 }
@@ -541,21 +559,21 @@ func (t *Tx) RetrieveSecureEnvelope(txID uuid.UUID, envID ulid.ULID) (env *model
 
 const updateSecureEnvelopeSQL = "UPDATE secure_envelopes SET direction=:direction, remote=:remote, reply_to=:replyTo, is_error=:is_error, encryption_key=:encryptionKey, hmac_secret=:hmacSecret, valid_hmac=:validHMAC, timestamp=:timestamp, public_key=:publicKey, transfer_state=:transferState, envelope=:envelope, modified=:modified WHERE id=:id and envelope_id=:envelopeID"
 
-func (s *Store) UpdateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope) (err error) {
+func (s *Store) UpdateSecureEnvelope(ctx context.Context, env *models.SecureEnvelope, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateSecureEnvelope(env); err != nil {
+	if err = tx.UpdateSecureEnvelope(env, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateSecureEnvelope(env *models.SecureEnvelope) (err error) {
+func (t *Tx) UpdateSecureEnvelope(env *models.SecureEnvelope, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if env.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -576,26 +594,29 @@ func (t *Tx) UpdateSecureEnvelope(env *models.SecureEnvelope) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
 const deleteSecureEnvelopeSQL = "DELETE FROM secure_envelopes WHERE id=:envID AND envelope_id=:txID"
 
-func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (err error) {
+func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteSecureEnvelope(txID, envID); err != nil {
+	if err = tx.DeleteSecureEnvelope(txID, envID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID) (err error) {
+func (t *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteSecureEnvelopeSQL, sql.Named("txID", txID), sql.Named("envID", envID)); err != nil {
 		return dbe(err)
@@ -604,6 +625,9 @@ func (t *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID) (err error) {
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	//FIXME: COMPLETE AUDIT LOG
+	_ = auditLog
 
 	return nil
 }
@@ -699,7 +723,7 @@ const (
 	transactionExistsSQL = "SELECT EXISTS(SELECT 1 FROM transactions WHERE id=:envelopeID)"
 )
 
-func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_ models.PreparedTransaction, err error) {
+func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID, auditLog *models.ComplianceAuditLog) (_ models.PreparedTransaction, err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return nil, err
@@ -731,6 +755,9 @@ func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID) (_
 			tx.Rollback()
 			return nil, fmt.Errorf("create transaction failed: %w", dbe(err))
 		}
+
+		//FIXME: CREATE THE AUDIT LOG
+		_ = auditLog
 	}
 
 	// Create the prepared transaction for the user to interact with
@@ -755,7 +782,7 @@ func (p *PreparedTransaction) Fetch() (transaction *models.Transaction, err erro
 	return transaction, nil
 }
 
-func (p *PreparedTransaction) Update(in *models.Transaction) (err error) {
+func (p *PreparedTransaction) Update(in *models.Transaction, auditLog *models.ComplianceAuditLog) (err error) {
 	// Ensure that the input transaction matches the prepared transaction
 	if in.ID != uuid.Nil && in.ID != p.envelopeID {
 		return dberr.ErrIDMismatch
@@ -774,6 +801,10 @@ func (p *PreparedTransaction) Update(in *models.Transaction) (err error) {
 	if _, err = p.tx.Exec(updateTransactionSQL, orig.Params()...); err != nil {
 		return fmt.Errorf("could not update transaction: %w", dbe(err))
 	}
+
+	//FIXME: CREATE THE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
@@ -784,7 +815,7 @@ const (
 )
 
 // TODO: this method needs to be tested extensively!!
-func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err error) {
+func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	// Lookup counterparty information in the database
 	switch {
 	case !in.ID.IsZero():
@@ -843,18 +874,22 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty) (err erro
 	if _, err = p.tx.Exec(updateTransferCounterpartySQL, params...); err != nil {
 		return fmt.Errorf("could not update transaction with counterparty info: %w", dbe(err))
 	}
+
+	//FIXME: CREATE THE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
-func (p *PreparedTransaction) UpdateCounterparty(in *models.Counterparty) (err error) {
-	return p.tx.UpdateCounterparty(in)
+func (p *PreparedTransaction) UpdateCounterparty(in *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
+	return p.tx.UpdateCounterparty(in, auditLog)
 }
 
 func (p *PreparedTransaction) LookupCounterparty(field, value string) (*models.Counterparty, error) {
 	return p.tx.LookupCounterparty(field, value)
 }
 
-func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error) {
+func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope, auditLog *models.ComplianceAuditLog) (err error) {
 	if in.EnvelopeID != uuid.Nil && in.EnvelopeID != p.envelopeID {
 		return dberr.ErrIDMismatch
 	}
@@ -871,19 +906,23 @@ func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope) (err error)
 	if _, err = p.tx.Exec(createSecureEnvelopeSQL, in.Params()...); err != nil {
 		return fmt.Errorf("could not add secure envelope: %w", dbe(err))
 	}
+
+	//FIXME: CREATE THE AUDIT LOG
+	_ = auditLog
+
 	return nil
 }
 
-func (p *PreparedTransaction) CreateSunrise(in *models.Sunrise) error {
-	return p.tx.CreateSunrise(in)
+func (p *PreparedTransaction) CreateSunrise(in *models.Sunrise, auditLog *models.ComplianceAuditLog) error {
+	return p.tx.CreateSunrise(in, auditLog)
 }
 
-func (p *PreparedTransaction) UpdateSunrise(in *models.Sunrise) error {
-	return p.tx.UpdateSunrise(in)
+func (p *PreparedTransaction) UpdateSunrise(in *models.Sunrise, auditLog *models.ComplianceAuditLog) error {
+	return p.tx.UpdateSunrise(in, auditLog)
 }
 
-func (p *PreparedTransaction) UpdateSunriseStatus(txID uuid.UUID, status enum.Status) error {
-	return p.tx.UpdateSunriseStatus(txID, status)
+func (p *PreparedTransaction) UpdateSunriseStatus(txID uuid.UUID, status enum.Status, auditLog *models.ComplianceAuditLog) error {
+	return p.tx.UpdateSunriseStatus(txID, status, auditLog)
 }
 
 func (p *PreparedTransaction) Rollback() error {

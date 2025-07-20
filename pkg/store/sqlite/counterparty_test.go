@@ -94,7 +94,8 @@ func (s *storeTestSuite) TestCreateCounterparty() {
 		counterparty.ID = ulid.Zero
 
 		//test
-		err := s.store.CreateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		counterparty, err = s.store.RetrieveCounterparty(ctx, counterparty.ID)
@@ -116,7 +117,8 @@ func (s *storeTestSuite) TestCreateCounterparty() {
 		}
 
 		//test
-		err = s.store.CreateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		counterparty, err = s.store.RetrieveCounterparty(ctx, counterparty.ID)
@@ -131,7 +133,8 @@ func (s *storeTestSuite) TestCreateCounterparty() {
 		counterparty := mock.GetSampleCounterparty(true, false)
 
 		//test
-		err := s.store.CreateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 	})
@@ -151,7 +154,8 @@ func (s *storeTestSuite) TestCreateCounterparty() {
 		}
 
 		//test
-		err = s.store.CreateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// which is correct but it is for the contact, so we should try and
@@ -295,7 +299,8 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		counterparty.Name = newName
 
 		//test
-		err = s.store.UpdateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		counterparty = nil
@@ -318,7 +323,8 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		counterparty.ID = ulid.Zero
 
 		//test
-		err = s.store.UpdateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
 	})
@@ -335,7 +341,8 @@ func (s *storeTestSuite) TestUpdateCounterparty() {
 		counterparty.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateCounterparty(ctx, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateCounterparty(ctx, counterparty, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -349,7 +356,8 @@ func (s *storeTestSuite) TestDeleteCounterparty() {
 		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 		//test
-		err := s.store.DeleteCounterparty(ctx, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteCounterparty(ctx, counterpartyId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		counterparty, err := s.store.RetrieveCounterparty(ctx, counterpartyId)
@@ -365,7 +373,8 @@ func (s *storeTestSuite) TestDeleteCounterparty() {
 		counterpartyId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteCounterparty(ctx, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteCounterparty(ctx, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -377,7 +386,8 @@ func (s *storeTestSuite) TestDeleteCounterparty() {
 		counterpartyId := ulid.Zero
 
 		//test
-		err := s.store.DeleteCounterparty(ctx, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteCounterparty(ctx, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -492,7 +502,8 @@ func (s *storeTestSuite) TestCreateContact() {
 		require.NotNil(contacts, "expected contacts to be non-nil")
 		require.Len(contacts.Contacts, 0, fmt.Sprintf("expected 0 contact, got %d", len(contacts.Contacts)))
 
-		err = s.store.CreateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		contacts, err = s.store.ListContacts(ctx, counterpartyId, &models.PageInfo{})
@@ -508,7 +519,8 @@ func (s *storeTestSuite) TestCreateContact() {
 		contact := mock.GetSampleContact("")
 
 		//test
-		err := s.store.CreateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected no error")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 	})
@@ -521,7 +533,8 @@ func (s *storeTestSuite) TestCreateContact() {
 		contact.ID = ulid.Zero
 
 		//test
-		err := s.store.CreateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected no error")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
 		// instead of an ErrNotFound as would be logical, because in the `dbe()`
@@ -544,10 +557,12 @@ func (s *storeTestSuite) TestCreateContact() {
 		contact2.CounterpartyID = counterpartyId
 
 		//test
-		err := s.store.CreateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
-		err = s.store.CreateContact(ctx, contact2)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateContact(ctx, contact2, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
 	})
@@ -646,7 +661,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.Email = newEmail
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		contact = nil
@@ -669,7 +685,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -686,7 +703,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.ID = ulid.Zero
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
 	})
@@ -703,7 +721,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.CounterpartyID = ulid.Zero
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrMissingReference, err, "expected ErrMissingReference")
 	})
@@ -720,7 +739,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.ID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -737,7 +757,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.CounterpartyID = ulid.MustParse("01HWR7KB31557CRQN4WCX054MV")
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -754,7 +775,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.CounterpartyID = ulid.MakeSecure()
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -770,14 +792,16 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact1 := mock.GetSampleContact(email)
 		contact1.ID = ulid.Zero
 		contact1.CounterpartyID = counterpartyId
-		err := s.store.CreateContact(ctx, contact1)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.CreateContact(ctx, contact1, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		// setup: create another contact
 		contact := mock.GetSampleContact("")
 		contact.CounterpartyID = counterpartyId
 		contact.ID = ulid.Zero
-		err = s.store.CreateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.CreateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error")
 
 		// setup: retrieve the contact just created and then we'll try to
@@ -788,7 +812,8 @@ func (s *storeTestSuite) TestUpdateContact() {
 		contact.Email = email
 
 		//test
-		err = s.store.UpdateContact(ctx, contact)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.UpdateContact(ctx, contact, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
 	})
@@ -804,7 +829,8 @@ func (s *storeTestSuite) TestDeleteContactSuccessByID() {
 	counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 	//test
-	err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+	//FIXME: COMPLETE AUDIT LOG
+	err := s.store.DeleteContact(ctx, contactId, counterpartyId, &models.ComplianceAuditLog{})
 	require.NoError(err, "expected no error")
 }
 
@@ -821,7 +847,8 @@ func (s *storeTestSuite) TestDeleteContactSuccessByCounterparty() {
 	require.NotNil(counterparty, "expected a non-nil counterparty")
 
 	//test
-	err = s.store.DeleteContact(ctx, contactId, counterparty)
+	//FIXME: COMPLETE AUDIT LOG
+	err = s.store.DeleteContact(ctx, contactId, counterparty, &models.ComplianceAuditLog{})
 	require.NoError(err, "expected no error")
 }
 
@@ -834,7 +861,8 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 		//test
-		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -847,7 +875,8 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		counterpartyId := ulid.MakeSecure()
 
 		//test
-		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -860,7 +889,8 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		counterpartyId := ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ")
 
 		//test
-		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -873,7 +903,8 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		counterpartyId := ulid.Zero
 
 		//test
-		err := s.store.DeleteContact(ctx, contactId, counterpartyId)
+		//FIXME: COMPLETE AUDIT LOG
+		err := s.store.DeleteContact(ctx, contactId, counterpartyId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
@@ -889,7 +920,8 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		require.NotNil(counterparty, "expected a non-nil counterparty")
 
 		//test
-		err = s.store.DeleteContact(ctx, contactId, counterparty)
+		//FIXME: COMPLETE AUDIT LOG
+		err = s.store.DeleteContact(ctx, contactId, counterparty, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 	})
