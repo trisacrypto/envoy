@@ -30,68 +30,68 @@ type Store struct {
 	OnClose                          func() error
 	OnBegin                          func(context.Context, *sql.TxOptions) (txn.Txn, error)
 	OnListTransactions               func(ctx context.Context, in *models.TransactionPageInfo) (*models.TransactionPage, error)
-	OnCreateTransaction              func(ctx context.Context, in *models.Transaction) error
+	OnCreateTransaction              func(ctx context.Context, in *models.Transaction, log *models.ComplianceAuditLog) error
 	OnRetrieveTransaction            func(ctx context.Context, id uuid.UUID) (*models.Transaction, error)
-	OnUpdateTransaction              func(ctx context.Context, in *models.Transaction) error
-	OnDeleteTransaction              func(ctx context.Context, id uuid.UUID) error
-	OnArchiveTransaction             func(ctx context.Context, id uuid.UUID) error
-	OnUnarchiveTransaction           func(ctx context.Context, id uuid.UUID) error
+	OnUpdateTransaction              func(ctx context.Context, in *models.Transaction, log *models.ComplianceAuditLog) error
+	OnDeleteTransaction              func(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error
+	OnArchiveTransaction             func(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error
+	OnUnarchiveTransaction           func(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error
 	OnCountTransactions              func(ctx context.Context) (*models.TransactionCounts, error)
-	OnPrepareTransaction             func(ctx context.Context, id uuid.UUID) (models.PreparedTransaction, error)
+	OnPrepareTransaction             func(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) (models.PreparedTransaction, error)
 	OnTransactionState               func(ctx context.Context, id uuid.UUID) (bool, enum.Status, error)
 	OnListSecureEnvelopes            func(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error)
-	OnCreateSecureEnvelope           func(ctx context.Context, in *models.SecureEnvelope) error
+	OnCreateSecureEnvelope           func(ctx context.Context, in *models.SecureEnvelope, log *models.ComplianceAuditLog) error
 	OnRetrieveSecureEnvelope         func(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
-	OnUpdateSecureEnvelope           func(ctx context.Context, in *models.SecureEnvelope) error
-	OnDeleteSecureEnvelope           func(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error
+	OnUpdateSecureEnvelope           func(ctx context.Context, in *models.SecureEnvelope, log *models.ComplianceAuditLog) error
+	OnDeleteSecureEnvelope           func(ctx context.Context, txID uuid.UUID, envID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnLatestSecureEnvelope           func(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
 	OnLatestPayloadEnvelope          func(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
 	OnListAccounts                   func(ctx context.Context, in *models.PageInfo) (*models.AccountsPage, error)
-	OnCreateAccount                  func(ctx context.Context, in *models.Account) error
+	OnCreateAccount                  func(ctx context.Context, in *models.Account, log *models.ComplianceAuditLog) error
 	OnLookupAccount                  func(ctx context.Context, cryptoAddress string) (*models.Account, error)
 	OnRetrieveAccount                func(ctx context.Context, id ulid.ULID) (*models.Account, error)
-	OnUpdateAccount                  func(ctx context.Context, in *models.Account) error
-	OnDeleteAccount                  func(ctx context.Context, id ulid.ULID) error
+	OnUpdateAccount                  func(ctx context.Context, in *models.Account, log *models.ComplianceAuditLog) error
+	OnDeleteAccount                  func(ctx context.Context, id ulid.ULID, log *models.ComplianceAuditLog) error
 	OnListAccountTransactions        func(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 	OnListCryptoAddresses            func(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)
-	OnCreateCryptoAddress            func(ctx context.Context, in *models.CryptoAddress) error
+	OnCreateCryptoAddress            func(ctx context.Context, in *models.CryptoAddress, log *models.ComplianceAuditLog) error
 	OnRetrieveCryptoAddress          func(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
-	OnUpdateCryptoAddress            func(ctx context.Context, in *models.CryptoAddress) error
-	OnDeleteCryptoAddress            func(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
+	OnUpdateCryptoAddress            func(ctx context.Context, in *models.CryptoAddress, log *models.ComplianceAuditLog) error
+	OnDeleteCryptoAddress            func(ctx context.Context, accountID, cryptoAddressID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnSearchCounterparties           func(ctx context.Context, query *models.SearchQuery) (*models.CounterpartyPage, error)
 	OnListCounterparties             func(ctx context.Context, page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)
 	OnListCounterpartySourceInfo     func(ctx context.Context, source enum.Source) ([]*models.CounterpartySourceInfo, error)
-	OnCreateCounterparty             func(ctx context.Context, in *models.Counterparty) error
+	OnCreateCounterparty             func(ctx context.Context, in *models.Counterparty, log *models.ComplianceAuditLog) error
 	OnRetrieveCounterparty           func(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
 	OnLookupCounterparty             func(ctx context.Context, field, value string) (*models.Counterparty, error)
-	OnUpdateCounterparty             func(ctx context.Context, in *models.Counterparty) error
-	OnDeleteCounterparty             func(ctx context.Context, counterpartyID ulid.ULID) error
+	OnUpdateCounterparty             func(ctx context.Context, in *models.Counterparty, log *models.ComplianceAuditLog) error
+	OnDeleteCounterparty             func(ctx context.Context, counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnListContacts                   func(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
-	OnCreateContact                  func(ctx context.Context, in *models.Contact) error
+	OnCreateContact                  func(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error
 	OnRetrieveContact                func(ctx context.Context, contactID, counterparty any) (*models.Contact, error)
-	OnUpdateContact                  func(ctx context.Context, in *models.Contact) error
-	OnDeleteContact                  func(ctx context.Context, contactID, counterparty any) error
+	OnUpdateContact                  func(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error
+	OnDeleteContact                  func(ctx context.Context, contactID, counterparty any, log *models.ComplianceAuditLog) error
 	OnUseTravelAddressFactory        func(models.TravelAddressFactory)
 	OnListSunrise                    func(ctx context.Context, page *models.PageInfo) (*models.SunrisePage, error)
-	OnCreateSunrise                  func(ctx context.Context, msg *models.Sunrise) error
+	OnCreateSunrise                  func(ctx context.Context, msg *models.Sunrise, log *models.ComplianceAuditLog) error
 	OnRetrieveSunrise                func(ctx context.Context, id ulid.ULID) (*models.Sunrise, error)
-	OnUpdateSunrise                  func(ctx context.Context, msg *models.Sunrise) error
-	OnUpdateSunriseStatus            func(ctx context.Context, txID uuid.UUID, status enum.Status) error
-	OnDeleteSunrise                  func(ctx context.Context, id ulid.ULID) error
-	OnGetOrCreateSunriseCounterparty func(ctx context.Context, email, name string) (*models.Counterparty, error)
+	OnUpdateSunrise                  func(ctx context.Context, msg *models.Sunrise, log *models.ComplianceAuditLog) error
+	OnUpdateSunriseStatus            func(ctx context.Context, txID uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error
+	OnDeleteSunrise                  func(ctx context.Context, id ulid.ULID, log *models.ComplianceAuditLog) error
+	OnGetOrCreateSunriseCounterparty func(ctx context.Context, email, name string, log *models.ComplianceAuditLog) (*models.Counterparty, error)
 	OnListUsers                      func(ctx context.Context, page *models.UserPageInfo) (*models.UserPage, error)
-	OnCreateUser                     func(ctx context.Context, in *models.User) error
+	OnCreateUser                     func(ctx context.Context, in *models.User, log *models.ComplianceAuditLog) error
 	OnRetrieveUser                   func(ctx context.Context, emailOrUserID any) (*models.User, error)
-	OnUpdateUser                     func(ctx context.Context, in *models.User) error
+	OnUpdateUser                     func(ctx context.Context, in *models.User, log *models.ComplianceAuditLog) error
 	OnSetUserPassword                func(ctx context.Context, userID ulid.ULID, password string) (err error)
 	OnSetUserLastLogin               func(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error)
-	OnDeleteUser                     func(ctx context.Context, userID ulid.ULID) error
+	OnDeleteUser                     func(ctx context.Context, userID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnLookupRole                     func(ctx context.Context, role string) (*models.Role, error)
 	OnListAPIKeys                    func(ctx context.Context, in *models.PageInfo) (*models.APIKeyPage, error)
-	OnCreateAPIKey                   func(ctx context.Context, in *models.APIKey) error
+	OnCreateAPIKey                   func(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error
 	OnRetrieveAPIKey                 func(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
-	OnUpdateAPIKey                   func(ctx context.Context, in *models.APIKey) error
-	OnDeleteAPIKey                   func(ctx context.Context, keyID ulid.ULID) error
+	OnUpdateAPIKey                   func(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error
+	OnDeleteAPIKey                   func(ctx context.Context, keyID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnListResetPasswordLinks         func(ctx context.Context, page *models.PageInfo) (*models.ResetPasswordLinkPage, error)
 	OnCreateResetPasswordLink        func(ctx context.Context, link *models.ResetPasswordLink) error
 	OnRetrieveResetPasswordLink      func(ctx context.Context, linkID ulid.ULID) (*models.ResetPasswordLink, error)
@@ -204,10 +204,10 @@ func (s *Store) ListTransactions(ctx context.Context, in *models.TransactionPage
 }
 
 // Calls the callback previously set with `s.OnCreateTransaction = ...`
-func (s *Store) CreateTransaction(ctx context.Context, in *models.Transaction) error {
+func (s *Store) CreateTransaction(ctx context.Context, in *models.Transaction, log *models.ComplianceAuditLog) error {
 	s.calls["CreateTransaction"]++
 	if s.OnCreateTransaction != nil {
-		return s.OnCreateTransaction(ctx, in)
+		return s.OnCreateTransaction(ctx, in, log)
 	}
 	panic("CreateTransaction callback not set")
 }
@@ -222,37 +222,37 @@ func (s *Store) RetrieveTransaction(ctx context.Context, id uuid.UUID) (*models.
 }
 
 // Calls the callback previously set with `s.OnUpdateTransaction = ...`
-func (s *Store) UpdateTransaction(ctx context.Context, in *models.Transaction) error {
+func (s *Store) UpdateTransaction(ctx context.Context, in *models.Transaction, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateTransaction"]++
 	if s.OnUpdateTransaction != nil {
-		return s.OnUpdateTransaction(ctx, in)
+		return s.OnUpdateTransaction(ctx, in, log)
 	}
 	panic("UpdateTransaction callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteTransaction = ...`
-func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID) error {
+func (s *Store) DeleteTransaction(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteTransaction"]++
 	if s.OnDeleteTransaction != nil {
-		return s.OnDeleteTransaction(ctx, id)
+		return s.OnDeleteTransaction(ctx, id, log)
 	}
 	panic("DeleteTransaction callback not set")
 }
 
 // Calls the callback previously set with `s.OnArchiveTransaction = ...`
-func (s *Store) ArchiveTransaction(ctx context.Context, id uuid.UUID) error {
+func (s *Store) ArchiveTransaction(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error {
 	s.calls["ArchiveTransaction"]++
 	if s.OnArchiveTransaction != nil {
-		return s.OnArchiveTransaction(ctx, id)
+		return s.OnArchiveTransaction(ctx, id, log)
 	}
 	panic("ArchiveTransaction callback not set")
 }
 
 // Calls the callback previously set with `s.OnUnarchiveTransaction = ...`
-func (s *Store) UnarchiveTransaction(ctx context.Context, id uuid.UUID) error {
+func (s *Store) UnarchiveTransaction(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) error {
 	s.calls["UnarchiveTransaction"]++
 	if s.OnUnarchiveTransaction != nil {
-		return s.OnUnarchiveTransaction(ctx, id)
+		return s.OnUnarchiveTransaction(ctx, id, log)
 	}
 	panic("UnarchiveTransaction callback not set")
 }
@@ -267,10 +267,10 @@ func (s *Store) CountTransactions(ctx context.Context) (*models.TransactionCount
 }
 
 // Calls the callback previously set with `s.OnPrepareTransaction = ...`
-func (s *Store) PrepareTransaction(ctx context.Context, id uuid.UUID) (models.PreparedTransaction, error) {
+func (s *Store) PrepareTransaction(ctx context.Context, id uuid.UUID, log *models.ComplianceAuditLog) (models.PreparedTransaction, error) {
 	s.calls["PrepareTransaction"]++
 	if s.OnPrepareTransaction != nil {
-		return s.OnPrepareTransaction(ctx, id)
+		return s.OnPrepareTransaction(ctx, id, log)
 	}
 	// if no callback is set, return a mock PreparedTransaction
 	return &PreparedTransaction{
@@ -302,10 +302,10 @@ func (s *Store) ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *m
 }
 
 // Calls the callback previously set with `s.OnCreateSecureEnvelope = ...`
-func (s *Store) CreateSecureEnvelope(ctx context.Context, in *models.SecureEnvelope) error {
+func (s *Store) CreateSecureEnvelope(ctx context.Context, in *models.SecureEnvelope, log *models.ComplianceAuditLog) error {
 	s.calls["CreateSecureEnvelope"]++
 	if s.OnCreateSecureEnvelope != nil {
-		return s.OnCreateSecureEnvelope(ctx, in)
+		return s.OnCreateSecureEnvelope(ctx, in, log)
 	}
 	panic("CreateSecureEnvelope callback not set")
 }
@@ -320,19 +320,19 @@ func (s *Store) RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envI
 }
 
 // Calls the callback previously set with `s.OnUpdateSecureEnvelope = ...`
-func (s *Store) UpdateSecureEnvelope(ctx context.Context, in *models.SecureEnvelope) error {
+func (s *Store) UpdateSecureEnvelope(ctx context.Context, in *models.SecureEnvelope, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateSecureEnvelope"]++
 	if s.OnUpdateSecureEnvelope != nil {
-		return s.OnUpdateSecureEnvelope(ctx, in)
+		return s.OnUpdateSecureEnvelope(ctx, in, log)
 	}
 	panic("UpdateSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteSecureEnvelope = ...`
-func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error {
+func (s *Store) DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteSecureEnvelope"]++
 	if s.OnDeleteSecureEnvelope != nil {
-		return s.OnDeleteSecureEnvelope(ctx, txID, envID)
+		return s.OnDeleteSecureEnvelope(ctx, txID, envID, log)
 	}
 	panic("DeleteSecureEnvelope callback not set")
 }
@@ -369,10 +369,10 @@ func (s *Store) ListAccounts(ctx context.Context, in *models.PageInfo) (*models.
 }
 
 // Calls the callback previously set with `s.OnCreateAccount = ...`
-func (s *Store) CreateAccount(ctx context.Context, in *models.Account) error {
+func (s *Store) CreateAccount(ctx context.Context, in *models.Account, log *models.ComplianceAuditLog) error {
 	s.calls["CreateAccount"]++
 	if s.OnCreateAccount != nil {
-		return s.OnCreateAccount(ctx, in)
+		return s.OnCreateAccount(ctx, in, log)
 	}
 	panic("CreateAccount callback not set")
 }
@@ -396,19 +396,19 @@ func (s *Store) RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Acco
 }
 
 // Calls the callback previously set with `s.OnUpdateAccount = ...`
-func (s *Store) UpdateAccount(ctx context.Context, in *models.Account) error {
+func (s *Store) UpdateAccount(ctx context.Context, in *models.Account, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateAccount"]++
 	if s.OnUpdateAccount != nil {
-		return s.OnUpdateAccount(ctx, in)
+		return s.OnUpdateAccount(ctx, in, log)
 	}
 	panic("UpdateAccount callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteAccount = ...`
-func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID) error {
+func (s *Store) DeleteAccount(ctx context.Context, id ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteAccount"]++
 	if s.OnDeleteAccount != nil {
-		return s.OnDeleteAccount(ctx, id)
+		return s.OnDeleteAccount(ctx, id, log)
 	}
 	panic("DeleteAccount callback not set")
 }
@@ -436,10 +436,10 @@ func (s *Store) ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, pa
 }
 
 // Calls the callback previously set with `s.OnCreateCryptoAddress = ...`
-func (s *Store) CreateCryptoAddress(ctx context.Context, in *models.CryptoAddress) error {
+func (s *Store) CreateCryptoAddress(ctx context.Context, in *models.CryptoAddress, log *models.ComplianceAuditLog) error {
 	s.calls["CreateCryptoAddress"]++
 	if s.OnCreateCryptoAddress != nil {
-		return s.OnCreateCryptoAddress(ctx, in)
+		return s.OnCreateCryptoAddress(ctx, in, log)
 	}
 	panic("CreateCryptoAddress callback not set")
 }
@@ -454,19 +454,19 @@ func (s *Store) RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddr
 }
 
 // Calls the callback previously set with `s.OnUpdateCryptoAddress = ...`
-func (s *Store) UpdateCryptoAddress(ctx context.Context, in *models.CryptoAddress) error {
+func (s *Store) UpdateCryptoAddress(ctx context.Context, in *models.CryptoAddress, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateCryptoAddress"]++
 	if s.OnUpdateCryptoAddress != nil {
-		return s.OnUpdateCryptoAddress(ctx, in)
+		return s.OnUpdateCryptoAddress(ctx, in, log)
 	}
 	panic("UpdateCryptoAddress callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteCryptoAddress = ...`
-func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error {
+func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteCryptoAddress"]++
 	if s.OnDeleteCryptoAddress != nil {
-		return s.OnDeleteCryptoAddress(ctx, accountID, cryptoAddressID)
+		return s.OnDeleteCryptoAddress(ctx, accountID, cryptoAddressID, log)
 	}
 	panic("DeleteCryptoAddress callback not set")
 }
@@ -503,10 +503,10 @@ func (s *Store) ListCounterpartySourceInfo(ctx context.Context, source enum.Sour
 }
 
 // Calls the callback previously set with `s.OnCreateCounterparty = ...`
-func (s *Store) CreateCounterparty(ctx context.Context, in *models.Counterparty) error {
+func (s *Store) CreateCounterparty(ctx context.Context, in *models.Counterparty, log *models.ComplianceAuditLog) error {
 	s.calls["CreateCounterparty"]++
 	if s.OnCreateCounterparty != nil {
-		return s.OnCreateCounterparty(ctx, in)
+		return s.OnCreateCounterparty(ctx, in, log)
 	}
 	panic("CreateCounterparty callback not set")
 }
@@ -530,19 +530,19 @@ func (s *Store) LookupCounterparty(ctx context.Context, field, value string) (*m
 }
 
 // Calls the callback previously set with `s.OnUpdateCounterparty = ...`
-func (s *Store) UpdateCounterparty(ctx context.Context, in *models.Counterparty) error {
+func (s *Store) UpdateCounterparty(ctx context.Context, in *models.Counterparty, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateCounterparty"]++
 	if s.OnUpdateCounterparty != nil {
-		return s.OnUpdateCounterparty(ctx, in)
+		return s.OnUpdateCounterparty(ctx, in, log)
 	}
 	panic("UpdateCounterparty callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteCounterparty = ...`
-func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error {
+func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteCounterparty"]++
 	if s.OnDeleteCounterparty != nil {
-		return s.OnDeleteCounterparty(ctx, counterpartyID)
+		return s.OnDeleteCounterparty(ctx, counterpartyID, log)
 	}
 	panic("DeleteCounterparty callback not set")
 }
@@ -561,10 +561,10 @@ func (s *Store) ListContacts(ctx context.Context, counterparty any, page *models
 }
 
 // Calls the callback previously set with `s.OnCreateContact = ...`
-func (s *Store) CreateContact(ctx context.Context, in *models.Contact) error {
+func (s *Store) CreateContact(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error {
 	s.calls["CreateContact"]++
 	if s.OnCreateContact != nil {
-		return s.OnCreateContact(ctx, in)
+		return s.OnCreateContact(ctx, in, log)
 	}
 	panic("CreateContact callback not set")
 }
@@ -579,19 +579,19 @@ func (s *Store) RetrieveContact(ctx context.Context, contactID, counterparty any
 }
 
 // Calls the callback previously set with `s.OnUpdateContact = ...`
-func (s *Store) UpdateContact(ctx context.Context, in *models.Contact) error {
+func (s *Store) UpdateContact(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateContact"]++
 	if s.OnUpdateContact != nil {
-		return s.OnUpdateContact(ctx, in)
+		return s.OnUpdateContact(ctx, in, log)
 	}
 	panic("UpdateContact callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteContact = ...`
-func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) error {
+func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteContact"]++
 	if s.OnDeleteContact != nil {
-		return s.OnDeleteContact(ctx, contactID, counterparty)
+		return s.OnDeleteContact(ctx, contactID, counterparty, log)
 	}
 	panic("DeleteContact callback not set")
 }
@@ -623,10 +623,10 @@ func (s *Store) ListSunrise(ctx context.Context, page *models.PageInfo) (*models
 }
 
 // Calls the callback previously set with `s.OnCreateSunrise = ...`
-func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) error {
+func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise, log *models.ComplianceAuditLog) error {
 	s.calls["CreateSunrise"]++
 	if s.OnCreateSunrise != nil {
-		return s.OnCreateSunrise(ctx, msg)
+		return s.OnCreateSunrise(ctx, msg, log)
 	}
 	panic("CreateSunrise callback not set")
 }
@@ -641,37 +641,37 @@ func (s *Store) RetrieveSunrise(ctx context.Context, id ulid.ULID) (*models.Sunr
 }
 
 // Calls the callback previously set with `s.OnUpdateSunrise = ...`
-func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) error {
+func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateSunrise"]++
 	if s.OnUpdateSunrise != nil {
-		return s.OnUpdateSunrise(ctx, msg)
+		return s.OnUpdateSunrise(ctx, msg, log)
 	}
 	panic("UpdateSunrise callback not set")
 }
 
 // Calls the callback previously set with `s.OnUpdateSunriseStatus = ...`
-func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status) error {
+func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateSunriseStatus"]++
 	if s.OnUpdateSunriseStatus != nil {
-		return s.OnUpdateSunriseStatus(ctx, txID, status)
+		return s.OnUpdateSunriseStatus(ctx, txID, status, log)
 	}
 	panic("UpdateSunriseStatus callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteSunrise = ...`
-func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) error {
+func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteSunrise"]++
 	if s.OnDeleteSunrise != nil {
-		return s.OnDeleteSunrise(ctx, id)
+		return s.OnDeleteSunrise(ctx, id, log)
 	}
 	panic("DeleteSunrise callback not set")
 }
 
 // Calls the callback previously set with `s.OnGetOrCreateSunriseCounterparty = ...`
-func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (*models.Counterparty, error) {
+func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string, log *models.ComplianceAuditLog) (*models.Counterparty, error) {
 	s.calls["GetOrCreateSunriseCounterparty"]++
 	if s.OnGetOrCreateSunriseCounterparty != nil {
-		return s.OnGetOrCreateSunriseCounterparty(ctx, email, name)
+		return s.OnGetOrCreateSunriseCounterparty(ctx, email, name, log)
 	}
 	panic("GetOrCreateSunriseCounterparty callback not set")
 }
@@ -690,10 +690,10 @@ func (s *Store) ListUsers(ctx context.Context, page *models.UserPageInfo) (*mode
 }
 
 // Calls the callback previously set with `s.OnCreateUser = ...`
-func (s *Store) CreateUser(ctx context.Context, in *models.User) error {
+func (s *Store) CreateUser(ctx context.Context, in *models.User, log *models.ComplianceAuditLog) error {
 	s.calls["CreateUser"]++
 	if s.OnCreateUser != nil {
-		return s.OnCreateUser(ctx, in)
+		return s.OnCreateUser(ctx, in, log)
 	}
 	panic("CreateUser callback not set")
 }
@@ -708,10 +708,10 @@ func (s *Store) RetrieveUser(ctx context.Context, emailOrUserID any) (*models.Us
 }
 
 // Calls the callback previously set with `s.OnUpdateUser = ...`
-func (s *Store) UpdateUser(ctx context.Context, in *models.User) error {
+func (s *Store) UpdateUser(ctx context.Context, in *models.User, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateUser"]++
 	if s.OnUpdateUser != nil {
-		return s.OnUpdateUser(ctx, in)
+		return s.OnUpdateUser(ctx, in, log)
 	}
 	panic("UpdateUser callback not set")
 }
@@ -735,10 +735,10 @@ func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogi
 }
 
 // Calls the callback previously set with `s.OnDeleteUser = ...`
-func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) error {
+func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteUser"]++
 	if s.OnDeleteUser != nil {
-		return s.OnDeleteUser(ctx, userID)
+		return s.OnDeleteUser(ctx, userID, log)
 	}
 	panic("DeleteUser callback not set")
 }
@@ -766,10 +766,10 @@ func (s *Store) ListAPIKeys(ctx context.Context, in *models.PageInfo) (*models.A
 }
 
 // Calls the callback previously set with `s.OnCreateAPIKey = ...`
-func (s *Store) CreateAPIKey(ctx context.Context, in *models.APIKey) error {
+func (s *Store) CreateAPIKey(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error {
 	s.calls["CreateAPIKey"]++
 	if s.OnCreateAPIKey != nil {
-		return s.OnCreateAPIKey(ctx, in)
+		return s.OnCreateAPIKey(ctx, in, log)
 	}
 	panic("CreateAPIKey callback not set")
 }
@@ -784,19 +784,19 @@ func (s *Store) RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*model
 }
 
 // Calls the callback previously set with `s.OnUpdateAPIKey = ...`
-func (s *Store) UpdateAPIKey(ctx context.Context, in *models.APIKey) error {
+func (s *Store) UpdateAPIKey(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error {
 	s.calls["UpdateAPIKey"]++
 	if s.OnUpdateAPIKey != nil {
-		return s.OnUpdateAPIKey(ctx, in)
+		return s.OnUpdateAPIKey(ctx, in, log)
 	}
 	panic("UpdateAPIKey callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteAPIKey = ...`
-func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
+func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID, log *models.ComplianceAuditLog) error {
 	s.calls["DeleteAPIKey"]++
 	if s.OnDeleteAPIKey != nil {
-		return s.OnDeleteAPIKey(ctx, keyID)
+		return s.OnDeleteAPIKey(ctx, keyID, log)
 	}
 	panic("DeleteAPIKey callback not set")
 }
