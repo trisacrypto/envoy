@@ -75,45 +75,29 @@ func (l *ComplianceAuditLog) IsFilled() error {
 }
 
 // ###########################################################################
-// ComplianceAuditLog Signatures and Verification
+// ComplianceAuditLog signing/verification helpers
 // ###########################################################################
 
-// Adds a Signature value to the ComplianceAuditLog, replacing any value present.
-func (l *ComplianceAuditLog) Sign() error {
-	// Prepare the data to be signed
-	data := l.concatenateData()
-	_ = data
-
-	l.Signature = ulid.MakeSecure().Bytes() //TODO (sc-32721): this is a placeholder; sign using the private cert
-	l.KeyID = ulid.MakeSecure().String()    //TODO (sc-32721): this is a placeholder; put the public cert's ID here
-	return nil
-}
-
-// Returns true if the Signature on the ComplianceAuditLog is valid against its
-// field data. A valid signature is indicated by returning a nil error.
-func (l *ComplianceAuditLog) Verify() error {
-	// Prepare the data to be verified
-	data := l.concatenateData()
-	_ = data
-
-	return errors.ErrNotImplemented //TODO(sc-32721): this is a placeholder; validate using the public cert
-}
-
-func (l *ComplianceAuditLog) concatenateData() (data []byte) {
-	// Append each field, one after the other, in the struct order above
-	// NOTE: do not include the signature, key id, or algorithm fields, as those
-	// are considered metadata for the signature and not part of the log
+// Returns the concatenated field data for an audit log, not including the
+// signature metadata fields.
+func (l *ComplianceAuditLog) Data() (data []byte) {
+	// Concatenate all of the fields as bytes in the order they appear in the
+	// ComplianceAuditLog. Do not include the signature, key id, or algorithm
+	// fields, as those are considered metadata for the signature and not part
+	// of the log. DO NOT change the order or format of these fields in the
+	// future, or else verification for old logs could fail; if you add any
+	// fields, append to the very end of the byte slice!
 	data = append(data, l.ID.Bytes()...)
 	data = append(data, l.ActorID...)
 	data = append(data, []byte(l.ActorType.String())...)
 	data = append(data, l.ResourceID...)
 	data = append(data, []byte(l.ResourceType.String())...)
-	data = append(data, []byte(l.ResourceModified.String())...)
+	data = append(data, []byte(l.ResourceModified.Format(time.RFC3339))...)
 	data = append(data, []byte(l.Action.String())...)
 	if l.ChangeNotes.Valid {
-
 		data = append(data, []byte(l.ChangeNotes.String)...)
 	}
+
 	return data
 }
 
