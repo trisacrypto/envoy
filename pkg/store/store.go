@@ -95,13 +95,13 @@ type Stats interface {
 type TransactionStore interface {
 	SecureEnvelopeStore
 	ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error)
-	CreateTransaction(context.Context, *models.Transaction) error
+	CreateTransaction(context.Context, *models.Transaction, *models.ComplianceAuditLog) error
 	RetrieveTransaction(context.Context, uuid.UUID) (*models.Transaction, error)
-	UpdateTransaction(context.Context, *models.Transaction) error
-	DeleteTransaction(context.Context, uuid.UUID) error
-	ArchiveTransaction(context.Context, uuid.UUID) error
-	UnarchiveTransaction(context.Context, uuid.UUID) error
-	PrepareTransaction(context.Context, uuid.UUID) (models.PreparedTransaction, error)
+	UpdateTransaction(context.Context, *models.Transaction, *models.ComplianceAuditLog) error
+	DeleteTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	ArchiveTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	UnarchiveTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	PrepareTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) (models.PreparedTransaction, error)
 	CountTransactions(context.Context) (*models.TransactionCounts, error)
 	TransactionState(context.Context, uuid.UUID) (archived bool, status enum.Status, err error)
 }
@@ -109,10 +109,10 @@ type TransactionStore interface {
 // SecureEnvelopes are associated with individual transactions.
 type SecureEnvelopeStore interface {
 	ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error)
-	CreateSecureEnvelope(context.Context, *models.SecureEnvelope) error
+	CreateSecureEnvelope(context.Context, *models.SecureEnvelope, *models.ComplianceAuditLog) error
 	RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
-	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope) error
-	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) error
+	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope, *models.ComplianceAuditLog) error
+	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
 	LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
 }
@@ -122,11 +122,11 @@ type AccountStore interface {
 	TravelAddressStore
 	CryptoAddressStore
 	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
-	CreateAccount(context.Context, *models.Account) error
+	CreateAccount(context.Context, *models.Account, *models.ComplianceAuditLog) error
 	LookupAccount(ctx context.Context, cryptoAddress string) (*models.Account, error)
 	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
-	UpdateAccount(context.Context, *models.Account) error
-	DeleteAccount(ctx context.Context, id ulid.ULID) error
+	UpdateAccount(context.Context, *models.Account, *models.ComplianceAuditLog) error
+	DeleteAccount(ctx context.Context, id ulid.ULID, auditLog *models.ComplianceAuditLog) error
 	ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 }
 
@@ -135,10 +135,10 @@ type AccountStore interface {
 type CryptoAddressStore interface {
 	TravelAddressStore
 	ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)
-	CreateCryptoAddress(context.Context, *models.CryptoAddress) error
+	CreateCryptoAddress(context.Context, *models.CryptoAddress, *models.ComplianceAuditLog) error
 	RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
-	UpdateCryptoAddress(context.Context, *models.CryptoAddress) error
-	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) error
+	UpdateCryptoAddress(context.Context, *models.CryptoAddress, *models.ComplianceAuditLog) error
+	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 }
 
 // Counterparty store provides CRUD interactions with Counterparty models.
@@ -146,19 +146,19 @@ type CounterpartyStore interface {
 	SearchCounterparties(ctx context.Context, query *models.SearchQuery) (*models.CounterpartyPage, error)
 	ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)
 	ListCounterpartySourceInfo(ctx context.Context, source enum.Source) ([]*models.CounterpartySourceInfo, error)
-	CreateCounterparty(context.Context, *models.Counterparty) error
+	CreateCounterparty(context.Context, *models.Counterparty, *models.ComplianceAuditLog) error
 	RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
 	LookupCounterparty(ctx context.Context, field, value string) (*models.Counterparty, error)
-	UpdateCounterparty(context.Context, *models.Counterparty) error
-	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) error
+	UpdateCounterparty(context.Context, *models.Counterparty, *models.ComplianceAuditLog) error
+	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 }
 
 type ContactStore interface {
 	ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
-	CreateContact(context.Context, *models.Contact) error
+	CreateContact(context.Context, *models.Contact, *models.ComplianceAuditLog) error
 	RetrieveContact(ctx context.Context, contactID, counterpartyID any) (*models.Contact, error)
-	UpdateContact(context.Context, *models.Contact) error
-	DeleteContact(ctx context.Context, contactID, counterpartyID any) error
+	UpdateContact(context.Context, *models.Contact, *models.ComplianceAuditLog) error
+	DeleteContact(ctx context.Context, contactID, counterpartyID any, auditLog *models.ComplianceAuditLog) error
 }
 
 type TravelAddressStore interface {
@@ -168,34 +168,37 @@ type TravelAddressStore interface {
 // Sunrise store manages both contacts and counterparties.
 type SunriseStore interface {
 	ListSunrise(context.Context, *models.PageInfo) (*models.SunrisePage, error)
-	CreateSunrise(context.Context, *models.Sunrise) error
+	CreateSunrise(context.Context, *models.Sunrise, *models.ComplianceAuditLog) error
 	RetrieveSunrise(context.Context, ulid.ULID) (*models.Sunrise, error)
-	UpdateSunrise(context.Context, *models.Sunrise) error
-	UpdateSunriseStatus(context.Context, uuid.UUID, enum.Status) error
-	DeleteSunrise(context.Context, ulid.ULID) error
-	GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (*models.Counterparty, error)
+	UpdateSunrise(context.Context, *models.Sunrise, *models.ComplianceAuditLog) error
+	UpdateSunriseStatus(context.Context, uuid.UUID, enum.Status, *models.ComplianceAuditLog) error
+	DeleteSunrise(context.Context, ulid.ULID, *models.ComplianceAuditLog) error
+	GetOrCreateSunriseCounterparty(ctx context.Context, email, name string, auditLog *models.ComplianceAuditLog) (*models.Counterparty, error)
 }
 
 type UserStore interface {
 	ListUsers(ctx context.Context, page *models.UserPageInfo) (*models.UserPage, error)
-	CreateUser(context.Context, *models.User) error
+	CreateUser(context.Context, *models.User, *models.ComplianceAuditLog) error
 	RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error)
-	UpdateUser(context.Context, *models.User) error
+	UpdateUser(context.Context, *models.User, *models.ComplianceAuditLog) error
+	// NOTE: password update does not require an audit log entry:
 	SetUserPassword(ctx context.Context, userID ulid.ULID, password string) error
+	// NOTE: last login time update does not require an audit log entry:
 	SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) error
-	DeleteUser(ctx context.Context, userID ulid.ULID) error
+	DeleteUser(ctx context.Context, userID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 	LookupRole(ctx context.Context, role string) (*models.Role, error)
 }
 
 type APIKeyStore interface {
 	ListAPIKeys(context.Context, *models.PageInfo) (*models.APIKeyPage, error)
-	CreateAPIKey(context.Context, *models.APIKey) error
+	CreateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
 	RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
-	UpdateAPIKey(context.Context, *models.APIKey) error
-	DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error
+	UpdateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
+	DeleteAPIKey(ctx context.Context, keyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 }
 
 type ResetPasswordLinkStore interface {
+	// NOTE: no audit logs required for this resource
 	ListResetPasswordLinks(context.Context, *models.PageInfo) (*models.ResetPasswordLinkPage, error)
 	CreateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
 	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
@@ -217,6 +220,7 @@ type ComplianceAuditLogStore interface {
 // NOTE: this is not part of the Store interface since it is not required for the
 // server to function but is useful for Daybreak-specific operations.
 type DaybreakStore interface {
+	// NOTE: no audit logs required for this resource
 	ListDaybreak(ctx context.Context) (map[string]*models.CounterpartySourceInfo, error)
 	CreateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
 	UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
