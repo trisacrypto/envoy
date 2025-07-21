@@ -151,14 +151,26 @@ func (t *Tx) CreateCounterparty(counterparty *models.Counterparty, auditLog *mod
 	contacts, _ := counterparty.Contacts()
 	for _, contact := range contacts {
 		contact.CounterpartyID = counterparty.ID
-		//FIXME: COMPLETE AUDIT LOG
-		if err = t.CreateContact(contact, &models.ComplianceAuditLog{}); err != nil {
+		if err = t.CreateContact(contact, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "CreateCounterparty"},
+		}); err != nil {
 			return fmt.Errorf("could not create contact for counterparty: %w", err)
 		}
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterparty.ID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: counterparty.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -276,8 +288,19 @@ func (t *Tx) UpdateCounterparty(counterparty *models.Counterparty, auditLog *mod
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterparty.ID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: counterparty.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -306,8 +329,19 @@ func (t *Tx) DeleteCounterparty(counterpartyID ulid.ULID, auditLog *models.Compl
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterpartyID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -451,8 +485,19 @@ func (t *Tx) CreateContact(contact *models.Contact, auditLog *models.ComplianceA
 		return dbe(err)
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       contact.ID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: contact.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -555,8 +600,19 @@ func (t *Tx) UpdateContact(contact *models.Contact, auditLog *models.ComplianceA
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       contact.ID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: contact.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -621,8 +677,23 @@ func (t *Tx) DeleteContact(contactID, counterparty any, auditLog *models.Complia
 		}
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	var realID ulid.ULID
+	if realID, err = ulid.Parse(contactID); err != nil {
+		return err
+	}
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       realID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
