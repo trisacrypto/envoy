@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -112,14 +113,26 @@ func (t *Tx) CreateAccount(account *models.Account, auditLog *models.ComplianceA
 	for _, addr := range addresses {
 		// Ensure the crypto address is associated with the new account
 		addr.AccountID = account.ID
-		//FIXME: COMPLETE AUDIT LOG
-		if err = t.CreateCryptoAddress(addr, &models.ComplianceAuditLog{}); err != nil {
+		if err = t.CreateCryptoAddress(addr, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "CreateAccount"},
+		}); err != nil {
 			return err
 		}
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       account.ID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -237,8 +250,19 @@ func (t *Tx) UpdateAccount(account *models.Account, auditLog *models.ComplianceA
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       account.ID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -271,8 +295,19 @@ func (t *Tx) DeleteAccount(accountID ulid.ULID, auditLog *models.ComplianceAudit
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       accountID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -488,8 +523,19 @@ func (t *Tx) CreateCryptoAddress(addr *models.CryptoAddress, auditLog *models.Co
 		return dbe(err)
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       addr.ID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: addr.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -570,8 +616,19 @@ func (t *Tx) UpdateCryptoAddress(addr *models.CryptoAddress, auditLog *models.Co
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       addr.ID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: addr.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -600,8 +657,19 @@ func (t *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID, auditLog 
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       cryptoAddressID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
