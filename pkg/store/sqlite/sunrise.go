@@ -101,8 +101,19 @@ func (t *Tx) CreateSunrise(msg *models.Sunrise, auditLog *models.ComplianceAudit
 		return dbe(err)
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       msg.ID.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: msg.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -171,8 +182,19 @@ func (t *Tx) UpdateSunrise(msg *models.Sunrise, auditLog *models.ComplianceAudit
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       msg.ID.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: msg.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -194,9 +216,10 @@ func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status 
 }
 
 func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status, auditLog *models.ComplianceAuditLog) (err error) {
+	modified := time.Now()
 	params := []interface{}{
 		sql.Named("status", status),
-		sql.Named("modified", time.Now()),
+		sql.Named("modified", modified),
 		sql.Named("envelopeID", txID),
 	}
 
@@ -207,8 +230,29 @@ func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status, auditLog *m
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Make an audit log note with this function name so we know why the
+	// ResourceID is not a Sunrise.ID
+	notes := sql.NullString{
+		Valid:  true,
+		String: "UpdateSunriseStatus_ResourceID_is_EnvelopeID",
+	}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       txID[:],
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      notes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -239,8 +283,19 @@ func (t *Tx) DeleteSunrise(id ulid.ULID, auditLog *models.ComplianceAuditLog) (e
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       id.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -311,8 +366,9 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models
 		// Add contact to the counterparty
 		out.SetContacts([]*models.Contact{contact})
 
-		//FIXME: COMPLETE AUDIT LOG
-		if err = t.CreateCounterparty(out, &models.ComplianceAuditLog{}); err != nil {
+		if err = t.CreateCounterparty(out, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "GetOrCreateSunriseCounterparty"},
+		}); err != nil {
 			return nil, err
 		}
 	} else {
@@ -324,8 +380,9 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models
 		// Add the email address to the contacts if it didn't already exist
 		if exists, _ := out.HasContact(contact.Email); !exists {
 			contact.CounterpartyID = out.ID
-			//FIXME: COMPLETE AUDIT LOG
-			if err = t.CreateContact(contact, &models.ComplianceAuditLog{}); err != nil {
+			if err = t.CreateContact(contact, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "GetOrCreateSunriseCounterparty"},
+			}); err != nil {
 				return nil, err
 			}
 
@@ -335,9 +392,6 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models
 			}
 		}
 	}
-
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
 
 	return out, nil
 }
