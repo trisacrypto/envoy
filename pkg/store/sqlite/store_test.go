@@ -245,6 +245,7 @@ func (s *storeTestSuite) AssertAuditLogCount(expected map[string]int) bool {
 	}
 
 	// compare
+	require.Equal(expected, actual, "audit log count is off")
 	return reflect.DeepEqual(expected, actual)
 }
 
