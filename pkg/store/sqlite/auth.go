@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -122,8 +123,19 @@ func (t *Tx) CreateUser(user *models.User, auditLog *models.ComplianceAuditLog) 
 		return dbe(err)
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       user.ID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: user.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -218,8 +230,19 @@ func (t *Tx) UpdateUser(user *models.User, auditLog *models.ComplianceAuditLog) 
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       user.ID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: user.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -318,8 +341,19 @@ func (t *Tx) DeleteUser(userID ulid.ULID, auditLog *models.ComplianceAuditLog) (
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       userID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -502,8 +536,19 @@ func (t *Tx) CreateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLo
 		}
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       key.ID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: key.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -591,8 +636,19 @@ func (t *Tx) UpdateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLo
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       key.ID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: key.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -621,8 +677,19 @@ func (t *Tx) DeleteAPIKey(keyID ulid.ULID, auditLog *models.ComplianceAuditLog) 
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       keyID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
