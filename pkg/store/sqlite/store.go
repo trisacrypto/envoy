@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -26,6 +28,10 @@ type Tx struct {
 	tx   *sql.Tx
 	opts *sql.TxOptions
 	mkta models.TravelAddressFactory
+
+	// Compliance audit log actor metadata
+	actorID   []byte
+	actorType enum.Actor
 }
 
 //===========================================================================
@@ -96,7 +102,19 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (_ *Tx, err er
 		return nil, err
 	}
 
-	return &Tx{tx: tx, opts: opts, mkta: s.mkta}, nil
+	// Get the actor's ID and type. We're ignoring the 'ok' because at this time
+	// we don't know if we actually need the actor or not. It will be caught
+	// when the audit log is created if there is no actor metadata.
+	actorID, _ := audit.ActorID(ctx)
+	actorType, _ := audit.ActorType(ctx)
+
+	return &Tx{
+		tx:        tx,
+		opts:      opts,
+		mkta:      s.mkta,
+		actorID:   actorID,
+		actorType: actorType,
+	}, nil
 }
 
 func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
@@ -117,6 +135,17 @@ func (t *Tx) Commit() error {
 
 func (t *Tx) Rollback() error {
 	return t.tx.Rollback()
+}
+
+// Sets the actor metadata to be returned by GetActor().
+func (t *Tx) SetActor(actorID []byte, actorType enum.Actor) {
+	t.actorID = actorID
+	t.actorType = actorType
+}
+
+// Returns the actor metadata set by SetActor().
+func (t *Tx) GetActor() ([]byte, enum.Actor) {
+	return t.actorID, t.actorType
 }
 
 func (t *Tx) Query(query string, args ...any) (*sql.Rows, error) {

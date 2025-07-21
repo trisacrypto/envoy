@@ -24,6 +24,10 @@ type Txn interface {
 	Rollback() error
 	Commit() error
 
+	// Returns actor metadata for compliance audit logging.
+	SetActor(actorID []byte, actorType enum.Actor)
+	GetActor() (actorID []byte, actorType enum.Actor)
+
 	TransactionTxn
 	AccountTxn
 	CounterpartyTxn

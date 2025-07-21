@@ -17,9 +17,9 @@ func WithActor(parent context.Context, actorID []byte, actorType enum.Actor) (ct
 
 // Returns the context's actor ID and true, if present, otherwise returns
 // false for the second value (first value not useful).
-func ActorID(ctx context.Context) (requestID []byte, ok bool) {
-	requestID, ok = ctx.Value(contextkey.KeyActorID).([]byte)
-	return requestID, ok
+func ActorID(ctx context.Context) (actorID []byte, ok bool) {
+	actorID, ok = ctx.Value(contextkey.KeyActorID).([]byte)
+	return actorID, ok
 }
 
 // Returns the context's actor type and true, if present, otherwise returns

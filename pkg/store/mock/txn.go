@@ -24,6 +24,10 @@ type Tx struct {
 	commit   bool
 	rollback bool
 
+	// Compliance audit log actor metadata
+	actorID   []byte
+	actorType enum.Actor
+
 	OnCommit                         func() error
 	OnRollback                       func() error
 	OnListTransactions               func(in *models.TransactionPageInfo) (*models.TransactionPage, error)
@@ -118,6 +122,10 @@ func (tx *Tx) Reset() {
 	tx.commit = false
 	tx.rollback = false
 
+	// Reset actor information
+	tx.actorID = nil
+	tx.actorType = enum.ActorUnknown
+
 	// reset the callbacks using reflection
 	v := reflect.ValueOf(tx)
 	v = v.Elem() // tx is a pointer
@@ -208,6 +216,17 @@ func (tx *Tx) Rollback() error {
 
 	tx.rollback = true
 	return nil
+}
+
+// Sets the actor metadata to be returned by GetActor().
+func (tx *Tx) SetActor(actorID []byte, actorType enum.Actor) {
+	tx.actorID = actorID
+	tx.actorType = actorType
+}
+
+// Returns the actor metadata set by SetActor().
+func (tx *Tx) GetActor() ([]byte, enum.Actor) {
+	return tx.actorID, tx.actorType
 }
 
 //===========================================================================
