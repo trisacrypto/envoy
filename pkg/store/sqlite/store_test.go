@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
+	"go.rtnl.ai/ulid"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -202,4 +204,11 @@ func loadAuditKeyChainFixture(t *testing.T) {
 	kc, err := keychain.New(keychain.WithCacheDuration(1*time.Hour), keychain.WithDefaultKey(certs))
 	require.NoError(t, err, "could not create a KeyChain")
 	audit.UseKeyChain(&kc)
+}
+
+// Returns a context.Background() with ActorID and ActorType context values for
+// audit log testing. The ActorID is a fresh, random ULID and the type is
+// an enum.ActorAPIKey.
+func (s *storeTestSuite) ActorContext() context.Context {
+	return audit.WithActor(context.Background(), ulid.MakeSecure().Bytes(), enum.ActorAPIKey)
 }
