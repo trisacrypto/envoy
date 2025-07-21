@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -53,59 +54,44 @@ func (s *storeTestSuite) TestAccountIVMSRecords() {
 	}
 }
 
-func (s *storeTestSuite) TestCreateAccount() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		account := mock.GetSampleAccount(true, true, true)
-		account.ID = ulid.Zero
+func (s *storeTestSuite) TestCreateAccount_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	account := mock.GetSampleAccount(true, true, true)
+	account.ID = ulid.Zero
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 3 // 1 account, 2 crypto addresses
+	//test
+	err := s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
+	require.NoError(err, "no error was expected")
 
-		//test
-		err = s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
-		require.NoError(err, "no error was expected")
+	account2, err := s.store.RetrieveAccount(ctx, account.ID)
+	require.NoError(err, "expected no error")
+	require.NotNil(account2, "account should not be nil")
+	require.Equal(account.ID, account2.ID, fmt.Sprintf("account ID should be %s, found %s instead", account.ID, account2.ID))
 
-		account2, err := s.store.RetrieveAccount(ctx, account.ID)
-		require.NoError(err, "expected no error")
-		require.NotNil(account2, "account should not be nil")
-		require.Equal(account.ID, account2.ID, fmt.Sprintf("account ID should be %s, found %s instead", account.ID, account2.ID))
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceAccount):       1,
+		ActionResourceKey(enum.ActionCreate, enum.ResourceCryptoAddress): 2,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNonZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		account := mock.GetSampleAccount(true, true, true)
+func (s *storeTestSuite) TestCreateAccount_FailureNonZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	account := mock.GetSampleAccount(true, true, true)
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
+	//test
+	err := s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
 
-		//test
-		err = s.store.CreateAccount(ctx, account, &models.ComplianceAuditLog{})
-		require.Error(err, "an error was expected")
-		require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestLookupAccount() {
@@ -175,154 +161,114 @@ func (s *storeTestSuite) TestRetrieveAccount() {
 	})
 }
 
-func (s *storeTestSuite) TestUpdateAccount() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		account, err := s.store.RetrieveAccount(ctx, accountId)
-		require.NoError(err, "expected no error")
+func (s *storeTestSuite) TestUpdateAccount_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	account, err := s.store.RetrieveAccount(ctx, accountId)
+	require.NoError(err, "expected no error")
 
-		prevMod := account.Modified
-		newFirstName := sql.NullString{String: account.FirstName.String + "extrastuff", Valid: true}
-		account.FirstName = newFirstName
-		newLastName := sql.NullString{String: account.LastName.String + "extrastuff", Valid: true}
-		account.LastName = newLastName
+	prevMod := account.Modified
+	newFirstName := sql.NullString{String: account.FirstName.String + "extrastuff", Valid: true}
+	account.FirstName = newFirstName
+	newLastName := sql.NullString{String: account.LastName.String + "extrastuff", Valid: true}
+	account.LastName = newLastName
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 1
+	//test
+	err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
 
-		//test
-		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
-		require.NoError(err, "expected no error")
+	account = nil
+	account, err = s.store.RetrieveAccount(ctx, accountId)
+	require.NoError(err, "expected no error")
+	require.Equal(newFirstName, account.FirstName)
+	require.Equal(newLastName, account.LastName)
+	require.True(prevMod.Before(account.Modified), "expected the modified time to be newer")
 
-		account = nil
-		account, err = s.store.RetrieveAccount(ctx, accountId)
-		require.NoError(err, "expected no error")
-		require.Equal(newFirstName, account.FirstName)
-		require.Equal(newLastName, account.LastName)
-		require.True(prevMod.Before(account.Modified), "expected the modified time to be newer")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionUpdate, enum.ResourceAccount): 1,
 	})
-
-	s.Run("FailureZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		account, err := s.store.RetrieveAccount(ctx, accountId)
-		require.NoError(err, "expected no error")
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		account.ID = ulid.Zero
-
-		//test
-		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
-
-	s.Run("FailureNotFound", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		account, err := s.store.RetrieveAccount(ctx, accountId)
-		require.NoError(err, "expected no error")
-
-		account.ID = ulid.MakeSecure()
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	require.True(ok, "audit log count was off")
 }
 
-func (s *storeTestSuite) TestDeleteAccount() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+func (s *storeTestSuite) TestUpdateAccount_FailureZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	account, err := s.store.RetrieveAccount(ctx, accountId)
+	require.NoError(err, "expected no error")
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 1
+	account.ID = ulid.Zero
 
-		//test
-		err = s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
-		require.NoError(err, "expected no error")
+	//test
+	err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
 
-		account, err := s.store.RetrieveAccount(ctx, accountId)
-		require.Nil(account, "account should be nil")
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+func (s *storeTestSuite) TestUpdateAccount_FailureNotFound() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	account, err := s.store.RetrieveAccount(ctx, accountId)
+	require.NoError(err, "expected no error")
+
+	account.ID = ulid.MakeSecure()
+
+	//test
+	err = s.store.UpdateAccount(ctx, account, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestDeleteAccount_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+
+	//test
+	err := s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
+
+	account, err := s.store.RetrieveAccount(ctx, accountId)
+	require.Nil(account, "account should be nil")
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionDelete, enum.ResourceAccount): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFound", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MakeSecure()
+func (s *storeTestSuite) TestDeleteAccount_FailureNotFound() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MakeSecure()
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // no extras expected
+	//test
+	err := s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
 
-		//test
-		err = s.store.DeleteAccount(ctx, accountId, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestListAccountTransactions() {
@@ -461,119 +407,87 @@ func (s *storeTestSuite) TestListCryptoAddresses() {
 	})
 }
 
-func (s *storeTestSuite) TestCreateCryptoAddress() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
-		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
+func (s *storeTestSuite) TestCreateCryptoAddress_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
+	cryptoAddress := mock.GetSampleCryptoAddress(accountId)
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 1
+	//test
+	addresses, err := s.store.ListCryptoAddresses(ctx, accountId, nil)
+	require.NoError(err, "expected no error")
+	require.NotNil(addresses, "addresses should not be nil")
+	require.Len(addresses.CryptoAddresses, 2, fmt.Sprintf("expected 2 crypto addresses, got %d", len(addresses.CryptoAddresses)))
 
-		//test
-		addresses, err := s.store.ListCryptoAddresses(ctx, accountId, nil)
-		require.NoError(err, "expected no error")
-		require.NotNil(addresses, "addresses should not be nil")
-		require.Len(addresses.CryptoAddresses, 2, fmt.Sprintf("expected 2 crypto addresses, got %d", len(addresses.CryptoAddresses)))
+	err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
+	require.NoError(err, "no error was expected")
 
-		err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
-		require.NoError(err, "no error was expected")
+	addresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
+	require.NoError(err, "expected no error")
+	require.NotNil(addresses, "addresses should not be nil")
+	require.Len(addresses.CryptoAddresses, 3, fmt.Sprintf("expected 3 crypto addresses, got %d", len(addresses.CryptoAddresses)))
 
-		addresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
-		require.NoError(err, "expected no error")
-		require.NotNil(addresses, "addresses should not be nil")
-		require.Len(addresses.CryptoAddresses, 3, fmt.Sprintf("expected 3 crypto addresses, got %d", len(addresses.CryptoAddresses)))
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceCryptoAddress): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFoundAccountID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MakeSecure()
-		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
+func (s *storeTestSuite) TestCreateCryptoAddress_FailureNotFoundAccountID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MakeSecure()
+	cryptoAddress := mock.GetSampleCryptoAddress(accountId)
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
+	//test
+	err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
+	// instead of an ErrNotFound as would be logical, because in the `dbe()`
+	// function we return an ErrAlreadyExists for any SQLite constraint error
+	require.Equal(errors.ErrAlreadyExists, err, "expected error ErrAlreadyExists")
 
-		//test
-		err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
-		require.Error(err, "an error was expected")
-		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
-		// instead of an ErrNotFound as would be logical, because in the `dbe()`
-		// function we return an ErrAlreadyExists for any SQLite constraint error
-		require.Equal(errors.ErrAlreadyExists, err, "expected error ErrAlreadyExists")
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+func (s *storeTestSuite) TestCreateCryptoAddress_FailureZeroAccountID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.Zero
+	cryptoAddress := mock.GetSampleCryptoAddress(accountId)
 
-	s.Run("FailureZeroAccountID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.Zero
-		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
+	//test
+	err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	require.Equal(errors.ErrMissingReference, err, "expected error ErrMissingReference")
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		//test
-		err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
-		require.Error(err, "an error was expected")
-		require.Equal(errors.ErrMissingReference, err, "expected error ErrMissingReference")
+func (s *storeTestSuite) TestCreateCryptoAddress_FailureAddressNotZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MakeSecure()
+	cryptoAddress := mock.GetSampleCryptoAddress(accountId)
+	cryptoAddress.ID = ulid.MakeSecure()
 
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	//test
+	err := s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	require.Equal(errors.ErrNoIDOnCreate, err, "expected error ErrNoIDOnCreate")
 
-	s.Run("FailureAddressNotZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MakeSecure()
-		cryptoAddress := mock.GetSampleCryptoAddress(accountId)
-		cryptoAddress.ID = ulid.MakeSecure()
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.CreateCryptoAddress(ctx, cryptoAddress, &models.ComplianceAuditLog{})
-		require.Error(err, "an error was expected")
-		require.Equal(errors.ErrNoIDOnCreate, err, "expected error ErrNoIDOnCreate")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestRetrieveCryptoAddress() {
@@ -655,245 +569,181 @@ func (s *storeTestSuite) TestRetrieveCryptoAddress() {
 	})
 }
 
-func (s *storeTestSuite) TestUpdateCryptoAddress() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
-		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
+func (s *storeTestSuite) TestUpdateCryptoAddress_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
+	address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
 
-		prevMod := address.Modified
-		newNetwork := "LTC"
-		if address.Network == "LTC" {
-			newNetwork = "BTC"
-		}
-		address.Network = newNetwork
+	prevMod := address.Modified
+	newNetwork := "LTC"
+	if address.Network == "LTC" {
+		newNetwork = "BTC"
+	}
+	address.Network = newNetwork
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 1
+	//test
+	err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
 
-		//test
-		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
-		require.NoError(err, "expected no error")
+	address = nil
+	address, err = s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
+	require.Equal(newNetwork, address.Network)
+	require.True(prevMod.Before(address.Modified), "expected the modified time to be newer")
 
-		address = nil
-		address, err = s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
-		require.Equal(newNetwork, address.Network)
-		require.True(prevMod.Before(address.Modified), "expected the modified time to be newer")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionUpdate, enum.ResourceCryptoAddress): 1,
 	})
-
-	s.Run("FailureZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
-		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
-
-		address.ID = ulid.Zero
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
-
-	s.Run("FailureZeroAccountID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
-		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
-
-		address.AccountID = ulid.Zero
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrMissingReference, err, "expected an ErrMissingReference error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
-
-	s.Run("FailureNotFoundAddress", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
-		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
-
-		address.ID = ulid.MakeSecure()
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
-
-	s.Run("FailureNotFoundAccount", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
-		addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
-		address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
-		require.NoError(err, "expected no error")
-
-		address.AccountID = ulid.MakeSecure()
-
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	require.True(ok, "audit log count was off")
 }
 
-func (s *storeTestSuite) TestDeleteCryptoAddress() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
-		addressId := ulid.MustParse("01HV6RV08YNR2GH8MEEKB7DH2W")
+func (s *storeTestSuite) TestUpdateCryptoAddress_FailureZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
+	address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) + 1
+	address.ID = ulid.Zero
 
-		//test
-		cryptoAddresses, err := s.store.ListCryptoAddresses(ctx, accountId, nil)
-		require.NoError(err, "expected no errors")
-		require.NotNil(cryptoAddresses.CryptoAddresses, "there were no crypto addresses")
-		require.Len(cryptoAddresses.CryptoAddresses, 2, fmt.Sprintf("there should be 2 crypto addresses, but there were %d", len(cryptoAddresses.CryptoAddresses)))
+	//test
+	err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrMissingID, err, "expected an ErrMissingID error")
 
-		err = s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
-		require.Nil(err, "expected no error")
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		cryptoAddresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
-		require.NoError(err, "expected no errors")
-		require.NotNil(cryptoAddresses.CryptoAddresses, "there were no crypto addresses")
-		require.Len(cryptoAddresses.CryptoAddresses, 1, fmt.Sprintf("there should be 1 crypto address, but there were %d", len(cryptoAddresses.CryptoAddresses)))
+func (s *storeTestSuite) TestUpdateCryptoAddress_FailureZeroAccountID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
+	address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
 
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
+	address.AccountID = ulid.Zero
+
+	//test
+	err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrMissingReference, err, "expected an ErrMissingReference error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestUpdateCryptoAddress_FailureNotFoundAddress() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
+	address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
+
+	address.ID = ulid.MakeSecure()
+
+	//test
+	err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestUpdateCryptoAddress_FailureNotFoundAccount() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6QS6AK4KNS46Q9HEB7DTPR")
+	addressId := ulid.MustParse("01HV6QS6AK4KNS46Q9HFHBEQAP")
+	address, err := s.store.RetrieveCryptoAddress(ctx, accountId, addressId)
+	require.NoError(err, "expected no error")
+
+	address.AccountID = ulid.MakeSecure()
+
+	//test
+	err = s.store.UpdateCryptoAddress(ctx, address, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected an ErrNotFound error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestDeleteCryptoAddress_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
+	addressId := ulid.MustParse("01HV6RV08YNR2GH8MEEKB7DH2W")
+
+	//test
+	cryptoAddresses, err := s.store.ListCryptoAddresses(ctx, accountId, nil)
+	require.NoError(err, "expected no errors")
+	require.NotNil(cryptoAddresses.CryptoAddresses, "there were no crypto addresses")
+	require.Len(cryptoAddresses.CryptoAddresses, 2, fmt.Sprintf("there should be 2 crypto addresses, but there were %d", len(cryptoAddresses.CryptoAddresses)))
+
+	err = s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
+	require.Nil(err, "expected no error")
+
+	cryptoAddresses, err = s.store.ListCryptoAddresses(ctx, accountId, nil)
+	require.NoError(err, "expected no errors")
+	require.NotNil(cryptoAddresses.CryptoAddresses, "there were no crypto addresses")
+	require.Len(cryptoAddresses.CryptoAddresses, 1, fmt.Sprintf("there should be 1 crypto address, but there were %d", len(cryptoAddresses.CryptoAddresses)))
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionDelete, enum.ResourceCryptoAddress): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFoundAccountID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MakeSecure()
-		addressId := ulid.MustParse("01HV6RV08YNR2GH8MEEKB7DH2W")
+func (s *storeTestSuite) TestDeleteCryptoAddress_FailureNotFoundAccountID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MakeSecure()
+	addressId := ulid.MustParse("01HV6RV08YNR2GH8MEEKB7DH2W")
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
+	//test
+	err := s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
+	require.NotNil(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
-		//test
-		err = s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
-		require.NotNil(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+func (s *storeTestSuite) TestDeleteCryptoAddress_FailureNotFoundAddressID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
+	addressId := ulid.MakeSecure()
 
-	s.Run("FailureNotFoundAddressID", func() {
-		//setup
-		require := s.Require()
-		ctx := s.ActorContext()
-		accountId := ulid.MustParse("01HV6RV08YNR2GH8MEEFCV4NKN")
-		addressId := ulid.MakeSecure()
+	//test
+	err := s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
+	require.NotNil(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
-		//count audit logs before
-		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		logsExp := len(logs.Logs) // expect no extras
-
-		//test
-		err = s.store.DeleteCryptoAddress(ctx, accountId, addressId, &models.ComplianceAuditLog{})
-		require.NotNil(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-
-		//check for audit log creation
-		logs, err = s.store.ListComplianceAuditLogs(ctx, nil)
-		require.NoError(err, "error getting logs")
-		require.NotNil(logs, "logs was nil")
-		require.Lenf(logs.Logs, logsExp, "expected %d logs, got %d", logsExp, len(logs.Logs))
-	})
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
