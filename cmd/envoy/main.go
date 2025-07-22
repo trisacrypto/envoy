@@ -18,6 +18,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/node"
 	"github.com/trisacrypto/envoy/pkg/store"
@@ -392,8 +393,9 @@ func createUser(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	//FIXME: COMPLETE AUDIT LOG
-	if err = db.CreateUser(ctx, user, &models.ComplianceAuditLog{}); err != nil {
+	if err = db.CreateUser(ctx, user, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "createUser()"},
+	}); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -454,8 +456,9 @@ func createAPIKey(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	//FIXME: COMPLETE AUDIT LOG
-	if err = db.CreateAPIKey(ctx, key, &models.ComplianceAuditLog{}); err != nil {
+	if err = db.CreateAPIKey(ctx, key, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "createAPIKey()"},
+	}); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -555,6 +558,14 @@ func daybreakImport(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Add actor information to the context. We don't have an ID, so we're using
+	// the function name as the ActorID.
+	ctx = audit.WithActor(ctx, []byte("daybreakImport"), enum.ActorCLI)
+
+	// Load the keychain
+	// FIXME: load the keychain for audit log signing
+	// TODO: use audit.UseKeyChain()
+
 	// NOTE: this operation happens in its own transaction, if two daybreak imports
 	// happen concurrently, then this map would not accurately reflect the state of the
 	// database, so its important to ensure only a single import runs at at time.
@@ -629,7 +640,9 @@ func daybreakImport(c *cli.Context) (err error) {
 			modelCounterparty.ID = cSrc.ID
 			apiCounterparty.ID = cSrc.ID
 
-			if err = ddb.UpdateDaybreak(ctx, modelCounterparty); err != nil {
+			if err = ddb.UpdateDaybreak(ctx, modelCounterparty, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "daybreakImport()"},
+			}); err != nil {
 				log.Warn().Err(err).Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("could not update counterparty")
 				continue
 			}
@@ -639,7 +652,9 @@ func daybreakImport(c *cli.Context) (err error) {
 			// Create the counterparty and all contacts together - if any part of the
 			// update fails, then the transaction will be rolled back and no partial
 			// record will be inserted into the database.
-			if err = ddb.CreateDaybreak(ctx, modelCounterparty); err != nil {
+			if err = ddb.CreateDaybreak(ctx, modelCounterparty, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "daybreakImport()"},
+			}); err != nil {
 				log.Warn().Err(err).Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Msg("could not create counterparty")
 				continue
 			}
@@ -673,6 +688,10 @@ func daybreakRetire(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Add actor information to the context. We don't have an ID, so we're using
+	// the function name as the ActorID.
+	ctx = audit.WithActor(ctx, []byte("daybreakRetire"), enum.ActorCLI)
+
 	// Get all Daybreak Counterparties
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
@@ -683,7 +702,9 @@ func daybreakRetire(c *cli.Context) (err error) {
 	deleted := 0
 	hasTxns := 0
 	for _, counterparty := range srcMap {
-		if err = ddb.DeleteDaybreak(ctx, counterparty.ID, false); err != nil {
+		if err = ddb.DeleteDaybreak(ctx, counterparty.ID, false, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "daybreakRetire()"},
+		}); err != nil {
 			if err == dberr.ErrDaybreakHasTxns {
 				hasTxns += 1
 				log.Info().Str("id", counterparty.ID.String()).Str("directory_id", counterparty.DirectoryID.String).Msg("daybreak counterparty not deleted because it has associated transactions")

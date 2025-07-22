@@ -222,7 +222,7 @@ type ComplianceAuditLogStore interface {
 type DaybreakStore interface {
 	// NOTE: no audit logs required for this resource
 	ListDaybreak(ctx context.Context) (map[string]*models.CounterpartySourceInfo, error)
-	CreateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
-	UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty) error
-	DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) error
+	CreateDaybreak(ctx context.Context, counterparty *models.Counterparty, log *models.ComplianceAuditLog) error
+	UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty, log *models.ComplianceAuditLog) error
+	DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool, log *models.ComplianceAuditLog) error
 }

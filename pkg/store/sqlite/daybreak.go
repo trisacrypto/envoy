@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -51,28 +52,33 @@ func convertSourceInfoToDaybreak(info []*models.CounterpartySourceInfo) (out map
 // with another counterparty, an error will be returned. The counterparty and all
 // associated contacts will be created in a single transaction; if any contact fails to
 // be created, the transaction will be rolled back and an error will be returned.
-func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counterparty) (err error) {
+func (s *Store) CreateDaybreak(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateDaybreak(counterparty); err != nil {
+	if err = tx.CreateDaybreak(counterparty, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateDaybreak(counterparty *models.Counterparty) (err error) {
+func (t *Tx) CreateDaybreak(counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	if !counterparty.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
 
+	// Create change notes
+	notes := sql.NullString{Valid: true, String: "Store.CreateDaybreak()"}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
 	// Create the counterparty and associated contacts.
-	//FIXME: COMPLETE AUDIT LOG
-	if err = t.CreateCounterparty(counterparty, &models.ComplianceAuditLog{}); err != nil {
+	if err = t.CreateCounterparty(counterparty, &models.ComplianceAuditLog{ChangeNotes: notes}); err != nil {
 		// If the counterparty is broken, then attempt to fix and try create again.
 		if errors.Is(err, dberr.ErrAlreadyExists) {
 			if cParty, cerr := t.LookupCounterparty("directory_id", counterparty.DirectoryID.String); cerr == nil {
@@ -80,7 +86,7 @@ func (t *Tx) CreateDaybreak(counterparty *models.Counterparty) (err error) {
 				// If so, it wasn't included in the source map; so the source must have been modified somehow.
 				if cParty.RegisteredDirectory.Valid && cParty.RegisteredDirectory.String == "daybreak.rotational.io" {
 					counterparty.ID = cParty.ID
-					if err = t.UpdateDaybreak(counterparty); err != nil {
+					if err = t.UpdateDaybreak(counterparty, auditLog); err != nil {
 						log.Warn().Err(err).Str("directory_id", counterparty.DirectoryID.String).Msg("could not fix original daybreak counterparty")
 					} else {
 						// If no error occurred, then we fixed the original counterparty
@@ -105,28 +111,33 @@ func (t *Tx) CreateDaybreak(counterparty *models.Counterparty) (err error) {
 // exists associated with another counterparty, then it will be updated to use this
 // counterparty. If any contact fails to be created or updated, the transaction will
 // be rolled back and an error will be returned.
-func (s *Store) UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty) (err error) {
+func (s *Store) UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateDaybreak(counterparty); err != nil {
+	if err = tx.UpdateDaybreak(counterparty, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
+func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	if counterparty.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
 
+	// Create change notes
+	notes := sql.NullString{Valid: true, String: "Store.UpdateDaybreak()"}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
 	// Update the counterparty record
-	//FIXME: COMPLETE AUDIT LOG
-	if err = t.UpdateCounterparty(counterparty, &models.ComplianceAuditLog{}); err != nil {
+	if err = t.UpdateCounterparty(counterparty, &models.ComplianceAuditLog{ChangeNotes: notes}); err != nil {
 		return err
 	}
 
@@ -151,8 +162,7 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 		if currContact, ok := currContacts[contact.Email]; ok {
 			// Contact with this email is present in DB
 			contact.ID = currContact.ID
-			//FIXME: COMPLETE AUDIT LOG
-			if err = t.UpdateContact(contact, &models.ComplianceAuditLog{}); err != nil {
+			if err = t.UpdateContact(contact, &models.ComplianceAuditLog{ChangeNotes: notes}); err != nil {
 				log.Warn().Err(err).Str("counterparty", counterparty.ID.String()).Str("contact", contact.Email).Msg("could not update contact when updating counterparty")
 				return err
 			}
@@ -161,8 +171,7 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 			if !contact.ID.IsZero() {
 				contact.ID = ulid.Zero
 			}
-			//FIXME: COMPLETE AUDIT LOG
-			if err = t.CreateContact(contact, &models.ComplianceAuditLog{}); err != nil {
+			if err = t.CreateContact(contact, &models.ComplianceAuditLog{ChangeNotes: notes}); err != nil {
 				if err == dberr.ErrAlreadyExists {
 					// This email address is proboably associated with a contact for a different counterparty
 					log.Warn().Err(err).Str("contact", contact.Email).Msg("contact is associated with two counterparties")
@@ -185,28 +194,28 @@ func (t *Tx) UpdateDaybreak(counterparty *models.Counterparty) (err error) {
 // if trying to delete a Daybreak Counterparty with transactions associated to
 // it in the database when `ignoreTxns` is not `true`. This function will only
 // delete Counterparties with `source='daybreak'`.
-func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
+func (s *Store) DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteDaybreak(counterpartyID, ignoreTxns); err != nil {
+	if err = tx.DeleteDaybreak(counterpartyID, ignoreTxns, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteDaybreak(counterpartyID ulid.ULID, ignoreTxns bool) (err error) {
+func (t *Tx) DeleteDaybreak(counterpartyID ulid.ULID, ignoreTxns bool, auditLog *models.ComplianceAuditLog) (err error) {
 	if ignoreTxns {
-		if err = t.deleteDaybreakCounterparty(counterpartyID); err != nil {
+		if err = t.deleteDaybreakCounterparty(counterpartyID, auditLog); err != nil {
 			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
 			return err
 		}
 	} else {
-		if err = t.deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID); err != nil {
+		if err = t.deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID, auditLog); err != nil {
 			log.Warn().Str("counterparty_id", counterpartyID.String()).Msg("error when deleting daybreak counterparty")
 			return err
 		}
@@ -218,19 +227,40 @@ const deleteDaybreakCounterpartySQL = "DELETE FROM counterparties WHERE id=:id A
 
 // Delete a Daybreak Counterparty. This function will only delete Counterparties
 // with `source='daybreak'`.
-func (t *Tx) deleteDaybreakCounterparty(counterpartyID ulid.ULID) (err error) {
+func (t *Tx) deleteDaybreakCounterparty(counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteDaybreakCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Create ChangeNotes
+	notes := sql.NullString{Valid: true, String: "Tx.deleteDaybreakCounterparty()"}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterpartyID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      notes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Delete a Daybreak Counterparty unless it has transactions associated with it.
 // This function will only delete Counterparties with `source='daybreak'`.
-func (t *Tx) deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID ulid.ULID) (err error) {
+func (t *Tx) deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	if has, err := t.counterpartyHasTxns(counterpartyID); has || err != nil {
 		if err != nil {
 			return err
@@ -238,7 +268,7 @@ func (t *Tx) deleteDaybreakCounterpartyUnlessHasTxns(counterpartyID ulid.ULID) (
 		return dberr.ErrDaybreakHasTxns
 
 	} else {
-		return t.deleteDaybreakCounterparty(counterpartyID)
+		return t.deleteDaybreakCounterparty(counterpartyID, auditLog)
 	}
 }
 
