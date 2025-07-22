@@ -2,8 +2,6 @@
 
 **An open source TRISA node for use in Travel Rule information transfers**
 
-> **WARNING**: This branch now contains our v1.0.0 release candidate! However v1.0.0 is not currently backwards compatible with v0.30.1. Please do not run from develop while we QA the release candidate!
-
 Complete documentation for Envoy can be found at [https://trisa.dev/envoy](https://trisa.dev/envoy).
 
 ## Travel Rule Compliance
