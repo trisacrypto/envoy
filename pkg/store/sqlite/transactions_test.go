@@ -1,7 +1,6 @@
 package sqlite_test
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -17,7 +16,7 @@ import (
 
 func (s *storeTestSuite) TestListTransactions() {
 	require := s.Require()
-	ctx := context.Background()
+	ctx := s.ActorContext()
 	query := &models.TransactionPageInfo{}
 
 	page, err := s.store.ListTransactions(ctx, query)
@@ -44,7 +43,7 @@ func (s *storeTestSuite) TestListTransactions() {
 func (s *storeTestSuite) TestCreateTransaction() {
 	s.Run("Success", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txn := mock.GetSampleTransaction(true, true, false)
 
@@ -57,7 +56,6 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions) + 1
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when creating transaction")
 
@@ -69,7 +67,7 @@ func (s *storeTestSuite) TestCreateTransaction() {
 
 	s.Run("FailureNonZeroUUID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txn := mock.GetSampleTransaction(true, true, false)
 		txn.CounterpartyID = ulid.NullULID{ULID: ulid.MustParse("01JXTQCDE6ZES5MPXNW7K19QVQ"), Valid: true}
@@ -80,7 +78,6 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions)
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating transaction")
 		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
@@ -93,7 +90,7 @@ func (s *storeTestSuite) TestCreateTransaction() {
 
 	s.Run("FailureUnknownCounterparty", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txn := mock.GetSampleTransaction(true, true, false)
 		txn.ID = uuid.Nil
@@ -104,7 +101,6 @@ func (s *storeTestSuite) TestCreateTransaction() {
 		expectedLen := len(txns.Transactions)
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.CreateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when creating transaction")
 		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
@@ -125,7 +121,7 @@ func (s *storeTestSuite) TestRetrieveTransaction() {
 		s.T().SkipNow()
 
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("2c891c75-14fa-4c71-aa07-6405b98db7a3")
 
@@ -140,7 +136,7 @@ func (s *storeTestSuite) TestRetrieveTransaction() {
 
 	s.Run("FailureNotFoundRandomID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.New()
 
@@ -153,7 +149,7 @@ func (s *storeTestSuite) TestRetrieveTransaction() {
 
 	s.Run("FailureNotFoundNilID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.Nil
 
@@ -168,7 +164,7 @@ func (s *storeTestSuite) TestRetrieveTransaction() {
 func (s *storeTestSuite) TestUpdateTransaction() {
 	s.Run("Success", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 		txn, err := s.store.RetrieveTransaction(ctx, txnId)
@@ -181,7 +177,6 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		txn.Amount = newAmount
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.UpdateTransaction(ctx, txn, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when updating transaction")
 
@@ -196,7 +191,7 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 
 	s.Run("FailureNotFound", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 		transaction, err := s.store.RetrieveTransaction(ctx, txnId)
@@ -206,7 +201,6 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		transaction.ID = uuid.New()
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.UpdateTransaction(ctx, transaction, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating transaction")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -214,7 +208,7 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 
 	s.Run("FailureNilUUID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 		transaction, err := s.store.RetrieveTransaction(ctx, txnId)
@@ -224,7 +218,6 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 		transaction.ID = uuid.Nil
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.UpdateTransaction(ctx, transaction, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when updating transaction")
 		require.Equal(errors.ErrMissingID, err, "expected ErrMissingID")
@@ -234,12 +227,11 @@ func (s *storeTestSuite) TestUpdateTransaction() {
 func (s *storeTestSuite) TestDeleteTransaction() {
 	s.Run("Success", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
@@ -251,12 +243,11 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 
 	s.Run("FailureNotFoundRandomID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.New()
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -264,12 +255,11 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 
 	s.Run("FailureNotFoundNilID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.Nil
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.DeleteTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when deleting txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -279,13 +269,12 @@ func (s *storeTestSuite) TestDeleteTransaction() {
 func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 	s.Run("SuccessArchiveThenUnarchive", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 		beforeTxn := time.Now()
 
 		//test ArchiveTransaction
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
@@ -298,7 +287,6 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 		require.True(beforeTxn.Before(txn.Modified), "expected modified timestamp to be more recent")
 
 		//test UnarchiveTransaction
-		//FIXME: COMPLETE AUDIT LOG
 		err = s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.NoError(err, "expected no error when deleting transaction")
 
@@ -313,12 +301,11 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 
 	s.Run("FailureArchiveNotFoundRandomID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.New()
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when archiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -326,12 +313,11 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 
 	s.Run("FailureArchiveNotFoundNilID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.Nil
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.ArchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when archiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -339,12 +325,11 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 
 	s.Run("FailureUnarchiveNotFoundRandomID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.New()
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when unarchiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -352,12 +337,11 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 
 	s.Run("FailureUnarchiveNotFoundNilID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.Nil
 
 		//test
-		//FIXME: COMPLETE AUDIT LOG
 		err := s.store.UnarchiveTransaction(ctx, txnId, &models.ComplianceAuditLog{})
 		require.Error(err, "expected an error when unarchiving txn")
 		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
@@ -367,7 +351,7 @@ func (s *storeTestSuite) TestArchiveUnarchiveTransaction() {
 func (s *storeTestSuite) TestCountTransactions() {
 	s.Run("Success", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		expected := &models.TransactionCounts{
 			Active: map[string]int{
@@ -392,7 +376,7 @@ func (s *storeTestSuite) TestCountTransactions() {
 func (s *storeTestSuite) TestTransactionState() {
 	s.Run("Success", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.MustParse("b04dc71c-7214-46a5-a514-381ef0bcc494")
 
@@ -405,7 +389,7 @@ func (s *storeTestSuite) TestTransactionState() {
 
 	s.Run("FailureNotFoundRandomID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.New()
 
@@ -419,7 +403,7 @@ func (s *storeTestSuite) TestTransactionState() {
 
 	s.Run("FailureNotFoundNilID", func() {
 		//setup
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		require := s.Require()
 		txnId := uuid.Nil
 
@@ -470,10 +454,9 @@ func (s *storeTestSuite) TestLatestPayloadEnvelope() {
 func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	defer s.ResetDB()
 	require := s.Require()
-	ctx := context.Background()
+	ctx := s.ActorContext()
 
 	envelopeID := uuid.New()
-	//FIXME: COMPLETE AUDIT LOG
 	db, err := s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not start prepared transaction")
 	defer db.Rollback()
@@ -487,7 +470,6 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 		RegisteredDirectory: sql.NullString{Valid: true, String: "trisatest.dev"},
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
 	err = db.AddCounterparty(counterparty, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not add counterparty to database")
 
@@ -503,7 +485,6 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 		Amount:             0.46602501,
 		LastUpdate:         sql.NullTime{Valid: true, Time: time.Now()},
 	}
-	//FIXME: COMPLETE AUDIT LOG
 	err = db.Update(record, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not update record in database")
 
@@ -517,7 +498,6 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	env, _, err = env.Encrypt()
 	require.NoError(err, "cannot encrypt envelope")
 
-	//FIXME: COMPLETE AUDIT LOG
 	err = db.AddEnvelope(models.FromEnvelope(env), &models.ComplianceAuditLog{})
 	require.NoError(err, "could not add envelope to transactio")
 
@@ -531,19 +511,30 @@ func (s *storeTestSuite) TestPreparedTransaction_Created() {
 	require.NoError(err, "could not retrieve secure envelopes from database")
 	require.NotNil(page)
 	require.Len(page.Envelopes, 1, "expected one envelopes returned")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceSecureEnvelope): 1,
+		ActionResourceKey(enum.ActionCreate, enum.ResourceTransaction):    1,
+		ActionResourceKey(enum.ActionUpdate, enum.ResourceTransaction):    2,
+	})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestPreparedTransaction_Exists() {
 	defer s.ResetDB()
 	require := s.Require()
-	ctx := context.Background()
+	ctx := s.ActorContext()
 
 	envelopeID := uuid.MustParse("c20a7cdf-5c23-4b44-b7cd-a29cd00761a3")
-	//FIXME: COMPLETE AUDIT LOG
 	db, err := s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{})
 	require.NoError(err, "could not start prepared transaction")
 	defer db.Rollback()
 
 	// Created should be false since the transaction is in the database
 	require.False(db.Created(), "expected the transaction to be already existing in database")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }

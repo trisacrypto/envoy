@@ -122,8 +122,19 @@ func (t *Tx) CreateTransaction(transaction *models.Transaction, auditLog *models
 		return dbe(err)
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       transaction.ID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: transaction.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -207,8 +218,19 @@ func (t *Tx) UpdateTransaction(transaction *models.Transaction, auditLog *models
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       transaction.ID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: transaction.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -239,8 +261,19 @@ func (t *Tx) DeleteTransaction(id uuid.UUID, auditLog *models.ComplianceAuditLog
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       id[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -279,8 +312,29 @@ func (t *Tx) ArchiveTransaction(transactionID uuid.UUID, auditLog *models.Compli
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Make an audit log note with this function name so we know what kind of
+	// update it was
+	notes := sql.NullString{
+		Valid:  true,
+		String: "ArchiveTransaction",
+	}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       transactionID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: timestamp,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      notes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -300,11 +354,12 @@ func (s *Store) UnarchiveTransaction(ctx context.Context, transactionID uuid.UUI
 }
 
 func (t *Tx) UnarchiveTransaction(transactionID uuid.UUID, auditLog *models.ComplianceAuditLog) (err error) {
+	modified := time.Now()
 	params := []any{
 		sql.Named("id", transactionID),
 		sql.Named("archived", false),
 		sql.Named("archivedOn", sql.NullTime{Valid: false}),
-		sql.Named("modified", time.Now()),
+		sql.Named("modified", modified),
 	}
 
 	var result sql.Result
@@ -316,8 +371,29 @@ func (t *Tx) UnarchiveTransaction(transactionID uuid.UUID, auditLog *models.Comp
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Make an audit log note with this function name so we know what kind of
+	// update it was
+	notes := sql.NullString{
+		Valid:  true,
+		String: "UnarchiveTransaction",
+	}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       transactionID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      notes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -524,8 +600,19 @@ func (t *Tx) CreateSecureEnvelope(env *models.SecureEnvelope, auditLog *models.C
 		return dbe(err)
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       env.ID.Bytes(),
+		ResourceType:     enum.ResourceSecureEnvelope,
+		ResourceModified: env.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -594,8 +681,19 @@ func (t *Tx) UpdateSecureEnvelope(env *models.SecureEnvelope, auditLog *models.C
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       env.ID.Bytes(),
+		ResourceType:     enum.ResourceSecureEnvelope,
+		ResourceModified: env.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -626,8 +724,19 @@ func (t *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID, auditLog *mod
 		return dberr.ErrNotFound
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       envID.Bytes(),
+		ResourceType:     enum.ResourceSecureEnvelope,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -756,8 +865,30 @@ func (s *Store) PrepareTransaction(ctx context.Context, envelopeID uuid.UUID, au
 			return nil, fmt.Errorf("create transaction failed: %w", dbe(err))
 		}
 
-		//FIXME: CREATE THE AUDIT LOG
-		_ = auditLog
+		// Make an audit log note with this function name so we know why the
+		// ResourceID is not a Sunrise.ID
+		notes := sql.NullString{
+			Valid:  true,
+			String: "PrepareTransaction",
+		}
+		if auditLog.ChangeNotes.Valid {
+			notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+		}
+
+		// Fill the audit log and create it
+		actorID, actorType := tx.GetActor()
+		if err := tx.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+			ActorID:          actorID,
+			ActorType:        actorType,
+			ResourceID:       envelopeID[:],
+			ResourceType:     enum.ResourceTransaction,
+			ResourceModified: now,
+			Action:           enum.ActionCreate,
+			ChangeNotes:      notes,
+		}); err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("create audit log failed: %w", dbe(err))
+		}
 	}
 
 	// Create the prepared transaction for the user to interact with
@@ -802,8 +933,19 @@ func (p *PreparedTransaction) Update(in *models.Transaction, auditLog *models.Co
 		return fmt.Errorf("could not update transaction: %w", dbe(err))
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := p.tx.GetActor()
+	if err := p.tx.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       orig.ID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: orig.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -875,8 +1017,19 @@ func (p *PreparedTransaction) AddCounterparty(in *models.Counterparty, auditLog 
 		return fmt.Errorf("could not update transaction with counterparty info: %w", dbe(err))
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := p.tx.GetActor()
+	if err := p.tx.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       p.envelopeID[:],
+		ResourceType:     enum.ResourceTransaction,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -907,8 +1060,19 @@ func (p *PreparedTransaction) AddEnvelope(in *models.SecureEnvelope, auditLog *m
 		return fmt.Errorf("could not add secure envelope: %w", dbe(err))
 	}
 
-	//FIXME: CREATE THE AUDIT LOG
-	_ = auditLog
+	// Fill the audit log and create it
+	actorID, actorType := p.tx.GetActor()
+	if err := p.tx.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       in.ID.Bytes(),
+		ResourceType:     enum.ResourceSecureEnvelope,
+		ResourceModified: in.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
