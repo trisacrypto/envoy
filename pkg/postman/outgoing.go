@@ -144,8 +144,9 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 			o.packet.Transaction = TransactionFromPayload(payload)
 		}
 
-		//FIXME: COMPLETE AUDIT LOG
-		if err = o.packet.DB.AddCounterparty(o.packet.Counterparty, &models.ComplianceAuditLog{}); err != nil {
+		if err = o.packet.DB.AddCounterparty(o.packet.Counterparty, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Outgoing.UpdateTransaction()"},
+		}); err != nil {
 			return fmt.Errorf("could not associate counterparty with transaction: %w", err)
 		}
 
@@ -161,8 +162,9 @@ func (o *Outgoing) UpdateTransaction() (err error) {
 	}
 
 	// Update the transaction in the database
-	//FIXME: COMPLETE AUDIT LOG
-	if err = o.packet.DB.Update(o.packet.Transaction, &models.ComplianceAuditLog{}); err != nil {
+	if err = o.packet.DB.Update(o.packet.Transaction, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Outgoing.UpdateTransaction()"},
+	}); err != nil {
 		return fmt.Errorf("could not update transaction in database: %w", err)
 	}
 

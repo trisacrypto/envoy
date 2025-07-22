@@ -24,4 +24,5 @@ var (
 	ErrMissingTimestamp   = errors.New("missing a timestamp for resource")
 	ErrNullString         = errors.New("cannot apply string method to a null value")
 	ErrMissingValue       = errors.New("missing a required record value")
+	ErrMissingActor       = errors.New("missing actor metadata")
 )

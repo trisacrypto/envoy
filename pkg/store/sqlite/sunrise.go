@@ -367,7 +367,7 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models
 		out.SetContacts([]*models.Contact{contact})
 
 		if err = t.CreateCounterparty(out, &models.ComplianceAuditLog{
-			ChangeNotes: sql.NullString{Valid: true, String: "GetOrCreateSunriseCounterparty"},
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.GetOrCreateSunriseCounterparty()"},
 		}); err != nil {
 			return nil, err
 		}
@@ -381,7 +381,7 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models
 		if exists, _ := out.HasContact(contact.Email); !exists {
 			contact.CounterpartyID = out.ID
 			if err = t.CreateContact(contact, &models.ComplianceAuditLog{
-				ChangeNotes: sql.NullString{Valid: true, String: "GetOrCreateSunriseCounterparty"},
+				ChangeNotes: sql.NullString{Valid: true, String: "Tx.GetOrCreateSunriseCounterparty()"},
 			}); err != nil {
 				return nil, err
 			}

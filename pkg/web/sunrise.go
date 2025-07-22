@@ -174,8 +174,9 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 
 		// Update the sunrise record in the database with the token and sent on timestamp
 		model.SentOn = sql.NullTime{Valid: true, Time: time.Now()}
-		//FIXME: COMPLETE AUDIT LOG
-		if err = s.store.UpdateSunrise(c.Request.Context(), model, &models.ComplianceAuditLog{}); err != nil {
+		if err = s.store.UpdateSunrise(c.Request.Context(), model, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Server.VerifySunriseUser()"},
+		}); err != nil {
 			c.Error(err)
 			s.SunriseError(c, ErrSunrise)
 			return
@@ -198,8 +199,9 @@ func (s *Server) VerifySunriseUser(c *gin.Context) {
 
 		// Mark the sunrise record as verified (similar to last accessed)
 		model.VerifiedOn = sql.NullTime{Time: time.Now(), Valid: true}
-		//FIXME: COMPLETE AUDIT LOG
-		if err = s.store.UpdateSunrise(ctx, model, &models.ComplianceAuditLog{}); err != nil {
+		if err = s.store.UpdateSunrise(ctx, model, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Server.VerifySunriseUser()"},
+		}); err != nil {
 			c.Error(err)
 			s.SunriseError(c, ErrSunriseRetrieve)
 			return
@@ -376,8 +378,9 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to create secure envelopes
-	//FIXME: COMPLETE AUDIT LOG
-	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{}); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SunriseMessageReject()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
 		return
@@ -498,8 +501,9 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to create secure envelopes
-	//FIXME: COMPLETE AUDIT LOG
-	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{}); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SunriseMessageAccept()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
 		return

@@ -18,7 +18,6 @@ import (
 
 // Setup a mock PreparedTransaction for tests.
 func setupPreparedTransaction(store *mock.Store) *mock.PreparedTransaction {
-	//FIXME: COMPLETE AUDIT LOG
 	if p, err := store.PrepareTransaction(context.Background(), uuid.UUID{}, &models.ComplianceAuditLog{}); err != nil {
 		panic("Error when setting up the mock PreparedTransaction")
 	} else {

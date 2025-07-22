@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,8 +42,9 @@ func (s *Server) Send(c *gin.Context, routing *api.Routing, payload *trisa.Paylo
 	}
 
 	// Create the transaction in the database
-	//FIXME: COMPLETE AUDIT LOG
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{}); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Send()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
 		return nil, err
@@ -147,15 +149,17 @@ func (s *Server) SendPacket(ctx context.Context, protocol enum.Protocol, packet 
 		return nil, fmt.Errorf("could not fetch storage key: %w", err)
 	}
 
-	//FIXME: COMPLETE AUDIT LOG
-	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendPacket()"},
+	}); err != nil {
 		return nil, fmt.Errorf("could not store outgoing envelope: %w", err)
 	}
 
 	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
 	// sent during the key exchange process of the transfer).
-	//FIXME: COMPLETE AUDIT LOG
-	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{}); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendPacket()"},
+	}); err != nil {
 		return nil, fmt.Errorf("could not store incoming message: %w", err)
 	}
 

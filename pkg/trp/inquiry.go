@@ -1,6 +1,7 @@
 package trp
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strings"
@@ -60,8 +61,9 @@ func (s *Server) Inquiry(c *gin.Context) {
 	}
 
 	packet.Log = log
-	//FIXME: COMPLETE AUDIT LOG
-	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), packet.EnvelopeID(), &models.ComplianceAuditLog{}); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), packet.EnvelopeID(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -120,16 +122,18 @@ func (s *Server) Inquiry(c *gin.Context) {
 	}
 
 	// Store Incoming Message
-	//FIXME: COMPLETE AUDIT LOG
-	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{}); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store incoming trp inquiry in database")
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Store Outgoing message
-	//FIXME: COMPLETE AUDIT LOG
-	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{}); err != nil {
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing trp inquiry in database")
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

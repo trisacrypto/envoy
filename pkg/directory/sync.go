@@ -171,8 +171,9 @@ func (s *Sync) Sync() (err error) {
 		vasp.SetContacts(nil)
 
 		if update {
-			//FIXME: COMPLETE AUDIT LOG
-			if err = tx.UpdateCounterparty(vasp, &models.ComplianceAuditLog{}); err != nil {
+			if err = tx.UpdateCounterparty(vasp, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
+			}); err != nil {
 				// TODO: handle database specific errors including constraint violations
 				log.Warn().Err(err).Str("id", vasp.ID.String()).Str("vaspID", member.Id).Msg("could not update vasp member counterparty")
 			} else {
@@ -182,8 +183,9 @@ func (s *Sync) Sync() (err error) {
 			// TODO: update contacts for the counterparty
 
 		} else {
-			//FIXME: COMPLETE AUDIT LOG
-			if err = tx.CreateCounterparty(vasp, &models.ComplianceAuditLog{}); err != nil {
+			if err = tx.CreateCounterparty(vasp, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
+			}); err != nil {
 				// TODO: handle database specific errors including constraint violations
 				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
 			} else {
@@ -193,8 +195,9 @@ func (s *Sync) Sync() (err error) {
 			// Create the contacts for the counterparty
 			for _, contact := range contacts {
 				contact.CounterpartyID = vasp.ID
-				//FIXME: COMPLETE AUDIT LOG
-				if err = tx.CreateContact(contact, &models.ComplianceAuditLog{}); err != nil {
+				if err = tx.CreateContact(contact, &models.ComplianceAuditLog{
+					ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
+				}); err != nil {
 					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create contact for vasp member counterparty")
 				}
 			}
@@ -232,8 +235,9 @@ func (s *Sync) Sync() (err error) {
 		// If a local ID has not been created or updated then it is no longer in the
 		// GDS and should be removed from the local database.
 		if _, ok := upserts[cpID]; !ok {
-			//FIXME: COMPLETE AUDIT LOG
-			if err = s.store.DeleteCounterparty(context.Background(), cpID, &models.ComplianceAuditLog{}); err != nil {
+			if err = s.store.DeleteCounterparty(context.Background(), cpID, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
+			}); err != nil {
 				log.Warn().Err(err).Str("id", cpID.String()).Msg("could not delete counterparty")
 			} else {
 				deleted++

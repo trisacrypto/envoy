@@ -152,7 +152,7 @@ func (t *Tx) CreateCounterparty(counterparty *models.Counterparty, auditLog *mod
 	for _, contact := range contacts {
 		contact.CounterpartyID = counterparty.ID
 		if err = t.CreateContact(contact, &models.ComplianceAuditLog{
-			ChangeNotes: sql.NullString{Valid: true, String: "CreateCounterparty"},
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.CreateCounterparty()"},
 		}); err != nil {
 			return fmt.Errorf("could not create contact for counterparty: %w", err)
 		}

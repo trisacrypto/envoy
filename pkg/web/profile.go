@@ -103,8 +103,9 @@ func (s *Server) UpdateProfile(c *gin.Context) {
 	user.Name = sql.NullString{String: in.Name, Valid: in.Name != ""}
 	user.Email = in.Email
 
-	//FIXME: COMPLETE AUDIT LOG
-	if err = s.store.UpdateUser(c.Request.Context(), user, &models.ComplianceAuditLog{}); err != nil {
+	if err = s.store.UpdateUser(c.Request.Context(), user, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.UpdateProfile()"},
+	}); err != nil {
 		// TODO: handle email unique constraint violation.
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to update user profile"))
@@ -145,8 +146,9 @@ func (s *Server) DeleteProfile(c *gin.Context) {
 
 	// Delete the user from the database
 	// TODO: for audit purposes we may simply want to move the user to a revoked table.
-	//FIXME: COMPLETE AUDIT LOG
-	if err = s.store.DeleteUser(c.Request.Context(), userID, &models.ComplianceAuditLog{}); err != nil {
+	if err = s.store.DeleteUser(c.Request.Context(), userID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.DeleteProfile()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not delete user profile"))
 		return

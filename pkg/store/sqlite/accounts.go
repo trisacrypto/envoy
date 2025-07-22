@@ -114,7 +114,7 @@ func (t *Tx) CreateAccount(account *models.Account, auditLog *models.ComplianceA
 		// Ensure the crypto address is associated with the new account
 		addr.AccountID = account.ID
 		if err = t.CreateCryptoAddress(addr, &models.ComplianceAuditLog{
-			ChangeNotes: sql.NullString{Valid: true, String: "CreateAccount"},
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.CreateAccount()"},
 		}); err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func (t *Tx) CreateAccount(account *models.Account, auditLog *models.ComplianceA
 		ActorType:        actorType,
 		ResourceID:       account.ID.Bytes(),
 		ResourceType:     enum.ResourceAccount,
-		ResourceModified: time.Now(),
+		ResourceModified: account.Modified,
 		Action:           enum.ActionCreate,
 		ChangeNotes:      auditLog.ChangeNotes,
 	}); err != nil {
@@ -257,7 +257,7 @@ func (t *Tx) UpdateAccount(account *models.Account, auditLog *models.ComplianceA
 		ActorType:        actorType,
 		ResourceID:       account.ID.Bytes(),
 		ResourceType:     enum.ResourceAccount,
-		ResourceModified: time.Now(),
+		ResourceModified: account.Modified,
 		Action:           enum.ActionUpdate,
 		ChangeNotes:      auditLog.ChangeNotes,
 	}); err != nil {
