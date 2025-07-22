@@ -692,6 +692,10 @@ func daybreakRetire(c *cli.Context) (err error) {
 	// the function name as the ActorID.
 	ctx = audit.WithActor(ctx, []byte("daybreakRetire"), enum.ActorCLI)
 
+	// Load the keychain
+	// FIXME: load the keychain for audit log signing
+	// TODO: use audit.UseKeyChain()
+
 	// Get all Daybreak Counterparties
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
