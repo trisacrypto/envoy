@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
+	"github.com/trisacrypto/trisa/pkg/trust"
 )
 
 // The KeyChain user interface is used to manage sealing and unsealing keys both for the
@@ -67,4 +68,31 @@ type KeyOptions struct {
 	// no keys are available that aren't expired, errors will be returned during key
 	// exchanges. If this field is empty then the key will never expire.
 	ExpiresOn time.Time `json:"expires_on"`
+}
+
+// Defines the interface for the mTLS config and key loading.
+type CertConfig interface {
+	LoadCerts() (_ *trust.Provider, err error)
+	LoadPool() (_ trust.ProviderPool, err error)
+}
+
+func Load(conf CertConfig, opts ...CacheOption) (_ KeyChain, err error) {
+	// TODO: use policies to create different kinds of keychains.
+	// TODO: allow configuration of different underlying key stores.
+	// For now, the network creates a default key chain with in memory key stores and
+	// uses the identity certificate as the default sealing key until multi-key
+	// management is enabled both by configuration and the TRISA working group.
+	var provider *trust.Provider
+	if provider, err = conf.LoadCerts(); err != nil {
+		return nil, err
+	}
+
+	var localKey keys.Key
+	if localKey, err = keys.FromProvider(provider); err != nil {
+		return nil, err
+	}
+
+	options := []CacheOption{WithDefaultKey(localKey)}
+	options = append(options, opts...)
+	return New(options...)
 }
