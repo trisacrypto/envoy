@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -105,7 +106,9 @@ func (s *Server) CreateAccount(c *gin.Context) {
 
 	// Create the model in the database (which will update the pointer)
 	// NOTE: creating the account will also create an associated travel address
-	if err = s.store.CreateAccount(c.Request.Context(), account); err != nil {
+	if err = s.store.CreateAccount(c.Request.Context(), account, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CreateAccount()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrAlreadyExists) {
 			c.JSON(http.StatusConflict, api.Error("account or crypto address already exists"))
 			return
@@ -311,7 +314,9 @@ func (s *Server) UpdateAccount(c *gin.Context) {
 	}
 
 	// Update the model in the database (which will update the pointer).
-	if err = s.store.UpdateAccount(c.Request.Context(), account); err != nil {
+	if err = s.store.UpdateAccount(c.Request.Context(), account, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.UpdateAccount()"},
+	}); err != nil {
 		switch {
 		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
@@ -354,7 +359,9 @@ func (s *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	// Delete the account from the database
-	if err = s.store.DeleteAccount(c.Request.Context(), accountID); err != nil {
+	if err = s.store.DeleteAccount(c.Request.Context(), accountID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.DeleteAccount()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("account not found"))
 			return
@@ -566,7 +573,9 @@ func (s *Server) CreateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Create the model in the database
-	if err = s.store.CreateCryptoAddress(c.Request.Context(), model); err != nil {
+	if err = s.store.CreateCryptoAddress(c.Request.Context(), model, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CreateCryptoAddress()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrAlreadyExists) {
 			c.JSON(http.StatusConflict, api.Error("crypto address already exists"))
 			return
@@ -695,7 +704,9 @@ func (s *Server) UpdateCryptoAddress(c *gin.Context) {
 	model.AccountID = accountID
 
 	// Update the model in the database (which will update the pointer).
-	if err = s.store.UpdateCryptoAddress(c.Request.Context(), model); err != nil {
+	if err = s.store.UpdateCryptoAddress(c.Request.Context(), model, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.UpdateCryptoAddress()"},
+	}); err != nil {
 		switch {
 		case errors.Is(err, dberr.ErrNotFound):
 			c.JSON(http.StatusNotFound, api.Error("crypto address or account not found"))
@@ -745,7 +756,9 @@ func (s *Server) DeleteCryptoAddress(c *gin.Context) {
 	}
 
 	// Delete the crypto address from the database
-	if err = s.store.DeleteCryptoAddress(c.Request.Context(), accountID, cryptoAddressID); err != nil {
+	if err = s.store.DeleteCryptoAddress(c.Request.Context(), accountID, cryptoAddressID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.DeleteCryptoAddress()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, "crypto_address or account not found")
 			return

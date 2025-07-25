@@ -1,6 +1,7 @@
 package trp
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/trisa/pkg/openvasp"
 	"github.com/trisacrypto/trisa/pkg/openvasp/trp/v3"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
@@ -59,7 +61,9 @@ func (s *Server) Inquiry(c *gin.Context) {
 	}
 
 	packet.Log = log
-	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), packet.EnvelopeID()); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(c.Request.Context(), packet.EnvelopeID(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -118,14 +122,18 @@ func (s *Server) Inquiry(c *gin.Context) {
 	}
 
 	// Store Incoming Message
-	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store incoming trp inquiry in database")
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Store Outgoing message
-	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Inquiry()"},
+	}); err != nil {
 		log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing trp inquiry in database")
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

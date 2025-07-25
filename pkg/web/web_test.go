@@ -19,6 +19,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"go.rtnl.ai/ulid"
 )
 
 func TestServerEnabled(t *testing.T) {
@@ -386,7 +387,8 @@ func (w *webTestSuite) ClientWithPermissions(permissions []string) api.Client {
 		ClientID:    "webTestSuite",
 		Permissions: permissions,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject: "webTestSuite",
+			// API key subject; will be the actor metadata for audit logging
+			Subject: "k" + ulid.MakeSecure().String(),
 		},
 	})
 	if err != nil {

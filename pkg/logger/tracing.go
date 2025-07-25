@@ -7,12 +7,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type contextKey uint8
-
-const (
-	KeyUnknown contextKey = iota
-	KeyRequestID
-)
+// ###########################################################################
+// Tracing context.Context tools
+// ###########################################################################
 
 func Tracing(ctx context.Context) zerolog.Logger {
 	requestID, _ := RequestID(ctx)
@@ -27,6 +24,17 @@ func RequestID(ctx context.Context) (string, bool) {
 	requestID, ok := ctx.Value(KeyRequestID).(string)
 	return requestID, ok
 }
+
+// ###########################################################################
+// Context keys for tracing
+// ###########################################################################
+
+type contextKey uint8
+
+const (
+	KeyUnknown contextKey = iota
+	KeyRequestID
+)
 
 var contextKeyNames = []string{"unknown", "requestID"}
 

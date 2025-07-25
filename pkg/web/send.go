@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	api "github.com/trisacrypto/envoy/pkg/web/api/v1"
 
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
@@ -40,7 +42,9 @@ func (s *Server) Send(c *gin.Context, routing *api.Routing, payload *trisa.Paylo
 	}
 
 	// Create the transaction in the database
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Send()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process send prepared transaction request"))
 		return nil, err
@@ -145,13 +149,17 @@ func (s *Server) SendPacket(ctx context.Context, protocol enum.Protocol, packet 
 		return nil, fmt.Errorf("could not fetch storage key: %w", err)
 	}
 
-	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendPacket()"},
+	}); err != nil {
 		return nil, fmt.Errorf("could not store outgoing envelope: %w", err)
 	}
 
 	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
 	// sent during the key exchange process of the transfer).
-	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendPacket()"},
+	}); err != nil {
 		return nil, fmt.Errorf("could not store incoming message: %w", err)
 	}
 

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -99,7 +100,9 @@ func (s *Server) CreateAPIKey(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.CreateAPIKey(c.Request.Context(), apikey); err != nil {
+	if err = s.store.CreateAPIKey(c.Request.Context(), apikey, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CreateAPIKey()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process create apikey request"))
 		return
@@ -257,7 +260,9 @@ func (s *Server) UpdateAPIKey(c *gin.Context) {
 	}
 
 	// Update the APIKey in the database
-	if err = s.store.UpdateAPIKey(c.Request.Context(), apikey); err != nil {
+	if err = s.store.UpdateAPIKey(c.Request.Context(), apikey, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.UpdateAPIKey()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("apikey not found"))
 			return
@@ -298,7 +303,9 @@ func (s *Server) DeleteAPIKey(c *gin.Context) {
 
 	// Delete the API key from the database
 	// TODO: for audit purposes we may simply want to move the API key to a revoked table.
-	if err = s.store.DeleteAPIKey(c.Request.Context(), keyID); err != nil {
+	if err = s.store.DeleteAPIKey(c.Request.Context(), keyID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.DeleteAPIKey()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("apikey not found"))
 			return

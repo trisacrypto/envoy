@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -88,21 +89,21 @@ const (
 	defaultRoleSQL = "SELECT id FROM roles WHERE is_default='t' LIMIT 1"
 )
 
-func (s *Store) CreateUser(ctx context.Context, user *models.User) (err error) {
+func (s *Store) CreateUser(ctx context.Context, user *models.User, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateUser(user); err != nil {
+	if err = tx.CreateUser(user, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateUser(user *models.User) (err error) {
+func (t *Tx) CreateUser(user *models.User, auditLog *models.ComplianceAuditLog) (err error) {
 	if !user.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -120,6 +121,20 @@ func (t *Tx) CreateUser(user *models.User) (err error) {
 
 	if _, err = t.tx.Exec(createUserSQL, user.Params()...); err != nil {
 		return dbe(err)
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       user.ID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: user.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -191,21 +206,21 @@ const (
 	updateUserSQL = "UPDATE users SET name=:name, email=:email, role_id=:roleID, modified=:modified WHERE id=:id"
 )
 
-func (s *Store) UpdateUser(ctx context.Context, user *models.User) (err error) {
+func (s *Store) UpdateUser(ctx context.Context, user *models.User, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateUser(user); err != nil {
+	if err = tx.UpdateUser(user, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateUser(user *models.User) (err error) {
+func (t *Tx) UpdateUser(user *models.User, auditLog *models.ComplianceAuditLog) (err error) {
 	user.Modified = time.Now()
 
 	var result sql.Result
@@ -215,12 +230,27 @@ func (t *Tx) UpdateUser(user *models.User) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       user.ID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: user.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const setUserPasswordSQL = "UPDATE users SET password=:password, modified=:modified WHERE id=:id"
 
 func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password string) (err error) {
+	//NOTE: this type of update does not require an audit log entry
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -235,6 +265,7 @@ func (s *Store) SetUserPassword(ctx context.Context, userID ulid.ULID, password 
 }
 
 func (t *Tx) SetUserPassword(userID ulid.ULID, password string) (err error) {
+	//NOTE: this type of update does not require an audit log entry
 	params := []any{
 		sql.Named("password", password),
 		sql.Named("modified", time.Now()),
@@ -254,6 +285,7 @@ func (t *Tx) SetUserPassword(userID ulid.ULID, password string) (err error) {
 const setUserLastLoginSQL = "UPDATE users SET last_login=:lastLogin, modified=:modified WHERE id=:id"
 
 func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
+	//NOTE: this type of update does not require an audit log entry
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -268,6 +300,7 @@ func (s *Store) SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogi
 }
 
 func (t *Tx) SetUserLastLogin(userID ulid.ULID, lastLogin time.Time) (err error) {
+	//NOTE: this type of update does not require an audit log entry
 	params := []any{
 		sql.Named("id", userID),
 		sql.Named("lastLogin", sql.NullTime{Time: lastLogin, Valid: !lastLogin.IsZero()}),
@@ -286,27 +319,42 @@ func (t *Tx) SetUserLastLogin(userID ulid.ULID, lastLogin time.Time) (err error)
 
 const deleteUserSQL = "DELETE FROM users WHERE id=:id"
 
-func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID) (err error) {
+func (s *Store) DeleteUser(ctx context.Context, userID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteUser(userID); err != nil {
+	if err = tx.DeleteUser(userID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteUser(userID ulid.ULID) (err error) {
+func (t *Tx) DeleteUser(userID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteUserSQL, sql.Named("id", userID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       userID.Bytes(),
+		ResourceType:     enum.ResourceUser,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -446,21 +494,21 @@ const (
 	createKeyPermSQL = "INSERT INTO api_key_permissions (api_key_id, permission_id, created, modified) VALUES (:keyID, (SELECT id FROM permissions WHERE title=:permission), :created, :modified)"
 )
 
-func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
+func (s *Store) CreateAPIKey(ctx context.Context, key *models.APIKey, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateAPIKey(key); err != nil {
+	if err = tx.CreateAPIKey(key, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateAPIKey(key *models.APIKey) (err error) {
+func (t *Tx) CreateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLog) (err error) {
 	if !key.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -486,6 +534,20 @@ func (t *Tx) CreateAPIKey(key *models.APIKey) (err error) {
 		if _, err = t.tx.Exec(createKeyPermSQL, params...); err != nil {
 			return dbe(err)
 		}
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       key.ID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: key.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -550,14 +612,14 @@ func (t *Tx) RetrieveAPIKey(clientIDOrKeyID any) (key *models.APIKey, err error)
 const updateKeySQL = "UPDATE api_keys SET description=:description, last_seen=:lastSeen, modified=:modified WHERE id=:id"
 
 // NOTE: the only thing that can be updated on an api key right now is last_seen
-func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey) (err error) {
+func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateAPIKey(key); err != nil {
+	if err = tx.UpdateAPIKey(key, auditLog); err != nil {
 		return err
 	}
 
@@ -565,7 +627,7 @@ func (s *Store) UpdateAPIKey(ctx context.Context, key *models.APIKey) (err error
 }
 
 // NOTE: the only thing that can be updated on an api key right now is last_seen
-func (t *Tx) UpdateAPIKey(key *models.APIKey) (err error) {
+func (t *Tx) UpdateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLog) (err error) {
 	key.Modified = time.Now()
 	var result sql.Result
 	if result, err = t.tx.Exec(updateKeySQL, key.Params()...); err != nil {
@@ -573,32 +635,62 @@ func (t *Tx) UpdateAPIKey(key *models.APIKey) (err error) {
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       key.ID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: key.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const deleteKeySQL = "DELETE FROM api_keys WHERE id=:id"
 
-func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) (err error) {
+func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteAPIKey(keyID); err != nil {
+	if err = tx.DeleteAPIKey(keyID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteAPIKey(keyID ulid.ULID) (err error) {
+func (t *Tx) DeleteAPIKey(keyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteKeySQL, sql.Named("id", keyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       keyID.Bytes(),
+		ResourceType:     enum.ResourceAPIKey,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -679,6 +771,7 @@ const (
 // is an existing link for the user and if so, it will return ErrTooSoon if that link
 // is not expired. If the link is expired, it will be deleted and a new one created.
 func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -696,6 +789,7 @@ func (s *Store) CreateResetPasswordLink(ctx context.Context, link *models.ResetP
 // is an existing link for the user and if so, it will return ErrTooSoon if that link
 // is not expired. If the link is expired, it will be deleted and a new one created.
 func (t *Tx) CreateResetPasswordLink(link *models.ResetPasswordLink) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	if !link.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -764,6 +858,7 @@ const updateResetPasswordLinkSQL = "UPDATE reset_password_link SET signature=:si
 // Update a ResetPasswordLink record. Only updates the Signature, SentOn,
 // VerifiedOn, and Modified fields.
 func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetPasswordLink) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -784,6 +879,7 @@ func (s *Store) UpdateResetPasswordLink(ctx context.Context, link *models.ResetP
 // Update a ResetPasswordLink record. Only updates the Signature, SentOn,
 // VerifiedOn, and Modified fields.
 func (t *Tx) UpdateResetPasswordLink(link *models.ResetPasswordLink) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	link.Modified = time.Now()
 
 	var result sql.Result
@@ -799,6 +895,7 @@ func (t *Tx) UpdateResetPasswordLink(link *models.ResetPasswordLink) (err error)
 const deleteResetPasswordLinkSQL = "DELETE FROM reset_password_link WHERE id=:id"
 
 func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
@@ -813,6 +910,7 @@ func (s *Store) DeleteResetPasswordLink(ctx context.Context, linkID ulid.ULID) (
 }
 
 func (t *Tx) DeleteResetPasswordLink(linkID ulid.ULID) (err error) {
+	//NOTE: ResetPasswordLinks do not require audit logging
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteResetPasswordLinkSQL, sql.Named("id", linkID)); err != nil {
 		return dbe(err)

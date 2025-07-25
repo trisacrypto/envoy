@@ -85,7 +85,7 @@ func TestTxnReset(t *testing.T) {
 	// setup
 	store := setupStore()
 	tx := setupTxn(store, nil)
-	tx.OnCommit(func() error { return errors.ErrInternal })
+	tx.OnCommit = func() error { return errors.ErrInternal }
 
 	// test
 	// 1: this is to ensure a callback is set and working before reset
@@ -162,7 +162,7 @@ func TestTxnCommit(t *testing.T) {
 		tx := setupTxn(store, nil)
 
 		// test
-		tx.OnCommit(func() error { return errors.ErrInternal })
+		tx.OnCommit = func() error { return errors.ErrInternal }
 		err := tx.Commit()
 		require.Error(t, err, "No error returned when calling Commit with an error callback")
 		require.Equal(t, errors.ErrInternal, err, "Expected an ErrInternal")
@@ -216,7 +216,7 @@ func TestTxnRollback(t *testing.T) {
 		tx := setupTxn(store, nil)
 
 		// test
-		tx.OnRollback(func() error { return errors.ErrInternal })
+		tx.OnRollback = func() error { return errors.ErrInternal }
 		err := tx.Rollback()
 		require.Error(t, err, "No error returned when calling Rollback with an error callback")
 		require.Equal(t, errors.ErrInternal, err, "Expected an ErrInternal")

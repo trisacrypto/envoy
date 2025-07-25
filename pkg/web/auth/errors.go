@@ -21,4 +21,5 @@ var (
 	ErrNoAuthorization   = errors.New("no authorization header or cookies in request")
 	ErrNoRefreshToken    = errors.New("cannot reauthenticate no refresh token in request")
 	ErrNotAccepted       = errors.New("the accepted formats are not offered by the server")
+	ErrNoSubject         = errors.New("no subject found on the request context claims")
 )

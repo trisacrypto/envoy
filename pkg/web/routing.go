@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -107,7 +108,9 @@ func (s *Server) ResolveCounterparty(c *gin.Context, in *api.Routing) (vasp *mod
 
 		case enum.ProtocolSunrise:
 			// Get or create the counterparty for the associated email address and/or name
-			if vasp, err = s.store.GetOrCreateSunriseCounterparty(ctx, in.EmailAddress, in.Counterparty); err != nil {
+			if vasp, err = s.store.GetOrCreateSunriseCounterparty(ctx, in.EmailAddress, in.Counterparty, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "Server.ResolveCounterparty()"},
+			}); err != nil {
 				c.Error(err)
 				c.JSON(http.StatusConflict, api.Error("could not find or create a counterparty with the specified name and/or email address"))
 				return nil, err

@@ -129,7 +129,9 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	// Otherwise make sure it's the same counterparty or return an error.
 	// TODO: Make sure it's the same counterparty or return an error
 	if i.packet.DB.Created() && i.packet.request == enum.DirectionIncoming {
-		if err = i.packet.DB.AddCounterparty(i.packet.Counterparty); err != nil {
+		if err = i.packet.DB.AddCounterparty(i.packet.Counterparty, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Incoming.UpdateTransaction()"},
+		}); err != nil {
 			return fmt.Errorf("could not associate counterparty with transaction: %w", err)
 		}
 
@@ -145,7 +147,9 @@ func (i *Incoming) UpdateTransaction() (err error) {
 	}
 
 	// Update the transaction in the database
-	if err = i.packet.DB.Update(i.packet.Transaction); err != nil {
+	if err = i.packet.DB.Update(i.packet.Transaction, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Incoming.UpdateTransaction()"},
+	}); err != nil {
 		return fmt.Errorf("could not update transaction in database: %w", err)
 	}
 

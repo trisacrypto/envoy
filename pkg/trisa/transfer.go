@@ -2,6 +2,7 @@ package trisa
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/postman"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/peers"
 	"github.com/trisacrypto/envoy/pkg/webhook"
 
@@ -184,7 +186,9 @@ func (s *Server) Handle(ctx context.Context, p *postman.TRISAPacket) (err error)
 	}
 
 	// Create the prepared transaction to handle envelope storage
-	if p.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if p.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Handle()"},
+	}); err != nil {
 		p.Log.Warn().Err(err).Bool("stored_to_database", false).Msg("could not prepare transaction for database storage")
 		return internalError
 	}
@@ -219,13 +223,17 @@ func (s *Server) Handle(ctx context.Context, p *postman.TRISAPacket) (err error)
 	}
 
 	// Store Incoming Message
-	if err = p.DB.AddEnvelope(p.In.Model()); err != nil {
+	if err = p.DB.AddEnvelope(p.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Handle()"},
+	}); err != nil {
 		p.Log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store incoming trisa envelope in database")
 		return internalError
 	}
 
 	// Store Outgoing message
-	if err = p.DB.AddEnvelope(p.Out.Model()); err != nil {
+	if err = p.DB.AddEnvelope(p.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Handle()"},
+	}); err != nil {
 		p.Log.Error().Err(err).Bool("stored_to_database", false).Msg("could not store outgoing trisa envelope in database")
 		return internalError
 	}
@@ -292,7 +300,9 @@ func (s *Server) HandleSealed(ctx context.Context, p *postman.TRISAPacket) (err 
 	}
 
 	// Update transaction with decrypted details if available
-	if err = p.DB.Update(postman.TransactionFromPayload(payload)); err != nil {
+	if err = p.DB.Update(postman.TransactionFromPayload(payload), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.HandleSealed()"},
+	}); err != nil {
 		p.Log.Error().Err(err).Msg("could not update transaction in database with decrypted details")
 		return internalError
 	}

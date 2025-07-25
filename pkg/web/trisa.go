@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -33,13 +34,17 @@ func (s *Server) SendEnvelope(ctx context.Context, packet *postman.TRISAPacket) 
 		return fmt.Errorf("could not fetch storage key: %w", err)
 	}
 
-	if err = packet.DB.AddEnvelope(packet.Out.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.Out.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendEnvelope()"},
+	}); err != nil {
 		return fmt.Errorf("could not store outgoing envelope: %w", err)
 	}
 
 	// Step 3: Save incoming envelope to the database (should be encrypted with keys we
 	// sent during the key exchange process of the transfer).
-	if err = packet.DB.AddEnvelope(packet.In.Model()); err != nil {
+	if err = packet.DB.AddEnvelope(packet.In.Model(), &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendEnvelope()"},
+	}); err != nil {
 		return fmt.Errorf("could not store incoming message: %w", err)
 	}
 

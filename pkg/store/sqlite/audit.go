@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
@@ -37,8 +38,8 @@ func (s *Store) CreateComplianceAuditLog(ctx context.Context, log *models.Compli
 	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: false}); err != nil {
 		return err
 	}
-	defer tx.Rollback()
 
+	defer tx.Rollback()
 	if err = tx.CreateComplianceAuditLog(log); err != nil {
 		return err
 	}
@@ -160,13 +161,9 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :changeNotes, :signature, :keyId, :algorithm)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
-	// Ensure the log has a ResourceModified timestamp
-	// NOTE: this is different from most 'create' functions because we want the
-	// modified time for the resource being modified to equal the timestamp, so
-	// it should already be populated in the log because the log will be created
-	// after the resource.
-	if log.ResourceModified.IsZero() {
-		return dberr.ErrMissingTimestamp
+	// Ensure the log is filled with all of the required values
+	if err = log.IsFilled(); err != nil {
+		return err
 	}
 
 	// Complete the log with an ID, ensuring one wasn't set already
@@ -175,11 +172,12 @@ func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error
 	}
 	log.ID = ulid.MakeSecure()
 
-	// Sign the log now that it is complete with an ID
-	if err := log.Sign(); err != nil {
-		return dberr.ErrInternal
+	// Sign the log now that it is complete
+	if err = audit.Sign(log); err != nil {
+		return err
 	}
 
+	// Insert it
 	if _, err = t.tx.Exec(createComplianceAuditLogsSQL, log.Params()...); err != nil {
 		return dbe(err)
 	}

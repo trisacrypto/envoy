@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 
@@ -67,14 +68,14 @@ func (t *Tx) ListAccounts(page *models.PageInfo) (out *models.AccountsPage, err 
 const createAccountSQL = "INSERT INTO accounts (id, customer_id, first_name, last_name, travel_address, ivms101, created, modified) VALUES (:id, :customerID, :firstName, :lastName, :travelAddress, :ivms101, :created, :modified)"
 
 // Create an account and any crypto addresses associated with the account.
-func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err error) {
+func (s *Store) CreateAccount(ctx context.Context, account *models.Account, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateAccount(account); err != nil {
+	if err = tx.CreateAccount(account, auditLog); err != nil {
 		return err
 	}
 
@@ -82,7 +83,7 @@ func (s *Store) CreateAccount(ctx context.Context, account *models.Account) (err
 }
 
 // Create an account and any crypto addresses associated with the account.
-func (t *Tx) CreateAccount(account *models.Account) (err error) {
+func (t *Tx) CreateAccount(account *models.Account, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if !account.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
@@ -112,9 +113,25 @@ func (t *Tx) CreateAccount(account *models.Account) (err error) {
 	for _, addr := range addresses {
 		// Ensure the crypto address is associated with the new account
 		addr.AccountID = account.ID
-		if err = t.CreateCryptoAddress(addr); err != nil {
+		if err = t.CreateCryptoAddress(addr, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.CreateAccount()"},
+		}); err != nil {
 			return err
 		}
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       account.ID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: account.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -192,14 +209,14 @@ func (t *Tx) RetrieveAccount(accountID ulid.ULID) (account *models.Account, err 
 const updateAccountSQL = "UPDATE accounts SET customer_id=:customerID, first_name=:firstName, last_name=:lastName, travel_address=:travelAddress, ivms101=:ivms101, modified=:modified WHERE id=:id"
 
 // Update account information; ignores any associated crypto addresses.
-func (s *Store) UpdateAccount(ctx context.Context, account *models.Account) (err error) {
+func (s *Store) UpdateAccount(ctx context.Context, account *models.Account, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateAccount(account); err != nil {
+	if err = tx.UpdateAccount(account, auditLog); err != nil {
 		return err
 	}
 
@@ -207,7 +224,7 @@ func (s *Store) UpdateAccount(ctx context.Context, account *models.Account) (err
 }
 
 // Update account information; ignores any associated crypto addresses.
-func (t *Tx) UpdateAccount(account *models.Account) (err error) {
+func (t *Tx) UpdateAccount(account *models.Account, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if account.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -233,20 +250,34 @@ func (t *Tx) UpdateAccount(account *models.Account) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       account.ID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: account.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const deleteAccountSQL = "DELETE FROM accounts WHERE id=:id"
 
 // Delete account and all associated crypto addresses
-func (s *Store) DeleteAccount(ctx context.Context, accountID ulid.ULID) (err error) {
+func (s *Store) DeleteAccount(ctx context.Context, accountID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteAccount(accountID); err != nil {
+	if err = tx.DeleteAccount(accountID, auditLog); err != nil {
 		return err
 	}
 
@@ -254,7 +285,7 @@ func (s *Store) DeleteAccount(ctx context.Context, accountID ulid.ULID) (err err
 }
 
 // Delete account and all associated crypto addresses
-func (t *Tx) DeleteAccount(accountID ulid.ULID) (err error) {
+func (t *Tx) DeleteAccount(accountID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteAccountSQL, sql.Named("id", accountID)); err != nil {
 		return dbe(err)
@@ -263,6 +294,21 @@ func (t *Tx) DeleteAccount(accountID ulid.ULID) (err error) {
 	if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       accountID.Bytes(),
+		ResourceType:     enum.ResourceAccount,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -436,21 +482,21 @@ func (t *Tx) listCryptoAddressesForAccount(account *models.Account) (err error) 
 
 const createCryptoAddressSQL = "INSERT INTO crypto_addresses (id, account_id, crypto_address, network, asset_type, tag, travel_address, created, modified) VALUES (:id, :accountID, :cryptoAddress, :network, :assetType, :tag, :travelAddress, :created, :modified)"
 
-func (s *Store) CreateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
+func (s *Store) CreateCryptoAddress(ctx context.Context, addr *models.CryptoAddress, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateCryptoAddress(addr); err != nil {
+	if err = tx.CreateCryptoAddress(addr, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateCryptoAddress(addr *models.CryptoAddress) (err error) {
+func (t *Tx) CreateCryptoAddress(addr *models.CryptoAddress, auditLog *models.ComplianceAuditLog) (err error) {
 	if !addr.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -476,6 +522,21 @@ func (t *Tx) CreateCryptoAddress(addr *models.CryptoAddress) (err error) {
 	if _, err = t.tx.Exec(createCryptoAddressSQL, addr.Params()...); err != nil {
 		return dbe(err)
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       addr.ID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: addr.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -511,21 +572,21 @@ func (t *Tx) RetrieveCryptoAddress(accountID, cryptoAddressID ulid.ULID) (addr *
 // TODO: this must be an upsert/delete since the data is being modified on the relation
 const updateCryptoAddressSQL = "UPDATE crypto_addresses SET crypto_address=:cryptoAddress, network=:network, asset_type=:assetType, tag=:tag, travel_address=:travelAddress, modified=:modified WHERE id=:id and account_id=:accountID"
 
-func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress) (err error) {
+func (s *Store) UpdateCryptoAddress(ctx context.Context, addr *models.CryptoAddress, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateCryptoAddress(addr); err != nil {
+	if err = tx.UpdateCryptoAddress(addr, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateCryptoAddress(addr *models.CryptoAddress) (err error) {
+func (t *Tx) UpdateCryptoAddress(addr *models.CryptoAddress, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if addr.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -555,31 +616,60 @@ func (t *Tx) UpdateCryptoAddress(addr *models.CryptoAddress) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       addr.ID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: addr.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const deleteCryptoAddressSQL = "DELETE FROM crypto_addresses WHERE id=:cryptoAddressID and account_id=:accountID"
 
-func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (err error) {
+func (s *Store) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteCryptoAddress(accountID, cryptoAddressID); err != nil {
+	if err = tx.DeleteCryptoAddress(accountID, cryptoAddressID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID) (err error) {
+func (t *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteCryptoAddressSQL, sql.Named("cryptoAddressID", cryptoAddressID), sql.Named("accountID", accountID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       cryptoAddressID.Bytes(),
+		ResourceType:     enum.ResourceCryptoAddress,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }

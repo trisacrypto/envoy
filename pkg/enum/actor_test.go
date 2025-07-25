@@ -23,14 +23,18 @@ func TestParseActor(t *testing.T) {
 			{"API_KEY", enum.ActorAPIKey},
 			{"sunrise", enum.ActorSunrise},
 			{"SUNRISE", enum.ActorSunrise},
+			{"cli", enum.ActorCLI},
+			{"CLI", enum.ActorCLI},
 			{uint8(0), enum.ActorUnknown},
 			{uint8(1), enum.ActorUser},
 			{uint8(2), enum.ActorAPIKey},
 			{uint8(3), enum.ActorSunrise},
+			{uint8(4), enum.ActorCLI},
 			{enum.ActorUnknown, enum.ActorUnknown},
 			{enum.ActorUser, enum.ActorUser},
 			{enum.ActorAPIKey, enum.ActorAPIKey},
 			{enum.ActorSunrise, enum.ActorSunrise},
+			{enum.ActorCLI, enum.ActorCLI},
 		}
 
 		for i, test := range tests {
@@ -66,7 +70,8 @@ func TestActorString(t *testing.T) {
 		{enum.ActorUser, "user"},
 		{enum.ActorAPIKey, "api_key"},
 		{enum.ActorSunrise, "sunrise"},
-		{enum.Actor(4), "unknown"},
+		{enum.ActorCLI, "cli"},
+		{enum.Actor(5), "unknown"},
 		{enum.Actor(99), "unknown"},
 	}
 
@@ -82,6 +87,7 @@ func TestActorJSON(t *testing.T) {
 		enum.ActorUser,
 		enum.ActorAPIKey,
 		enum.ActorSunrise,
+		enum.ActorCLI,
 	}
 
 	for _, actor := range tests {
@@ -110,6 +116,8 @@ func TestActorScan(t *testing.T) {
 		{"API_KEY", enum.ActorAPIKey},
 		{"sunrise", enum.ActorSunrise},
 		{"SUNRISE", enum.ActorSunrise},
+		{"cli", enum.ActorCLI},
+		{"CLI", enum.ActorCLI},
 		{[]byte(""), enum.ActorUnknown},
 		{[]byte("unknown"), enum.ActorUnknown},
 		{[]byte("UNKNOWN"), enum.ActorUnknown},
@@ -119,6 +127,8 @@ func TestActorScan(t *testing.T) {
 		{[]byte("API_KEY"), enum.ActorAPIKey},
 		{[]byte("sunrise"), enum.ActorSunrise},
 		{[]byte("SUNRISE"), enum.ActorSunrise},
+		{[]byte("cli"), enum.ActorCLI},
+		{[]byte("CLI"), enum.ActorCLI},
 	}
 
 	for i, test := range tests {
@@ -151,4 +161,8 @@ func TestActorValue(t *testing.T) {
 	value, err = enum.ActorSunrise.Value()
 	require.NoError(t, err)
 	require.Equal(t, "sunrise", value)
+
+	value, err = enum.ActorCLI.Value()
+	require.NoError(t, err)
+	require.Equal(t, "cli", value)
 }
