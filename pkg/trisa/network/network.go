@@ -19,7 +19,6 @@ import (
 	api "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	gds "github.com/trisacrypto/trisa/pkg/trisa/gds/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
-	"github.com/trisacrypto/trisa/pkg/trust"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -49,17 +48,7 @@ func New(conf config.TRISAConfig) (_ Network, err error) {
 	// For now, the network creates a default key chain with in memory key stores and
 	// uses the identity certificate as the default sealing key until multi-key
 	// management is enabled both by configuration and the TRISA working group.
-	var provider *trust.Provider
-	if provider, err = conf.LoadCerts(); err != nil {
-		return nil, err
-	}
-
-	var localKey keys.Key
-	if localKey, err = keys.FromProvider(provider); err != nil {
-		return nil, err
-	}
-
-	if network.keyChain, err = keychain.New(keychain.WithDefaultKey(localKey), keychain.WithCacheDuration(conf.KeyExchangeCacheTTL)); err != nil {
+	if network.keyChain, err = keychain.Load(&conf, keychain.WithCacheDuration(conf.KeyExchangeCacheTTL)); err != nil {
 		return nil, err
 	}
 	return network, nil
