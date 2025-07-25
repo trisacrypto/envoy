@@ -15,7 +15,7 @@ import (
 
 var (
 	// The active node keychain, assigned by UseKeyChain()
-	kc *keychain.KeyChain
+	kc keychain.KeyChain
 
 	ErrSigningKeyMissing      = errors.New("could not get a signing key")
 	ErrVerificationKeyMissing = errors.New("could not get a verification key")
@@ -23,7 +23,7 @@ var (
 
 // The package will use the given keychain.KeyChain for signing and verification
 // of ComplianceAuditLog entries.
-func UseKeyChain(keychain *keychain.KeyChain) {
+func UseKeyChain(keychain keychain.KeyChain) {
 	kc = keychain
 }
 
@@ -111,7 +111,7 @@ func getSigner() (rsaSigner *rsaoeap.RSA, err error) {
 	)
 
 	// Get the singing key
-	if privkey, err = (*kc).SigningKey(); err != nil {
+	if privkey, err = kc.SigningKey(); err != nil {
 		return nil, err
 	}
 
@@ -145,7 +145,7 @@ func getVerifier(signature string) (rsaVerifier *rsaoeap.RSA, err error) {
 	)
 
 	// Get the singing key
-	if pubkey, err = (*kc).VerificationKey(signature); err != nil {
+	if pubkey, err = kc.VerificationKey(signature); err != nil {
 		return nil, err
 	}
 

@@ -116,7 +116,7 @@ func New(conf config.Config) (node *Node, err error) {
 	if kc == nil {
 		return nil, errors.New("keychain must be configured for audit logging")
 	}
-	audit.UseKeyChain(&kc)
+	audit.UseKeyChain(kc)
 
 	// Create the admin web ui server if it is enabled
 	if node.admin, err = web.New(conf, node.store, node.network); err != nil {
