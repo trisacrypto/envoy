@@ -26,6 +26,7 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
@@ -550,28 +551,38 @@ func daybreakImport(c *cli.Context) (err error) {
 	// Make sure we have a daybreak database
 	ddb, ok := db.(store.DaybreakStore)
 	if !ok {
-		return cli.Exit("configured database does not support daybreak operations", 2)
+		return cli.Exit("configured database does not support daybreak operations", 1)
 	}
 
 	// Create outer context for database interactions and source info.
-	// NOTE: 30 seconds should be enough for several thousand entries, otherwise increase it.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// NOTE: 120 seconds should be enough for ~2500 entries; if the context
+	// times out, increase it
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
 	// Add actor information to the context. We don't have an ID, so we're using
 	// the function name as the ActorID.
 	ctx = audit.WithActor(ctx, []byte("daybreakImport"), enum.ActorCLI)
 
-	// Load the keychain
-	// FIXME: load the keychain for audit log signing
-	// TODO: use audit.UseKeyChain()
+	// Load the keychain from the environment config
+	var (
+		conf config.Config
+		kc   keychain.KeyChain
+	)
+	if conf, err = config.New(); err != nil {
+		return cli.Exit(fmt.Sprintf("cannot load mTLS config: %s", err), 1)
+	}
+	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
+		return cli.Exit(fmt.Sprintf("cannot load keychain: %s", err), 1)
+	}
+	audit.UseKeyChain(kc)
 
 	// NOTE: this operation happens in its own transaction, if two daybreak imports
 	// happen concurrently, then this map would not accurately reflect the state of the
 	// database, so its important to ensure only a single import runs at at time.
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
-		return cli.Exit(err, 1)
+		return cli.Exit(fmt.Sprintf("could not list daybreak couunterparties: %s", err), 1)
 	}
 
 	// Begin import; all counterparties and associated contacts that can be created will
@@ -684,22 +695,32 @@ func daybreakRetire(c *cli.Context) (err error) {
 	}
 
 	// Create outer context for database interactions and source info.
-	// NOTE: 30 seconds should be enough for several thousand entries, otherwise increase it.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// NOTE: 60 seconds should be enough for ~2500 entries; if the context
+	// times out, increase it
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	// Add actor information to the context. We don't have an ID, so we're using
 	// the function name as the ActorID.
 	ctx = audit.WithActor(ctx, []byte("daybreakRetire"), enum.ActorCLI)
 
-	// Load the keychain
-	// FIXME: load the keychain for audit log signing
-	// TODO: use audit.UseKeyChain()
+	// Load the keychain from the environment config
+	var (
+		conf config.Config
+		kc   keychain.KeyChain
+	)
+	if conf, err = config.New(); err != nil {
+		return cli.Exit(fmt.Sprintf("cannot load mTLS config: %s", err), 1)
+	}
+	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
+		return cli.Exit(fmt.Sprintf("cannot load keychain: %s", err), 1)
+	}
+	audit.UseKeyChain(kc)
 
 	// Get all Daybreak Counterparties
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
-		return cli.Exit(err, 1)
+		return cli.Exit(fmt.Sprintf("could not list daybreak couunterparties: %s", err), 1)
 	}
 
 	// Delete all of the counterparties (`ignoreTxns` is `false`)
