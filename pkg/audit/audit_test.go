@@ -47,5 +47,5 @@ func loadAuditKeyChainFixture(t *testing.T) {
 	// Setup a mock KeyChain
 	kc, err := keychain.New(keychain.WithCacheDuration(1*time.Hour), keychain.WithDefaultKey(certs))
 	require.NoError(t, err, "could not create a KeyChain")
-	audit.UseKeyChain(&kc)
+	audit.UseKeyChain(kc)
 }
