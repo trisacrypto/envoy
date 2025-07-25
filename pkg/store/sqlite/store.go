@@ -28,6 +28,10 @@ type Tx struct {
 	mkta models.TravelAddressFactory
 }
 
+//===========================================================================
+// Store methods
+//===========================================================================
+
 func Open(uri *dsn.DSN) (_ *Store, err error) {
 	// Ensure that only SQLite3 connections can be opened.
 	if uri.Scheme != dsn.SQLite && uri.Scheme != dsn.SQLite3 {

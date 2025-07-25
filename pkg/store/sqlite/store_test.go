@@ -8,9 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -18,6 +20,8 @@ import (
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
+	"github.com/trisacrypto/trisa/pkg/trust"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -94,6 +98,7 @@ type storeTestSuite struct {
 
 func (s *storeTestSuite) SetupSuite() {
 	s.CreateDB()
+	loadAuditKeyChainFixture(s.T())
 }
 
 func (s *storeTestSuite) SetupTest() {
@@ -179,4 +184,22 @@ func loadFixture(path string, obj proto.Message) (err error) {
 	}
 
 	return json.Unmarshal(data, obj)
+}
+
+func loadAuditKeyChainFixture(t *testing.T) {
+	// Load Certificate fixture with private keys
+	sz, err := trust.NewSerializer(false)
+	require.NoError(t, err, "could not create serializer to load fixture")
+
+	provider, err := sz.ReadFile("testdata/certs.pem")
+	require.NoError(t, err, "could not read test fixture")
+
+	certs, err := keys.FromProvider(provider)
+	require.NoError(t, err, "could not create Key from provider")
+	require.True(t, certs.IsPrivate(), "expected test certs fixture to be private")
+
+	// Setup a mock KeyChain
+	kc, err := keychain.New(keychain.WithCacheDuration(1*time.Hour), keychain.WithDefaultKey(certs))
+	require.NoError(t, err, "could not create a KeyChain")
+	audit.UseKeyChain(kc)
 }
