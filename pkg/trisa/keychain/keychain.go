@@ -19,7 +19,7 @@ type KeyChain interface {
 	// available (or the cache has expired), requiring a new KeyExchange or a key lookup
 	// from the GDS. If the signature argument for the key is provided, then commonName
 	// will be ignored.
-	SealingKey(commonName, signature string) (pubkey keys.PublicKey, err error)
+	SealingKey(commonName string) (pubkey keys.PublicKey, err error)
 
 	// Get the private unsealing key either by public key signature on the envelope or
 	// by common name from the mTLS certificates in the RPC to unseal an incoming secure

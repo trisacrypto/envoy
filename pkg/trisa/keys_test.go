@@ -41,7 +41,7 @@ func (s *trisaTestSuite) TestKeyExchange() {
 	chain, err := s.network.KeyChain()
 	require.NoError(err, "could not get keychain")
 
-	seal, err := chain.SealingKey("client.trisatest.dev", "")
+	seal, err := chain.SealingKey("client.trisatest.dev")
 	require.NoError(err, "could not get keys that were just exchanged")
 	sks, err := seal.PublicKeySignature()
 	require.NoError(err, "could not get cached key signature")

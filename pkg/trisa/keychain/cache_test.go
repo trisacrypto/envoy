@@ -18,7 +18,7 @@ func TestEmptyCache(t *testing.T) {
 	require.IsType(t, &memks.MemStore{}, chain.(*keychain.Cache).ExternalStore())
 
 	// No default key should return an error
-	_, err = chain.SealingKey("bravo.trisa.dev", "")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail on cache miss")
 
 	_, err = chain.UnsealingKey("", "bravo.trisa.dev")
@@ -34,7 +34,7 @@ func TestEmptyCache(t *testing.T) {
 	err = chain.Store(internalKey, nil)
 	require.NoError(t, err, "could not store internal key pair")
 
-	_, err = chain.SealingKey("bravo.trisa.dev", "")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail when not matched to common name")
 
 	_, err = chain.UnsealingKey("", "bravo.trisa.dev")
@@ -63,7 +63,7 @@ func TestDefaultCache(t *testing.T) {
 	require.IsType(t, &memks.MemStore{}, chain.(*keychain.Cache).ExternalStore())
 
 	// No default key should return an error
-	_, err = chain.SealingKey("bravo.trisa.dev", "")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotMatched, "expected empty cache with no default keys to fail on cache miss")
 
 	keypair, err := chain.UnsealingKey("", "bravo.trisa.dev")
@@ -80,7 +80,7 @@ func TestDefaultCache(t *testing.T) {
 	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
 	require.NoError(t, err, "could not store external exchange key")
 
-	outgoing, err := chain.SealingKey("bravo.trisa.dev", "")
+	outgoing, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch external exchange key by commmon name")
 	require.Equal(t, externalKey, outgoing)
 
@@ -123,7 +123,7 @@ func TestCounterpartyCache(t *testing.T) {
 	require.NoError(t, err, "could not cache external exchange key")
 
 	// No errors should be returned on lookups
-	seal, err := chain.SealingKey("bravo.trisa.dev", "")
+	seal, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "expected key for common name as unsealing key")
 	require.Equal(t, externalKey, seal, "expected key for common name returned")
 
@@ -149,7 +149,7 @@ func TestKeyCacheExpiration(t *testing.T) {
 	require.NoError(t, err, "could not cache key")
 
 	// Cache hit should happen within 800ms
-	pubkey, err := chain.SealingKey("bravo.trisa.dev", "")
+	pubkey, err := chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch cached pubkey")
 	require.Equal(t, externalKey, pubkey)
 
@@ -157,7 +157,7 @@ func TestKeyCacheExpiration(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 
 	// Cache miss should occur
-	pubkey, err = chain.SealingKey("bravo.trisa.dev", "")
+	pubkey, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotFound)
 	require.Nil(t, pubkey)
 
@@ -167,13 +167,13 @@ func TestKeyCacheExpiration(t *testing.T) {
 
 	// Cache should not expire
 	time.Sleep(150 * time.Millisecond)
-	pubkey, err = chain.SealingKey("bravo.trisa.dev", "")
+	pubkey, err = chain.SealingKey("bravo.trisa.dev")
 	require.NoError(t, err, "could not fetch cached pubkey")
 	require.Equal(t, externalKey, pubkey)
 
 	// Cache should expire after second sleep
 	time.Sleep(150 * time.Millisecond)
-	_, err = chain.SealingKey("bravo.trisa.dev", "")
+	_, err = chain.SealingKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyNotFound)
 }
 
