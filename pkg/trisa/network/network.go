@@ -243,7 +243,7 @@ func (n *TRISANetwork) cache(peer peers.Peer) (err error) {
 //====================================================================================
 
 func (n *TRISANetwork) SealingKey(commonName string) (pubkey keys.PublicKey, err error) {
-	return n.keyChain.SealingKey(commonName, "")
+	return n.keyChain.SealingKey(commonName)
 }
 
 // Get the private unsealing key either by public key signature on the envelope or
