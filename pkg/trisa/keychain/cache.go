@@ -68,15 +68,14 @@ var _ KeyChain = &Cache{}
 // An error is returned if no sealing key is available (or the cache has expired),
 // requiring a KeyExchange or a key lookup from the GDS.
 // This method operates on the external source (e.g. keys from external counterparties).
-func (c *Cache) SealingKey(commonName, signature string) (pubkey keys.PublicKey, err error) {
+func (c *Cache) SealingKey(commonName string) (pubkey keys.PublicKey, err error) {
 	c.RLock()
 	defer c.RUnlock()
 
 	// Identify the signature from the common name, use default signature if not mapped.
-	if signature == "" {
-		if signature, err = c.lookup(commonName, ExternalSource); err != nil {
-			return nil, err
-		}
+	var signature string
+	if signature, err = c.lookup(commonName, ExternalSource); err != nil {
+		return nil, err
 	}
 
 	// Check if the key has expired (if there is no TTL, it is expired)
