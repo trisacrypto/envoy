@@ -17,7 +17,8 @@ type KeyChain interface {
 	// Get the cached *rsa.PublicKey associated with the remote Peer received during a
 	// KeyExchange RPC or GDS lookup. An error is returned if no sealing key is
 	// available (or the cache has expired), requiring a new KeyExchange or a key lookup
-	// from the GDS.
+	// from the GDS. If the signature argument for the key is provided, then commonName
+	// will be ignored.
 	SealingKey(commonName string) (pubkey keys.PublicKey, err error)
 
 	// Get the private unsealing key either by public key signature on the envelope or
@@ -41,6 +42,12 @@ type KeyChain interface {
 	// public keys in key exchange request with remote peers. Options deals with how
 	// the sealing key is used during key exchanges.
 	Store(keypair keys.Key, opts *KeyOptions) error
+
+	// Get the signing key for the local node.
+	SigningKey() (privkey keys.PrivateKey, err error)
+
+	// Get the (signature) verification key with the given pubkey signature.
+	VerificationKey(signature string) (privkey keys.PublicKey, err error)
 }
 
 // KeyStore maps key signatures to serialized public sealing keys that can be stored in

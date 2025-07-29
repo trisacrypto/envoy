@@ -194,6 +194,39 @@ func (c *Cache) ExchangeKey(commonName string) (pubkey keys.PublicKey, err error
 	return pubkey, nil
 }
 
+// Returns the default node keys.PrivateKey to be used for signing.
+func (c *Cache) SigningKey() (privkey keys.PrivateKey, err error) {
+	return c.UnsealingKey("", "")
+}
+
+// Returns the keys.PublicKey with the given signature for signature
+// verification. If signature is the empty string, then the default local node
+// signature verification key will be returned. Uses the internal key store.
+func (c *Cache) VerificationKey(signature string) (pubkey keys.PublicKey, err error) {
+	c.RLock()
+	defer c.RUnlock()
+
+	// Get the default local node pubkey signature if no signature is specified
+	if signature == "" {
+		if signature, err = c.lookup("", InternalSource); err != nil {
+			return nil, err
+		}
+	}
+
+	// Check if the key has expired (assume no TTL means it doesn't expire)
+	if ttl, ok := c.ttl[signature]; ok && time.Now().After(ttl) {
+		// Return KeyNotFound instead of KeyExpired to represent cache misses
+		return nil, keyerr.KeyNotFound
+	}
+
+	// Fetch the key from the key store if it's available
+	if pubkey, _, err = c.internal.Get(signature); err != nil {
+		return nil, err
+	}
+
+	return pubkey, nil
+}
+
 // Cache a public key received from the remote Peer during a key exchange.
 // If ttl is less than or equal to 0 the default cache time is used.
 // This method operates on the external source (e.g. keys from external counterparties).
