@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 )
 
 //==========================================================================
@@ -17,7 +18,7 @@ import (
 
 // Setup a mock PreparedTransaction for tests.
 func setupPreparedTransaction(store *mock.Store) *mock.PreparedTransaction {
-	if p, err := store.PrepareTransaction(context.Background(), uuid.UUID{}); err != nil {
+	if p, err := store.PrepareTransaction(context.Background(), uuid.UUID{}, &models.ComplianceAuditLog{}); err != nil {
 		panic("Error when setting up the mock PreparedTransaction")
 	} else {
 		return p.(*mock.PreparedTransaction)

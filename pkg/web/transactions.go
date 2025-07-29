@@ -1,6 +1,7 @@
 package web
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -111,7 +112,9 @@ func (s *Server) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.CreateTransaction(c.Request.Context(), transaction); err != nil {
+	if err = s.store.CreateTransaction(c.Request.Context(), transaction, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CreateTransaction()"},
+	}); err != nil {
 		// TODO: handle other error types and constraint violations
 		c.Error(fmt.Errorf("could not create transaction: %w", err))
 		c.JSON(http.StatusInternalServerError, api.Error(err))
@@ -235,7 +238,9 @@ func (s *Server) UpdateTransaction(c *gin.Context) {
 	}
 
 	// Update the model in the database (which will update the pointer).
-	if err = s.store.UpdateTransaction(c.Request.Context(), transaction); err != nil {
+	if err = s.store.UpdateTransaction(c.Request.Context(), transaction, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.UpdateTransaction()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -273,7 +278,9 @@ func (s *Server) DeleteTransaction(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.DeleteTransaction(c.Request.Context(), transactionID); err != nil {
+	if err = s.store.DeleteTransaction(c.Request.Context(), transactionID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.DeleteTransaction()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -378,7 +385,9 @@ func (s *Server) SendEnvelopeForTransaction(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to update the transaction and secure envelopes
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.SendEnvelopeForTransaction()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
 		return
@@ -766,7 +775,9 @@ func (s *Server) AcceptTransaction(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to update the transaction and secure envelopes
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.AcceptTransaction()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
 		return
@@ -905,7 +916,9 @@ func (s *Server) RejectTransaction(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to update the transaction and secure envelopes
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.RejectTransaction()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
 		return
@@ -1157,7 +1170,9 @@ func (s *Server) RepairTransaction(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to update the transaction and secure envelopes
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.RepairTransaction()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
 		return
@@ -1421,7 +1436,9 @@ func (s *Server) CompleteTransaction(c *gin.Context) {
 	}
 
 	// Create a prepared transaction to update the transaction and secure envelopes
-	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID); err != nil {
+	if packet.DB, err = s.store.PrepareTransaction(ctx, envelopeID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CompleteTransaction()"},
+	}); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("unable to send transfer to remote counterparty"))
 		return
@@ -1484,7 +1501,9 @@ func (s *Server) ArchiveTransaction(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.ArchiveTransaction(c.Request.Context(), transactionID); err != nil {
+	if err = s.store.ArchiveTransaction(c.Request.Context(), transactionID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.CompleteTransaction()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return
@@ -1517,7 +1536,9 @@ func (s *Server) UnarchiveTransaction(c *gin.Context) {
 		return
 	}
 
-	if err = s.store.UnarchiveTransaction(c.Request.Context(), transactionID); err != nil {
+	if err = s.store.UnarchiveTransaction(c.Request.Context(), transactionID, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.ArchiveTransaction()"},
+	}); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("transaction not found"))
 			return

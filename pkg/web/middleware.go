@@ -132,6 +132,13 @@ func (s *Server) SunriseAuthenticate(issuer *auth.ClaimsIssuer) gin.HandlerFunc 
 
 		// Add claims to context for use in downstream processing
 		c.Set(auth.ContextUserClaims, claims)
+
+		// Add actor metadata to the request context for audit logging
+		if err = auth.AddActorContext(c); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
 		c.Next()
 	}
 }

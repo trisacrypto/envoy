@@ -7,8 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
+	"go.rtnl.ai/ulid"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -90,8 +93,15 @@ func Authenticate(issuer *ClaimsIssuer) gin.HandlerFunc {
 			}
 		}
 
-		// Add claims to context fo ruse in downstream processing
+		// Add claims to context for use in downstream processing
 		c.Set(ContextUserClaims, claims)
+
+		// Add actor metadata to the request context for audit logging
+		if err = AddActorContext(c); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
 		c.Next()
 	}
 }
@@ -203,4 +213,45 @@ func ClearAuthCookies(c *gin.Context, domain string) {
 
 func IsLocalhost(domain string) bool {
 	return domain == localhost || strings.HasSuffix(domain, localTLD)
+}
+
+// Adds audit logging metadata to identify the entity (actor) making the request.
+func AddActorContext(c *gin.Context) (err error) {
+	var (
+		claims    *Claims
+		subType   SubjectType
+		subID     ulid.ULID
+		actorID   []byte
+		actorType enum.Actor
+	)
+
+	// Get the claims added by the authentication middleware
+	if claims, err = GetClaims(c); err != nil {
+		return err
+	}
+
+	// Get the subject of the claims to use as the actor
+	if subType, subID, err = claims.SubjectID(); err != nil {
+		return err
+	}
+
+	// Get actor ID
+	actorID = subID.Bytes()
+
+	// Determine the actor type from the subject type (1:1 mapping)
+	switch subType {
+	case SubjectUser:
+		actorType = enum.ActorUser
+	case SubjectAPIKey:
+		actorType = enum.ActorAPIKey
+	case SubjectSunrise:
+		actorType = enum.ActorSunrise
+	default:
+		actorType = enum.ActorUnknown
+	}
+
+	// Add the actor metadata to the request context
+	c.Request = c.Request.WithContext(audit.WithActor(c.Request.Context(), actorID, actorType))
+
+	return nil
 }

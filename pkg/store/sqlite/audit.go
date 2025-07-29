@@ -161,9 +161,9 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 const createComplianceAuditLogsSQL = "INSERT INTO compliance_audit_log (id, actor_id, actor_type, resource_id, resource_type, resource_modified, action, change_notes, signature, key_id, algorithm) VALUES (:id, :actorId, :actorType, :resourceId, :resourceType, :resourceModified, :action, :changeNotes, :signature, :keyId, :algorithm)"
 
 func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error) {
-	// Ensure the log has a ResourceModified timestamp
-	if log.ResourceModified.IsZero() {
-		return dberr.ErrMissingTimestamp
+	// Ensure the log is filled with all of the required values
+	if err = log.IsFilled(); err != nil {
+		return err
 	}
 
 	// Complete the log with an ID, ensuring one wasn't set already

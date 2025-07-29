@@ -2,7 +2,8 @@ package mock
 
 import (
 	"database/sql"
-	"fmt"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,11 +19,90 @@ import (
 // any callbacks to simulate specific behaviors. By default the Tx struct will respect
 // the readonly option so long as no overriding method is provided.
 type Tx struct {
-	opts      *sql.TxOptions
-	callbacks map[string]any
-	calls     map[string]int
-	commit    bool
-	rollback  bool
+	opts     *sql.TxOptions
+	calls    map[string]int
+	commit   bool
+	rollback bool
+
+	// Compliance audit log actor metadata
+	actorID   []byte
+	actorType enum.Actor
+
+	OnCommit                         func() error
+	OnRollback                       func() error
+	OnListTransactions               func(in *models.TransactionPageInfo) (*models.TransactionPage, error)
+	OnCreateTransaction              func(in *models.Transaction, log *models.ComplianceAuditLog) error
+	OnRetrieveTransaction            func(id uuid.UUID) (*models.Transaction, error)
+	OnUpdateTransaction              func(in *models.Transaction, log *models.ComplianceAuditLog) error
+	OnDeleteTransaction              func(id uuid.UUID, log *models.ComplianceAuditLog) error
+	OnArchiveTransaction             func(id uuid.UUID, log *models.ComplianceAuditLog) error
+	OnUnarchiveTransaction           func(id uuid.UUID, log *models.ComplianceAuditLog) error
+	OnCountTransactions              func() (*models.TransactionCounts, error)
+	OnTransactionState               func(id uuid.UUID) (bool, enum.Status, error)
+	OnListSecureEnvelopes            func(txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error)
+	OnCreateSecureEnvelope           func(in *models.SecureEnvelope, log *models.ComplianceAuditLog) error
+	OnRetrieveSecureEnvelope         func(txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
+	OnUpdateSecureEnvelope           func(in *models.SecureEnvelope, log *models.ComplianceAuditLog) error
+	OnDeleteSecureEnvelope           func(txID uuid.UUID, envID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnLatestSecureEnvelope           func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
+	OnLatestPayloadEnvelope          func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
+	OnListAccounts                   func(page *models.PageInfo) (*models.AccountsPage, error)
+	OnCreateAccount                  func(in *models.Account, log *models.ComplianceAuditLog) error
+	OnLookupAccount                  func(cryptoAddress string) (*models.Account, error)
+	OnRetrieveAccount                func(id ulid.ULID) (*models.Account, error)
+	OnUpdateAccount                  func(in *models.Account, log *models.ComplianceAuditLog) error
+	OnDeleteAccount                  func(id ulid.ULID, log *models.ComplianceAuditLog) error
+	OnListAccountTransactions        func(accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
+	OnListCryptoAddresses            func(accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)
+	OnCreateCryptoAddress            func(in *models.CryptoAddress, log *models.ComplianceAuditLog) error
+	OnRetrieveCryptoAddress          func(accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
+	OnUpdateCryptoAddress            func(in *models.CryptoAddress, log *models.ComplianceAuditLog) error
+	OnDeleteCryptoAddress            func(accountID, cryptoAddressID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnSearchCounterparties           func(query *models.SearchQuery) (*models.CounterpartyPage, error)
+	OnListCounterparties             func(page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)
+	OnListCounterpartySourceInfo     func(source enum.Source) ([]*models.CounterpartySourceInfo, error)
+	OnCreateCounterparty             func(in *models.Counterparty, log *models.ComplianceAuditLog) error
+	OnRetrieveCounterparty           func(counterpartyID ulid.ULID) (*models.Counterparty, error)
+	OnLookupCounterparty             func(field, value string) (*models.Counterparty, error)
+	OnUpdateCounterparty             func(in *models.Counterparty, log *models.ComplianceAuditLog) error
+	OnDeleteCounterparty             func(counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnListContacts                   func(counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
+	OnCreateContact                  func(in *models.Contact, log *models.ComplianceAuditLog) error
+	OnRetrieveContact                func(contactID, counterpartyID any) (*models.Contact, error)
+	OnUpdateContact                  func(in *models.Contact, log *models.ComplianceAuditLog) error
+	OnDeleteContact                  func(contactID, counterpartyID any, log *models.ComplianceAuditLog) error
+	OnListSunrise                    func(in *models.PageInfo) (*models.SunrisePage, error)
+	OnCreateSunrise                  func(in *models.Sunrise, log *models.ComplianceAuditLog) error
+	OnRetrieveSunrise                func(id ulid.ULID) (*models.Sunrise, error)
+	OnUpdateSunrise                  func(in *models.Sunrise, log *models.ComplianceAuditLog) error
+	OnUpdateSunriseStatus            func(id uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error
+	OnDeleteSunrise                  func(in ulid.ULID, log *models.ComplianceAuditLog) error
+	OnGetOrCreateSunriseCounterparty func(email, name string, log *models.ComplianceAuditLog) (*models.Counterparty, error)
+	OnListUsers                      func(page *models.UserPageInfo) (*models.UserPage, error)
+	OnCreateUser                     func(in *models.User, log *models.ComplianceAuditLog) error
+	OnRetrieveUser                   func(emailOrUserID any) (*models.User, error)
+	OnUpdateUser                     func(in *models.User, log *models.ComplianceAuditLog) error
+	OnSetUserPassword                func(userID ulid.ULID, password string) error
+	OnSetUserLastLogin               func(userID ulid.ULID, lastLogin time.Time) error
+	OnDeleteUser                     func(userID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnLookupRole                     func(role string) (*models.Role, error)
+	OnListAPIKeys                    func(page *models.PageInfo) (*models.APIKeyPage, error)
+	OnCreateAPIKey                   func(in *models.APIKey, log *models.ComplianceAuditLog) error
+	OnRetrieveAPIKey                 func(clientIDOrKeyID any) (*models.APIKey, error)
+	OnUpdateAPIKey                   func(in *models.APIKey, log *models.ComplianceAuditLog) error
+	OnDeleteAPIKey                   func(keyID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnListResetPasswordLinks         func(page *models.PageInfo) (*models.ResetPasswordLinkPage, error)
+	OnCreateResetPasswordLink        func(in *models.ResetPasswordLink) error
+	OnRetrieveResetPasswordLink      func(id ulid.ULID) (*models.ResetPasswordLink, error)
+	OnUpdateResetPasswordLink        func(in *models.ResetPasswordLink) error
+	OnDeleteResetPasswordLink        func(id ulid.ULID) error
+	OnListComplianceAuditLogs        func(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
+	OnCreateComplianceAuditLog       func(log *models.ComplianceAuditLog) error
+	OnRetrieveComplianceAuditLog     func(id ulid.ULID) (*models.ComplianceAuditLog, error)
+	OnListDaybreak                   func() (map[string]*models.CounterpartySourceInfo, error)
+	OnCreateDaybreak                 func(counterparty *models.Counterparty) error
+	OnUpdateDaybreak                 func(counterparty *models.Counterparty) error
+	OnDeleteDaybreak                 func(counterpartyID ulid.ULID, ignoreTxns bool) error
 }
 
 //===========================================================================
@@ -32,17 +112,31 @@ type Tx struct {
 // Reset all the calls and callbacks in the transaction, if you don't want to
 // create a new one.
 func (tx *Tx) Reset() {
-	// Set maps to nil to free up memory
+	// Set map to nil to free up memory
 	tx.calls = nil
-	tx.callbacks = nil
 
-	// Create new calls and callbacks maps
+	// Create new calls map
 	tx.calls = make(map[string]int)
-	tx.callbacks = make(map[string]any)
 
 	// Reset transaction commit/rollback
 	tx.commit = false
 	tx.rollback = false
+
+	// Reset actor information
+	tx.actorID = nil
+	tx.actorType = enum.ActorUnknown
+
+	// reset the callbacks using reflection
+	v := reflect.ValueOf(tx)
+	v = v.Elem() // tx is a pointer
+	t := v.Type()
+	for _, f := range reflect.VisibleFields(t) {
+		// only reset functions named `OnSomething`
+		if strings.HasPrefix(f.Name, "On") && f.Type.Kind() == reflect.Func {
+			fv := v.FieldByIndex(f.Index)
+			fv.SetZero()
+		}
+	}
 }
 
 // Assert that the expected number of calls were made to the given method.
@@ -73,41 +167,29 @@ func (tx *Tx) AssertNoRollback(t testing.TB) {
 // Check is a helper method that determines if the transaction is committed or rolled
 // back. If so it returns ErrTxDone no matter if there is a callback set. Additionally,
 // if the writeable option is set to true, it will return ErrReadOnly if the transaction
-// is read-only. Check will record the calls to the method on the transaction, and
-// finally, if the method is not set in callbacks, it panics.
-func (tx *Tx) check(method string, writable bool) (any, error) {
-	tx.calls[method]++
-
+// is read-only.
+func (tx *Tx) check(writable bool) error {
 	if tx.commit || tx.rollback {
-		return nil, sql.ErrTxDone
+		return sql.ErrTxDone
 	}
 
 	if writable && tx.opts != nil && tx.opts.ReadOnly {
-		return nil, errors.ErrReadOnly
+		return errors.ErrReadOnly
 	}
 
-	if fn, ok := tx.callbacks[method]; ok {
-		return fn, nil
-	}
-
-	panic(fmt.Errorf("%q callback not set", method))
+	return nil
 }
 
 //===========================================================================
 // Txn Interface Methods
 //===========================================================================
 
-// Set a callback for when "Commit()" is called on the mock Txn.
-func (tx *Tx) OnCommit(fn func() error) {
-	tx.callbacks["Commit"] = fn
-}
-
 // Calls the callback previously set with "OnCommit()", or completes the
 // "commit" for the transaction.
 func (tx *Tx) Commit() error {
 	tx.calls["Commit"]++
-	if fn, ok := tx.callbacks["Commit"]; ok {
-		return fn.(func() error)()
+	if tx.OnCommit != nil {
+		return tx.OnCommit()
 	}
 
 	// ensure the transaction is still active
@@ -119,17 +201,12 @@ func (tx *Tx) Commit() error {
 	return nil
 }
 
-// Set a callback for when "Rollback()" is called on the mock Txn.
-func (tx *Tx) OnRollback(fn func() error) {
-	tx.callbacks["Rollback"] = fn
-}
-
 // Calls the callback previously set with "OnRollback()", or completes the
 // "rollback" for the transaction.
 func (tx *Tx) Rollback() error {
 	tx.calls["Rollback"]++
-	if fn, ok := tx.callbacks["Rollback"]; ok {
-		return fn.(func() error)()
+	if tx.OnRollback != nil {
+		return tx.OnRollback()
 	}
 
 	// ensure the transaction is still active
@@ -141,753 +218,620 @@ func (tx *Tx) Rollback() error {
 	return nil
 }
 
+// Sets the actor metadata to be returned by GetActor().
+func (tx *Tx) SetActor(actorID []byte, actorType enum.Actor) {
+	tx.actorID = actorID
+	tx.actorType = actorType
+}
+
+// Returns the actor metadata set by SetActor().
+func (tx *Tx) GetActor() ([]byte, enum.Actor) {
+	return tx.actorID, tx.actorType
+}
+
 //===========================================================================
 // Transaction Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListTransactions()" is called on the mock Txn.
-func (tx *Tx) OnListTransactions(fn func(in *models.TransactionPageInfo) (*models.TransactionPage, error)) {
-	tx.callbacks["ListTransactions"] = fn
-}
-
 // Calls the callback previously set with "OnListTransactions()".
 func (tx *Tx) ListTransactions(in *models.TransactionPageInfo) (*models.TransactionPage, error) {
-	fn, err := tx.check("ListTransactions", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(in *models.TransactionPageInfo) (*models.TransactionPage, error))(in)
-}
-
-// Set a callback for when "CreateTransaction()" is called on the mock Txn.
-func (tx *Tx) OnCreateTransaction(fn func(in *models.Transaction) error) {
-	tx.callbacks["CreateTransaction"] = fn
+	if tx.OnListTransactions != nil {
+		return tx.OnListTransactions(in)
+	}
+	panic("ListTransactions callback not set")
 }
 
 // Calls the callback previously set with "OnCreateTransaction()".
-func (tx *Tx) CreateTransaction(in *models.Transaction) error {
-	fn, err := tx.check("CreateTransaction", true)
-	if err != nil {
+func (tx *Tx) CreateTransaction(in *models.Transaction, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Transaction) error)(in)
-}
-
-// Set a callback for when "RetrieveTransaction()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveTransaction(fn func(id uuid.UUID) (*models.Transaction, error)) {
-	tx.callbacks["RetrieveTransaction"] = fn
+	if tx.OnCreateTransaction != nil {
+		return tx.OnCreateTransaction(in, log)
+	}
+	panic("CreateTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveTransaction()".
 func (tx *Tx) RetrieveTransaction(id uuid.UUID) (*models.Transaction, error) {
-	fn, err := tx.check("RetrieveTransaction", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(id uuid.UUID) (*models.Transaction, error))(id)
-}
-
-// Set a callback for when "UpdateTransaction()" is called on the mock Txn.
-func (tx *Tx) OnUpdateTransaction(fn func(in *models.Transaction) error) {
-	tx.callbacks["UpdateTransaction"] = fn
+	if tx.OnRetrieveTransaction != nil {
+		return tx.OnRetrieveTransaction(id)
+	}
+	panic("RetrieveTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateTransaction()".
-func (tx *Tx) UpdateTransaction(in *models.Transaction) error {
-	fn, err := tx.check("UpdateTransaction", true)
-	if err != nil {
+func (tx *Tx) UpdateTransaction(in *models.Transaction, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Transaction) error)(in)
-}
-
-// Set a callback for when "DeleteTransaction()" is called on the mock Txn.
-func (tx *Tx) OnDeleteTransaction(fn func(id uuid.UUID) error) {
-	tx.callbacks["DeleteTransaction"] = fn
+	if tx.OnUpdateTransaction != nil {
+		return tx.OnUpdateTransaction(in, log)
+	}
+	panic("UpdateTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteTransaction()".
-func (tx *Tx) DeleteTransaction(id uuid.UUID) error {
-	fn, err := tx.check("DeleteTransaction", true)
-	if err != nil {
+func (tx *Tx) DeleteTransaction(id uuid.UUID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id uuid.UUID) error)(id)
-}
-
-// Set a callback for when "ArchiveTransaction()" is called on the mock Txn.
-func (tx *Tx) OnArchiveTransaction(fn func(id uuid.UUID) error) {
-	tx.callbacks["ArchiveTransaction"] = fn
+	if tx.OnDeleteTransaction != nil {
+		return tx.OnDeleteTransaction(id, log)
+	}
+	panic("DeleteTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnArchiveTransaction()".
-func (tx *Tx) ArchiveTransaction(id uuid.UUID) error {
-	fn, err := tx.check("ArchiveTransaction", true)
-	if err != nil {
+func (tx *Tx) ArchiveTransaction(id uuid.UUID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id uuid.UUID) error)(id)
-}
-
-// Set a callback for when "UnarchiveTransaction()" is called on the mock Txn.
-func (tx *Tx) OnUnarchiveTransaction(fn func(id uuid.UUID) error) {
-	tx.callbacks["UnarchiveTransaction"] = fn
+	if tx.OnArchiveTransaction != nil {
+		return tx.OnArchiveTransaction(id, log)
+	}
+	panic("ArchiveTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnUnarchiveTransaction()".
-func (tx *Tx) UnarchiveTransaction(id uuid.UUID) error {
-	fn, err := tx.check("UnarchiveTransaction", true)
-	if err != nil {
+func (tx *Tx) UnarchiveTransaction(id uuid.UUID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id uuid.UUID) error)(id)
-}
-
-// Set a callback for when "CountTransactions()" is called on the mock Txn.
-func (tx *Tx) OnCountTransactions(fn func() (*models.TransactionCounts, error)) {
-	tx.callbacks["CountTransactions"] = fn
+	if tx.OnUnarchiveTransaction != nil {
+		return tx.OnUnarchiveTransaction(id, log)
+	}
+	panic("UnarchiveTransaction callback not set")
 }
 
 // Calls the callback previously set with "OnCountTransactions()".
 func (tx *Tx) CountTransactions() (*models.TransactionCounts, error) {
-	fn, err := tx.check("CountTransactions", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func() (*models.TransactionCounts, error))()
-}
-
-// Set a callback for when "TransactionState()" is called on the mock Txn.
-func (tx *Tx) OnTransactionState(fn func(id uuid.UUID) (bool, enum.Status, error)) {
-	tx.callbacks["TransactionState"] = fn
+	if tx.OnCountTransactions != nil {
+		return tx.OnCountTransactions()
+	}
+	panic("CountTransactions callback not set")
 }
 
 // Calls the callback previously set with "OnTransactionState()".
 func (tx *Tx) TransactionState(id uuid.UUID) (bool, enum.Status, error) {
-	fn, err := tx.check("TransactionState", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return false, enum.StatusUnspecified, err
 	}
 
-	return fn.(func(id uuid.UUID) (bool, enum.Status, error))(id)
+	if tx.OnTransactionState != nil {
+		return tx.OnTransactionState(id)
+	}
+	panic("TransactionState callback not set")
 }
 
 //===========================================================================
 // SecureEnvelope Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListSecureEnvelopes()" is called on the mock Txn.
-func (tx *Tx) OnListSecureEnvelopes(fn func(txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error)) {
-	tx.callbacks["ListSecureEnvelopes"] = fn
-}
-
 // Calls the callback previously set with "OnListSecureEnvelopes()".
 func (tx *Tx) ListSecureEnvelopes(txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error) {
-	fn, err := tx.check("ListSecureEnvelopes", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error))(txID, page)
-}
-
-// Set a callback for when "CreateSecureEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnCreateSecureEnvelope(fn func(in *models.SecureEnvelope) error) {
-	tx.callbacks["CreateSecureEnvelope"] = fn
+	if tx.OnListSecureEnvelopes != nil {
+		return tx.OnListSecureEnvelopes(txID, page)
+	}
+	panic("ListSecureEnvelopes callback not set")
 }
 
 // Calls the callback previously set with "OnCreateSecureEnvelope()".
-func (tx *Tx) CreateSecureEnvelope(in *models.SecureEnvelope) error {
-	fn, err := tx.check("CreateSecureEnvelope", true)
-	if err != nil {
+func (tx *Tx) CreateSecureEnvelope(in *models.SecureEnvelope, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.SecureEnvelope) error)(in)
-}
-
-// Set a callback for when "RetrieveSecureEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveSecureEnvelope(fn func(txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)) {
-	tx.callbacks["RetrieveSecureEnvelope"] = fn
+	if tx.OnCreateSecureEnvelope != nil {
+		return tx.OnCreateSecureEnvelope(in, log)
+	}
+	panic("CreateSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveSecureEnvelope()".
 func (tx *Tx) RetrieveSecureEnvelope(txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error) {
-	fn, err := tx.check("RetrieveSecureEnvelope", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error))(txID, envID)
-}
-
-// Set a callback for when "UpdateSecureEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnUpdateSecureEnvelope(fn func(in *models.SecureEnvelope) error) {
-	tx.callbacks["UpdateSecureEnvelope"] = fn
+	if tx.OnRetrieveSecureEnvelope != nil {
+		return tx.OnRetrieveSecureEnvelope(txID, envID)
+	}
+	panic("RetrieveSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateSecureEnvelope()".
-func (tx *Tx) UpdateSecureEnvelope(in *models.SecureEnvelope) error {
-	fn, err := tx.check("UpdateSecureEnvelope", true)
-	if err != nil {
+func (tx *Tx) UpdateSecureEnvelope(in *models.SecureEnvelope, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.SecureEnvelope) error)(in)
-}
-
-// Set a callback for when "DeleteSecureEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnDeleteSecureEnvelope(fn func(txID uuid.UUID, envID ulid.ULID) error) {
-	tx.callbacks["DeleteSecureEnvelope"] = fn
+	if tx.OnUpdateSecureEnvelope != nil {
+		return tx.OnUpdateSecureEnvelope(in, log)
+	}
+	panic("UpdateSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteSecureEnvelope()".
-func (tx *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID) error {
-	fn, err := tx.check("DeleteSecureEnvelope", true)
-	if err != nil {
+func (tx *Tx) DeleteSecureEnvelope(txID uuid.UUID, envID ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(txID uuid.UUID, envID ulid.ULID) error)(txID, envID)
-}
-
-// Set a callback for when "LatestSecureEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnLatestSecureEnvelope(fn func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)) {
-	tx.callbacks["LatestSecureEnvelope"] = fn
+	if tx.OnDeleteSecureEnvelope != nil {
+		return tx.OnDeleteSecureEnvelope(txID, envID, log)
+	}
+	panic("DeleteSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with "OnLatestSecureEnvelope()".
 func (tx *Tx) LatestSecureEnvelope(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error) {
-	fn, err := tx.check("LatestSecureEnvelope", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error))(txID, direction)
-}
-
-// Set a callback for when "LatestPayloadEnvelope()" is called on the mock Txn.
-func (tx *Tx) OnLatestPayloadEnvelope(fn func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)) {
-	tx.callbacks["LatestPayloadEnvelope"] = fn
+	if tx.OnLatestSecureEnvelope != nil {
+		return tx.OnLatestSecureEnvelope(txID, direction)
+	}
+	panic("LatestSecureEnvelope callback not set")
 }
 
 // Calls the callback previously set with "OnLatestPayloadEnvelope()".
 func (tx *Tx) LatestPayloadEnvelope(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error) {
-	fn, err := tx.check("LatestPayloadEnvelope", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error))(txID, direction)
+	if tx.OnLatestPayloadEnvelope != nil {
+		return tx.OnLatestPayloadEnvelope(txID, direction)
+	}
+	panic("LatestPayloadEnvelope callback not set")
 }
 
 //===========================================================================
 // Account Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListAccounts()" is called on the mock Txn.
-func (tx *Tx) OnListAccounts(fn func(page *models.PageInfo) (*models.AccountsPage, error)) {
-	tx.callbacks["ListAccounts"] = fn
-}
-
 // Calls the callback previously set with "OnListAccounts()".
 func (tx *Tx) ListAccounts(page *models.PageInfo) (*models.AccountsPage, error) {
-	fn, err := tx.check("ListAccounts", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.PageInfo) (*models.AccountsPage, error))(page)
-}
-
-// Set a callback for when "CreateAccount()" is called on the mock Txn.
-func (tx *Tx) OnCreateAccount(fn func(in *models.Account) error) {
-	tx.callbacks["CreateAccount"] = fn
+	if tx.OnListAccounts != nil {
+		return tx.OnListAccounts(page)
+	}
+	panic("ListAccounts callback not set")
 }
 
 // Calls the callback previously set with "OnCreateAccount()".
-func (tx *Tx) CreateAccount(in *models.Account) error {
-	fn, err := tx.check("CreateAccount", true)
-	if err != nil {
+func (tx *Tx) CreateAccount(in *models.Account, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Account) error)(in)
-}
-
-// Set a callback for when "LookupAccount()" is called on the mock Txn.
-func (tx *Tx) OnLookupAccount(fn func(cryptoAddress string) (*models.Account, error)) {
-	tx.callbacks["LookupAccount"] = fn
+	if tx.OnCreateAccount != nil {
+		return tx.OnCreateAccount(in, log)
+	}
+	panic("CreateAccount callback not set")
 }
 
 // Calls the callback previously set with "OnLookupAccount()".
 func (tx *Tx) LookupAccount(cryptoAddress string) (*models.Account, error) {
-	fn, err := tx.check("LookupAccount", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(cryptoAddress string) (*models.Account, error))(cryptoAddress)
-}
-
-// Set a callback for when "RetrieveAccount()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveAccount(fn func(id ulid.ULID) (*models.Account, error)) {
-	tx.callbacks["RetrieveAccount"] = fn
+	if tx.OnLookupAccount != nil {
+		return tx.OnLookupAccount(cryptoAddress)
+	}
+	panic("LookupAccount callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveAccount()".
 func (tx *Tx) RetrieveAccount(id ulid.ULID) (*models.Account, error) {
-	fn, err := tx.check("RetrieveAccount", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(id ulid.ULID) (*models.Account, error))(id)
-}
-
-// Set a callback for when "UpdateAccount()" is called on the mock Txn.
-func (tx *Tx) OnUpdateAccount(fn func(in *models.Account) error) {
-	tx.callbacks["UpdateAccount"] = fn
+	if tx.OnRetrieveAccount != nil {
+		return tx.OnRetrieveAccount(id)
+	}
+	panic("RetrieveAccount callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateAccount()".
-func (tx *Tx) UpdateAccount(in *models.Account) error {
-	fn, err := tx.check("UpdateAccount", true)
-	if err != nil {
+func (tx *Tx) UpdateAccount(in *models.Account, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Account) error)(in)
-}
-
-// Set a callback for when "DeleteAccount()" is called on the mock Txn.
-func (tx *Tx) OnDeleteAccount(fn func(id ulid.ULID) error) {
-	tx.callbacks["DeleteAccount"] = fn
+	if tx.OnUpdateAccount != nil {
+		return tx.OnUpdateAccount(in, log)
+	}
+	panic("UpdateAccount callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteAccount()".
-func (tx *Tx) DeleteAccount(id ulid.ULID) error {
-	fn, err := tx.check("DeleteAccount", true)
-	if err != nil {
+func (tx *Tx) DeleteAccount(id ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id ulid.ULID) error)(id)
-}
-
-// Set a callback for when "ListAccountTransactions()" is called on the mock Txn.
-func (tx *Tx) OnListAccountTransactions(fn func(accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)) {
-	tx.callbacks["ListAccountTransactions"] = fn
+	if tx.OnDeleteAccount != nil {
+		return tx.OnDeleteAccount(id, log)
+	}
+	panic("DeleteAccount callback not set")
 }
 
 // Calls the callback previously set with "OnListAccountTransactions()".
 func (tx *Tx) ListAccountTransactions(accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error) {
-	fn, err := tx.check("ListAccountTransactions", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error))(accountID, page)
+	if tx.OnListAccountTransactions != nil {
+		return tx.OnListAccountTransactions(accountID, page)
+	}
+	panic("ListAccountTransactions callback not set")
 }
 
 //===========================================================================
 // CryptoAddress Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListCryptoAddresses()" is called on the mock Txn.
-func (tx *Tx) OnListCryptoAddresses(fn func(accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)) {
-	tx.callbacks["ListCryptoAddresses"] = fn
-}
-
 // Calls the callback previously set with "OnListCryptoAddresses()".
 func (tx *Tx) ListCryptoAddresses(accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error) {
-	fn, err := tx.check("ListCryptoAddresses", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error))(accountID, page)
-}
-
-// Set a callback for when "CreateCryptoAddress()" is called on the mock Txn.
-func (tx *Tx) OnCreateCryptoAddress(fn func(in *models.CryptoAddress) error) {
-	tx.callbacks["CreateCryptoAddress"] = fn
+	if tx.OnListCryptoAddresses != nil {
+		return tx.OnListCryptoAddresses(accountID, page)
+	}
+	panic("ListCryptoAddresses callback not set")
 }
 
 // Calls the callback previously set with "OnCreateCryptoAddress()".
-func (tx *Tx) CreateCryptoAddress(in *models.CryptoAddress) error {
-	fn, err := tx.check("CreateCryptoAddress", true)
-	if err != nil {
+func (tx *Tx) CreateCryptoAddress(in *models.CryptoAddress, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.CryptoAddress) error)(in)
-}
-
-// Set a callback for when "RetrieveCryptoAddress()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveCryptoAddress(fn func(accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)) {
-	tx.callbacks["RetrieveCryptoAddress"] = fn
+	if tx.OnCreateCryptoAddress != nil {
+		return tx.OnCreateCryptoAddress(in, log)
+	}
+	panic("CreateCryptoAddress callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveCryptoAddress()".
 func (tx *Tx) RetrieveCryptoAddress(accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error) {
-	fn, err := tx.check("RetrieveCryptoAddress", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error))(accountID, cryptoAddressID)
-}
-
-// Set a callback for when "UpdateCryptoAddress()" is called on the mock Txn.
-func (tx *Tx) OnUpdateCryptoAddress(fn func(in *models.CryptoAddress) error) {
-	tx.callbacks["UpdateCryptoAddress"] = fn
+	if tx.OnRetrieveCryptoAddress != nil {
+		return tx.OnRetrieveCryptoAddress(accountID, cryptoAddressID)
+	}
+	panic("RetrieveCryptoAddress callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateCryptoAddress()".
-func (tx *Tx) UpdateCryptoAddress(in *models.CryptoAddress) error {
-	fn, err := tx.check("UpdateCryptoAddress", true)
-	if err != nil {
+func (tx *Tx) UpdateCryptoAddress(in *models.CryptoAddress, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.CryptoAddress) error)(in)
-}
-
-// Set a callback for when "DeleteCryptoAddress()" is called on the mock Txn.
-func (tx *Tx) OnDeleteCryptoAddress(fn func(accountID, cryptoAddressID ulid.ULID) error) {
-	tx.callbacks["DeleteCryptoAddress"] = fn
+	if tx.OnUpdateCryptoAddress != nil {
+		return tx.OnUpdateCryptoAddress(in, log)
+	}
+	panic("UpdateCryptoAddress callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteCryptoAddress()".
-func (tx *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID) error {
-	fn, err := tx.check("DeleteCryptoAddress", true)
-	if err != nil {
+func (tx *Tx) DeleteCryptoAddress(accountID, cryptoAddressID ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(accountID, cryptoAddressID ulid.ULID) error)(accountID, cryptoAddressID)
+	if tx.OnDeleteCryptoAddress != nil {
+		return tx.OnDeleteCryptoAddress(accountID, cryptoAddressID, log)
+	}
+	panic("DeleteCryptoAddress callback not set")
 }
 
 //===========================================================================
 // Counterparty Interface Methods
 //===========================================================================
 
-// Set a callback for when "SearchCounterparties()" is called on the mock Txn.
-func (tx *Tx) OnSearchCounterparties(fn func(query *models.SearchQuery) (*models.CounterpartyPage, error)) {
-	tx.callbacks["SearchCounterparties"] = fn
-}
-
 // Calls the callback previously set with "OnSearchCounterparties()".
 func (tx *Tx) SearchCounterparties(query *models.SearchQuery) (*models.CounterpartyPage, error) {
-	fn, err := tx.check("SearchCounterparties", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(query *models.SearchQuery) (*models.CounterpartyPage, error))(query)
-}
-
-// Set a callback for when "ListCounterparties()" is called on the mock Txn.
-func (tx *Tx) OnListCounterparties(fn func(page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)) {
-	tx.callbacks["ListCounterparties"] = fn
+	if tx.OnSearchCounterparties != nil {
+		return tx.OnSearchCounterparties(query)
+	}
+	panic("SearchCounterparties callback not set")
 }
 
 // Calls the callback previously set with "OnListCounterparties()".
 func (tx *Tx) ListCounterparties(page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error) {
-	fn, err := tx.check("ListCounterparties", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error))(page)
-}
-
-// Set a callback for when "ListCounterpartySourceInfo()" is called on the mock Txn.
-func (tx *Tx) OnListCounterpartySourceInfo(fn func(source enum.Source) ([]*models.CounterpartySourceInfo, error)) {
-	tx.callbacks["ListCounterpartySourceInfo"] = fn
+	if tx.OnListCounterparties != nil {
+		return tx.OnListCounterparties(page)
+	}
+	panic("ListCounterparties callback not set")
 }
 
 // Calls the callback previously set with "OnListCounterpartySourceInfo()".
 func (tx *Tx) ListCounterpartySourceInfo(source enum.Source) ([]*models.CounterpartySourceInfo, error) {
-	fn, err := tx.check("ListCounterpartySourceInfo", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(source enum.Source) ([]*models.CounterpartySourceInfo, error))(source)
-}
-
-// Set a callback for when "CreateCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnCreateCounterparty(fn func(in *models.Counterparty) error) {
-	tx.callbacks["CreateCounterparty"] = fn
+	if tx.OnListCounterpartySourceInfo != nil {
+		return tx.OnListCounterpartySourceInfo(source)
+	}
+	panic("ListCounterpartySourceInfo callback not set")
 }
 
 // Calls the callback previously set with "OnCreateCounterparty()".
-func (tx *Tx) CreateCounterparty(in *models.Counterparty) error {
-	fn, err := tx.check("CreateCounterparty", true)
-	if err != nil {
+func (tx *Tx) CreateCounterparty(in *models.Counterparty, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Counterparty) error)(in)
-}
-
-// Set a callback for when "RetrieveCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveCounterparty(fn func(counterpartyID ulid.ULID) (*models.Counterparty, error)) {
-	tx.callbacks["RetrieveCounterparty"] = fn
+	if tx.OnCreateCounterparty != nil {
+		return tx.OnCreateCounterparty(in, log)
+	}
+	panic("CreateCounterparty callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveCounterparty()".
 func (tx *Tx) RetrieveCounterparty(counterpartyID ulid.ULID) (*models.Counterparty, error) {
-	fn, err := tx.check("RetrieveCounterparty", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(counterpartyID ulid.ULID) (*models.Counterparty, error))(counterpartyID)
-}
-
-// Set a callback for when "LookupCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnLookupCounterparty(fn func(field, value string) (*models.Counterparty, error)) {
-	tx.callbacks["LookupCounterparty"] = fn
+	if tx.OnRetrieveCounterparty != nil {
+		return tx.OnRetrieveCounterparty(counterpartyID)
+	}
+	panic("RetrieveCounterparty callback not set")
 }
 
 // Calls the callback previously set with "OnLookupCounterparty()".
 func (tx *Tx) LookupCounterparty(field, value string) (*models.Counterparty, error) {
-	fn, err := tx.check("LookupCounterparty", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(field, value string) (*models.Counterparty, error))(field, value)
+	if tx.OnLookupCounterparty != nil {
+		return tx.OnLookupCounterparty(field, value)
+	}
+	panic("LookupCounterparty callback not set")
 
-}
-
-// Set a callback for when "UpdateCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnUpdateCounterparty(fn func(in *models.Counterparty) error) {
-	tx.callbacks["UpdateCounterparty"] = fn
 }
 
 // Calls the callback previously set with "OnUpdateCounterparty()".
-func (tx *Tx) UpdateCounterparty(in *models.Counterparty) error {
-	fn, err := tx.check("UpdateCounterparty", true)
-	if err != nil {
+func (tx *Tx) UpdateCounterparty(in *models.Counterparty, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Counterparty) error)(in)
-}
-
-// Set a callback for when "DeleteCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnDeleteCounterparty(fn func(counterpartyID ulid.ULID) error) {
-	tx.callbacks["DeleteCounterparty"] = fn
+	if tx.OnUpdateCounterparty != nil {
+		return tx.OnUpdateCounterparty(in, log)
+	}
+	panic("UpdateCounterparty callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteCounterparty()".
-func (tx *Tx) DeleteCounterparty(counterpartyID ulid.ULID) error {
-	fn, err := tx.check("DeleteCounterparty", true)
-	if err != nil {
+func (tx *Tx) DeleteCounterparty(counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(counterpartyID ulid.ULID) error)(counterpartyID)
+	if tx.OnDeleteCounterparty != nil {
+		return tx.OnDeleteCounterparty(counterpartyID, log)
+	}
+	panic("DeleteCounterparty callback not set")
 }
 
 //===========================================================================
 // Contact Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListContacts()" is called on the mock Txn.
-func (tx *Tx) OnListContacts(fn func(counterparty any, page *models.PageInfo) (*models.ContactsPage, error)) {
-	tx.callbacks["ListContacts"] = fn
-}
-
 // Calls the callback previously set with "OnListContacts()".
 func (tx *Tx) ListContacts(counterparty any, page *models.PageInfo) (*models.ContactsPage, error) {
-	fn, err := tx.check("ListContacts", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(counterparty any, page *models.PageInfo) (*models.ContactsPage, error))(counterparty, page)
-}
-
-// Set a callback for when "CreateContact()" is called on the mock Txn.
-func (tx *Tx) OnCreateContact(fn func(in *models.Contact) error) {
-	tx.callbacks["CreateContact"] = fn
+	if tx.OnListContacts != nil {
+		return tx.OnListContacts(counterparty, page)
+	}
+	panic("ListContacts callback not set")
 }
 
 // Calls the callback previously set with "OnCreateContact()".
-func (tx *Tx) CreateContact(in *models.Contact) error {
-	fn, err := tx.check("CreateContact", true)
-	if err != nil {
+func (tx *Tx) CreateContact(in *models.Contact, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Contact) error)(in)
-}
-
-// Set a callback for when "RetrieveContact()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveContact(fn func(contactID, counterpartyID any) (*models.Contact, error)) {
-	tx.callbacks["RetrieveContact"] = fn
+	if tx.OnCreateContact != nil {
+		return tx.OnCreateContact(in, log)
+	}
+	panic("CreateContact callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveContact()".
 func (tx *Tx) RetrieveContact(contactID, counterpartyID any) (*models.Contact, error) {
-	fn, err := tx.check("RetrieveContact", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(contactID, counterpartyID any) (*models.Contact, error))(contactID, counterpartyID)
-}
-
-// Set a callback for when "UpdateContact()" is called on the mock Txn.
-func (tx *Tx) OnUpdateContact(fn func(in *models.Contact) error) {
-	tx.callbacks["UpdateContact"] = fn
+	if tx.OnRetrieveContact != nil {
+		return tx.OnRetrieveContact(contactID, counterpartyID)
+	}
+	panic("RetrieveContact callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateContact()".
-func (tx *Tx) UpdateContact(in *models.Contact) error {
-	fn, err := tx.check("UpdateContact", true)
-	if err != nil {
+func (tx *Tx) UpdateContact(in *models.Contact, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Contact) error)(in)
-}
-
-// Set a callback for when "DeleteContact()" is called on the mock Txn.
-func (tx *Tx) OnDeleteContact(fn func(contactID, counterpartyID any) error) {
-	tx.callbacks["DeleteContact"] = fn
+	if tx.OnUpdateContact != nil {
+		return tx.OnUpdateContact(in, log)
+	}
+	panic("UpdateContact callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteContact()".
-func (tx *Tx) DeleteContact(contactID, counterpartyID any) error {
-	fn, err := tx.check("DeleteContact", true)
-	if err != nil {
+func (tx *Tx) DeleteContact(contactID, counterpartyID any, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(contactID, counterpartyID any) error)(contactID, counterpartyID)
+	if tx.OnDeleteContact != nil {
+		return tx.OnDeleteContact(contactID, counterpartyID, log)
+	}
+	panic("DeleteContact callback not set")
 }
 
 //===========================================================================
 // Sunrise Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListSunrise()" is called on the mock Txn.
-func (tx *Tx) OnListSunrise(fn func(in *models.PageInfo) (*models.SunrisePage, error)) {
-	tx.callbacks["ListSunrise"] = fn
-}
-
 // Calls the callback previously set with "OnListSunrise()".
 func (tx *Tx) ListSunrise(in *models.PageInfo) (*models.SunrisePage, error) {
-	fn, err := tx.check("ListSunrise", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(in *models.PageInfo) (*models.SunrisePage, error))(in)
-}
-
-// Set a callback for when "CreateSunrise()" is called on the mock Txn.
-func (tx *Tx) OnCreateSunrise(fn func(in *models.Sunrise) error) {
-	tx.callbacks["CreateSunrise"] = fn
+	if tx.OnListSunrise != nil {
+		return tx.OnListSunrise(in)
+	}
+	panic("ListSunrise callback not set")
 }
 
 // Calls the callback previously set with "OnCreateSunrise()".
-func (tx *Tx) CreateSunrise(in *models.Sunrise) error {
-	fn, err := tx.check("CreateSunrise", true)
-	if err != nil {
+func (tx *Tx) CreateSunrise(in *models.Sunrise, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Sunrise) error)(in)
-}
-
-// Set a callback for when "RetrieveSunrise()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveSunrise(fn func(id ulid.ULID) (*models.Sunrise, error)) {
-	tx.callbacks["RetrieveSunrise"] = fn
+	if tx.OnCreateSunrise != nil {
+		return tx.OnCreateSunrise(in, log)
+	}
+	panic("CreateSunrise callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveSunrise()".
 func (tx *Tx) RetrieveSunrise(id ulid.ULID) (*models.Sunrise, error) {
-	fn, err := tx.check("RetrieveSunrise", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(id ulid.ULID) (*models.Sunrise, error))(id)
-}
-
-// Set a callback for when "UpdateSunrise()" is called on the mock Txn.
-func (tx *Tx) OnUpdateSunrise(fn func(in *models.Sunrise) error) {
-	tx.callbacks["UpdateSunrise"] = fn
+	if tx.OnRetrieveSunrise != nil {
+		return tx.OnRetrieveSunrise(id)
+	}
+	panic("RetrieveSunrise callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateSunrise()".
-func (tx *Tx) UpdateSunrise(in *models.Sunrise) error {
-	fn, err := tx.check("UpdateSunrise", true)
-	if err != nil {
+func (tx *Tx) UpdateSunrise(in *models.Sunrise, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.Sunrise) error)(in)
-}
-
-// Set a callback for when "UpdateSunriseStatus()" is called on the mock Txn.
-func (tx *Tx) OnUpdateSunriseStatus(fn func(id uuid.UUID, status enum.Status) error) {
-	tx.callbacks["UpdateSunriseStatus"] = fn
+	if tx.OnUpdateSunrise != nil {
+		return tx.OnUpdateSunrise(in, log)
+	}
+	panic("UpdateSunrise callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateSunriseStatus()".
-func (tx *Tx) UpdateSunriseStatus(id uuid.UUID, status enum.Status) error {
-	fn, err := tx.check("UpdateSunriseStatus", true)
-	if err != nil {
+func (tx *Tx) UpdateSunriseStatus(id uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id uuid.UUID, status enum.Status) error)(id, status)
-}
-
-// Set a callback for when "DeleteSunrise()" is called on the mock Txn.
-func (tx *Tx) OnDeleteSunrise(fn func(in ulid.ULID) error) {
-	tx.callbacks["DeleteSunrise"] = fn
+	if tx.OnUpdateSunriseStatus != nil {
+		return tx.OnUpdateSunriseStatus(id, status, log)
+	}
+	panic("UpdateSunriseStatus callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteSunrise()".
-func (tx *Tx) DeleteSunrise(in ulid.ULID) error {
-	fn, err := tx.check("DeleteSunrise", true)
-	if err != nil {
+func (tx *Tx) DeleteSunrise(in ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in ulid.ULID) error)(in)
-}
-
-// Set a callback for when "GetOrCreateSunriseCounterparty()" is called on the mock Txn.
-func (tx *Tx) OnGetOrCreateSunriseCounterparty(fn func(email, name string) (*models.Counterparty, error)) {
-	tx.callbacks["GetOrCreateSunriseCounterparty"] = fn
+	if tx.OnDeleteSunrise != nil {
+		return tx.OnDeleteSunrise(in, log)
+	}
+	panic("DeleteSunrise callback not set")
 }
 
 // Calls the callback previously set with "OnGetOrCreateSunriseCounterparty()".
-func (tx *Tx) GetOrCreateSunriseCounterparty(email, name string) (*models.Counterparty, error) {
-	fn, err := tx.check("GetOrCreateSunriseCounterparty", true)
-	if err != nil {
+func (tx *Tx) GetOrCreateSunriseCounterparty(email, name string, log *models.ComplianceAuditLog) (*models.Counterparty, error) {
+	if err := tx.check(true); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(email, name string) (*models.Counterparty, error))(email, name)
+	if tx.OnGetOrCreateSunriseCounterparty != nil {
+		return tx.OnGetOrCreateSunriseCounterparty(email, name, log)
+	}
+	panic("GetOrCreateSunriseCounterparty callback not set")
 
 }
 
@@ -895,393 +839,318 @@ func (tx *Tx) GetOrCreateSunriseCounterparty(email, name string) (*models.Counte
 // User Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListUsers()" is called on the mock Txn.
-func (tx *Tx) OnListUsers(fn func(page *models.UserPageInfo) (*models.UserPage, error)) {
-	tx.callbacks["ListUsers"] = fn
-}
-
 // Calls the callback previously set with "OnListUsers()".
 func (tx *Tx) ListUsers(page *models.UserPageInfo) (*models.UserPage, error) {
-	fn, err := tx.check("ListUsers", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.UserPageInfo) (*models.UserPage, error))(page)
-}
-
-// Set a callback for when "CreateUser()" is called on the mock Txn.
-func (tx *Tx) OnCreateUser(fn func(in *models.User) error) {
-	tx.callbacks["CreateUser"] = fn
+	if tx.OnListUsers != nil {
+		return tx.OnListUsers(page)
+	}
+	panic("ListUsers callback not set")
 }
 
 // Calls the callback previously set with "OnCreateUser()".
-func (tx *Tx) CreateUser(in *models.User) error {
-	fn, err := tx.check("CreateUser", true)
-	if err != nil {
+func (tx *Tx) CreateUser(in *models.User, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.User) error)(in)
-}
-
-// Set a callback for when "RetrieveUser()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveUser(fn func(emailOrUserID any) (*models.User, error)) {
-	tx.callbacks["RetrieveUser"] = fn
+	if tx.OnCreateUser != nil {
+		return tx.OnCreateUser(in, log)
+	}
+	panic("CreateUser callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveUser()".
 func (tx *Tx) RetrieveUser(emailOrUserID any) (*models.User, error) {
-	fn, err := tx.check("RetrieveUser", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(emailOrUserID any) (*models.User, error))(emailOrUserID)
-}
-
-// Set a callback for when "UpdateUser()" is called on the mock Txn.
-func (tx *Tx) OnUpdateUser(fn func(in *models.User) error) {
-	tx.callbacks["UpdateUser"] = fn
+	if tx.OnRetrieveUser != nil {
+		return tx.OnRetrieveUser(emailOrUserID)
+	}
+	panic("RetrieveUser callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateUser()".
-func (tx *Tx) UpdateUser(in *models.User) error {
-	fn, err := tx.check("UpdateUser", true)
-	if err != nil {
+func (tx *Tx) UpdateUser(in *models.User, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.User) error)(in)
-}
-
-// Set a callback for when "SetUserPassword()" is called on the mock Txn.
-func (tx *Tx) OnSetUserPassword(fn func(userID ulid.ULID, password string) error) {
-	tx.callbacks["SetUserPassword"] = fn
+	if tx.OnUpdateUser != nil {
+		return tx.OnUpdateUser(in, log)
+	}
+	panic("UpdateUser callback not set")
 }
 
 // Calls the callback previously set with "OnSetUserPassword()".
 func (tx *Tx) SetUserPassword(userID ulid.ULID, password string) error {
-	fn, err := tx.check("SetUserPassword", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(userID ulid.ULID, password string) error)(userID, password)
-}
-
-// Set a callback for when "SetUserLastLogin()" is called on the mock Txn.
-func (tx *Tx) OnSetUserLastLogin(fn func(userID ulid.ULID, lastLogin time.Time) error) {
-	tx.callbacks["SetUserLastLogin"] = fn
+	if tx.OnSetUserPassword != nil {
+		return tx.OnSetUserPassword(userID, password)
+	}
+	panic("SetUserPassword callback not set")
 }
 
 // Calls the callback previously set with "OnSetUserLastLogin()".
 func (tx *Tx) SetUserLastLogin(userID ulid.ULID, lastLogin time.Time) error {
-	fn, err := tx.check("SetUserLastLogin", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(userID ulid.ULID, lastLogin time.Time) error)(userID, lastLogin)
-}
-
-// Set a callback for when "DeleteUser()" is called on the mock Txn.
-func (tx *Tx) OnDeleteUser(fn func(userID ulid.ULID) error) {
-	tx.callbacks["DeleteUser"] = fn
+	if tx.OnSetUserLastLogin != nil {
+		return tx.OnSetUserLastLogin(userID, lastLogin)
+	}
+	panic("SetUserLastLogin callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteUser()".
-func (tx *Tx) DeleteUser(userID ulid.ULID) error {
-	fn, err := tx.check("DeleteUser", true)
-	if err != nil {
+func (tx *Tx) DeleteUser(userID ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(userID ulid.ULID) error)(userID)
-}
-
-// Set a callback for when "LookupRole()" is called on the mock Txn.
-func (tx *Tx) OnLookupRole(fn func(role string) (*models.Role, error)) {
-	tx.callbacks["LookupRole"] = fn
+	if tx.OnDeleteUser != nil {
+		return tx.OnDeleteUser(userID, log)
+	}
+	panic("DeleteUser callback not set")
 }
 
 // Calls the callback previously set with "OnLookupRole()".
 func (tx *Tx) LookupRole(role string) (*models.Role, error) {
-	fn, err := tx.check("LookupRole", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(role string) (*models.Role, error))(role)
+	if tx.OnLookupRole != nil {
+		return tx.OnLookupRole(role)
+	}
+	panic("LookupRole callback not set")
 }
 
 //===========================================================================
 // APIKey Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListAPIKeys()" is called on the mock Txn.
-func (tx *Tx) OnListAPIKeys(fn func(page *models.PageInfo) (*models.APIKeyPage, error)) {
-	tx.callbacks["ListAPIKeys"] = fn
-}
-
 // Calls the callback previously set with "OnListAPIKeys()".
 func (tx *Tx) ListAPIKeys(page *models.PageInfo) (*models.APIKeyPage, error) {
-	fn, err := tx.check("ListAPIKeys", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.PageInfo) (*models.APIKeyPage, error))(page)
-}
-
-// Set a callback for when "CreateAPIKey()" is called on the mock Txn.
-func (tx *Tx) OnCreateAPIKey(fn func(in *models.APIKey) error) {
-	tx.callbacks["CreateAPIKey"] = fn
+	if tx.OnListAPIKeys != nil {
+		return tx.OnListAPIKeys(page)
+	}
+	panic("ListAPIKeys callback not set")
 }
 
 // Calls the callback previously set with "OnCreateAPIKey()".
-func (tx *Tx) CreateAPIKey(in *models.APIKey) error {
-	fn, err := tx.check("CreateAPIKey", true)
-	if err != nil {
+func (tx *Tx) CreateAPIKey(in *models.APIKey, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.APIKey) error)(in)
-}
-
-// Set a callback for when "RetrieveAPIKey()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveAPIKey(fn func(clientIDOrKeyID any) (*models.APIKey, error)) {
-	tx.callbacks["RetrieveAPIKey"] = fn
+	if tx.OnCreateAPIKey != nil {
+		return tx.OnCreateAPIKey(in, log)
+	}
+	panic("CreateAPIKey callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveAPIKey()".
 func (tx *Tx) RetrieveAPIKey(clientIDOrKeyID any) (*models.APIKey, error) {
-	fn, err := tx.check("RetrieveAPIKey", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(clientIDOrKeyID any) (*models.APIKey, error))(clientIDOrKeyID)
-}
-
-// Set a callback for when "UpdateAPIKey()" is called on the mock Txn.
-func (tx *Tx) OnUpdateAPIKey(fn func(in *models.APIKey) error) {
-	tx.callbacks["UpdateAPIKey"] = fn
+	if tx.OnRetrieveAPIKey != nil {
+		return tx.OnRetrieveAPIKey(clientIDOrKeyID)
+	}
+	panic("RetrieveAPIKey callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateAPIKey()".
-func (tx *Tx) UpdateAPIKey(in *models.APIKey) error {
-	fn, err := tx.check("UpdateAPIKey", true)
-	if err != nil {
+func (tx *Tx) UpdateAPIKey(in *models.APIKey, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.APIKey) error)(in)
-}
-
-// Set a callback for when "DeleteAPIKey()" is called on the mock Txn.
-func (tx *Tx) OnDeleteAPIKey(fn func(keyID ulid.ULID) error) {
-	tx.callbacks["DeleteAPIKey"] = fn
+	if tx.OnUpdateAPIKey != nil {
+		return tx.OnUpdateAPIKey(in, log)
+	}
+	panic("UpdateAPIKey callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteAPIKey()".
-func (tx *Tx) DeleteAPIKey(keyID ulid.ULID) error {
-	fn, err := tx.check("DeleteAPIKey", true)
-	if err != nil {
+func (tx *Tx) DeleteAPIKey(keyID ulid.ULID, log *models.ComplianceAuditLog) error {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(keyID ulid.ULID) error)(keyID)
+	if tx.OnDeleteAPIKey != nil {
+		return tx.OnDeleteAPIKey(keyID, log)
+	}
+	panic("DeleteAPIKey callback not set")
 }
 
 //===========================================================================
 // ResetPasswordLink Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListResetPasswordLinks()" is called on the mock Txn.
-func (tx *Tx) OnListResetPasswordLinks(fn func(page *models.PageInfo) (*models.ResetPasswordLinkPage, error)) {
-	tx.callbacks["ListResetPasswordLinks"] = fn
-}
-
 // Calls the callback previously set with "OnListResetPasswordLinks()".
 func (tx *Tx) ListResetPasswordLinks(page *models.PageInfo) (*models.ResetPasswordLinkPage, error) {
-	fn, err := tx.check("ListResetPasswordLinks", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.PageInfo) (*models.ResetPasswordLinkPage, error))(page)
-}
-
-// Set a callback for when "CreateResetPasswordLink()" is called on the mock Txn.
-func (tx *Tx) OnCreateResetPasswordLink(fn func(in *models.ResetPasswordLink) error) {
-	tx.callbacks["CreateResetPasswordLink"] = fn
+	if tx.OnListResetPasswordLinks != nil {
+		return tx.OnListResetPasswordLinks(page)
+	}
+	panic("ListResetPasswordLinks callback not set")
 }
 
 // Calls the callback previously set with "OnCreateResetPasswordLink()".
 func (tx *Tx) CreateResetPasswordLink(in *models.ResetPasswordLink) error {
-	fn, err := tx.check("CreateResetPasswordLink", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.ResetPasswordLink) error)(in)
-}
-
-// Set a callback for when "RetrieveResetPasswordLink()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveResetPasswordLink(fn func(id ulid.ULID) (*models.ResetPasswordLink, error)) {
-	tx.callbacks["RetrieveResetPasswordLink"] = fn
+	if tx.OnCreateResetPasswordLink != nil {
+		return tx.OnCreateResetPasswordLink(in)
+	}
+	panic("CreateResetPasswordLink callback not set")
 }
 
 // Calls the callback previously set with "OnRetrieveResetPasswordLink()".
 func (tx *Tx) RetrieveResetPasswordLink(id ulid.ULID) (*models.ResetPasswordLink, error) {
-	fn, err := tx.check("RetrieveResetPasswordLink", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(id ulid.ULID) (*models.ResetPasswordLink, error))(id)
-}
-
-// Set a callback for when "UpdateResetPasswordLink()" is called on the mock Txn.
-func (tx *Tx) OnUpdateResetPasswordLink(fn func(in *models.ResetPasswordLink) error) {
-	tx.callbacks["UpdateResetPasswordLink"] = fn
+	if tx.OnRetrieveResetPasswordLink != nil {
+		return tx.OnRetrieveResetPasswordLink(id)
+	}
+	panic("RetrieveResetPasswordLink callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateResetPasswordLink()".
 func (tx *Tx) UpdateResetPasswordLink(in *models.ResetPasswordLink) error {
-	fn, err := tx.check("UpdateResetPasswordLink", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(in *models.ResetPasswordLink) error)(in)
-}
-
-// Set a callback for when "DeleteResetPasswordLink()" is called on the mock Txn.
-func (tx *Tx) OnDeleteResetPasswordLink(fn func(id ulid.ULID) error) {
-	tx.callbacks["DeleteResetPasswordLink"] = fn
+	if tx.OnUpdateResetPasswordLink != nil {
+		return tx.OnUpdateResetPasswordLink(in)
+	}
+	panic("UpdateResetPasswordLink callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteResetPasswordLink()".
 func (tx *Tx) DeleteResetPasswordLink(id ulid.ULID) error {
-	fn, err := tx.check("DeleteResetPasswordLink", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(id ulid.ULID) error)(id)
+	if tx.OnDeleteResetPasswordLink != nil {
+		return tx.OnDeleteResetPasswordLink(id)
+	}
+	panic("DeleteResetPasswordLink callback not set")
 }
 
 //===========================================================================
 // Compliance Audit Log Store Methods
 //===========================================================================
 
-// Set a callback for when "ListComplianceAuditLogs()" is called on the mock Txn.
-func (tx *Tx) OnListComplianceAuditLogs(fn func(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)) {
-	tx.callbacks["ListComplianceAuditLogs"] = fn
-}
-
 // Calls the callback previously set with "OnListComplianceAuditLogs()".
 func (tx *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error) {
-	fn, err := tx.check("ListComplianceAuditLogs", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(page *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error))(page)
-}
-
-// Set a callback for when "CreateComplianceAuditLog()" is called on the mock Txn.
-func (tx *Tx) OnCreateComplianceAuditLog(fn func(log *models.ComplianceAuditLog) error) {
-	tx.callbacks["CreateComplianceAuditLog"] = fn
+	if tx.OnListComplianceAuditLogs != nil {
+		return tx.OnListComplianceAuditLogs(page)
+	}
+	panic("ListComplianceAuditLogs callback not set")
 }
 
 // Calls the callback previously set with "OnCreateComplianceAuditLog()".
 func (tx *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) error {
-	fn, err := tx.check("CreateComplianceAuditLog", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(log *models.ComplianceAuditLog) error)(log)
-}
-
-// Set a callback for when "RetrieveComplianceAuditLog()" is called on the mock Txn.
-func (tx *Tx) OnRetrieveComplianceAuditLog(fn func(id ulid.ULID) (*models.ComplianceAuditLog, error)) {
-	tx.callbacks["RetrieveComplianceAuditLog"] = fn
+	if tx.OnCreateComplianceAuditLog != nil {
+		return tx.OnCreateComplianceAuditLog(log)
+	}
+	panic("CreateComplianceAuditLog callback not set")
 }
 
 // Calls the callback previously set with "OnCreateComplianceAuditLog()".
 func (tx *Tx) RetrieveComplianceAuditLog(id ulid.ULID) (*models.ComplianceAuditLog, error) {
-	fn, err := tx.check("RetrieveComplianceAuditLog", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return nil, err
 	}
 
-	return fn.(func(id ulid.ULID) (*models.ComplianceAuditLog, error))(id)
+	if tx.OnRetrieveComplianceAuditLog != nil {
+		return tx.OnRetrieveComplianceAuditLog(id)
+	}
+	panic("RetrieveComplianceAuditLog callback not set")
 }
 
 //===========================================================================
 // Daybreak Interface Methods
 //===========================================================================
 
-// Set a callback for when "ListDaybreak()" is called on the mock Txn.
-func (tx *Tx) OnListDaybreak(fn func() (map[string]*models.CounterpartySourceInfo, error)) {
-	tx.callbacks["ListDaybreak"] = fn
-}
-
 // Calls the callback previously set with "OnListDaybreak()".
 func (tx *Tx) ListDaybreak() (map[string]*models.CounterpartySourceInfo, error) {
-	fn, err := tx.check("ListDaybreak", false)
-	if err != nil {
+	if err := tx.check(false); err != nil {
 		return nil, err
 	}
 
-	return fn.(func() (map[string]*models.CounterpartySourceInfo, error))()
-}
-
-// Set a callback for when "CreateDaybreak()" is called on the mock Txn.
-func (tx *Tx) OnCreateDaybreak(fn func(counterparty *models.Counterparty) error) {
-	tx.callbacks["CreateDaybreak"] = fn
+	if tx.OnListDaybreak != nil {
+		return tx.OnListDaybreak()
+	}
+	panic("ListDaybreak callback not set")
 }
 
 // Calls the callback previously set with "OnCreateDaybreak()".
 func (tx *Tx) CreateDaybreak(counterparty *models.Counterparty) error {
-	fn, err := tx.check("CreateDaybreak", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(counterparty *models.Counterparty) error)(counterparty)
-}
-
-// Set a callback for when "UpdateDaybreak()" is called on the mock Txn.
-func (tx *Tx) OnUpdateDaybreak(fn func(counterparty *models.Counterparty) error) {
-	tx.callbacks["UpdateDaybreak"] = fn
+	if tx.OnCreateDaybreak != nil {
+		return tx.OnCreateDaybreak(counterparty)
+	}
+	panic("CreateDaybreak callback not set")
 }
 
 // Calls the callback previously set with "OnUpdateDaybreak()".
 func (tx *Tx) UpdateDaybreak(counterparty *models.Counterparty) error {
-	fn, err := tx.check("UpdateDaybreak", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(counterparty *models.Counterparty) error)(counterparty)
-}
-
-// Set a callback for when "DeleteDaybreak()" is called on the mock Txn.
-func (tx *Tx) OnDeleteDaybreak(fn func(counterpartyID ulid.ULID, ignoreTxns bool) error) {
-	tx.callbacks["DeleteDaybreak"] = fn
+	if tx.OnUpdateDaybreak != nil {
+		return tx.OnUpdateDaybreak(counterparty)
+	}
+	panic("UpdateDaybreak callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteDaybreak()".
 func (tx *Tx) DeleteDaybreak(counterpartyID ulid.ULID, ignoreTxns bool) error {
-	fn, err := tx.check("DeleteDaybreak", true)
-	if err != nil {
+	if err := tx.check(true); err != nil {
 		return err
 	}
 
-	return fn.(func(counterpartyID ulid.ULID, ignoreTxns bool) error)(counterpartyID, ignoreTxns)
+	if tx.OnDeleteDaybreak != nil {
+		return tx.OnDeleteDaybreak(counterpartyID, ignoreTxns)
+	}
+	panic("DeleteDaybreak callback not set")
 }

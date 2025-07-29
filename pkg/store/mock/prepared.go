@@ -117,48 +117,48 @@ func (p *PreparedTransaction) Fetch() (*models.Transaction, error) {
 }
 
 // Sets a callback for when "Update()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnUpdate(fn func(*models.Transaction) error) {
+func (p *PreparedTransaction) OnUpdate(fn func(*models.Transaction, *models.ComplianceAuditLog) error) {
 	p.callbacks["Update"] = fn
 }
 
 // Calls the callback previously set with "OnUpdate()".
-func (p *PreparedTransaction) Update(model *models.Transaction) error {
+func (p *PreparedTransaction) Update(model *models.Transaction, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("Update")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(*models.Transaction) error)(model)
+	return fn.(func(*models.Transaction, *models.ComplianceAuditLog) error)(model, log)
 }
 
 // Sets a callback for when "AddCounterparty()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnAddCounterparty(fn func(*models.Counterparty) error) {
+func (p *PreparedTransaction) OnAddCounterparty(fn func(*models.Counterparty, *models.ComplianceAuditLog) error) {
 	p.callbacks["AddCounterparty"] = fn
 }
 
 // Calls the callback previously set with "OnAddCounterparty()".
-func (p *PreparedTransaction) AddCounterparty(model *models.Counterparty) error {
+func (p *PreparedTransaction) AddCounterparty(model *models.Counterparty, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("AddCounterparty")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(*models.Counterparty) error)(model)
+	return fn.(func(*models.Counterparty, *models.ComplianceAuditLog) error)(model, log)
 }
 
 // Sets a callback for when "UpdateCounterparty()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnUpdateCounterparty(fn func(counterparty *models.Counterparty) error) {
+func (p *PreparedTransaction) OnUpdateCounterparty(fn func(counterparty *models.Counterparty, log *models.ComplianceAuditLog) error) {
 	p.callbacks["UpdateCounterparty"] = fn
 }
 
 // Calls the callback previously set with "OnUpdateCounterparty()".
-func (p *PreparedTransaction) UpdateCounterparty(counterparty *models.Counterparty) error {
+func (p *PreparedTransaction) UpdateCounterparty(counterparty *models.Counterparty, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("UpdateCounterparty")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(counterparty *models.Counterparty) error)(counterparty)
+	return fn.(func(counterparty *models.Counterparty, log *models.ComplianceAuditLog) error)(counterparty, log)
 }
 
 // Sets a callback for when "LookupCounterparty()" is called on the mock PreparedTransaction.
@@ -177,63 +177,63 @@ func (p *PreparedTransaction) LookupCounterparty(field, value string) (*models.C
 }
 
 // Sets a callback for when "AddEnvelope()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnAddEnvelope(fn func(*models.SecureEnvelope) error) {
+func (p *PreparedTransaction) OnAddEnvelope(fn func(*models.SecureEnvelope, *models.ComplianceAuditLog) error) {
 	p.callbacks["AddEnvelope"] = fn
 }
 
 // Calls the callback previously set with "OnAddEnvelope()".
-func (p *PreparedTransaction) AddEnvelope(model *models.SecureEnvelope) error {
+func (p *PreparedTransaction) AddEnvelope(model *models.SecureEnvelope, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("AddEnvelope")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(*models.SecureEnvelope) error)(model)
+	return fn.(func(*models.SecureEnvelope, *models.ComplianceAuditLog) error)(model, log)
 }
 
 // Sets a callback for when "CreateSunrise()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnCreateSunrise(fn func(sunrise *models.Sunrise) error) {
+func (p *PreparedTransaction) OnCreateSunrise(fn func(sunrise *models.Sunrise, log *models.ComplianceAuditLog) error) {
 	p.callbacks["CreateSunrise"] = fn
 }
 
 // Calls the callback previously set with "OnCreateSunrise()".
-func (p *PreparedTransaction) CreateSunrise(sunrise *models.Sunrise) error {
+func (p *PreparedTransaction) CreateSunrise(sunrise *models.Sunrise, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("CreateSunrise")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(*models.Sunrise) error)(sunrise)
+	return fn.(func(*models.Sunrise, *models.ComplianceAuditLog) error)(sunrise, log)
 }
 
 // Sets a callback for when "UpdateSunrise()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnUpdateSunrise(fn func(sunrise *models.Sunrise) error) {
+func (p *PreparedTransaction) OnUpdateSunrise(fn func(sunrise *models.Sunrise, log *models.ComplianceAuditLog) error) {
 	p.callbacks["UpdateSunrise"] = fn
 }
 
 // Calls the callback previously set with "OnUpdateSunrise()".
-func (p *PreparedTransaction) UpdateSunrise(sunrise *models.Sunrise) error {
+func (p *PreparedTransaction) UpdateSunrise(sunrise *models.Sunrise, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("UpdateSunrise")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(*models.Sunrise) error)(sunrise)
+	return fn.(func(*models.Sunrise, *models.ComplianceAuditLog) error)(sunrise, log)
 }
 
 // Sets a callback for when "UpdateSunriseStatus()" is called on the mock PreparedTransaction.
-func (p *PreparedTransaction) OnUpdateSunriseStatus(fn func(id uuid.UUID, status enum.Status) error) {
+func (p *PreparedTransaction) OnUpdateSunriseStatus(fn func(id uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error) {
 	p.callbacks["UpdateSunriseStatus"] = fn
 }
 
 // Calls the callback previously set with "OnUpdateSunriseStatus()".
-func (p *PreparedTransaction) UpdateSunriseStatus(id uuid.UUID, status enum.Status) error {
+func (p *PreparedTransaction) UpdateSunriseStatus(id uuid.UUID, status enum.Status, log *models.ComplianceAuditLog) error {
 	fn, err := p.check("UpdateSunriseStatus")
 	if err != nil {
 		return err
 	}
 
-	return fn.(func(uuid.UUID, enum.Status) error)(id, status)
+	return fn.(func(uuid.UUID, enum.Status, *models.ComplianceAuditLog) error)(id, status, log)
 }
 
 // Sets a callback for when "Rollback()" is called on the mock PreparedTransaction.

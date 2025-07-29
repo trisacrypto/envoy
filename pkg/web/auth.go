@@ -173,7 +173,9 @@ func (s *Server) Authenticate(c *gin.Context) {
 
 	// Update api key last seen timestamp
 	apikey.LastSeen = sql.NullTime{Valid: true, Time: time.Now()}
-	if err = s.store.UpdateAPIKey(ctx, apikey); err != nil {
+	if err = s.store.UpdateAPIKey(ctx, apikey, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.Authenticate()"},
+	}); err != nil {
 		log := logger.Tracing(ctx)
 		log.Warn().Err(err).Msg("unable to update api key last seen timestamp")
 
@@ -344,7 +346,9 @@ func (s *Server) reauthenticateAPIKey(c *gin.Context, keyID ulid.ULID) (_ *auth.
 	}
 
 	apikey.LastSeen = sql.NullTime{Valid: true, Time: time.Now()}
-	if err = s.store.UpdateAPIKey(ctx, apikey); err != nil {
+	if err = s.store.UpdateAPIKey(ctx, apikey, &models.ComplianceAuditLog{
+		ChangeNotes: sql.NullString{Valid: true, String: "Server.requthenticateUser()"},
+	}); err != nil {
 		log := logger.Tracing(ctx)
 		log.Warn().Err(err).Msg("unable to update api key last seen timestamp")
 

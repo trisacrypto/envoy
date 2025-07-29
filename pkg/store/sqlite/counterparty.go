@@ -117,21 +117,21 @@ func (t *Tx) ListCounterpartySourceInfo(source enum.Source) (out []*models.Count
 
 const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, lei, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :lei, :created, :modified)"
 
-func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
+func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateCounterparty(counterparty); err != nil {
+	if err = tx.CreateCounterparty(counterparty, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateCounterparty(counterparty *models.Counterparty) (err error) {
+func (t *Tx) CreateCounterparty(counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if !counterparty.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
@@ -151,9 +151,25 @@ func (t *Tx) CreateCounterparty(counterparty *models.Counterparty) (err error) {
 	contacts, _ := counterparty.Contacts()
 	for _, contact := range contacts {
 		contact.CounterpartyID = counterparty.ID
-		if err = t.CreateContact(contact); err != nil {
+		if err = t.CreateContact(contact, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.CreateCounterparty()"},
+		}); err != nil {
 			return fmt.Errorf("could not create contact for counterparty: %w", err)
 		}
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterparty.ID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: counterparty.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -242,21 +258,21 @@ func (t *Tx) LookupCounterparty(field, value string) (counterparty *models.Count
 
 const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, lei=:lei, modified=:modified WHERE id=:id"
 
-func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty) (err error) {
+func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateCounterparty(counterparty); err != nil {
+	if err = tx.UpdateCounterparty(counterparty, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateCounterparty(counterparty *models.Counterparty) (err error) {
+func (t *Tx) UpdateCounterparty(counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	if counterparty.ID.IsZero() {
 		return dberr.ErrMissingID
 	}
@@ -272,32 +288,61 @@ func (t *Tx) UpdateCounterparty(counterparty *models.Counterparty) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterparty.ID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: counterparty.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const deleteCounterpartySQL = "DELETE FROM counterparties WHERE id=:id"
 
-func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID) (err error) {
+func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteCounterparty(counterpartyID); err != nil {
+	if err = tx.DeleteCounterparty(counterpartyID, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteCounterparty(counterpartyID ulid.ULID) (err error) {
+func (t *Tx) DeleteCounterparty(counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteCounterpartySQL, sql.Named("id", counterpartyID)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       counterpartyID.Bytes(),
+		ResourceType:     enum.ResourceCounterparty,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -408,21 +453,21 @@ func (t *Tx) listCounterpartyContacts(counterparty *models.Counterparty) (err er
 
 const createContactSQL = "INSERT INTO contacts (id, name, email, role, counterparty_id, created, modified) VALUES (:id, :name, :email, :role, :counterpartyID, :created, :modified)"
 
-func (s *Store) CreateContact(ctx context.Context, contact *models.Contact) (err error) {
+func (s *Store) CreateContact(ctx context.Context, contact *models.Contact, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateContact(contact); err != nil {
+	if err = tx.CreateContact(contact, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) CreateContact(contact *models.Contact) (err error) {
+func (t *Tx) CreateContact(contact *models.Contact, auditLog *models.ComplianceAuditLog) (err error) {
 	if !contact.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
 	}
@@ -438,6 +483,20 @@ func (t *Tx) CreateContact(contact *models.Contact) (err error) {
 
 	if _, err = t.tx.Exec(createContactSQL, contact.Params()...); err != nil {
 		return dbe(err)
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       contact.ID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: contact.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -506,21 +565,21 @@ func (t *Tx) RetrieveContact(contactID, counterparty any) (contact *models.Conta
 // TODO: this must be an upsert/delete since the data is being modified on the relation
 const updateContactSQL = "UPDATE contacts SET name=:name, email=:email, role=:role, modified=:modified WHERE id=:id AND counterparty_id=:counterpartyID"
 
-func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact) (err error) {
+func (s *Store) UpdateContact(ctx context.Context, contact *models.Contact, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateContact(contact); err != nil {
+	if err = tx.UpdateContact(contact, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateContact(contact *models.Contact) (err error) {
+func (t *Tx) UpdateContact(contact *models.Contact, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if contact.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -541,6 +600,20 @@ func (t *Tx) UpdateContact(contact *models.Contact) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       contact.ID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: contact.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -550,20 +623,20 @@ const deleteContact = "DELETE FROM contacts WHERE id=:id AND counterparty_id=:co
 // either be a ULID of the counterparty or a pointer to the Counterparty model. If the
 // ID is specified then the associated counterparty is used to identify the contact to
 // delete. If the model is specified, then the contact is deleted from the model as well.
-func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any) (err error) {
+func (s *Store) DeleteContact(ctx context.Context, contactID, counterparty any, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteContact(contactID, counterparty); err != nil {
+	if err = tx.DeleteContact(contactID, counterparty, auditLog); err != nil {
 		return err
 	}
 	return tx.Commit()
 }
 
-func (t *Tx) DeleteContact(contactID, counterparty any) (err error) {
+func (t *Tx) DeleteContact(contactID, counterparty any, auditLog *models.ComplianceAuditLog) (err error) {
 	var (
 		counterpartyID    ulid.ULID
 		counterpartyModel *models.Counterparty
@@ -602,6 +675,24 @@ func (t *Tx) DeleteContact(contactID, counterparty any) (err error) {
 				}
 			}
 		}
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	var realID ulid.ULID
+	if realID, err = ulid.Parse(contactID); err != nil {
+		return err
+	}
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       realID.Bytes(),
+		ResourceType:     enum.ResourceContact,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
 	}
 
 	return nil

@@ -1,11 +1,11 @@
 package sqlite_test
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -16,7 +16,7 @@ func (s *storeTestSuite) TestListUsers() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		users, err := s.store.ListUsers(ctx, &models.UserPageInfo{})
@@ -28,67 +28,79 @@ func (s *storeTestSuite) TestListUsers() {
 	s.Run("FailureNilPageInfo", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		require.Panics(func() { s.store.ListUsers(ctx, nil) }, "should panic with nil page info")
 	})
 }
 
-func (s *storeTestSuite) TestCreateUser() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		user := mock.GetSampleUser(true)
-		user.ID = ulid.Zero
+func (s *storeTestSuite) TestCreateUser_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	user := mock.GetSampleUser(true)
+	user.ID = ulid.Zero
 
-		//test
-		err := s.store.CreateUser(ctx, user)
-		require.NoError(err, "no error was expected")
+	//test
+	err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
+	require.NoError(err, "no error was expected")
 
-		user2, err := s.store.RetrieveUser(ctx, user.ID)
-		require.NoError(err, "expected no error")
-		require.NotNil(user2, "user should not be nil")
-		require.Equal(user.ID, user2.ID, fmt.Sprintf("user ID should be %s, found %s instead", user.ID, user2.ID))
+	user2, err := s.store.RetrieveUser(ctx, user.ID)
+	require.NoError(err, "expected no error")
+	require.NotNil(user2, "user should not be nil")
+	require.Equal(user.ID, user2.ID, fmt.Sprintf("user ID should be %s, found %s instead", user.ID, user2.ID))
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceUser): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNonZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		user := mock.GetSampleUser(true)
+func (s *storeTestSuite) TestCreateUser_FailureNonZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	user := mock.GetSampleUser(true)
 
-		//test
-		err := s.store.CreateUser(ctx, user)
-		require.Error(err, "an error was expected")
-		require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
-	})
+	//test
+	err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	require.Equal(errors.ErrNoIDOnCreate, err, "expected an ErrNoIDOnCreate error")
 
-	s.Run("FailureNotFoundRoleID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		user := mock.GetSampleUser(true)
-		user.ID = ulid.Zero
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
 
-		user.RoleID = 808
+func (s *storeTestSuite) TestCreateUser_FailureNotFoundRoleID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	user := mock.GetSampleUser(true)
+	user.ID = ulid.Zero
 
-		//test
-		err := s.store.CreateUser(ctx, user)
-		require.Error(err, "an error was expected")
-		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
-		// instead of an ErrNotFound as would be logical, because in the `dbe()`
-		// function we return an ErrAlreadyExists for any SQLite constraint error
-		require.Equal(errors.ErrAlreadyExists, err, "expected an ErrAlreadyExists error")
-	})
+	user.RoleID = 808
+
+	//test
+	err := s.store.CreateUser(ctx, user, &models.ComplianceAuditLog{})
+	require.Error(err, "an error was expected")
+	// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
+	// instead of an ErrNotFound as would be logical, because in the `dbe()`
+	// function we return an ErrAlreadyExists for any SQLite constraint error
+	require.Equal(errors.ErrAlreadyExists, err, "expected an ErrAlreadyExists error")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("SuccessID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 
 		//test
@@ -101,7 +113,7 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("SuccessEmail", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		email := "observer@example.com"
 		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 
@@ -116,7 +128,7 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("FailureNotFoundID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MakeSecure()
 
 		//test
@@ -129,7 +141,7 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("FailureNotFoundEmail", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		email := "this_user_does_not_exist@example.com"
 
 		//test
@@ -142,7 +154,7 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("FailureUnknownType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		wrongType := int64(808)
 
 		//test
@@ -155,7 +167,7 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	s.Run("FailureNilType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		user, err := s.store.RetrieveUser(ctx, nil)
@@ -165,56 +177,64 @@ func (s *storeTestSuite) TestRetrieveUser() {
 	})
 }
 
-func (s *storeTestSuite) TestUpdateUser() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
-		user, err := s.store.RetrieveUser(ctx, userId)
-		require.NoError(err, "expected no error")
-		require.NotNil(user, "user should not be nil")
+func (s *storeTestSuite) TestUpdateUser_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
+	user, err := s.store.RetrieveUser(ctx, userId)
+	require.NoError(err, "expected no error")
+	require.NotNil(user, "user should not be nil")
 
-		prevMod := user.Modified
-		newEmail := "here_is_the_new_email@example.com"
-		user.Email = newEmail
+	prevMod := user.Modified
+	newEmail := "here_is_the_new_email@example.com"
+	user.Email = newEmail
 
-		//test
-		err = s.store.UpdateUser(ctx, user)
-		require.NoError(err, "expected no error")
-		require.NotNil(user, "user should not be nil")
+	//test
+	err = s.store.UpdateUser(ctx, user, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
+	require.NotNil(user, "user should not be nil")
 
-		user = nil
-		user, err = s.store.RetrieveUser(ctx, userId)
-		require.NoError(err, "expected no error")
-		require.NotNil(user, "user should not be nil")
-		require.Equal(newEmail, user.Email, fmt.Sprintf("expected email %s, got email %s", newEmail, user.Email))
-		require.True(prevMod.Before(user.Modified), "expected the modified time to be newer")
+	user = nil
+	user, err = s.store.RetrieveUser(ctx, userId)
+	require.NoError(err, "expected no error")
+	require.NotNil(user, "user should not be nil")
+	require.Equal(newEmail, user.Email, fmt.Sprintf("expected email %s, got email %s", newEmail, user.Email))
+	require.True(prevMod.Before(user.Modified), "expected the modified time to be newer")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionUpdate, enum.ResourceUser): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFound", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
-		user, err := s.store.RetrieveUser(ctx, userId)
-		require.NoError(err, "expected no error")
-		require.NotNil(user, "user should not be nil")
+func (s *storeTestSuite) TestUpdateUser_FailureNotFound() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
+	user, err := s.store.RetrieveUser(ctx, userId)
+	require.NoError(err, "expected no error")
+	require.NotNil(user, "user should not be nil")
 
-		user.ID = ulid.MakeSecure()
+	user.ID = ulid.MakeSecure()
 
-		//test
-		err = s.store.UpdateUser(ctx, user)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-	})
+	//test
+	err = s.store.UpdateUser(ctx, user, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestSetUserPassword() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 		newPassword := "password_1234"
 
@@ -231,7 +251,7 @@ func (s *storeTestSuite) TestSetUserPassword() {
 	s.Run("FailureNotFoundRandomID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MakeSecure()
 		newPassword := "password_1234"
 
@@ -244,7 +264,7 @@ func (s *storeTestSuite) TestSetUserPassword() {
 	s.Run("FailureNotFoundZeroID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.Zero
 		newPassword := "password_1234"
 
@@ -259,7 +279,7 @@ func (s *storeTestSuite) TestSetUserLastLogin() {
 	s.Run("SuccessNow", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 		newTime := time.Now()
 
@@ -277,7 +297,7 @@ func (s *storeTestSuite) TestSetUserLastLogin() {
 	s.Run("SuccessZero", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 		newTime := time.Time{}
 
@@ -295,7 +315,7 @@ func (s *storeTestSuite) TestSetUserLastLogin() {
 	s.Run("FailureNotFoundRandomID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.MakeSecure()
 		newTime := time.Now()
 
@@ -308,7 +328,7 @@ func (s *storeTestSuite) TestSetUserLastLogin() {
 	s.Run("FailureNotFoundZeroID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		userId := ulid.Zero
 		newTime := time.Now()
 
@@ -319,38 +339,46 @@ func (s *storeTestSuite) TestSetUserLastLogin() {
 	})
 }
 
-func (s *storeTestSuite) TestDeleteUser() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
+func (s *storeTestSuite) TestDeleteUser_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	userId := ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
 
-		//test
-		user, err := s.store.RetrieveUser(ctx, userId)
-		require.NoError(err, "expected no error")
-		require.NotNil(user, "user should not be nil")
+	//test
+	user, err := s.store.RetrieveUser(ctx, userId)
+	require.NoError(err, "expected no error")
+	require.NotNil(user, "user should not be nil")
 
-		err = s.store.DeleteUser(ctx, userId)
-		require.NoError(err, "expected no error")
+	err = s.store.DeleteUser(ctx, userId, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
 
-		user, err = s.store.RetrieveUser(ctx, userId)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected user to be missing")
-		require.Nil(user, "user should be nil")
+	user, err = s.store.RetrieveUser(ctx, userId)
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected user to be missing")
+	require.Nil(user, "user should be nil")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionDelete, enum.ResourceUser): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFound", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		userId := ulid.MakeSecure()
+func (s *storeTestSuite) TestDeleteUser_FailureNotFound() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	userId := ulid.MakeSecure()
 
-		//test
-		err := s.store.DeleteUser(ctx, userId)
-		require.Error(err, "expected no error")
-		require.Equal(errors.ErrNotFound, err, "expected user to be missing")
-	})
+	//test
+	err := s.store.DeleteUser(ctx, userId, &models.ComplianceAuditLog{})
+	require.Error(err, "expected no error")
+	require.Equal(errors.ErrNotFound, err, "expected user to be missing")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestLookupRole() {
@@ -378,7 +406,7 @@ func (s *storeTestSuite) TestLookupRole() {
 			s.Run("Success"+cases[i].RoleName, func() {
 				//setup
 				require := s.Require()
-				ctx := context.Background()
+				ctx := s.ActorContext()
 
 				//test
 				role, err := s.store.LookupRole(ctx, cases[i].RoleName)
@@ -393,7 +421,7 @@ func (s *storeTestSuite) TestLookupRole() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		roleName := "not_a_role_name_for_sure"
 
 		//test
@@ -408,7 +436,7 @@ func (s *storeTestSuite) TestListAPIKeys() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		apiKeys, err := s.store.ListAPIKeys(ctx, &models.PageInfo{})
@@ -420,7 +448,7 @@ func (s *storeTestSuite) TestListAPIKeys() {
 	s.Run("SuccessNilPageInfo", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		apiKeys, err := s.store.ListAPIKeys(ctx, nil)
@@ -430,96 +458,114 @@ func (s *storeTestSuite) TestListAPIKeys() {
 	})
 }
 
-func (s *storeTestSuite) TestCreateAPIKey() {
-	s.Run("SuccessNoRoles", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
-		apiKey.ID = ulid.Zero
+func (s *storeTestSuite) TestCreateAPIKey_SuccessNoRoles() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+	apiKey.ID = ulid.Zero
 
-		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
-		require.NoError(err, "expected no errors")
+	//test
+	err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no errors")
 
-		apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
-		require.NoError(err, "expected no errors")
-		require.NotNil(apiKey2, "api key should not be nil")
-		require.Equal(apiKey.ClientID, apiKey2.ClientID, fmt.Sprintf("client id should be %s, but found %s", apiKey.ClientID, apiKey2.ClientID))
+	apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey2, "api key should not be nil")
+	require.Equal(apiKey.ClientID, apiKey2.ClientID, fmt.Sprintf("client id should be %s, but found %s", apiKey.ClientID, apiKey2.ClientID))
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceAPIKey): 1,
+	})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestCreateAPIKey_SuccessAllRoles() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+	apiKey.ID = ulid.Zero
+	apiKey.SetPermissions([]string{
+		"users:manage",
+		"users:view",
+		"apikeys:manage",
+		"apikeys:view",
+		"apikeys:revoke",
+		"counterparties:manage",
+		"counterparties:view",
+		"accounts:manage",
+		"accounts:view",
+		"travelrule:manage",
+		"travelrule:delete",
+		"travelrule:view",
+		"config:manage",
+		"config:view",
+		"pki:manage",
+		"pki:delete",
+		"pki:view",
 	})
 
-	s.Run("SuccessAllRoles", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
-		apiKey.ID = ulid.Zero
-		apiKey.SetPermissions([]string{
-			"users:manage",
-			"users:view",
-			"apikeys:manage",
-			"apikeys:view",
-			"apikeys:revoke",
-			"counterparties:manage",
-			"counterparties:view",
-			"accounts:manage",
-			"accounts:view",
-			"travelrule:manage",
-			"travelrule:delete",
-			"travelrule:view",
-			"config:manage",
-			"config:view",
-			"pki:manage",
-			"pki:delete",
-			"pki:view",
-		})
+	//test
+	err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no errors")
 
-		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
-		require.NoError(err, "expected no errors")
+	apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey2, "api key should not be nil")
+	require.Equal(apiKey.ClientID, apiKey2.ClientID, fmt.Sprintf("client id should be %s, but found %s", apiKey.ClientID, apiKey2.ClientID))
 
-		apiKey2, err := s.store.RetrieveAPIKey(ctx, apiKey.ClientID)
-		require.NoError(err, "expected no errors")
-		require.NotNil(apiKey2, "api key should not be nil")
-		require.Equal(apiKey.ClientID, apiKey2.ClientID, fmt.Sprintf("client id should be %s, but found %s", apiKey.ClientID, apiKey2.ClientID))
-
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionCreate, enum.ResourceAPIKey): 1,
 	})
+	require.True(ok, "audit log count was off")
 
-	s.Run("FailureNotZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
+}
 
-		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
-	})
+func (s *storeTestSuite) TestCreateAPIKey_FailureNotZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
 
-	s.Run("FailureBadPermissionID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
-		apiKey.ID = ulid.Zero
-		apiKey.SetPermissions([]string{"permission_that_doesn't_exist"})
+	//test
+	err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNoIDOnCreate, err, "expected ErrNoIDOnCreate")
 
-		//test
-		err := s.store.CreateAPIKey(ctx, apiKey)
-		require.Error(err, "expected an error")
-		// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
-		// instead of an ErrNotFound as would be logical, because in the `dbe()`
-		// function we return an ErrAlreadyExists for any SQLite constraint error
-		require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
-	})
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestCreateAPIKey_FailureBadPermissionID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+	apiKey.ID = ulid.Zero
+	apiKey.SetPermissions([]string{"permission_that_doesn't_exist"})
+
+	//test
+	err := s.store.CreateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	// TODO: (ticket sc-32339) this currently returns an ErrAlreadyExists
+	// instead of an ErrNotFound as would be logical, because in the `dbe()`
+	// function we return an ErrAlreadyExists for any SQLite constraint error
+	require.Equal(errors.ErrAlreadyExists, err, "expected ErrAlreadyExists")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestRetrieveAPIKey() {
 	s.Run("SuccessKeyID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
 
 		//test
@@ -537,7 +583,7 @@ func (s *storeTestSuite) TestRetrieveAPIKey() {
 	s.Run("SuccessClientID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		clientId := "ISoIuDiGkpVpAyCrLGYrKU"
 
 		//test
@@ -555,7 +601,7 @@ func (s *storeTestSuite) TestRetrieveAPIKey() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		clientId := "this_is_not_a_client_id"
 
 		//test
@@ -568,7 +614,7 @@ func (s *storeTestSuite) TestRetrieveAPIKey() {
 	s.Run("FailureInvalidType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		invalidType := int64(808)
 
 		//test
@@ -579,98 +625,118 @@ func (s *storeTestSuite) TestRetrieveAPIKey() {
 	})
 }
 
-func (s *storeTestSuite) TestUpdateAPIKey() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
-		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
-		require.NoError(err, "expected no errors")
-		require.NotNil(apiKey, "api key should not be nil")
+func (s *storeTestSuite) TestUpdateAPIKey_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
+	apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey, "api key should not be nil")
 
-		prevMod := apiKey.Modified
-		newDescription := sql.NullString{String: "New Description 83r29123e89", Valid: true}
-		apiKey.Description = newDescription
+	prevMod := apiKey.Modified
+	newDescription := sql.NullString{String: "New Description 83r29123e89", Valid: true}
+	apiKey.Description = newDescription
 
-		//test
-		err = s.store.UpdateAPIKey(ctx, apiKey)
-		require.NoError(err, "expected no errors")
+	//test
+	err = s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no errors")
 
-		apiKey = nil
-		apiKey, err = s.store.RetrieveAPIKey(ctx, keyId)
-		require.NoError(err, "expected no errors")
-		require.NotNil(apiKey, "api key should not be nil")
-		require.Equal(newDescription, apiKey.Description, "expected the new description")
-		require.True(prevMod.Before(apiKey.Modified), "expected the modified time to be newer")
+	apiKey = nil
+	apiKey, err = s.store.RetrieveAPIKey(ctx, keyId)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey, "api key should not be nil")
+	require.Equal(newDescription, apiKey.Description, "expected the new description")
+	require.True(prevMod.Before(apiKey.Modified), "expected the modified time to be newer")
 
-		permissions := apiKey.Permissions()
-		require.NotNil(permissions, "permissions should not be nil")
-		require.Len(permissions, 17, fmt.Sprintf("expected 17 permissions, got %d", len(permissions)))
+	permissions := apiKey.Permissions()
+	require.NotNil(permissions, "permissions should not be nil")
+	require.Len(permissions, 17, fmt.Sprintf("expected 17 permissions, got %d", len(permissions)))
 
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionUpdate, enum.ResourceAPIKey): 1,
 	})
+	require.True(ok, "audit log count was off")
 
-	s.Run("FailureNotFoundRandomID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
-
-		//test
-		err := s.store.UpdateAPIKey(ctx, apiKey)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-	})
-
-	s.Run("FailureNotFoundZeroID", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		apiKey := mock.GetSampleAPIKey(true)
-		apiKey.ID = ulid.Zero
-
-		//test
-		err := s.store.UpdateAPIKey(ctx, apiKey)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-	})
 }
 
-func (s *storeTestSuite) TestDeleteAPIKey() {
-	s.Run("Success", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
+func (s *storeTestSuite) TestUpdateAPIKey_FailureNotFoundRandomID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
 
-		//test
-		err := s.store.DeleteAPIKey(ctx, keyId)
-		require.NoError(err, "expected no error")
+	//test
+	err := s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
 
-		apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-		require.Nil(apiKey, "api key should be nil")
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestUpdateAPIKey_FailureNotFoundZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+	apiKey.ID = ulid.Zero
+
+	//test
+	err := s.store.UpdateAPIKey(ctx, apiKey, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
+}
+
+func (s *storeTestSuite) TestDeleteAPIKey_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
+
+	//test
+	err := s.store.DeleteAPIKey(ctx, keyId, &models.ComplianceAuditLog{})
+	require.NoError(err, "expected no error")
+
+	apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+	require.Nil(apiKey, "api key should be nil")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{
+		ActionResourceKey(enum.ActionDelete, enum.ResourceAPIKey): 1,
 	})
+	require.True(ok, "audit log count was off")
+}
 
-	s.Run("FailureNotFound", func() {
-		//setup
-		require := s.Require()
-		ctx := context.Background()
-		keyId := ulid.MakeSecure()
+func (s *storeTestSuite) TestDeleteAPIKey_FailureNotFound() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	keyId := ulid.MakeSecure()
 
-		//test
-		err := s.store.DeleteAPIKey(ctx, keyId)
-		require.Error(err, "expected an error")
-		require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
-	})
+	//test
+	err := s.store.DeleteAPIKey(ctx, keyId, &models.ComplianceAuditLog{})
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+
+	//check for audit log creation
+	ok := s.AssertAuditLogCount(map[string]int{})
+	require.True(ok, "audit log count was off")
 }
 
 func (s *storeTestSuite) TestListResetPasswordLinks() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		links, err := s.store.ListResetPasswordLinks(ctx, &models.PageInfo{})
@@ -682,7 +748,7 @@ func (s *storeTestSuite) TestListResetPasswordLinks() {
 	s.Run("SuccessNilPageInfo", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		links, err := s.store.ListResetPasswordLinks(ctx, nil)
@@ -696,7 +762,7 @@ func (s *storeTestSuite) TestCreateResetPasswordLink() {
 	s.Run("SuccessAddLink", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		link := mock.GetSampleResetPasswordLink(true)
 		link.ID = ulid.Zero
 		link.UserID = ulid.MustParse("01HWQE29RW1S1D8ZN58M528A1M")
@@ -719,7 +785,7 @@ func (s *storeTestSuite) TestCreateResetPasswordLink() {
 	s.Run("SuccessOverwriteLink", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		link := mock.GetSampleResetPasswordLink(true)
 		link.ID = ulid.Zero
 		link.UserID = ulid.MustParse("01HWQE3N4S6PZGKNCH7E617N8T")
@@ -742,7 +808,7 @@ func (s *storeTestSuite) TestCreateResetPasswordLink() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		link := mock.GetSampleResetPasswordLink(true)
 		link.ID = ulid.Zero
 
@@ -760,7 +826,7 @@ func (s *storeTestSuite) TestRetrieveResetPasswordLink() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 
 		//test
@@ -773,7 +839,7 @@ func (s *storeTestSuite) TestRetrieveResetPasswordLink() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MakeSecure()
 
 		//test
@@ -788,7 +854,7 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
 		require.NoError(err, "expected no errors")
@@ -817,7 +883,7 @@ func (s *storeTestSuite) TestUpdateResetPasswordLink() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 		link, err := s.store.RetrieveResetPasswordLink(ctx, linkId)
 		require.NoError(err, "expected no errors")
@@ -836,7 +902,7 @@ func (s *storeTestSuite) TestDeleteResetPasswordLink() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MustParse("01JXTGSFRC88HAY8V173976Z9D")
 
 		//test
@@ -852,7 +918,7 @@ func (s *storeTestSuite) TestDeleteResetPasswordLink() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		linkId := ulid.MakeSecure()
 
 		//test

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
+	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"go.rtnl.ai/ulid"
 )
 
@@ -42,6 +43,35 @@ type ComplianceAuditLog struct {
 	KeyID string
 	// Algorithm is the identification for the algorithm that can verify this log
 	Algorithm string
+}
+
+// Returns nil if the audit log is filled with data, otherwise returns an error.
+func (l *ComplianceAuditLog) IsFilled() error {
+	// Must have reference IDs
+	if l.ActorID == nil {
+		return errors.ErrMissingReference
+	}
+	if l.ResourceID == nil {
+		return errors.ErrMissingReference
+	}
+
+	// Must have enum values
+	if l.ActorType == enum.ActorUnknown {
+		return errors.ErrMissingValue
+	}
+	if l.ResourceType == enum.ResourceUnknown {
+		return errors.ErrMissingValue
+	}
+	if l.Action == enum.ActionUnknown {
+		return errors.ErrMissingValue
+	}
+
+	// Must have a modified time
+	if l.ResourceModified.IsZero() {
+		return errors.ErrMissingTimestamp
+	}
+
+	return nil
 }
 
 // ###########################################################################

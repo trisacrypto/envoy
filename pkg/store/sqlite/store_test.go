@@ -5,14 +5,18 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
+	"github.com/trisacrypto/envoy/pkg/store/models"
 	db "github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
+	"go.rtnl.ai/ulid"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -101,7 +105,13 @@ func (s *storeTestSuite) SetupSuite() {
 	loadAuditKeyChainFixture(s.T())
 }
 
+// Reset the DB before every test.
 func (s *storeTestSuite) SetupTest() {
+	s.ResetDB()
+}
+
+// Reset the DB before every subtest.
+func (s *storeTestSuite) SetupSubtest() {
 	s.ResetDB()
 }
 
@@ -202,4 +212,44 @@ func loadAuditKeyChainFixture(t *testing.T) {
 	kc, err := keychain.New(keychain.WithCacheDuration(1*time.Hour), keychain.WithDefaultKey(certs))
 	require.NoError(t, err, "could not create a KeyChain")
 	audit.UseKeyChain(kc)
+}
+
+// Returns a context.Background() with ActorID and ActorType context values for
+// audit log testing. The ActorID is a fresh, random ULID and the type is
+// an enum.ActorAPIKey.
+func (s *storeTestSuite) ActorContext() context.Context {
+	return audit.WithActor(context.Background(), ulid.MakeSecure().Bytes(), enum.ActorAPIKey)
+}
+
+// Counts the audit logs (by action and resource type) created recently (1
+// hour) and compares those counts to the expected counts. The expected map
+// takes a string from the function ActionResourceKey() for indexing.
+func (s *storeTestSuite) AssertAuditLogCount(expected map[string]int) bool {
+	// setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	pageInfo := &models.ComplianceAuditLogPageInfo{
+		After:  time.Now().Add(-1 * time.Hour),
+		Before: time.Now(),
+	}
+
+	// get logs
+	logs, err := s.store.ListComplianceAuditLogs(ctx, pageInfo)
+	require.NoError(err, "error getting logs")
+	require.NotNil(logs, "logs was nil")
+
+	// count logs
+	actual := make(map[string]int, len(expected))
+	for _, log := range logs.Logs {
+		actual[ActionResourceKey(log.Action, log.ResourceType)]++
+	}
+
+	// compare
+	require.Equal(expected, actual, "audit log count is off")
+	return reflect.DeepEqual(expected, actual)
+}
+
+// Returns a string that can be used in the expected map for ExpectedAuditLogs().
+func ActionResourceKey(a enum.Action, r enum.Resource) string {
+	return a.String() + r.String()
 }

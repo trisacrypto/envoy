@@ -29,6 +29,12 @@ func TestParseResource(t *testing.T) {
 			{"ACCOUNT", enum.ResourceAccount},
 			{"sunrise", enum.ResourceSunrise},
 			{"SUNRISE", enum.ResourceSunrise},
+			{"secure_envelope", enum.ResourceSecureEnvelope},
+			{"SECURE_ENVELOPE", enum.ResourceSecureEnvelope},
+			{"crypto_address", enum.ResourceCryptoAddress},
+			{"CRYPTO_ADDRESS", enum.ResourceCryptoAddress},
+			{"contact", enum.ResourceContact},
+			{"CONTACT", enum.ResourceContact},
 			{uint8(0), enum.ResourceUnknown},
 			{uint8(1), enum.ResourceTransaction},
 			{uint8(2), enum.ResourceUser},
@@ -36,6 +42,9 @@ func TestParseResource(t *testing.T) {
 			{uint8(4), enum.ResourceCounterparty},
 			{uint8(5), enum.ResourceAccount},
 			{uint8(6), enum.ResourceSunrise},
+			{uint8(7), enum.ResourceSecureEnvelope},
+			{uint8(8), enum.ResourceCryptoAddress},
+			{uint8(9), enum.ResourceContact},
 			{enum.ResourceUnknown, enum.ResourceUnknown},
 			{enum.ResourceTransaction, enum.ResourceTransaction},
 			{enum.ResourceUser, enum.ResourceUser},
@@ -43,6 +52,9 @@ func TestParseResource(t *testing.T) {
 			{enum.ResourceCounterparty, enum.ResourceCounterparty},
 			{enum.ResourceAccount, enum.ResourceAccount},
 			{enum.ResourceSunrise, enum.ResourceSunrise},
+			{enum.ResourceSecureEnvelope, enum.ResourceSecureEnvelope},
+			{enum.ResourceCryptoAddress, enum.ResourceCryptoAddress},
+			{enum.ResourceContact, enum.ResourceContact},
 		}
 
 		for i, test := range tests {
@@ -81,7 +93,10 @@ func TestResourceString(t *testing.T) {
 		{enum.ResourceCounterparty, "counterparty"},
 		{enum.ResourceAccount, "account"},
 		{enum.ResourceSunrise, "sunrise"},
-		{enum.Resource(7), "unknown"},
+		{enum.ResourceSecureEnvelope, "secure_envelope"},
+		{enum.ResourceCryptoAddress, "crypto_address"},
+		{enum.ResourceContact, "contact"},
+		{enum.Resource(10), "unknown"},
 		{enum.Resource(99), "unknown"},
 	}
 
@@ -100,6 +115,9 @@ func TestResourceJSON(t *testing.T) {
 		enum.ResourceCounterparty,
 		enum.ResourceAccount,
 		enum.ResourceSunrise,
+		enum.ResourceSecureEnvelope,
+		enum.ResourceCryptoAddress,
+		enum.ResourceContact,
 	}
 
 	for _, resource := range tests {
@@ -134,6 +152,12 @@ func TestResourceScan(t *testing.T) {
 		{"ACCOUNT", enum.ResourceAccount},
 		{"sunrise", enum.ResourceSunrise},
 		{"SUNRISE", enum.ResourceSunrise},
+		{"secure_envelope", enum.ResourceSecureEnvelope},
+		{"SECURE_ENVELOPE", enum.ResourceSecureEnvelope},
+		{"crypto_address", enum.ResourceCryptoAddress},
+		{"CRYPTO_ADDRESS", enum.ResourceCryptoAddress},
+		{"contact", enum.ResourceContact},
+		{"CONTACT", enum.ResourceContact},
 		{[]byte(""), enum.ResourceUnknown},
 		{[]byte("unknown"), enum.ResourceUnknown},
 		{[]byte("UNKNOWN"), enum.ResourceUnknown},
@@ -149,6 +173,12 @@ func TestResourceScan(t *testing.T) {
 		{[]byte("ACCOUNT"), enum.ResourceAccount},
 		{[]byte("sunrise"), enum.ResourceSunrise},
 		{[]byte("SUNRISE"), enum.ResourceSunrise},
+		{[]byte("secure_envelope"), enum.ResourceSecureEnvelope},
+		{[]byte("SECURE_ENVELOPE"), enum.ResourceSecureEnvelope},
+		{[]byte("crypto_address"), enum.ResourceCryptoAddress},
+		{[]byte("CRYPTO_ADDRESS"), enum.ResourceCryptoAddress},
+		{[]byte("contact"), enum.ResourceContact},
+		{[]byte("CONTACT"), enum.ResourceContact},
 	}
 
 	for i, test := range tests {
@@ -193,5 +223,17 @@ func TestResourceValue(t *testing.T) {
 	value, err = enum.ResourceSunrise.Value()
 	require.NoError(t, err)
 	require.Equal(t, "sunrise", value)
+
+	value, err = enum.ResourceSecureEnvelope.Value()
+	require.NoError(t, err)
+	require.Equal(t, "secure_envelope", value)
+
+	value, err = enum.ResourceCryptoAddress.Value()
+	require.NoError(t, err)
+	require.Equal(t, "crypto_address", value)
+
+	value, err = enum.ResourceContact.Value()
+	require.NoError(t, err)
+	require.Equal(t, "contact", value)
 
 }

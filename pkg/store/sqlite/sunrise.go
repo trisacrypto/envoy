@@ -67,14 +67,14 @@ func (t *Tx) ListSunrise(page *models.PageInfo) (out *models.SunrisePage, err er
 const createSunriseSQL = "INSERT INTO sunrise (id, envelope_id, email, expiration, signature, status, sent_on, verified_on, created, modified) VALUES (:id, :envelopeID, :email, :expiration, :signature, :status, :sentOn, :verifiedOn, :created, :modified)"
 
 // Create a sunrise message in the database.
-func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
+func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.CreateSunrise(msg); err != nil {
+	if err = tx.CreateSunrise(msg, auditLog); err != nil {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (s *Store) CreateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 }
 
 // Create a sunrise message in the database.
-func (t *Tx) CreateSunrise(msg *models.Sunrise) (err error) {
+func (t *Tx) CreateSunrise(msg *models.Sunrise, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if !msg.ID.IsZero() {
 		return dberr.ErrNoIDOnCreate
@@ -100,6 +100,21 @@ func (t *Tx) CreateSunrise(msg *models.Sunrise) (err error) {
 	if _, err = t.tx.Exec(createSunriseSQL, msg.Params()...); err != nil {
 		return dbe(err)
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       msg.ID.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: msg.Modified,
+		Action:           enum.ActionCreate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -135,14 +150,14 @@ func (t *Tx) RetrieveSunrise(sunriseID ulid.ULID) (msg *models.Sunrise, err erro
 const updateSunriseSQL = "UPDATE sunrise SET envelope_id=:envelopeID, email=:email, expiration=:expiration, signature=:signature, status=:status, sent_on=:sentOn, verified_on=:verifiedOn, modified=:modified WHERE id=:id"
 
 // Update sunrise message information.
-func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err error) {
+func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateSunrise(msg); err != nil {
+	if err = tx.UpdateSunrise(msg, auditLog); err != nil {
 		return err
 	}
 
@@ -150,7 +165,7 @@ func (s *Store) UpdateSunrise(ctx context.Context, msg *models.Sunrise) (err err
 }
 
 // Update sunrise message information.
-func (t *Tx) UpdateSunrise(msg *models.Sunrise) (err error) {
+func (t *Tx) UpdateSunrise(msg *models.Sunrise, auditLog *models.ComplianceAuditLog) (err error) {
 	// Basic validation
 	if msg.ID.IsZero() {
 		return dberr.ErrMissingID
@@ -167,29 +182,44 @@ func (t *Tx) UpdateSunrise(msg *models.Sunrise) (err error) {
 		return dberr.ErrNotFound
 	}
 
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       msg.ID.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: msg.Modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const updateSunriseStatusSQL = "UPDATE sunrise SET status=:status, modified=:modified WHERE envelope_id=:envelopeID"
 
-func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status) (err error) {
+func (s *Store) UpdateSunriseStatus(ctx context.Context, txID uuid.UUID, status enum.Status, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.UpdateSunriseStatus(txID, status); err != nil {
+	if err = tx.UpdateSunriseStatus(txID, status, auditLog); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status) (err error) {
+func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status, auditLog *models.ComplianceAuditLog) (err error) {
+	modified := time.Now()
 	params := []interface{}{
 		sql.Named("status", status),
-		sql.Named("modified", time.Now()),
+		sql.Named("modified", modified),
 		sql.Named("envelopeID", txID),
 	}
 
@@ -200,20 +230,44 @@ func (t *Tx) UpdateSunriseStatus(txID uuid.UUID, status enum.Status) (err error)
 		return dberr.ErrNotFound
 	}
 
+	// Make an audit log note with this function name so we know why the
+	// ResourceID is not a Sunrise.ID
+	notes := sql.NullString{
+		Valid:  true,
+		String: "UpdateSunriseStatus_ResourceID_is_EnvelopeID",
+	}
+	if auditLog.ChangeNotes.Valid {
+		notes.String = auditLog.ChangeNotes.String + "-" + notes.String
+	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       txID[:],
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: modified,
+		Action:           enum.ActionUpdate,
+		ChangeNotes:      notes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 const deleteSunriseSQL = "DELETE FROM sunrise WHERE id=:id"
 
 // Delete sunrise message from the database.
-func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
+func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if err = tx.DeleteSunrise(id); err != nil {
+	if err = tx.DeleteSunrise(id, auditLog); err != nil {
 		return err
 	}
 
@@ -221,13 +275,28 @@ func (s *Store) DeleteSunrise(ctx context.Context, id ulid.ULID) (err error) {
 }
 
 // Delete sunrise message from the database.
-func (t *Tx) DeleteSunrise(id ulid.ULID) (err error) {
+func (t *Tx) DeleteSunrise(id ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
 	var result sql.Result
 	if result, err = t.tx.Exec(deleteSunriseSQL, sql.Named("id", id)); err != nil {
 		return dbe(err)
 	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
 		return dberr.ErrNotFound
 	}
+
+	// Fill the audit log and create it
+	actorID, actorType := t.GetActor()
+	if err := t.CreateComplianceAuditLog(&models.ComplianceAuditLog{
+		ActorID:          actorID,
+		ActorType:        actorType,
+		ResourceID:       id.Bytes(),
+		ResourceType:     enum.ResourceSunrise,
+		ResourceModified: time.Now(),
+		Action:           enum.ActionDelete,
+		ChangeNotes:      auditLog.ChangeNotes,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -238,14 +307,14 @@ const (
 )
 
 // Get or create a sunrise counterparty from an email address.
-func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string) (out *models.Counterparty, err error) {
+func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name string, auditLog *models.ComplianceAuditLog) (out *models.Counterparty, err error) {
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	if out, err = tx.GetOrCreateSunriseCounterparty(email, name); err != nil {
+	if out, err = tx.GetOrCreateSunriseCounterparty(email, name, auditLog); err != nil {
 		return nil, err
 	}
 
@@ -256,7 +325,7 @@ func (s *Store) GetOrCreateSunriseCounterparty(ctx context.Context, email, name 
 	return out, nil
 }
 
-func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Counterparty, err error) {
+func (t *Tx) GetOrCreateSunriseCounterparty(email, name string, auditLog *models.ComplianceAuditLog) (out *models.Counterparty, err error) {
 	// Parse the email address to separate the parts if it's RFC spec and put it
 	// into a Contact to use later
 	var contact *models.Contact
@@ -297,7 +366,9 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Cou
 		// Add contact to the counterparty
 		out.SetContacts([]*models.Contact{contact})
 
-		if err = t.CreateCounterparty(out); err != nil {
+		if err = t.CreateCounterparty(out, &models.ComplianceAuditLog{
+			ChangeNotes: sql.NullString{Valid: true, String: "Tx.GetOrCreateSunriseCounterparty()"},
+		}); err != nil {
 			return nil, err
 		}
 	} else {
@@ -309,7 +380,9 @@ func (t *Tx) GetOrCreateSunriseCounterparty(email, name string) (out *models.Cou
 		// Add the email address to the contacts if it didn't already exist
 		if exists, _ := out.HasContact(contact.Email); !exists {
 			contact.CounterpartyID = out.ID
-			if err = t.CreateContact(contact); err != nil {
+			if err = t.CreateContact(contact, &models.ComplianceAuditLog{
+				ChangeNotes: sql.NullString{Valid: true, String: "Tx.GetOrCreateSunriseCounterparty()"},
+			}); err != nil {
 				return nil, err
 			}
 
