@@ -138,6 +138,8 @@ type APIKeyTxn interface {
 	CreateAPIKey(*models.APIKey, *models.ComplianceAuditLog) error
 	RetrieveAPIKey(clientIDOrKeyID any) (*models.APIKey, error)
 	UpdateAPIKey(*models.APIKey, *models.ComplianceAuditLog) error
+	// NOTE: last seen time update does not require an audit log entry:
+	SetAPIKeyLastSeen(keyID ulid.ULID, lastSeen time.Time) error
 	DeleteAPIKey(keyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 }
 

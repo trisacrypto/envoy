@@ -194,6 +194,8 @@ type APIKeyStore interface {
 	CreateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
 	RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
 	UpdateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
+	// NOTE: last seen time update does not require an audit log entry:
+	SetAPIKeyLastSeen(ctx context.Context, keyID ulid.ULID, lastSeen time.Time) error
 	DeleteAPIKey(ctx context.Context, keyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
 }
 

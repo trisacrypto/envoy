@@ -653,6 +653,41 @@ func (t *Tx) UpdateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLo
 	return nil
 }
 
+const setAPIKeyLastSeenSQL = "UPDATE api_keys SET last_seen=:lastSeen, modified=:modified WHERE id=:id"
+
+func (s *Store) SetAPIKeyLastSeen(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
+	//NOTE: this type of update does not require an audit log entry
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, nil); err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = tx.SetAPIKeyLastSeen(userID, lastLogin); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (t *Tx) SetAPIKeyLastSeen(userID ulid.ULID, lastLogin time.Time) (err error) {
+	//NOTE: this type of update does not require an audit log entry
+	params := []any{
+		sql.Named("id", userID),
+		sql.Named("lastSeen", sql.NullTime{Time: lastLogin, Valid: !lastLogin.IsZero()}),
+		sql.Named("modified", time.Now()),
+	}
+
+	var result sql.Result
+	if result, err = t.tx.Exec(setAPIKeyLastSeenSQL, params...); err != nil {
+		return dbe(err)
+	} else if nRows, _ := result.RowsAffected(); nRows == 0 {
+		return dberr.ErrNotFound
+	}
+
+	return nil
+}
+
 const deleteKeySQL = "DELETE FROM api_keys WHERE id=:id"
 
 func (s *Store) DeleteAPIKey(ctx context.Context, keyID ulid.ULID, auditLog *models.ComplianceAuditLog) (err error) {
