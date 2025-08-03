@@ -292,6 +292,31 @@ func (s *Server) APIKeysListPage(c *gin.Context) {
 }
 
 //===========================================================================
+// Audit Log Management Pages
+//===========================================================================
+
+func (s *Server) ComplianceAuditLogListPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard/complianceauditlogs/list.html", scene.New(c))
+}
+
+func (s *Server) ComplianceAuditLogDetailPage(c *gin.Context) {
+	// Get the audit log ID from the URL path and make available to the template.
+	// The audit log detail is loaded using htmx.
+	logID := c.Param("id")
+
+	// Validate that the audit log ID is a valid UUID.
+	if _, err := ulid.Parse(logID); err != nil {
+		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+		return
+	}
+
+	ctx := scene.New(c)
+	ctx["ID"] = logID
+
+	c.HTML(http.StatusOK, "pages/complianceauditlogs/detail.html", ctx)
+}
+
+//===========================================================================
 // Node Info Pages
 //===========================================================================
 

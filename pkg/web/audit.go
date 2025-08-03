@@ -52,7 +52,7 @@ func (s *Server) ListComplianceAuditLogs(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/audit/list.html",
+		HTMLName: "partials/complianceauditlogs/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -89,7 +89,7 @@ func (s *Server) ComplianceAuditLogDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/audit/detail.html",
+		HTMLName: "partials/complianceauditlogs/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }

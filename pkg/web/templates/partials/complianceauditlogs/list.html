@@ -1,0 +1,97 @@
+{{- with .ComplianceAuditLogList -}}
+{{ if .Logs }}
+<div class="card" id="complianceAuditLogList" data-list='{"valueNames": ["item-resource-modified", "item-action", "item-actor-type", "item-actor-id", "item-resource-type",  "item-resource-id"], "page": 25, "pagination": {"paginationClass": "list-pagination"}}'>
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        {{ template "tableSearch" . }}
+      </div>
+      <div class="col-auto me-n3">
+        {{ template "tablePageSize" . }}
+      </div>
+      <div class="col-auto">
+        <!-- Filter Form -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+          </button>
+          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+            <div class="card-header">
+              <h4 class="card-header-title">Filters</h4>
+              <button class="btn btn-sm btn-link text-reset" type="reset">
+                <small>Clear filters</small>
+              </button>
+            </div>
+            <div class="card-body">
+              <p><small>Filtering by resource, actor, and date/time is coming soon!</small></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover table-nowrap card-table">
+      <thead>
+        <tr>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-resource-modified" href="#">Resource Modified</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-action" href="#">Action</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-resource-type" href="#">Resource Type</a>
+          </th>
+          <th colspan="2">
+            <a class="list-sort text-muted" data-sort="item-resource-id" href="#">Resource ID</a>
+          </th>
+          <th class="text-center">
+            <a class="list-sort text-muted" data-sort="item-actor-type" href="#">Actor Type</a>
+          </th>
+          <th>
+            <a class="list-sort text-muted" data-sort="item-actor-id" href="#">Actor ID</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="list fs-base">
+        {{ range .Logs }}
+        <tr>
+          <td><span class="item-resource-modified d-none">{{ rfc3339 .ResourceModified }}</span>
+          <time datetime="{{ rfc3339 .ResourceModified }}">{{ .ResourceModified.Format "2006-01-02 15:04:05" }}</time></td>
+          <td><span class="item-action">{{ .Action }}</span></td>
+          <td><span class="item-resource-type">{{ .ResourceType }}</span></td>
+          <td><span class="item-resource-id">{{ .ResourceID }}</span></td>
+          <td><span class="item-actor-type">{{ .ActorType }}</span></td>
+          <td><span class="item-actor-id">{{ .ActorID }}</span></td>
+          <td class="text-end">
+            <!-- Dropdown -->
+            <div class="dropdown">
+              <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fe fe-more-vertical"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end">
+                <a href="/complianceauditlogs/{{ .ID }}" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View Details
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ template "tablePagination" . }}
+</div>
+{{- else }}
+<div class="card card-inactive">
+  <div class="card-body text-center">
+    <div class="py-6">
+      <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
+      <h1>No compliance audit logs yet.</h1>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

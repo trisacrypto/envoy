@@ -142,6 +142,13 @@ func (s *Server) setupRoutes() (err error) {
 			send.GET("", s.AvailableProtocols)
 			send.GET("/:protocol", s.SendForm)
 		}
+
+		// Compliance Audit Log Pages
+		complianceauditlogs := ui.Group("/complianceauditlogs")
+		{
+			complianceauditlogs.GET("/", s.ComplianceAuditLogListPage)
+			complianceauditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
+		}
 	}
 
 	// Swagger documentation with Swagger UI hosted from a CDN
