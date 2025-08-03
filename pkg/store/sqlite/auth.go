@@ -655,7 +655,7 @@ func (t *Tx) UpdateAPIKey(key *models.APIKey, auditLog *models.ComplianceAuditLo
 
 const setAPIKeyLastSeenSQL = "UPDATE api_keys SET last_seen=:lastSeen, modified=:modified WHERE id=:id"
 
-func (s *Store) SetAPIKeyLastSeen(ctx context.Context, userID ulid.ULID, lastLogin time.Time) (err error) {
+func (s *Store) SetAPIKeyLastSeen(ctx context.Context, keyID ulid.ULID, lastSeen time.Time) (err error) {
 	//NOTE: this type of update does not require an audit log entry
 	var tx *Tx
 	if tx, err = s.BeginTx(ctx, nil); err != nil {
@@ -663,18 +663,18 @@ func (s *Store) SetAPIKeyLastSeen(ctx context.Context, userID ulid.ULID, lastLog
 	}
 	defer tx.Rollback()
 
-	if err = tx.SetAPIKeyLastSeen(userID, lastLogin); err != nil {
+	if err = tx.SetAPIKeyLastSeen(keyID, lastSeen); err != nil {
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (t *Tx) SetAPIKeyLastSeen(userID ulid.ULID, lastLogin time.Time) (err error) {
+func (t *Tx) SetAPIKeyLastSeen(keyID ulid.ULID, lastSeen time.Time) (err error) {
 	//NOTE: this type of update does not require an audit log entry
 	params := []any{
-		sql.Named("id", userID),
-		sql.Named("lastSeen", sql.NullTime{Time: lastLogin, Valid: !lastLogin.IsZero()}),
+		sql.Named("id", keyID),
+		sql.Named("lastSeen", sql.NullTime{Time: lastSeen, Valid: !lastSeen.IsZero()}),
 		sql.Named("modified", time.Now()),
 	}
 
