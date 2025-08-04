@@ -91,6 +91,7 @@ type Store struct {
 	OnCreateAPIKey                   func(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error
 	OnRetrieveAPIKey                 func(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
 	OnUpdateAPIKey                   func(ctx context.Context, in *models.APIKey, log *models.ComplianceAuditLog) error
+	OnSetAPIKeyLastSeen              func(ctx context.Context, keyID ulid.ULID, lastSeen time.Time) error
 	OnDeleteAPIKey                   func(ctx context.Context, keyID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnListResetPasswordLinks         func(ctx context.Context, page *models.PageInfo) (*models.ResetPasswordLinkPage, error)
 	OnCreateResetPasswordLink        func(ctx context.Context, link *models.ResetPasswordLink) error
@@ -789,6 +790,15 @@ func (s *Store) UpdateAPIKey(ctx context.Context, in *models.APIKey, log *models
 		return s.OnUpdateAPIKey(ctx, in, log)
 	}
 	panic("UpdateAPIKey callback not set")
+}
+
+// Calls the callback previously set with `s.OnSetAPIKeyLastSeen = ...`
+func (s *Store) SetAPIKeyLastSeen(ctx context.Context, keyID ulid.ULID, lastSeen time.Time) error {
+	s.calls["SetAPIKeyLastSeen"]++
+	if s.OnSetAPIKeyLastSeen != nil {
+		return s.OnSetAPIKeyLastSeen(ctx, keyID, lastSeen)
+	}
+	panic("SetAPIKeyLastSeen callback not set")
 }
 
 // Calls the callback previously set with `s.OnDeleteAPIKey = ...`

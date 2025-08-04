@@ -90,6 +90,7 @@ type Tx struct {
 	OnCreateAPIKey                   func(in *models.APIKey, log *models.ComplianceAuditLog) error
 	OnRetrieveAPIKey                 func(clientIDOrKeyID any) (*models.APIKey, error)
 	OnUpdateAPIKey                   func(in *models.APIKey, log *models.ComplianceAuditLog) error
+	OnSetAPIKeyLastSeen              func(keyID ulid.ULID, lastSeen time.Time) error
 	OnDeleteAPIKey                   func(keyID ulid.ULID, log *models.ComplianceAuditLog) error
 	OnListResetPasswordLinks         func(page *models.PageInfo) (*models.ResetPasswordLinkPage, error)
 	OnCreateResetPasswordLink        func(in *models.ResetPasswordLink) error
@@ -985,6 +986,18 @@ func (tx *Tx) UpdateAPIKey(in *models.APIKey, log *models.ComplianceAuditLog) er
 		return tx.OnUpdateAPIKey(in, log)
 	}
 	panic("UpdateAPIKey callback not set")
+}
+
+// Calls the callback previously set with `OnSetAPIKeyLastSeen()`
+func (tx *Tx) SetAPIKeyLastSeen(keyID ulid.ULID, lastSeen time.Time) error {
+	if err := tx.check(true); err != nil {
+		return err
+	}
+
+	if tx.OnSetAPIKeyLastSeen != nil {
+		return tx.OnSetAPIKeyLastSeen(keyID, lastSeen)
+	}
+	panic("SetAPIKeyLastSeen callback not set")
 }
 
 // Calls the callback previously set with "OnDeleteAPIKey()".

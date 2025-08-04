@@ -694,6 +694,56 @@ func (s *storeTestSuite) TestUpdateAPIKey_FailureNotFoundZeroID() {
 	require.True(ok, "audit log count was off")
 }
 
+func (s *storeTestSuite) TestSetAPIKeyLastSeen_Success() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	keyId := ulid.MustParse("01HWQEJJDMS5EKNARHPJEDMHA4")
+	apiKey, err := s.store.RetrieveAPIKey(ctx, keyId)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey, "api key should not be nil")
+
+	prevMod := apiKey.Modified
+	newSeen := time.Now()
+
+	//test
+	err = s.store.SetAPIKeyLastSeen(ctx, keyId, newSeen)
+	require.NoError(err, "expected no errors")
+
+	apiKey = nil
+	apiKey, err = s.store.RetrieveAPIKey(ctx, keyId)
+	require.NoError(err, "expected no errors")
+	require.NotNil(apiKey, "api key should not be nil")
+
+	require.True(prevMod.Before(apiKey.Modified), "expected the modified time to be newer")
+	require.True(newSeen.Equal(apiKey.LastSeen.Time), "expected the last seen time to be equal to the time that was set")
+}
+
+func (s *storeTestSuite) TestSetAPIKeyLastSeen_FailureNotFoundRandomID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+
+	//test
+	err := s.store.SetAPIKeyLastSeen(ctx, apiKey.ID, time.Now())
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+}
+
+func (s *storeTestSuite) TestSetAPIKeyLastSeen_FailureNotFoundZeroID() {
+	//setup
+	require := s.Require()
+	ctx := s.ActorContext()
+	apiKey := mock.GetSampleAPIKey(true)
+	apiKey.ID = ulid.Zero
+
+	//test
+	err := s.store.SetAPIKeyLastSeen(ctx, apiKey.ID, time.Now())
+	require.Error(err, "expected an error")
+	require.Equal(errors.ErrNotFound, err, "expected ErrNotFound")
+}
+
 func (s *storeTestSuite) TestDeleteAPIKey_Success() {
 	//setup
 	require := s.Require()
