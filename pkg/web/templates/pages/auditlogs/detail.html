@@ -18,7 +18,7 @@
 {{ end }}
 
 {{ define "page-content" }}
-<section id="complianceauditlog" hx-get="/v1/complianceauditlogs/{{ .ID }}" hx-trigger="load, complianceauditlog-updated from:body">
+<section id="complianceauditlog" hx-get="/v1/auditlogs/{{ .ID }}" hx-trigger="load, complianceauditlog-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

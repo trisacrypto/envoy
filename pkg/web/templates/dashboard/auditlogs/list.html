@@ -8,8 +8,8 @@
   <div class="col">
     <ul class="nav nav-tabs nav-overflow header-tabs">
       <li class="nav-item">
-        <a href="/complianceauditlogs" class="nav-link active">
-          All Compliance Audit Logs
+        <a href="/auditlogs" class="nav-link active">
+          All Audit Logs
         </a>
       </li>
     </ul>
@@ -18,7 +18,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="complianceauditlogs" hx-get="/v1/complianceauditlogs" hx-trigger="load">
+<section id="auditlogs" hx-get="/v1/auditlogs" hx-trigger="load">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

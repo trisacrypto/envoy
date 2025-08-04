@@ -144,10 +144,10 @@ func (s *Server) setupRoutes() (err error) {
 		}
 
 		// Compliance Audit Log Pages
-		complianceauditlogs := ui.Group("/complianceauditlogs")
+		auditlogs := ui.Group("/auditlogs")
 		{
-			complianceauditlogs.GET("/", s.ComplianceAuditLogListPage)
-			complianceauditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
+			auditlogs.GET("/", s.ComplianceAuditLogListPage)
+			auditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
 		}
 	}
 
@@ -312,7 +312,7 @@ func (s *Server) setupRoutes() (err error) {
 		}
 
 		// Compliance Audit Logs Resource
-		complianceAuditLogs := v1.Group("/complianceauditlogs", authenticate)
+		auditlogs := v1.Group("/auditlogs", authenticate)
 		{
 			// Permissions included are the "view" permissions for any objects
 			// which have their changes logged by the CAL system
@@ -323,8 +323,8 @@ func (s *Server) setupRoutes() (err error) {
 				permiss.AccountsView,
 				permiss.TravelRuleView,
 			)
-			complianceAuditLogs.GET("", viewLogsAuthHandler, s.ListComplianceAuditLogs)
-			complianceAuditLogs.GET("/:id", viewLogsAuthHandler, s.ComplianceAuditLogDetail)
+			auditlogs.GET("", viewLogsAuthHandler, s.ListComplianceAuditLogs)
+			auditlogs.GET("/:id", viewLogsAuthHandler, s.ComplianceAuditLogDetail)
 
 		}
 

@@ -296,7 +296,7 @@ func (s *Server) APIKeysListPage(c *gin.Context) {
 //===========================================================================
 
 func (s *Server) ComplianceAuditLogListPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard/complianceauditlogs/list.html", scene.New(c))
+	c.HTML(http.StatusOK, "dashboard/auditlogs/list.html", scene.New(c))
 }
 
 func (s *Server) ComplianceAuditLogDetailPage(c *gin.Context) {
@@ -313,7 +313,7 @@ func (s *Server) ComplianceAuditLogDetailPage(c *gin.Context) {
 	ctx := scene.New(c)
 	ctx["ID"] = logID
 
-	c.HTML(http.StatusOK, "pages/complianceauditlogs/detail.html", ctx)
+	c.HTML(http.StatusOK, "pages/auditlogs/detail.html", ctx)
 }
 
 //===========================================================================
