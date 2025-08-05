@@ -5,7 +5,7 @@
       <div class="col">
         <h6 class="header-pretitle">Compliance Audit Log Detail</h6>
         <h1 class="header-title">
-          {{ .ActorType }} performed {{ .Action }} on a {{ .ResourceType }} record
+          {{ .ActorType }} {{ .Action }}ed an {{ .ResourceType }}
         </h1>
       </div>
     </div>
@@ -16,7 +16,7 @@
   <div class="card-header">
     <div class="row">
       <div class="col">
-        <h4 class="card-title mb-0">Compliance Audit Log ID: <span class="text-secondary font-monospace ms-1">{{ .ID }}</span></h4>
+        <h4 class="card-title mb-0">Audit Log ID: <span class="text-secondary font-monospace ms-1">{{ .ID }}</span></h4>
       </div>
     </div>
   </div>
@@ -32,22 +32,54 @@
           <dt class="col-4">Resource Type</dt>
           <dd class="col-8">{{ .ResourceType }}</dd>
           <dt class="col-4">Resource ID</dt>
-          <dd class="col-8">{{ .ResourceID }}</dd>
+          <dd class="col-8">
+            <span class="font-monospace text-secondary">
+              <!--Links for resources, where possible-->
+              {{ if eq .ResourceType "Transaction" }}
+                <a href="/transactions/{{ .ResourceID }}">{{ .ResourceID }}</a>
+              {{ else if eq .ResourceType "User" }}
+                <a href="/users">{{ .ResourceID }}</a>
+              {{ else if eq .ResourceType "APIKey" }}
+                <a href="/apikeys">{{ .ResourceID }}</a>
+              {{ else if eq .ResourceType "Counterparty" }}
+                <a href="/counterparties">{{ .ResourceID }}</a>
+              {{ else if eq .ResourceType "Account" }}
+                <a href="/accounts/{{ .ResourceID }}">{{ .ResourceID }}</a>
+              {{else}}
+                <!--No link for the rest-->
+                {{ .ResourceID }}
+              {{end}}
+            </span>
+          </dd>
           <dt class="col-4">Actor Type</dt>
           <dd class="col-8">{{ .ActorType }}</dd>
           <dt class="col-4">Actor ID</dt>
-          <dd class="col-8">{{ .ActorID }}</dd>
+          <dd class="col-8">
+            <span class="font-monospace text-secondary">
+              <!--Links for actors, where possible-->
+              {{if eq .ActorType "APIKey"}}
+                <a href="/apikeys">{{ .ActorID }}</a>
+              {{else if eq .ActorType "User"}}
+                <a href="/users">{{ .ActorID }}</a>
+              {{else}}
+                <!--No link for the rest-->
+                {{ .ActorID }}
+              {{end}}
+            </span>
+          </dd>
+          <dt class="col-4">Change Notes</dt>
+          <dd class="col-8">{{ .ChangeNotes }}</dd>
         </dl>
       </div>
       <div class="col-lg-5 mt-4 mt-lg-0">
         <h3>Signature Metadata</h3>
         <dl class="row">
-          <dt class="col-4">Signature</dt>
-          <dd class="col-8">{{ .Signature }}</dd>
-          <dt class="col-4">Key ID</dt>
-          <dd class="col-8">{{ .KeyID }}</dd>
           <dt class="col-4">Algorithm</dt>
           <dd class="col-8">{{ .Algorithm }}</dd>
+          <dt class="col-4">Key ID</dt>
+          <dd class="col-8"><span class="font-monospace">{{ .KeyID }}</span></dd>
+          <dt class="col-4">Signature</dt>
+          <dd class="col-8"><span class="font-monospace text-secondary">{{ .Signature }}</span></dd>
         </dl>
       </div>
     </div>

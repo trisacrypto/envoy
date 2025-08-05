@@ -24,7 +24,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(false, false)
 
 		// test
-		log := api.NewComplianceAuditLog(model)
+		log := api.NewComplianceAuditLogRaw(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -34,7 +34,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(false, true)
 
 		// test
-		log := api.NewComplianceAuditLog(model)
+		log := api.NewComplianceAuditLogRaw(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -44,7 +44,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(true, true)
 
 		// test
-		log := api.NewComplianceAuditLog(model)
+		log := api.NewComplianceAuditLogRaw(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -205,10 +205,16 @@ func TestNewComplianceAuditLogList(t *testing.T) {
 	}
 
 	//test
-	list, err := api.NewComplianceAuditLogList(page)
-	require.NoError(t, err, "could not make a new list from page")
-	require.NotNil(t, list, "expected a non-nil list")
-	require.NoError(t, compareComplianceAuditLogLists(list, page), "list and page did not match")
+	list, err := api.NewComplianceAuditLogList(page, api.NewComplianceAuditLogRaw)
+	require.NoError(t, err, "could not make a new list from page (list for api)")
+	require.NotNil(t, list, "expected a non-nil list (list for api)")
+	require.NoError(t, compareComplianceAuditLogLists(list, page), "list and page did not match (list for api)")
+
+	//test
+	dlist, err := api.NewComplianceAuditLogList(page, api.NewComplianceAuditLogRaw)
+	require.NoError(t, err, "could not make a new list from page (list for display)")
+	require.NotNil(t, dlist, "expected a non-nil list (list for display)")
+	require.NoError(t, compareComplianceAuditLogLists(dlist, page), "list and page did not match (list for display)")
 }
 
 // ###########################################################################

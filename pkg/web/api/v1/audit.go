@@ -1,11 +1,16 @@
 package api
 
 import (
+	"encoding/hex"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //===========================================================================
@@ -59,7 +64,7 @@ type ComplianceAuditLog struct {
 }
 
 // Create a new api.ComplianceAuditLog from a database model.ComplianceAuditLog
-func NewComplianceAuditLog(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
+func NewComplianceAuditLogRaw(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
 	out = &ComplianceAuditLog{
 		ID:               model.ID,
 		ActorID:          string(model.ActorID),
@@ -76,6 +81,85 @@ func NewComplianceAuditLog(model *models.ComplianceAuditLog) (out *ComplianceAud
 
 	if model.Signature != nil {
 		out.Signature = string(model.Signature)
+		out.KeyID = model.KeyID
+		out.Algorithm = model.Algorithm
+	}
+
+	return out
+}
+
+// Create a new api.ComplianceAuditLog from a database model.ComplianceAuditLog
+// with "nice" formatting for UI display.
+// NOTE: changing the display formatting for these strings will invalidate the
+// signature, however the function NewComplianceAuditLog() will give a raw
+// log for API users.
+func NewComplianceAuditLogForDisplay(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
+	// Get ActorID string that looks nice (defaults to hex)
+	actorId := "0x" + hex.EncodeToString(model.ActorID)
+	switch model.ActorType {
+	case enum.ActorCLI:
+		// ActorCLI's ID should be a string describing the operation
+		actorId = string(model.ActorID)
+	default:
+		// All other actors have ULID IDs (ignore errors to use hex)
+		if actorUlid, err := ulid.Parse(model.ActorID); err == nil {
+			actorId = actorUlid.String()
+		}
+	}
+
+	// Get ResourceID string that looks nice (defaults to hex)
+	resourceId := "0x" + hex.EncodeToString(model.ResourceID)
+	switch model.ResourceType {
+	case enum.ResourceTransaction, enum.ResourceSecureEnvelope:
+		// Transactions and SecureEnvelopes have UUID IDs (ignore errors to use hex)
+		if resourceUuid, err := uuid.FromBytes(model.ResourceID); err == nil {
+			resourceId = resourceUuid.String()
+		}
+	default:
+		// All other resources have ULID IDs (ignore errors to use hex)
+		if resouceUlid, err := ulid.Parse(model.ResourceID); err == nil {
+			resourceId = resouceUlid.String()
+		}
+	}
+
+	// Make the enums look nice for display (title case with some exceptions)
+	caser := cases.Title(language.English)
+	action := caser.String(model.Action.String())
+
+	var actorType string
+	switch model.ActorType {
+	case enum.ActorAPIKey:
+		actorType = "API Key"
+	case enum.ActorCLI:
+		actorType = "CLI"
+	default:
+		actorType = strings.Replace(caser.String(model.ActorType.String()), "_", " ", 1)
+	}
+
+	var resourceType string
+	switch model.ResourceType {
+	case enum.ResourceAPIKey:
+		resourceType = "APIKey"
+	default:
+		resourceType = strings.Replace(caser.String(model.ResourceType.String()), "_", " ", 1)
+	}
+
+	out = &ComplianceAuditLog{
+		ID:               model.ID,
+		ActorID:          actorId,
+		ActorType:        actorType,
+		ResourceID:       resourceId,
+		ResourceType:     resourceType,
+		ResourceModified: model.ResourceModified,
+		Action:           action,
+	}
+
+	if model.ChangeNotes.Valid {
+		out.ChangeNotes = model.ChangeNotes.String
+	}
+
+	if model.Signature != nil {
+		out.Signature = "0x" + hex.EncodeToString(model.Signature)
 		out.KeyID = model.KeyID
 		out.Algorithm = model.Algorithm
 	}
@@ -193,8 +277,12 @@ type ComplianceAuditLogList struct {
 	Logs []*ComplianceAuditLog    `json:"logs"`
 }
 
+// NewLogFunc is a function which converts ComplianceAuditLog Store models to API models
+type NewLogFunc func(*models.ComplianceAuditLog) *ComplianceAuditLog
+
 // Creates an api.ComplianceAuditLogList from a models.ComplianceAuditLogPage
-func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage) (out *ComplianceAuditLogList, err error) {
+// using the function provided to convert it.
+func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage, newLogFn NewLogFunc) (out *ComplianceAuditLogList, err error) {
 	out = &ComplianceAuditLogList{
 		Page: &ComplianceAuditLogQuery{
 			PageQuery: PageQuery{
@@ -212,7 +300,7 @@ func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage) (out *Compli
 	}
 
 	for _, model := range page.Logs {
-		out.Logs = append(out.Logs, NewComplianceAuditLog(model))
+		out.Logs = append(out.Logs, newLogFn(model))
 	}
 
 	return out, nil

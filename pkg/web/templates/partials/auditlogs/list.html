@@ -4,7 +4,7 @@
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
-        {{ template "tableSearch" . }}
+        <!--No search bar-->
       </div>
       <div class="col-auto me-n3">
         {{ template "tablePageSize" . }}
@@ -38,19 +38,19 @@
             <a class="list-sort text-muted" data-sort="item-resource-modified" href="#">Resource Modified</a>
           </th>
           <th>
-            <a class="list-sort text-muted" data-sort="item-action" href="#">Action</a>
+            <a class="text-muted" data-sort="item-action" href="#">Action</a>
           </th>
           <th>
-            <a class="list-sort text-muted" data-sort="item-resource-type" href="#">Resource Type</a>
+            <a class="text-muted" data-sort="item-resource-type" href="#">Resource Type</a>
+          </th>
+          <th>
+            <a class="text-muted" data-sort="item-resource-id" href="#">Resource ID</a>
+          </th>
+          <th>
+            <a class="text-muted" data-sort="item-actor-type" href="#">Actor Type</a>
           </th>
           <th colspan="2">
-            <a class="list-sort text-muted" data-sort="item-resource-id" href="#">Resource ID</a>
-          </th>
-          <th class="text-center">
-            <a class="list-sort text-muted" data-sort="item-actor-type" href="#">Actor Type</a>
-          </th>
-          <th>
-            <a class="list-sort text-muted" data-sort="item-actor-id" href="#">Actor ID</a>
+            <a class="text-muted" data-sort="item-actor-id" href="#">Actor ID</a>
           </th>
         </tr>
       </thead>
@@ -61,9 +61,9 @@
           <time datetime="{{ rfc3339 .ResourceModified }}">{{ .ResourceModified.Format "2006-01-02 15:04:05" }}</time></td>
           <td><span class="item-action">{{ .Action }}</span></td>
           <td><span class="item-resource-type">{{ .ResourceType }}</span></td>
-          <td><span class="item-resource-id">{{ .ResourceID }}</span></td>
+          <td><span class="item-resource-id font-monospace text-secondary">{{ .ResourceID }}</span></td>
           <td><span class="item-actor-type">{{ .ActorType }}</span></td>
-          <td><span class="item-actor-id">{{ .ActorID }}</span></td>
+          <td><span class="item-actor-id font-monospace text-secondary">{{ .ActorID }}</span></td>
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">

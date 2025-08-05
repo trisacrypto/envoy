@@ -1,7 +1,7 @@
 {{ template "dashboard.html" . }}
 {{- define "title" }}Compliance Audit Log Management | TRISA Envoy{{ end }}
 {{- define "pretitle" }}Compliance Audit Logs{{ end }}
-{{- define "pagetitle" }}View Logs{{ end }}
+{{- define "pagetitle" }}View Audit Logs{{ end }}
 
 {{- define "tabs" }}
 <div class="row align-items-center">
@@ -31,5 +31,5 @@
 
 {{- define "appcode" }}
 <script type="module" src="/static/js/modules/components.js"></script>
-<script type="module" src="/static/js/counterparties/index.js"></script>
+<script type="module" src="/static/js/auditlogs/index.js"></script>
 {{- end }}
