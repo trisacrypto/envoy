@@ -799,17 +799,17 @@ func (s *APIv1) DeleteAPIKey(ctx context.Context, keyID ulid.ULID) error {
 // ComplianceAuditLogs Resource
 //===========================================================================
 
-const complianceauditlogsEP = "/v1/complianceauditlogs"
+const auditlogsEP = "/v1/auditlogs"
 
 func (s *APIv1) ListComplianceAuditLogs(ctx context.Context, in *ComplianceAuditLogQuery) (out *ComplianceAuditLogList, err error) {
-	if err = s.List(ctx, complianceauditlogsEP, in, &out); err != nil {
+	if err = s.List(ctx, auditlogsEP, in, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
 func (s *APIv1) ComplianceAuditLogDetail(ctx context.Context, logID ulid.ULID) (out *ComplianceAuditLog, err error) {
-	endpoint, _ := url.JoinPath(complianceauditlogsEP, logID.String())
+	endpoint, _ := url.JoinPath(auditlogsEP, logID.String())
 	if err = s.Detail(ctx, endpoint, &out); err != nil {
 		return nil, err
 	}

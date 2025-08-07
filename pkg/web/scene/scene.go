@@ -318,6 +318,24 @@ func (s Scene) SendEnabledForProtocol(protocol string) bool {
 	}
 }
 
+func (s Scene) ComplianceAuditLogList() *api.ComplianceAuditLogList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.ComplianceAuditLogList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
+func (s Scene) ComplianceAuditLogDetail() *api.ComplianceAuditLog {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.ComplianceAuditLog); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 //===========================================================================
 // Set Global Scene for Context
 //===========================================================================

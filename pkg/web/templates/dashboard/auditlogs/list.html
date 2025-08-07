@@ -1,0 +1,35 @@
+{{ template "dashboard.html" . }}
+{{- define "title" }}Compliance Audit Log Management | TRISA Envoy{{ end }}
+{{- define "pretitle" }}Compliance Audit Logs{{ end }}
+{{- define "pagetitle" }}View Audit Logs{{ end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/auditlogs" class="nav-link active">
+          All Audit Logs
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="auditlogs" hx-get="/v1/auditlogs" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/auditlogs/index.js"></script>
+{{- end }}

@@ -142,6 +142,13 @@ func (s *Server) setupRoutes() (err error) {
 			send.GET("", s.AvailableProtocols)
 			send.GET("/:protocol", s.SendForm)
 		}
+
+		// Compliance Audit Log Pages
+		auditlogs := ui.Group("/auditlogs")
+		{
+			auditlogs.GET("/", s.ComplianceAuditLogListPage)
+			auditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
+		}
 	}
 
 	// Swagger documentation with Swagger UI hosted from a CDN
@@ -305,7 +312,7 @@ func (s *Server) setupRoutes() (err error) {
 		}
 
 		// Compliance Audit Logs Resource
-		complianceAuditLogs := v1.Group("/complianceauditlogs", authenticate)
+		auditlogs := v1.Group("/auditlogs", authenticate)
 		{
 			// Permissions included are the "view" permissions for any objects
 			// which have their changes logged by the CAL system
@@ -316,8 +323,8 @@ func (s *Server) setupRoutes() (err error) {
 				permiss.AccountsView,
 				permiss.TravelRuleView,
 			)
-			complianceAuditLogs.GET("", viewLogsAuthHandler, s.ListComplianceAuditLogs)
-			complianceAuditLogs.GET("/:id", viewLogsAuthHandler, s.ComplianceAuditLogDetail)
+			auditlogs.GET("", viewLogsAuthHandler, s.ListComplianceAuditLogs)
+			auditlogs.GET("/:id", viewLogsAuthHandler, s.ComplianceAuditLogDetail)
 
 		}
 

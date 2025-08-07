@@ -42,8 +42,18 @@ func (s *Server) ListComplianceAuditLogs(c *gin.Context) {
 		return
 	}
 
-	// Convert the counterparties page into an api response
-	if out, err = api.NewComplianceAuditLogList(page); err != nil {
+	// Choose the "new log function" to use to convert Store models to API models
+	var newLogFn api.NewLogFunc
+	if IsAPIRequest(c) {
+		// API response gives raw logs with []bytes as hex strings
+		newLogFn = api.NewComplianceAuditLogRaw
+	} else {
+		// UI response gives "nice" display strings for all fields
+		newLogFn = api.NewComplianceAuditLogForDisplay
+	}
+
+	// Convert the audit logs page into an API or UI response
+	if out, err = api.NewComplianceAuditLogList(page, newLogFn); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process compliance audit log list request"))
 		return
@@ -52,7 +62,7 @@ func (s *Server) ListComplianceAuditLogs(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/audit/list.html",
+		HTMLName: "partials/auditlogs/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
@@ -83,13 +93,19 @@ func (s *Server) ComplianceAuditLogDetail(c *gin.Context) {
 		return
 	}
 
-	// Convert the model into an API response
-	out = api.NewComplianceAuditLog(log)
+	// Convert the model into an API or UI response
+	if IsAPIRequest(c) {
+		// API response gives raw logs with []bytes as hex strings
+		out = api.NewComplianceAuditLogRaw(log)
+	} else {
+		// UI response gives "nice" display strings for all fields
+		out = api.NewComplianceAuditLogForDisplay(log)
+	}
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/audit/detail.html",
+		HTMLName: "partials/auditlogs/detail.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
