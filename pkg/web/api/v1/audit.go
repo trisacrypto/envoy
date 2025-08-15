@@ -97,8 +97,8 @@ func NewComplianceAuditLogForDisplay(model *models.ComplianceAuditLog) (out *Com
 	// Get ActorID string that looks nice (defaults to hex)
 	actorId := "0x" + hex.EncodeToString(model.ActorID)
 	switch model.ActorType {
-	case enum.ActorCLI:
-		// ActorCLI's ID should be a string describing the operation
+	case enum.ActorCLI, enum.ActorInternal:
+		// CLI/Internal actor ID should be a string describing the operation
 		actorId = string(model.ActorID)
 	default:
 		// All other actors have ULID IDs (ignore errors to use hex)

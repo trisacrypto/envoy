@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store"
@@ -148,9 +149,15 @@ func (s *Sync) Sync() (err error) {
 	// failure. It will also handle the creation and update of the counterparty
 	// in the local database, including contacts.
 	syncMember := func(member *members.VASPMember) error {
+		// Create context
+		ctx := context.Background()
+
+		// Add actor information to the context for the audit log
+		ctx = audit.WithActor(ctx, []byte("Sync.Sync()"), enum.ActorInternal)
+
 		// Create a new transaction for each member to ensure isolation
 		var tx txn.Txn
-		if tx, err = s.store.Begin(context.Background(), &sql.TxOptions{ReadOnly: false}); err != nil {
+		if tx, err = s.store.Begin(ctx, &sql.TxOptions{ReadOnly: false}); err != nil {
 			return err
 		}
 		defer tx.Rollback()
@@ -180,7 +187,15 @@ func (s *Sync) Sync() (err error) {
 				updated++
 			}
 
-			// TODO: update contacts for the counterparty
+			// Update the contacts for the counterparty
+			for _, contact := range contacts {
+				contact.CounterpartyID = vasp.ID
+				if err = tx.UpdateContact(contact, &models.ComplianceAuditLog{
+					ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
+				}); err != nil {
+					log.Warn().Err(err).Str("vaspID", member.Id).Str("contactEmail", contact.Email).Msg("could not update contact for vasp member counterparty")
+				}
+			}
 
 		} else {
 			if err = tx.CreateCounterparty(vasp, &models.ComplianceAuditLog{
@@ -190,16 +205,6 @@ func (s *Sync) Sync() (err error) {
 				log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create vasp member counterparty")
 			} else {
 				created++
-			}
-
-			// Create the contacts for the counterparty
-			for _, contact := range contacts {
-				contact.CounterpartyID = vasp.ID
-				if err = tx.CreateContact(contact, &models.ComplianceAuditLog{
-					ChangeNotes: sql.NullString{Valid: true, String: "Sync.Sync()"},
-				}); err != nil {
-					log.Warn().Err(err).Str("vaspID", member.Id).Msg("could not create contact for vasp member counterparty")
-				}
 			}
 		}
 
