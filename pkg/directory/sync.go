@@ -153,7 +153,7 @@ func (s *Sync) Sync() (err error) {
 		ctx := context.Background()
 
 		// Add actor information to the context for the audit log
-		ctx = audit.WithActor(ctx, []byte("Sync.Sync()"), enum.ActorInternal)
+		ctx = audit.WithActor(ctx, []byte("Sync.Sync()"), enum.ActorSystem)
 
 		// Create a new transaction for each member to ensure isolation
 		var tx txn.Txn

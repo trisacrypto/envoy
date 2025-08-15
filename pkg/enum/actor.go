@@ -15,8 +15,8 @@ const (
 	ActorUser
 	ActorAPIKey
 	ActorSunrise
-	ActorCLI      // command line interface
-	ActorInternal // actions by the Envoy internals (such as directory syncs)
+	ActorCLI    // command line interface
+	ActorSystem // actions by the Envoy system (such as directory syncs)
 
 	// The terminator is used to determine the last value of the enum. It should be
 	// the last value in the list and is automatically incremented when enums are
@@ -32,7 +32,7 @@ var actorNames = [6]string{
 	"api_key",
 	"sunrise",
 	"cli",
-	"internal",
+	"system",
 }
 
 // Returns true if the provided actor is valid (e.g. parseable), false otherwise.

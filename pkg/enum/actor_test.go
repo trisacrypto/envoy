@@ -25,8 +25,8 @@ func TestParseActor(t *testing.T) {
 			{"SUNRISE", enum.ActorSunrise},
 			{"cli", enum.ActorCLI},
 			{"CLI", enum.ActorCLI},
-			{"internal", enum.ActorInternal},
-			{"INTERNAL", enum.ActorInternal},
+			{"system", enum.ActorSystem},
+			{"SYSTEM", enum.ActorSystem},
 			{uint8(0), enum.ActorUnknown},
 			{uint8(1), enum.ActorUser},
 			{uint8(2), enum.ActorAPIKey},
@@ -37,7 +37,7 @@ func TestParseActor(t *testing.T) {
 			{enum.ActorAPIKey, enum.ActorAPIKey},
 			{enum.ActorSunrise, enum.ActorSunrise},
 			{enum.ActorCLI, enum.ActorCLI},
-			{enum.ActorInternal, enum.ActorInternal},
+			{enum.ActorSystem, enum.ActorSystem},
 		}
 
 		for i, test := range tests {
@@ -74,7 +74,7 @@ func TestActorString(t *testing.T) {
 		{enum.ActorAPIKey, "api_key"},
 		{enum.ActorSunrise, "sunrise"},
 		{enum.ActorCLI, "cli"},
-		{enum.ActorInternal, "internal"},
+		{enum.ActorSystem, "system"},
 		{enum.Actor(6), "unknown"},
 		{enum.Actor(99), "unknown"},
 	}
@@ -92,7 +92,7 @@ func TestActorJSON(t *testing.T) {
 		enum.ActorAPIKey,
 		enum.ActorSunrise,
 		enum.ActorCLI,
-		enum.ActorInternal,
+		enum.ActorSystem,
 	}
 
 	for _, actor := range tests {
@@ -123,8 +123,8 @@ func TestActorScan(t *testing.T) {
 		{"SUNRISE", enum.ActorSunrise},
 		{"cli", enum.ActorCLI},
 		{"CLI", enum.ActorCLI},
-		{"internal", enum.ActorInternal},
-		{"INTERNAL", enum.ActorInternal},
+		{"system", enum.ActorSystem},
+		{"SYSTEM", enum.ActorSystem},
 		{[]byte(""), enum.ActorUnknown},
 		{[]byte("unknown"), enum.ActorUnknown},
 		{[]byte("UNKNOWN"), enum.ActorUnknown},
@@ -136,8 +136,8 @@ func TestActorScan(t *testing.T) {
 		{[]byte("SUNRISE"), enum.ActorSunrise},
 		{[]byte("cli"), enum.ActorCLI},
 		{[]byte("CLI"), enum.ActorCLI},
-		{[]byte("internal"), enum.ActorInternal},
-		{[]byte("INTERNAL"), enum.ActorInternal},
+		{[]byte("system"), enum.ActorSystem},
+		{[]byte("SYSTEM"), enum.ActorSystem},
 	}
 
 	for i, test := range tests {
@@ -175,7 +175,7 @@ func TestActorValue(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "cli", value)
 
-	value, err = enum.ActorInternal.Value()
+	value, err = enum.ActorSystem.Value()
 	require.NoError(t, err)
-	require.Equal(t, "internal", value)
+	require.Equal(t, "system", value)
 }
