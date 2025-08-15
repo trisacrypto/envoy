@@ -394,6 +394,11 @@ func createUser(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Setup the audit log
+	if ctx, err = setupAuditLog("createUser", ctx); err != nil {
+		return cli.Exit(err, 1)
+	}
+
 	if err = db.CreateUser(ctx, user, &models.ComplianceAuditLog{
 		ChangeNotes: sql.NullString{Valid: true, String: "createUser()"},
 	}); err != nil {
@@ -456,6 +461,11 @@ func createAPIKey(c *cli.Context) (err error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	// Setup the audit log
+	if ctx, err = setupAuditLog("createAPIKey", ctx); err != nil {
+		return cli.Exit(err, 1)
+	}
 
 	if err = db.CreateAPIKey(ctx, key, &models.ComplianceAuditLog{
 		ChangeNotes: sql.NullString{Valid: true, String: "createAPIKey()"},
@@ -560,22 +570,10 @@ func daybreakImport(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	// Add actor information to the context. We don't have an ID, so we're using
-	// the function name as the ActorID.
-	ctx = audit.WithActor(ctx, []byte("daybreakImport"), enum.ActorCLI)
-
-	// Load the keychain from the environment config
-	var (
-		conf config.Config
-		kc   keychain.KeyChain
-	)
-	if conf, err = config.New(); err != nil {
-		return cli.Exit(fmt.Sprintf("cannot load mTLS config: %s", err), 1)
+	// Setup the audit log
+	if ctx, err = setupAuditLog("daybreakImport", ctx); err != nil {
+		return cli.Exit(err, 1)
 	}
-	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
-		return cli.Exit(fmt.Sprintf("cannot load keychain: %s", err), 1)
-	}
-	audit.UseKeyChain(kc)
 
 	// NOTE: this operation happens in its own transaction, if two daybreak imports
 	// happen concurrently, then this map would not accurately reflect the state of the
@@ -700,22 +698,10 @@ func daybreakRetire(c *cli.Context) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	// Add actor information to the context. We don't have an ID, so we're using
-	// the function name as the ActorID.
-	ctx = audit.WithActor(ctx, []byte("daybreakRetire"), enum.ActorCLI)
-
-	// Load the keychain from the environment config
-	var (
-		conf config.Config
-		kc   keychain.KeyChain
-	)
-	if conf, err = config.New(); err != nil {
-		return cli.Exit(fmt.Sprintf("cannot load mTLS config: %s", err), 1)
+	// Setup the audit log
+	if ctx, err = setupAuditLog("daybreakRetire", ctx); err != nil {
+		return cli.Exit(err, 1)
 	}
-	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
-		return cli.Exit(fmt.Sprintf("cannot load keychain: %s", err), 1)
-	}
-	audit.UseKeyChain(kc)
 
 	// Get all Daybreak Counterparties
 	var srcMap map[string]*models.CounterpartySourceInfo
@@ -754,6 +740,28 @@ func daybreakRetire(c *cli.Context) (err error) {
 //===========================================================================
 // Helper Functions
 //===========================================================================
+
+// Setup the context with the given actor ID (usually the function or command
+// name) and sets up the keychain to sign audit logs.
+func setupAuditLog(actorId string, ctx context.Context) (newCtx context.Context, err error) {
+	// Add actor information to the context.
+	newCtx = audit.WithActor(ctx, []byte(actorId), enum.ActorCLI)
+
+	// Load the keychain from the environment config
+	var (
+		conf config.Config
+		kc   keychain.KeyChain
+	)
+	if conf, err = config.New(); err != nil {
+		return nil, fmt.Errorf("cannot load mTLS config: %s", err)
+	}
+	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
+		return nil, fmt.Errorf("cannot load keychain: %s", err)
+	}
+	audit.UseKeyChain(kc)
+
+	return newCtx, nil
+}
 
 func openDB(c *cli.Context) (err error) {
 	if conf, err = config.New(); err != nil {

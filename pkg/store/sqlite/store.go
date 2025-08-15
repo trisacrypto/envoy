@@ -102,11 +102,19 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (_ *Tx, err er
 		return nil, err
 	}
 
-	// Get the actor's ID and type. We're ignoring the 'ok' because at this time
-	// we don't know if we actually need the actor or not. It will be caught
-	// when the audit log is created if there is no actor metadata.
-	actorID, _ := audit.ActorID(ctx)
-	actorType, _ := audit.ActorType(ctx)
+	// Get the actor's ID and type. By default, use an "unknown" actor so that
+	// database transactions do not fail for this reason.
+	var (
+		actorID   []byte
+		actorType enum.Actor
+		ok        bool
+	)
+	if actorID, ok = audit.ActorID(ctx); !ok {
+		actorID = []byte("unknown")
+	}
+	if actorType, ok = audit.ActorType(ctx); !ok {
+		actorType = enum.ActorUnknown
+	}
 
 	return &Tx{
 		tx:        tx,
