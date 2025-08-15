@@ -395,7 +395,7 @@ func createUser(c *cli.Context) (err error) {
 	defer cancel()
 
 	// Setup the audit log
-	if ctx, err = setupAuditLog([]byte("createUser"), ctx); err != nil {
+	if ctx, err = setupAuditLog("createUser", ctx); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -463,7 +463,7 @@ func createAPIKey(c *cli.Context) (err error) {
 	defer cancel()
 
 	// Setup the audit log
-	if ctx, err = setupAuditLog([]byte("createAPIKey"), ctx); err != nil {
+	if ctx, err = setupAuditLog("createAPIKey", ctx); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -571,7 +571,7 @@ func daybreakImport(c *cli.Context) (err error) {
 	defer cancel()
 
 	// Setup the audit log
-	if ctx, err = setupAuditLog([]byte("daybreakImport"), ctx); err != nil {
+	if ctx, err = setupAuditLog("daybreakImport", ctx); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -699,7 +699,7 @@ func daybreakRetire(c *cli.Context) (err error) {
 	defer cancel()
 
 	// Setup the audit log
-	if ctx, err = setupAuditLog([]byte("daybreakRetire"), ctx); err != nil {
+	if ctx, err = setupAuditLog("daybreakRetire", ctx); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -743,7 +743,7 @@ func daybreakRetire(c *cli.Context) (err error) {
 
 // Setup the context with the given actor ID (usually the function or command
 // name) and sets up the keychain to sign audit logs.
-func setupAuditLog(actorId []byte, ctx context.Context) (newCtx context.Context, err error) {
+func setupAuditLog(actorId string, ctx context.Context) (newCtx context.Context, err error) {
 	// Add actor information to the context.
 	newCtx = audit.WithActor(ctx, []byte(actorId), enum.ActorCLI)
 
