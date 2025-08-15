@@ -75,7 +75,7 @@ func TestActorString(t *testing.T) {
 		{enum.ActorSunrise, "sunrise"},
 		{enum.ActorCLI, "cli"},
 		{enum.ActorInternal, "internal"},
-		{enum.Actor(5), "unknown"},
+		{enum.Actor(6), "unknown"},
 		{enum.Actor(99), "unknown"},
 	}
 
