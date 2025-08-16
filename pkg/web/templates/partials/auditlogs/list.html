@@ -4,7 +4,7 @@
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
-        <!--No search bar-->
+        <!--No search bar for audit logs-->
       </div>
       <div class="col-auto me-n3">
         {{ template "tablePageSize" . }}
@@ -13,9 +13,9 @@
         <!-- Filter Form -->
         <div class="dropdown">
           <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
-            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+            <i class="fe fe-sliders me-1"></i> Filter <span id="numFiltersBadge" class="badge bg-secondary ms-1">0</span>
           </button>
-          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+          <form id="filterListForm" class="dropdown-menu dropdown-menu-end dropdown-menu-card">
             <div class="card-header">
               <h4 class="card-header-title">Filters</h4>
               <button class="btn btn-sm btn-link text-reset" type="reset">
@@ -23,7 +23,57 @@
               </button>
             </div>
             <div class="card-body">
-              <p><small>Filtering by resource, actor, and date/time is coming soon!</small></p>
+              <div class="list-group list-group-flush mt-n4 mb-4">
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Actor Type</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple name="actorTypes"
+                        class="form-control form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="unknown">Unknown</option>
+                        <option value="user">User</option>
+                        <option value="api_key">API Key</option>
+                        <option value="sunrise">Sunrise</option>
+                        <option value="cli">CLI</option>
+                        <option value="system">System</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Resource Type</small>
+                    </div>
+                    <div class="col-7">
+                      <select multiple name="resourceTypes"
+                        class="form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="unknown">Unknown</option>
+                        <option value="transaction">Transaction</option>
+                        <option value="user">User</option>
+                        <option value="api_key">API Key</option>
+                        <option value="counterparty">Counterparty</option>
+                        <option value="account">Account</option>
+                        <option value="sunrise">Sunrise</option>
+                        <option value="secure_envelope">Secure Envelope</option>
+                        <option value="crypto_address">Crypto Address</option>
+                        <option value="contact">Contact</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!--TODO: Before-->
+              <!--TODO: After-->
+              <!--TODO: Actor ID-->
+              <!--TODO: Resource ID-->
+              <button class="btn w-100 btn-primary" type="submit">
+                Apply filter
+              </button>
             </div>
           </form>
         </div>

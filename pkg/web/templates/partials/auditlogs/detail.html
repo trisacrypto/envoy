@@ -5,7 +5,7 @@
       <div class="col">
         <h6 class="header-pretitle">Compliance Audit Log Detail</h6>
         <h1 class="header-title">
-          {{ .ActorType }} {{ .Action }}ed an {{ .ResourceType }}
+          {{ .ResourceType }} {{ .Action }}d by {{ .ActorType }}
         </h1>
       </div>
     </div>
@@ -31,7 +31,7 @@
           <dd class="col-8">{{ .Action }}</dd>
           <dt class="col-4">Resource Type</dt>
           <dd class="col-8">{{ .ResourceType }}</dd>
-          <dt class="col-4">Resource ID</dt>
+          <dt class="col-4">{{ .ResourceType }} ID</dt>
           <dd class="col-8">
             <span class="font-monospace text-secondary">
               <!--Links for resources, where possible-->
@@ -53,7 +53,7 @@
           </dd>
           <dt class="col-4">Actor Type</dt>
           <dd class="col-8">{{ .ActorType }}</dd>
-          <dt class="col-4">Actor ID</dt>
+          <dt class="col-4">{{ .ActorType }} ID</dt>
           <dd class="col-8">
             <span class="font-monospace text-secondary">
               <!--Links for actors, where possible-->
@@ -79,7 +79,7 @@
           <dt class="col-4">Key ID</dt>
           <dd class="col-8"><span class="font-monospace">{{ .KeyID }}</span></dd>
           <dt class="col-4">Signature</dt>
-          <dd class="col-8"><span class="font-monospace text-secondary">{{ .Signature }}</span></dd>
+          <dd class="col-8 text-truncate"><span class="font-monospace text-secondary">{{ .Signature }}</span></dd>
         </dl>
       </div>
     </div>
