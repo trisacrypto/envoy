@@ -47,7 +47,7 @@ type ComplianceAuditLog struct {
 
 // Returns nil if the audit log is filled with data, otherwise returns an error.
 func (l *ComplianceAuditLog) IsFilled() error {
-	// Must have reference IDs
+	// Must have non-nil reference IDs
 	if l.ActorID == nil {
 		return errors.ErrMissingReference
 	}
@@ -55,10 +55,9 @@ func (l *ComplianceAuditLog) IsFilled() error {
 		return errors.ErrMissingReference
 	}
 
-	// Must have enum values
-	if l.ActorType == enum.ActorUnknown {
-		return errors.ErrMissingValue
-	}
+	// Must have enum values for resource and action.
+	// NOTE: [enum.ActorUnknown] is acceptable because it is the default when
+	// the actor context was not set and is logged for later follow-up.
 	if l.ResourceType == enum.ResourceUnknown {
 		return errors.ErrMissingValue
 	}
@@ -70,6 +69,9 @@ func (l *ComplianceAuditLog) IsFilled() error {
 	if l.ResourceModified.IsZero() {
 		return errors.ErrMissingTimestamp
 	}
+
+	// Do not check ID, ChangeNotes, or the signature fields, as those are
+	// optional or will be set immediately before the log is created.
 
 	return nil
 }

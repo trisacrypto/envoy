@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -292,6 +293,31 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		ctx := context.Background()
 		log := mock.GetComplianceAuditLog(false, true)
 		log.ID = ulid.Zero
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.NoError(err, "no error was expected")
+
+		log2, err := s.store.RetrieveComplianceAuditLog(ctx, log.ID)
+		require.NoError(err, "expected no error")
+		require.NotNil(log2, "log2 should not be nil")
+		require.Equal(log.Data(), log2.Data(), "log data doesn't match")
+		require.NotNil(log2.Signature, "expected a non-nil log signature")
+		require.NoError(audit.Verify(log2), "could not verify log signature")
+	})
+
+	// ActorID and ActorType are defaulted to "unknown" if they are not set
+	// before a transaction begins that requires and audit log, so they must be
+	// successful.
+	s.Run("SuccessUnknownActor", func() {
+		//setup
+		require := s.Require()
+		ctx := context.Background()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		log.ActorID = []byte("unknown")
+		log.ActorType = enum.ActorUnknown
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
