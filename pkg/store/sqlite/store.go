@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
@@ -102,11 +103,21 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (_ *Tx, err er
 		return nil, err
 	}
 
-	// Get the actor's ID and type. We're ignoring the 'ok' because at this time
-	// we don't know if we actually need the actor or not. It will be caught
-	// when the audit log is created if there is no actor metadata.
-	actorID, _ := audit.ActorID(ctx)
-	actorType, _ := audit.ActorType(ctx)
+	// Get the actor's ID and type. If unset, use an "unknown" actor so that
+	// database transactions do not fail at the audit log creation step.
+	var (
+		actorID   []byte
+		actorType enum.Actor
+		ok        bool
+	)
+	if actorID, ok = audit.ActorID(ctx); !ok {
+		actorID = []byte("unknown")
+		log.Warn().Msg("actor_id is unknown")
+	}
+	if actorType, ok = audit.ActorType(ctx); !ok {
+		actorType = enum.ActorUnknown
+		log.Warn().Msg("actor_type is unknown")
+	}
 
 	return &Tx{
 		tx:        tx,
@@ -137,13 +148,14 @@ func (t *Tx) Rollback() error {
 	return t.tx.Rollback()
 }
 
-// Sets the actor metadata to be returned by GetActor().
+// Sets the actor metadata to be returned by [Tx.GetActor].
 func (t *Tx) SetActor(actorID []byte, actorType enum.Actor) {
 	t.actorID = actorID
 	t.actorType = actorType
 }
 
-// Returns the actor metadata set by SetActor().
+// Returns the actor metadata set by [Tx.SetActor], or from the context in
+// [Store.BeginTx].
 func (t *Tx) GetActor() ([]byte, enum.Actor) {
 	return t.actorID, t.actorType
 }

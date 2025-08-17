@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/mock"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -16,7 +17,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsViews() {
 	s.Run("SuccessSummaryNilPageInfo", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		logs, err := s.store.ListComplianceAuditLogs(ctx, nil)
@@ -34,7 +35,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsViews() {
 	s.Run("SuccessSummaryZeroPageInfo", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 
 		//test
 		logs, err := s.store.ListComplianceAuditLogs(ctx, &models.ComplianceAuditLogPageInfo{})
@@ -52,7 +53,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsViews() {
 	s.Run("SuccessDetailedLogs", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			DetailedLogs: true,
 		}
@@ -76,7 +77,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByTime", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		afterTime, err := time.Parse(time.RFC3339, "2024-02-01T00:00:00Z")
 		require.NoError(err, "could not parse time string")
 		beforeTime, err := time.Parse(time.RFC3339, "2024-06-01T00:00:00Z")
@@ -96,7 +97,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByResourceType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceTypes: []string{"transaction", "user", "api_key"},
 		}
@@ -111,7 +112,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByResourceIDOnly", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceID: "2c891c75-14fa-4c71-aa07-6405b98db7a3",
 		}
@@ -126,7 +127,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByResourceIDWithOverriddenTypes", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceID:    "2c891c75-14fa-4c71-aa07-6405b98db7a3",
 			ResourceTypes: []string{"sunrise", "user", "api_key"}, //should be overridden
@@ -142,7 +143,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByActorIDWithOverriddenTypes", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ActorID:    "01JXTGSFRC88HAY8V173976Z9D",
 			ActorTypes: []string{"api_key", "user"}, //should be overridden
@@ -158,7 +159,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByActorTypeAndResourceType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceTypes: []string{"account", "counterparty"},
 			ActorTypes:    []string{"user"},
@@ -174,7 +175,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByActorIDAndResourceType", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceTypes: []string{"user", "sunrise"},
 			ActorID:       "01HWQEJJDMS5EKNARHPJEDMHA4",
@@ -190,7 +191,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByActorTypeAndResourceID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceID: "01HWQE29RW1S1D8ZN58M528A1M",
 			ActorTypes: []string{"api_key", "sunrise"},
@@ -206,7 +207,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByActorTypeAndResourceIDNoResults", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		pageInfo := &models.ComplianceAuditLogPageInfo{
 			ResourceID: "01HWQE29RW1S1D8ZN58M528A1M",
 			ActorTypes: []string{"user", "sunrise"},
@@ -222,7 +223,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByTimeAndActorIDAndResourceID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		afterTime, err := time.Parse(time.RFC3339, "2024-02-01T00:00:00Z")
 		require.NoError(err, "could not parse time string")
 		beforeTime, err := time.Parse(time.RFC3339, "2024-06-01T00:00:00Z")
@@ -244,7 +245,7 @@ func (s *storeTestSuite) TestListComplianceAuditLogsFilters() {
 	s.Run("SuccessFilterByTimeAndActorIDAndResourceIDAndOverriddenTypes", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		afterTime, err := time.Parse(time.RFC3339, "2024-02-01T00:00:00Z")
 		require.NoError(err, "could not parse time string")
 		beforeTime, err := time.Parse(time.RFC3339, "2024-06-01T00:00:00Z")
@@ -270,7 +271,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 	s.Run("SuccessWithChangeNotes", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		log := mock.GetComplianceAuditLog(true, true)
 		log.ID = ulid.Zero
 
@@ -289,9 +290,34 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 	s.Run("SuccessNoChangeNotes", func() {
 		//setup
 		require := s.Require()
+		ctx := s.ActorContext()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.NoError(err, "no error was expected")
+
+		log2, err := s.store.RetrieveComplianceAuditLog(ctx, log.ID)
+		require.NoError(err, "expected no error")
+		require.NotNil(log2, "log2 should not be nil")
+		require.Equal(log.Data(), log2.Data(), "log data doesn't match")
+		require.NotNil(log2.Signature, "expected a non-nil log signature")
+		require.NoError(audit.Verify(log2), "could not verify log signature")
+	})
+
+	// ActorID and ActorType are defaulted to "unknown" if they are not set
+	// before a transaction begins that requires and audit log, so they must be
+	// successful.
+	s.Run("SuccessUnknownActor", func() {
+		//setup
+		require := s.Require()
 		ctx := context.Background()
 		log := mock.GetComplianceAuditLog(false, true)
 		log.ID = ulid.Zero
+
+		log.ActorID = []byte("unknown")
+		log.ActorType = enum.ActorUnknown
 
 		//test
 		err := s.store.CreateComplianceAuditLog(ctx, log)
@@ -308,7 +334,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 	s.Run("FailureNonZeroID", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		log := mock.GetComplianceAuditLog(false, true)
 
 		//test
@@ -324,7 +350,7 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 	s.Run("FailureNoTimestamp", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		log := mock.GetComplianceAuditLog(false, true)
 		log.ID = ulid.Zero
 		oldTimestamp := log.ResourceModified
@@ -339,13 +365,69 @@ func (s *storeTestSuite) TestCreateComplianceAuditLog() {
 		require.NotNil(logs, "logs should not be nil")
 		require.Len(logs.Logs, 0, fmt.Sprintf("expected 0 logs, got %d", len(logs.Logs)))
 	})
+
+	s.Run("FailureNoResourceID", func() {
+		//setup
+		require := s.Require()
+		ctx := s.ActorContext()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		log.ResourceID = nil
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.ErrorIs(err, errors.ErrMissingReference, "expected ErrMissingReference")
+	})
+
+	s.Run("FailureNoActorID", func() {
+		//setup
+		require := s.Require()
+		ctx := s.ActorContext()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		log.ActorID = nil
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.ErrorIs(err, errors.ErrMissingReference, "expected ErrMissingReference")
+	})
+
+	s.Run("FailureNoResourceType", func() {
+		//setup
+		require := s.Require()
+		ctx := s.ActorContext()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		log.ResourceType = enum.ResourceUnknown
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.ErrorIs(err, errors.ErrMissingValue, "expected ErrMissingValue")
+	})
+
+	s.Run("FailureNoAction", func() {
+		//setup
+		require := s.Require()
+		ctx := s.ActorContext()
+		log := mock.GetComplianceAuditLog(false, true)
+		log.ID = ulid.Zero
+
+		log.Action = enum.ActionUnknown
+
+		//test
+		err := s.store.CreateComplianceAuditLog(ctx, log)
+		require.ErrorIs(err, errors.ErrMissingValue, "expected ErrMissingValue")
+	})
 }
 
 func (s *storeTestSuite) TestRetrieveComplianceAuditLogs() {
 	s.Run("Success", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		id := ulid.MustParse("01JZ1HNFJ9KTA3Z6Q4RB3X9W2T")
 
 		//test
@@ -359,7 +441,7 @@ func (s *storeTestSuite) TestRetrieveComplianceAuditLogs() {
 	s.Run("FailureNotFound", func() {
 		//setup
 		require := s.Require()
-		ctx := context.Background()
+		ctx := s.ActorContext()
 		id := ulid.MustParse("01JZ1HNFJ9KTA3Z6Q4R0ABCXYZ")
 
 		//test
