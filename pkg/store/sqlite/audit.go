@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/audit"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -106,20 +107,30 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 		params = append(params, sql.Named("before", out.Page.Before))
 	}
 
-	// Resource filtering (if ResourceID is set, prefer it over of ResourceTypes)
+	// Resource filtering (if ResourceID is set, prefer it over ResourceTypes)
 	if out.Page.ResourceID != "" {
 		filters = append(filters, "resource_id = :resourceId")
-		params = append(params, sql.Named("resourceId", string(out.Page.ResourceID)))
+		if uid, err := ulid.Parse(out.Page.ResourceID); err == nil {
+			params = append(params, sql.Named("resourceId", uid.Bytes()))
+		} else if uid, err := uuid.Parse(out.Page.ResourceID); err == nil {
+			params = append(params, sql.Named("resourceId", uid[:]))
+		} else {
+			params = append(params, sql.Named("resourceId", out.Page.ResourceID))
+		}
 	} else if 0 < len(out.Page.ResourceTypes) {
 		inquery, inparams := listParametrize(out.Page.ResourceTypes, "r")
 		filters = append(filters, "resource_type IN "+inquery)
 		params = append(params, inparams...)
 	}
 
-	// Actor filtering (if ActorID is set, prefer it over of ActorTypes)
+	// Actor filtering (if ActorID is set, prefer it over ActorTypes)
 	if out.Page.ActorID != "" {
 		filters = append(filters, "actor_id = :actorId")
-		params = append(params, sql.Named("actorId", string(out.Page.ActorID)))
+		if uid, err := ulid.Parse(out.Page.ActorID); err == nil {
+			params = append(params, sql.Named("actorId", uid.Bytes()))
+		} else {
+			params = append(params, sql.Named("actorId", out.Page.ActorID))
+		}
 	} else if 0 < len(out.Page.ActorTypes) {
 		inquery, inparams := listParametrize(out.Page.ActorTypes, "a")
 		filters = append(filters, "actor_type IN "+inquery)
@@ -133,7 +144,7 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 	}
 
 	// If the query has a Limit, apply it
-	if page.Limit != 0 {
+	if out.Page.Limit != 0 {
 		query += " LIMIT :limit"
 		params = append(params, sql.Named("limit", page.Limit))
 	}

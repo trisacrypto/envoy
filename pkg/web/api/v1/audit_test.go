@@ -136,7 +136,7 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 
 		//test
 		err := model.Validate()
-		require.ErrorContains(t, err, "resource_types: must be one of transaction, user, api_key, counterparty, account, or sunrise", "validation failed")
+		require.ErrorContains(t, err, "invalid field resource_types: invalid resource_types value", "validation failed")
 	})
 
 	t.Run("FailureIncorrectActorTypes", func(t *testing.T) {
@@ -147,7 +147,7 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 
 		//test
 		err := model.Validate()
-		require.ErrorContains(t, err, "actor_types: must be one of user, api_key, or sunrise", "validation failed")
+		require.ErrorContains(t, err, "invalid field actor_types: invalid actor_types value", "validation failed")
 	})
 
 	t.Run("FailureFutureAfter", func(t *testing.T) {

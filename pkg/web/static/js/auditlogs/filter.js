@@ -49,15 +49,29 @@ class Filters {
       nFilters++;
     });
 
-    query.getAll('before').forEach(before => {
+    const before = query.get('before')
+    if (before) {
       this.beforePicker._flatpickr.setDate(before)
       nFilters++;
-    })
+    }
 
-    query.getAll('after').forEach(after => {
+    const after = query.get('after')
+    if (after) {
       this.afterPicker._flatpickr.setDate(after)
       nFilters++;
-    })
+    }
+
+    const actorId = query.get('actorId')
+    if (actorId) {
+      this.form.querySelector('[name="actorId"]').value = actorId;
+      nFilters++;
+    }
+
+    const resourceId = query.get('resourceId')
+    if (resourceId) {
+      this.form.querySelector('[name="resourceId"]').value = resourceId;
+      nFilters++;
+    }
 
     this.updateFilterBadge(nFilters);
   }
@@ -69,9 +83,11 @@ class Filters {
     const resourceTypes = formData.getAll("resourceTypes");
     const before = formData.get("before")
     const after = formData.get("after")
+    const actorId = formData.get("actorId")
+    const resourceId = formData.get("resourceId")
 
-    this.updateFilterBadge(actorTypes.length + resourceTypes.length + (before ? 1 : 0) + (after ? 1 : 0));
-    this.filterList(actorTypes, resourceTypes, before, after);
+    this.updateFilterBadge(actorTypes.length + resourceTypes.length + (before ? 1 : 0) + (after ? 1 : 0) + (actorId ? 1 : 0) + (resourceId ? 1 : 0));
+    this.filterList(actorTypes, resourceTypes, before, after, actorId, resourceId);
     return false;
   }
 
@@ -80,7 +96,7 @@ class Filters {
     this.filterList(null, null);
   }
 
-  filterList(actorTypes, resourceTypes, before, after) {
+  filterList(actorTypes, resourceTypes, before, after, actorId, resourceId) {
     const url = this.list.getAttribute('hx-get');
     const path = urlPath(url);
     const query = urlQuery(url);
@@ -90,13 +106,15 @@ class Filters {
     query.delete('resource_types');
     query.delete('before');
     query.delete('after');
+    query.delete('actor_id');
+    query.delete('resource_id');
 
     // Add the specified filters
-    if (actorTypes) {
+    if (!actorId && actorTypes) {
       actorTypes.forEach(actorT => query.append('actor_types', actorT));
     }
 
-    if (resourceTypes) {
+    if (!resourceId && resourceTypes) {
       resourceTypes.forEach(resourceT => query.append('resource_types', resourceT));
     }
 
@@ -106,6 +124,14 @@ class Filters {
 
     if (after) {
       query.append('after', after);
+    }
+
+    if (actorId) {
+      query.append('actor_id', actorId);
+    }
+
+    if (resourceId) {
+      query.append('resource_id', resourceId);
     }
 
     this.list.setAttribute('hx-get', `${path}?${query.toString()}`);
