@@ -22,7 +22,8 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="auditlogs" hx-get="/v1/auditlogs" hx-trigger="load, list-filter">
+<!--TODO: remove the 'limit' param once we have proper pagination implemented-->
+<section id="auditlogs" hx-get="/v1/auditlogs?limit=500" hx-trigger="load, list-filter">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

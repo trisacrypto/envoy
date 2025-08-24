@@ -1,4 +1,4 @@
-import { createChoices } from '../modules/components.js';
+import { createChoices, createFlatpickr } from '../modules/components.js';
 import { urlPath, urlQuery } from '../htmx/helpers.js';
 
 class Filters {
@@ -16,7 +16,7 @@ class Filters {
         throw new Error('Invalid element type');
     }
 
-    // Grab the required elements
+    // Grab the list element
     this.list = document.getElementById(this.listID);
 
     // Add event listeners to the form
@@ -28,17 +28,36 @@ class Filters {
     this.actorTypes = createChoices(this.form.querySelector('[name="actorTypes"]'));
     this.resourceTypes = createChoices(this.form.querySelector('[name="resourceTypes"]'));
 
+    // Initialize the before and after datetime pickers
+    this.beforePicker = this.form.querySelector('[name="before"]');
+    createFlatpickr(this.beforePicker);
+
+    this.afterPicker = this.form.querySelector('[name="after"]');
+    createFlatpickr(this.afterPicker);
+
     // Initialize the filters as set by the hx-get attribute
     let nFilters = 0;
     const query = urlQuery(this.list.getAttribute('hx-get'));
+
     query.getAll('actor_types').forEach(actorT => {
       this.actorTypes.setChoiceByValue(actorT);
       nFilters++;
     });
+
     query.getAll('resource_types').forEach(resourceT => {
       this.resourceTypes.setChoiceByValue(resourceT);
       nFilters++;
     });
+
+    query.getAll('before').forEach(before => {
+      this.beforePicker._flatpickr.setDate(before)
+      nFilters++;
+    })
+
+    query.getAll('after').forEach(after => {
+      this.afterPicker._flatpickr.setDate(after)
+      nFilters++;
+    })
 
     this.updateFilterBadge(nFilters);
   }
@@ -48,9 +67,11 @@ class Filters {
     const formData = new FormData(this.form);
     const actorTypes = formData.getAll("actorTypes");
     const resourceTypes = formData.getAll("resourceTypes");
+    const before = formData.get("before")
+    const after = formData.get("after")
 
-    this.updateFilterBadge(actorTypes.length + resourceTypes.length);
-    this.filterList(actorTypes, resourceTypes);
+    this.updateFilterBadge(actorTypes.length + resourceTypes.length + (before ? 1 : 0) + (after ? 1 : 0));
+    this.filterList(actorTypes, resourceTypes, before, after);
     return false;
   }
 
@@ -59,7 +80,7 @@ class Filters {
     this.filterList(null, null);
   }
 
-  filterList(actorTypes, resourceTypes) {
+  filterList(actorTypes, resourceTypes, before, after) {
     const url = this.list.getAttribute('hx-get');
     const path = urlPath(url);
     const query = urlQuery(url);
@@ -67,6 +88,8 @@ class Filters {
     // Remove existing filters
     query.delete('actor_types');
     query.delete('resource_types');
+    query.delete('before');
+    query.delete('after');
 
     // Add the specified filters
     if (actorTypes) {
@@ -77,10 +100,27 @@ class Filters {
       resourceTypes.forEach(resourceT => query.append('resource_types', resourceT));
     }
 
+    if (before) {
+      query.append('before', before);
+    }
+
+    if (after) {
+      query.append('after', after);
+    }
+
     this.list.setAttribute('hx-get', `${path}?${query.toString()}`);
     htmx.process(this.list);
 
-    this.list.dispatchEvent(new CustomEvent('list-filter', { detail: { actorTypes: actorTypes, resourceTypes: resourceTypes }, bubbles: true, cancelable: true }));
+    this.list.dispatchEvent(new CustomEvent('list-filter', {
+      detail: {
+        actorTypes: actorTypes,
+        resourceTypes: resourceTypes,
+        before: before,
+        after: after
+      },
+      bubbles: true,
+      cancelable: true
+    }));
   }
 
   updateFilterBadge(count) {

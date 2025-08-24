@@ -24,6 +24,7 @@
             </div>
             <div class="card-body">
               <div class="list-group list-group-flush mt-n4 mb-4">
+                <!--Actor Type Multi-Select Filter-->
                 <div class="list-group-item">
                   <div class="row">
                     <div class="col-5">
@@ -43,6 +44,7 @@
                     </div>
                   </div>
                 </div>
+                <!--Resource Type Multi-Select Filter-->
                 <div class="list-group-item">
                   <div class="row">
                     <div class="col-5">
@@ -67,10 +69,62 @@
                   </div>
                 </div>
               </div>
-              <!--TODO: Before-->
-              <!--TODO: After-->
-              <!--TODO: Actor ID-->
-              <!--TODO: Resource ID-->
+              <!--Before Time Select Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Before</small>
+                    </div>
+                    <div class="col-7">
+                      <!--TODO: datetime font format to make it smaller-->
+                      <input name="before" type="text" class="form-control" data-flatpickr='{
+                        "enableTime": true,
+                        "dateFormat": "Z",
+                        "altInput": true,
+                        "altFormat": "D M J at H:i:S"
+                    }'>
+                    </div>
+                  </div>
+                </div>
+              <!--After Time Select Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>After</small>
+                    </div>
+                    <div class="col-7">
+                      <!--TODO: datetime font format to make it smaller-->
+                      <input name="after" type="text" class="form-control" data-flatpickr='{
+                        "enableTime": true,
+                        "dateFormat": "Z",
+                        "altInput": true,
+                        "altFormat": "D M J at H:i:S"
+                    }'>
+                    </div>
+                  </div>
+                </div>
+              <!--Actor ID Text Box Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Actor ID</small>
+                    </div>
+                    <div class="col-7">
+                      <!--TODO-->
+                    </div>
+                  </div>
+                </div>
+              <!--Resource ID Text Box Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Resource ID</small>
+                    </div>
+                    <div class="col-7">
+                      <!--TODO-->
+                    </div>
+                  </div>
+                </div>
               <button class="btn w-100 btn-primary" type="submit">
                 Apply filter
               </button>
@@ -140,6 +194,9 @@
     <div class="py-6">
       <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
       <h1>No compliance audit logs yet.</h1>
+      <a href="/auditlogs" class="nav-link">
+        Reload page
+      </a>
     </div>
   </div>
 </div>

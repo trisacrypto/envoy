@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -95,20 +96,24 @@ func NewComplianceAuditLog(model *models.ComplianceAuditLog) (out *ComplianceAud
 type ComplianceAuditLogQuery struct {
 	PageQuery
 
+	// Maximum number of records to query from database
+	// TODO: remove this once proper pagination has been implemented
+	Limit int `json:"limit,omitempty" form:"limit" url:"limit,omitempty"`
+
 	// FILTERING OPTIONS
 
 	// ResourceTypes filters results to include only these enum.Resource values
-	ResourceTypes []string `json:"resource_types,omitempty"`
+	ResourceTypes []string `json:"resource_types,omitempty" form:"resource_types" url:"resource_types,omitempty"`
 	// ResourceID filters results by a specific resource ID
-	ResourceID string `json:"resource_id,omitempty"`
+	ResourceID string `json:"resource_id,omitempty" form:"resource_id" url:"resource_id,omitempty"`
 	// ResourceTypes filters results to include only these enum.Actor values
-	ActorTypes []string `json:"actor_types,omitempty"`
+	ActorTypes []string `json:"actor_types,omitempty" form:"actor_types" url:"actor_types,omitempty"`
 	// ActorID filters results by a specific actor ID
-	ActorID string `json:"actor_id,omitempty"`
+	ActorID string `json:"actor_id,omitempty" form:"actor_id" url:"actor_id,omitempty"`
 	// After filters results to include logs with ResourceModified on or after this time (inclusive)
-	After *time.Time `json:"after,omitempty"`
+	After *time.Time `json:"after,omitempty" form:"after" url:"after,omitempty"`
 	// Before filters results to include logs with ResourceModified before this time (exclusive)
-	Before *time.Time `json:"before,omitempty"`
+	Before *time.Time `json:"before,omitempty" form:"before" url:"before,omitempty"`
 
 	// DISPLAY OPTIONS
 
@@ -123,7 +128,7 @@ func (q *ComplianceAuditLogQuery) Validate() (err error) {
 	if len(q.ResourceTypes) != 0 {
 		for _, t := range q.ResourceTypes {
 			if !enum.ValidResource(t) {
-				err = ValidationError(err, IncorrectField("resource_types", "must be one of transaction, user, api_key, counterparty, account, or sunrise"))
+				err = ValidationError(err, IncorrectField("resource_types", fmt.Sprintf("invalid resource_types value: '%s'", t)))
 			}
 		}
 	}
@@ -132,7 +137,7 @@ func (q *ComplianceAuditLogQuery) Validate() (err error) {
 	if len(q.ActorTypes) != 0 {
 		for _, t := range q.ActorTypes {
 			if !enum.ValidActor(t) {
-				err = ValidationError(err, IncorrectField("actor_types", "must be one of user, api_key, or sunrise"))
+				err = ValidationError(err, IncorrectField("actor_types", fmt.Sprintf("invalid actor_types value: '%s'", t)))
 			}
 		}
 	}
@@ -165,6 +170,7 @@ func (q *ComplianceAuditLogQuery) Query() (query *models.ComplianceAuditLogPageI
 			PageSize: uint32(q.PageSize),
 			// TODO: pagination tokens->IDs
 		},
+		Limit:         q.Limit,
 		ResourceTypes: q.ResourceTypes,
 		ResourceID:    q.ResourceID,
 		ActorTypes:    q.ActorTypes,
@@ -204,6 +210,7 @@ func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage) (out *Compli
 			PageQuery: PageQuery{
 				PageSize: int(page.Page.PageSize),
 			},
+			Limit:         page.Page.Limit,
 			ResourceTypes: page.Page.ResourceTypes,
 			ResourceID:    page.Page.ResourceID,
 			ActorTypes:    page.Page.ActorTypes,

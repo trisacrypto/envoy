@@ -132,6 +132,12 @@ func (t *Tx) ListComplianceAuditLogs(page *models.ComplianceAuditLogPageInfo) (o
 		query += strings.Join(filters, " AND ")
 	}
 
+	// If the query has a Limit, apply it
+	if page.Limit != 0 {
+		query += " LIMIT :limit"
+		params = append(params, sql.Named("limit", page.Limit))
+	}
+
 	var rows *sql.Rows
 	if rows, err = t.tx.Query(query, params...); err != nil {
 		return nil, dbe(err)
