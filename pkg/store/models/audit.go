@@ -164,6 +164,10 @@ func (l *ComplianceAuditLog) Params() []any {
 type ComplianceAuditLogPageInfo struct {
 	PageInfo
 
+	// Maximum number of records to query from database
+	// TODO: remove this once proper pagination has been implemented
+	Limit int
+
 	// FILTERING OPTIONS
 
 	// ResourceTypes filters results to include only these enum.Resource values
@@ -192,6 +196,7 @@ func ComplianceAuditLogPageInfoFrom(in *ComplianceAuditLogPageInfo) (out *Compli
 	out = &ComplianceAuditLogPageInfo{}
 	if in != nil {
 		out.PageInfo = *PageInfoFrom(&in.PageInfo)
+		out.Limit = in.Limit
 		out.ResourceTypes = in.ResourceTypes
 		out.ResourceID = in.ResourceID
 		out.ActorTypes = in.ActorTypes

@@ -3,6 +3,10 @@
 {{- define "pretitle" }}Compliance Audit Logs{{ end }}
 {{- define "pagetitle" }}View Audit Logs{{ end }}
 
+{{- define "header-actions"}}
+<!--Remove "Create Report" button-->
+{{- end }}
+
 {{- define "tabs" }}
 <div class="row align-items-center">
   <div class="col">
@@ -18,7 +22,8 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="auditlogs" hx-get="/v1/auditlogs" hx-trigger="load">
+<!--TODO: remove the 'limit' param once we have proper pagination implemented-->
+<section id="auditlogs" hx-get="/v1/auditlogs?limit=500" hx-trigger="load, list-filter">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">
@@ -32,4 +37,5 @@
 {{- define "appcode" }}
 <script type="module" src="/static/js/modules/components.js"></script>
 <script type="module" src="/static/js/auditlogs/index.js"></script>
+<script type="module" src="/static/js/auditlogs/filter.js"></script>
 {{- end }}
