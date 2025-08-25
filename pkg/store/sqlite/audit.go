@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	logger "github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/audit"
+	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
@@ -181,6 +183,11 @@ func (t *Tx) CreateComplianceAuditLog(log *models.ComplianceAuditLog) (err error
 	// Ensure the log is filled with all of the required values
 	if err = log.IsFilled(); err != nil {
 		return err
+	}
+
+	// If the audit log has an "unknown" actor, then emit a warning log
+	if log.ActorType == enum.ActorUnknown {
+		logger.Warn().Str("id", log.ID.String()).Bytes("actor_id", log.ActorID).Msg("compliance audit log actor type is unknown")
 	}
 
 	// Complete the log with an ID, ensuring one wasn't set already
