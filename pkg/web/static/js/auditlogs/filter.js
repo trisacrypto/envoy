@@ -61,13 +61,13 @@ class Filters {
       nFilters++;
     }
 
-    const actorId = query.get('actorId')
+    const actorId = query.get('actor_id')
     if (actorId) {
       this.form.querySelector('[name="actorId"]').value = actorId;
       nFilters++;
     }
 
-    const resourceId = query.get('resourceId')
+    const resourceId = query.get('resource_id')
     if (resourceId) {
       this.form.querySelector('[name="resourceId"]').value = resourceId;
       nFilters++;
