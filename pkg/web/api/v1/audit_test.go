@@ -128,6 +128,18 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 		require.NoError(t, err, "expected log to be valid")
 	})
 
+	t.Run("SuccessFutureAfter", func(t *testing.T) {
+		//setup
+		after := time.Now().Add((1 * time.Hour))
+		model := api.ComplianceAuditLogQuery{
+			After: &after,
+		}
+
+		//test
+		err := model.Validate()
+		require.NoError(t, err, "should be able to have an 'After' date in the future")
+	})
+
 	t.Run("FailureIncorrectResourceTypes", func(t *testing.T) {
 		//setup
 		model := api.ComplianceAuditLogQuery{
@@ -148,18 +160,6 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 		//test
 		err := model.Validate()
 		require.ErrorContains(t, err, "invalid field actor_types: invalid actor_types value", "validation failed")
-	})
-
-	t.Run("FailureFutureAfter", func(t *testing.T) {
-		//setup
-		after := time.Now().Add((1 * time.Hour))
-		model := api.ComplianceAuditLogQuery{
-			After: &after,
-		}
-
-		//test
-		err := model.Validate()
-		require.ErrorContains(t, err, "invalid field after: cannot be in the future", "validation failed")
 	})
 
 	t.Run("FailureBeforeBeforeAfter", func(t *testing.T) {
