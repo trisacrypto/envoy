@@ -88,12 +88,15 @@ class Filters {
 
     this.updateFilterBadge(actorTypes.length + resourceTypes.length + (before ? 1 : 0) + (after ? 1 : 0) + (actorId ? 1 : 0) + (resourceId ? 1 : 0));
     this.filterList(actorTypes, resourceTypes, before, after, actorId, resourceId);
+    this.hideFilterDropdown()
+
     return false;
   }
 
   onReset(e) {
     this.updateFilterBadge(0);
     this.filterList(null, null);
+    this.hideFilterDropdown()
   }
 
   filterList(actorTypes, resourceTypes, before, after, actorId, resourceId) {
@@ -110,11 +113,11 @@ class Filters {
     query.delete('resource_id');
 
     // Add the specified filters
-    if (!actorId && actorTypes) {
+    if (actorTypes) {
       actorTypes.forEach(actorT => query.append('actor_types', actorT));
     }
 
-    if (!resourceId && resourceTypes) {
+    if (resourceTypes) {
       resourceTypes.forEach(resourceT => query.append('resource_types', resourceT));
     }
 
@@ -161,6 +164,14 @@ class Filters {
       }
 
       badge.textContent = count;
+    }
+  }
+
+  // Hides the filter dropdown (autohide is set to false)
+  hideFilterDropdown() {
+    var filterDropdown = Dropdown.getInstance(document.getElementById('filterDropdownButton'));
+    if (filterDropdown) {
+      filterDropdown.hide();
     }
   }
 }

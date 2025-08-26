@@ -11,8 +11,8 @@
       </div>
       <div class="col-auto">
         <!-- Filter Form -->
-        <div class="dropdown">
-          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+        <div class="dropdown" >
+          <button id="filterDropdownButton" class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-haspopup="true" aria-expanded="false">
             <i class="fe fe-sliders me-1"></i> Filter <span id="numFiltersBadge" class="badge bg-secondary ms-1">0</span>
           </button>
           <form id="filterListForm" class="dropdown-menu dropdown-menu-end dropdown-menu-card">
@@ -30,7 +30,7 @@
                     <div class="col-5">
                       <small>Actor Type</small>
                     </div>
-                    <div class="col-7">
+                   <div class="col-7">
                       <select multiple name="actorTypes"
                         class="form-control form-select form-select-sm"
                         data-choices='{"searchEnabled": true}'>
@@ -50,7 +50,7 @@
                     <div class="col-5">
                       <small>Resource Type</small>
                     </div>
-                    <div class="col-7">
+                   <div class="col-7">
                       <select multiple name="resourceTypes"
                         class="form-select form-select-sm"
                         data-choices='{"searchEnabled": true}'>
@@ -68,37 +68,36 @@
                     </div>
                   </div>
                 </div>
-              </div>
+                <!--After Time Select Filter-->
+                  <div class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">
+                        <small>After</small>
+                      </div>
+                     <div class="col-9">
+                        <input name="after" type="text" class="form-control" data-flatpickr='{
+                          "enableTime": true,
+                          "dateFormat": "Z",
+                          "altInput": true,
+                          "altFormat": "D M J at H:i:S",
+                          "maxDate": "today"
+                      }'>
+                      </div>
+                    </div>
+                  </div>
               <!--Before Time Select Filter-->
                 <div class="list-group-item">
                   <div class="row">
-                    <div class="col-5">
+                    <div class="col-3">
                       <small>Before</small>
                     </div>
-                    <div class="col-7">
-                      <!--FIXME: make flatpickr look nicer and fix how the filters tab disappears when you change the time-->
+                   <div class="col-9">
                       <input name="before" type="text" class="form-control" data-flatpickr='{
                         "enableTime": true,
                         "dateFormat": "Z",
                         "altInput": true,
-                        "altFormat": "D M J at H:i:S"
-                    }'>
-                    </div>
-                  </div>
-                </div>
-              <!--After Time Select Filter-->
-                <div class="list-group-item">
-                  <div class="row">
-                    <div class="col-5">
-                      <small>After</small>
-                    </div>
-                    <div class="col-7">
-                      <!--FIXME: make flatpickr look nicer and fix how the filters tab disappears when you change the time-->
-                      <input name="after" type="text" class="form-control" data-flatpickr='{
-                        "enableTime": true,
-                        "dateFormat": "Z",
-                        "altInput": true,
-                        "altFormat": "D M J at H:i:S"
+                        "altFormat": "D M J at H:i:S",
+                        "maxDate": "today"
                     }'>
                     </div>
                   </div>
@@ -109,8 +108,7 @@
                     <div class="col-5">
                       <small>Actor ID</small>
                     </div>
-                    <div class="col-7">
-                      <!--FIXME: make text box look nicer-->
+                   <div class="col-12">
                       <input name="actorId" type="text" class="form-control">
                     </div>
                   </div>
@@ -121,12 +119,12 @@
                     <div class="col-5">
                       <small>Resource ID</small>
                     </div>
-                    <div class="col-7">
-                      <!--FIXME: make text box look nicer-->
+                   <div class="col-12">
                       <input name="resourceId" type="text" class="form-control">
                     </div>
                   </div>
                 </div>
+              </div>
               <button class="btn w-100 btn-primary" type="submit">
                 Apply filter
               </button>
@@ -181,7 +179,6 @@
                   <i class="fe fe-eye"></i> View Details
                 </a>
               </div>
-              <!--FIXME: try to make a menu item to filter by this row's actor or resource ID-->
             </div>
           </td>
         </tr>
