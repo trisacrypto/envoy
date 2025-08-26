@@ -142,19 +142,11 @@ func (q *ComplianceAuditLogQuery) Validate() (err error) {
 		}
 	}
 
-	// Check After and Before times
-	if q.After != nil && !q.After.IsZero() {
-		// Check After is not in the future (timeline example: '...(After)->......(Now)...')
-		if ok := time.Now().After(*q.After); !ok {
-			err = ValidationError(err, IncorrectField("after", "cannot be in the future"))
-		}
-
-		// Check Before is after After (timeline example: '...(After)->......<-(Before)...')
-		if q.Before != nil && !q.Before.IsZero() {
-			if ok := q.Before.After(*q.After); !ok {
-				err = ValidationError(err, IncorrectField("before", "before must come before after"))
-				err = ValidationError(err, IncorrectField("after", "after must come after before"))
-			}
+	// Check Before is after After (timeline example: '...(After)->......<-(Before)...')
+	if (q.After != nil && !q.After.IsZero()) && (q.Before != nil && !q.Before.IsZero()) {
+		if ok := q.Before.After(*q.After); !ok {
+			err = ValidationError(err, IncorrectField("before", "before must come before after"))
+			err = ValidationError(err, IncorrectField("after", "after must come after before"))
 		}
 	}
 
