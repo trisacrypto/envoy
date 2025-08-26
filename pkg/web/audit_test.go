@@ -50,7 +50,7 @@ func (w *webTestSuite) TestServerListComplianceAuditLogs() {
 			//setup
 			require := w.Require()
 			ctx := context.Background()
-			after := time.Now().Add(1 * time.Hour)
+			after := time.Now().Add(1 * time.Hour) // should be fine
 			before := after.Add(-1 * time.Hour)
 			query := &api.ComplianceAuditLogQuery{
 				PageQuery: api.PageQuery{
@@ -68,7 +68,7 @@ func (w *webTestSuite) TestServerListComplianceAuditLogs() {
 
 			//test
 			logs, err := w.ClientWithPermissions(AllPermissions).ListComplianceAuditLogs(ctx, query)
-			require.ErrorContains(err, "5 validation errors occurred", "should have found 5 validation errors")
+			require.ErrorContains(err, "4 validation errors occurred", "should have found 4 validation errors")
 			require.Nil(logs, "response object should be nil")
 		})
 	})

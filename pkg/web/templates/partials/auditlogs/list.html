@@ -4,18 +4,18 @@
   <div class="card-header">
     <div class="row align-items-center">
       <div class="col">
-        <!--No search bar-->
+        <!--No search bar for audit logs-->
       </div>
       <div class="col-auto me-n3">
         {{ template "tablePageSize" . }}
       </div>
       <div class="col-auto">
         <!-- Filter Form -->
-        <div class="dropdown">
-          <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
-            <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-secondary ms-1">0</span>
+        <div class="dropdown" >
+          <button id="filterDropdownButton" class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-haspopup="true" aria-expanded="false">
+            <i class="fe fe-sliders me-1"></i> Filter <span id="numFiltersBadge" class="badge bg-secondary ms-1">0</span>
           </button>
-          <form class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+          <form id="filterListForm" class="dropdown-menu dropdown-menu-end dropdown-menu-card">
             <div class="card-header">
               <h4 class="card-header-title">Filters</h4>
               <button class="btn btn-sm btn-link text-reset" type="reset">
@@ -23,7 +23,111 @@
               </button>
             </div>
             <div class="card-body">
-              <p><small>Filtering by resource, actor, and date/time is coming soon!</small></p>
+              <div class="list-group list-group-flush mt-n4 mb-4">
+                <!--Actor Type Multi-Select Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Actor Type</small>
+                    </div>
+                   <div class="col-7">
+                      <select multiple name="actorTypes"
+                        class="form-control form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="unknown">Unknown</option>
+                        <option value="user">User</option>
+                        <option value="api_key">API Key</option>
+                        <option value="sunrise">Sunrise</option>
+                        <option value="cli">CLI</option>
+                        <option value="system">System</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <!--Resource Type Multi-Select Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Resource Type</small>
+                    </div>
+                   <div class="col-7">
+                      <select multiple name="resourceTypes"
+                        class="form-select form-select-sm"
+                        data-choices='{"searchEnabled": true}'>
+                        <option value="unknown">Unknown</option>
+                        <option value="transaction">Transaction</option>
+                        <option value="user">User</option>
+                        <option value="api_key">API Key</option>
+                        <option value="counterparty">Counterparty</option>
+                        <option value="account">Account</option>
+                        <option value="sunrise">Sunrise</option>
+                        <option value="secure_envelope">Secure Envelope</option>
+                        <option value="crypto_address">Crypto Address</option>
+                        <option value="contact">Contact</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <!--After Time Select Filter-->
+                  <div class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">
+                        <small>After</small>
+                      </div>
+                     <div class="col-9">
+                        <input name="after" type="text" class="form-control" data-flatpickr='{
+                          "enableTime": true,
+                          "dateFormat": "Z",
+                          "altInput": true,
+                          "altFormat": "D M J at H:i:S",
+                          "maxDate": "today"
+                      }'>
+                      </div>
+                    </div>
+                  </div>
+              <!--Before Time Select Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-3">
+                      <small>Before</small>
+                    </div>
+                   <div class="col-9">
+                      <input name="before" type="text" class="form-control" data-flatpickr='{
+                        "enableTime": true,
+                        "dateFormat": "Z",
+                        "altInput": true,
+                        "altFormat": "D M J at H:i:S",
+                        "maxDate": "today"
+                    }'>
+                    </div>
+                  </div>
+                </div>
+              <!--Actor ID Text Box Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Actor ID</small>
+                    </div>
+                   <div class="col-12">
+                      <input name="actorId" type="text" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              <!--Resource ID Text Box Filter-->
+                <div class="list-group-item">
+                  <div class="row">
+                    <div class="col-5">
+                      <small>Resource ID</small>
+                    </div>
+                   <div class="col-12">
+                      <input name="resourceId" type="text" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button class="btn w-100 btn-primary" type="submit">
+                Apply filter
+              </button>
             </div>
           </form>
         </div>
@@ -90,6 +194,9 @@
     <div class="py-6">
       <img src="/static/img/illustrations/scale.svg" alt="..." class="img-fluid" style="max-width: 182px;">
       <h1>No compliance audit logs yet.</h1>
+      <a href="/auditlogs" class="nav-link">
+        Reload page
+      </a>
     </div>
   </div>
 </div>

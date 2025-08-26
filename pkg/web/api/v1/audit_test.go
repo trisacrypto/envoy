@@ -24,7 +24,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(false, false)
 
 		// test
-		log := api.NewComplianceAuditLogRaw(model)
+		log := api.NewComplianceAuditLog(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -34,7 +34,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(false, true)
 
 		// test
-		log := api.NewComplianceAuditLogRaw(model)
+		log := api.NewComplianceAuditLog(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -44,7 +44,7 @@ func TestNewComplianceAuditLog(t *testing.T) {
 		model := mock.GetComplianceAuditLog(true, true)
 
 		// test
-		log := api.NewComplianceAuditLogRaw(model)
+		log := api.NewComplianceAuditLog(model)
 		require.NotNil(t, log, "expected a non-nil log")
 		require.NoError(t, compareComplianceAuditLogs(log, model), "the model log did not match the api log")
 	})
@@ -128,6 +128,18 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 		require.NoError(t, err, "expected log to be valid")
 	})
 
+	t.Run("SuccessFutureAfter", func(t *testing.T) {
+		//setup
+		after := time.Now().Add((1 * time.Hour))
+		model := api.ComplianceAuditLogQuery{
+			After: &after,
+		}
+
+		//test
+		err := model.Validate()
+		require.NoError(t, err, "should be able to have an 'After' date in the future")
+	})
+
 	t.Run("FailureIncorrectResourceTypes", func(t *testing.T) {
 		//setup
 		model := api.ComplianceAuditLogQuery{
@@ -136,7 +148,7 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 
 		//test
 		err := model.Validate()
-		require.ErrorContains(t, err, "resource_types: must be one of transaction, user, api_key, counterparty, account, or sunrise", "validation failed")
+		require.ErrorContains(t, err, "invalid field resource_types: invalid resource_types value", "validation failed")
 	})
 
 	t.Run("FailureIncorrectActorTypes", func(t *testing.T) {
@@ -147,19 +159,7 @@ func TestComplianceAuditLogQueryValidate(t *testing.T) {
 
 		//test
 		err := model.Validate()
-		require.ErrorContains(t, err, "actor_types: must be one of user, api_key, or sunrise", "validation failed")
-	})
-
-	t.Run("FailureFutureAfter", func(t *testing.T) {
-		//setup
-		after := time.Now().Add((1 * time.Hour))
-		model := api.ComplianceAuditLogQuery{
-			After: &after,
-		}
-
-		//test
-		err := model.Validate()
-		require.ErrorContains(t, err, "invalid field after: cannot be in the future", "validation failed")
+		require.ErrorContains(t, err, "invalid field actor_types: invalid actor_types value", "validation failed")
 	})
 
 	t.Run("FailureBeforeBeforeAfter", func(t *testing.T) {
@@ -205,16 +205,10 @@ func TestNewComplianceAuditLogList(t *testing.T) {
 	}
 
 	//test
-	list, err := api.NewComplianceAuditLogList(page, api.NewComplianceAuditLogRaw)
-	require.NoError(t, err, "could not make a new list from page (list for api)")
-	require.NotNil(t, list, "expected a non-nil list (list for api)")
-	require.NoError(t, compareComplianceAuditLogLists(list, page), "list and page did not match (list for api)")
-
-	//test
-	dlist, err := api.NewComplianceAuditLogList(page, api.NewComplianceAuditLogRaw)
-	require.NoError(t, err, "could not make a new list from page (list for display)")
-	require.NotNil(t, dlist, "expected a non-nil list (list for display)")
-	require.NoError(t, compareComplianceAuditLogLists(dlist, page), "list and page did not match (list for display)")
+	list, err := api.NewComplianceAuditLogList(page)
+	require.NoError(t, err, "could not make a new list from page")
+	require.NotNil(t, list, "expected a non-nil list")
+	require.NoError(t, compareComplianceAuditLogLists(list, page), "list and page did not match")
 }
 
 // ###########################################################################

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rs/zerolog/log"
 	"github.com/trisacrypto/envoy/pkg/audit"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/dsn"
@@ -112,11 +111,9 @@ func (s *Store) BeginTx(ctx context.Context, opts *sql.TxOptions) (_ *Tx, err er
 	)
 	if actorID, ok = audit.ActorID(ctx); !ok {
 		actorID = []byte("unknown")
-		log.Warn().Msg("actor_id is unknown")
 	}
 	if actorType, ok = audit.ActorType(ctx); !ok {
 		actorType = enum.ActorUnknown
-		log.Warn().Msg("actor_type is unknown")
 	}
 
 	return &Tx{

@@ -6,14 +6,17 @@ overloaded term and milieu was too hard to spell.
 package scene
 
 import (
+	"encoding/hex"
 	"net/mail"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg"
 	"github.com/trisacrypto/envoy/pkg/config"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"go.rtnl.ai/ulid"
+	"go.rtnl.ai/x/typecase"
 )
 
 var (
@@ -321,6 +324,9 @@ func (s Scene) SendEnabledForProtocol(protocol string) bool {
 func (s Scene) ComplianceAuditLogList() *api.ComplianceAuditLogList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.ComplianceAuditLogList); ok {
+			for _, log := range out.Logs {
+				s.formatAuditLogForUI(log)
+			}
 			return out
 		}
 	}
@@ -330,10 +336,70 @@ func (s Scene) ComplianceAuditLogList() *api.ComplianceAuditLogList {
 func (s Scene) ComplianceAuditLogDetail() *api.ComplianceAuditLog {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.ComplianceAuditLog); ok {
+			s.formatAuditLogForUI(out)
 			return out
 		}
 	}
 	return nil
+}
+
+// Formats an [*api.ComplianceAuditLog] in-place for the UI.
+func (s Scene) formatAuditLogForUI(log *api.ComplianceAuditLog) {
+	// Formatting for ActorID
+	switch log.ActorType {
+	case "unknown", "cli", "system":
+		// ActorID is a descriptive string; leave as-is
+	default:
+		// ActorID is a ULID
+		if id, err := ulid.Parse([]byte(log.ActorID)); err == nil {
+			log.ActorID = id.String()
+		}
+	}
+
+	// Formatting for ResourceID
+	switch log.ResourceType {
+	case "unknown":
+		// ResourceID could be anything; encode as hex
+		log.ResourceID = hex.EncodeToString([]byte(log.ResourceID))
+	case "transaction", "secure_envelope":
+		// ResourceID is a UUID
+		if id, err := uuid.FromBytes([]byte(log.ResourceID)); err == nil {
+			log.ResourceID = id.String()
+		}
+	default:
+		// ResourceID is a ULID
+		if id, err := ulid.Parse([]byte(log.ResourceID)); err == nil {
+			log.ResourceID = id.String()
+		}
+	}
+
+	// Title (and exceptions) casing for ActorType
+	switch log.ActorType {
+	case "api_key":
+		log.ActorType = "APIKey"
+	case "cli":
+		log.ActorType = "CLI"
+	default:
+		log.ActorType = typecase.Title(log.ActorType)
+	}
+
+	// Title (and exceptions) casing for ResourceType
+	switch log.ResourceType {
+	case "api_key":
+		log.ResourceType = "APIKey"
+	case "crypto_address":
+		log.ResourceType = "CryptoAddress"
+	case "secure_envelope":
+		log.ResourceType = "SecureEnvelope"
+	default:
+		log.ResourceType = typecase.Title(log.ResourceType)
+	}
+
+	// Title casing for Action
+	log.Action = typecase.Title(log.Action)
+
+	// Hex formatting for Signature
+	log.Signature = "0x" + hex.EncodeToString([]byte(log.Signature))
 }
 
 //===========================================================================

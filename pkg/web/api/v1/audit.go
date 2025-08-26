@@ -1,16 +1,12 @@
 package api
 
 import (
-	"encoding/hex"
-	"strings"
+	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"go.rtnl.ai/ulid"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 //===========================================================================
@@ -63,8 +59,8 @@ type ComplianceAuditLog struct {
 	Algorithm string
 }
 
-// Create a new api.ComplianceAuditLog from a database model.ComplianceAuditLog
-func NewComplianceAuditLogRaw(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
+// Create a new api.ComplianceAuditLog from a database model.ComplianceAuditLog.
+func NewComplianceAuditLog(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
 	out = &ComplianceAuditLog{
 		ID:               model.ID,
 		ActorID:          string(model.ActorID),
@@ -88,85 +84,6 @@ func NewComplianceAuditLogRaw(model *models.ComplianceAuditLog) (out *Compliance
 	return out
 }
 
-// Create a new api.ComplianceAuditLog from a database model.ComplianceAuditLog
-// with "nice" formatting for UI display.
-// NOTE: changing the display formatting for these strings will invalidate the
-// signature, however the function NewComplianceAuditLog() will give a raw
-// log for API users.
-func NewComplianceAuditLogForDisplay(model *models.ComplianceAuditLog) (out *ComplianceAuditLog) {
-	// Get ActorID string that looks nice (defaults to hex)
-	actorId := "0x" + hex.EncodeToString(model.ActorID)
-	switch model.ActorType {
-	case enum.ActorUnknown, enum.ActorCLI, enum.ActorSystem:
-		// Unknown, CLI, and System actor IDs should be a string
-		actorId = string(model.ActorID)
-	default:
-		// All other actors have ULID IDs (ignore errors to use hex)
-		if actorUlid, err := ulid.Parse(model.ActorID); err == nil {
-			actorId = actorUlid.String()
-		}
-	}
-
-	// Get ResourceID string that looks nice (defaults to hex)
-	resourceId := "0x" + hex.EncodeToString(model.ResourceID)
-	switch model.ResourceType {
-	case enum.ResourceTransaction, enum.ResourceSecureEnvelope:
-		// Transactions and SecureEnvelopes have UUID IDs (ignore errors to use hex)
-		if resourceUuid, err := uuid.FromBytes(model.ResourceID); err == nil {
-			resourceId = resourceUuid.String()
-		}
-	default:
-		// All other resources have ULID IDs (ignore errors to use hex)
-		if resouceUlid, err := ulid.Parse(model.ResourceID); err == nil {
-			resourceId = resouceUlid.String()
-		}
-	}
-
-	// Make the enums look nice for display (title case with some exceptions)
-	caser := cases.Title(language.English)
-	action := caser.String(model.Action.String())
-
-	var actorType string
-	switch model.ActorType {
-	case enum.ActorAPIKey:
-		actorType = "API Key"
-	case enum.ActorCLI:
-		actorType = "CLI"
-	default:
-		actorType = strings.Replace(caser.String(model.ActorType.String()), "_", " ", 1)
-	}
-
-	var resourceType string
-	switch model.ResourceType {
-	case enum.ResourceAPIKey:
-		resourceType = "APIKey"
-	default:
-		resourceType = strings.Replace(caser.String(model.ResourceType.String()), "_", " ", 1)
-	}
-
-	out = &ComplianceAuditLog{
-		ID:               model.ID,
-		ActorID:          actorId,
-		ActorType:        actorType,
-		ResourceID:       resourceId,
-		ResourceType:     resourceType,
-		ResourceModified: model.ResourceModified,
-		Action:           action,
-	}
-
-	if model.ChangeNotes.Valid {
-		out.ChangeNotes = model.ChangeNotes.String
-	}
-
-	if model.Signature != nil {
-		out.Signature = "0x" + hex.EncodeToString(model.Signature)
-		out.KeyID = model.KeyID
-		out.Algorithm = model.Algorithm
-	}
-
-	return out
-}
-
 // NOTE: There will be no API endpoint to accept a ComplianceAuditLog, so there
 // is no need for a Validate() or a Model() function for it.
 
@@ -179,20 +96,24 @@ func NewComplianceAuditLogForDisplay(model *models.ComplianceAuditLog) (out *Com
 type ComplianceAuditLogQuery struct {
 	PageQuery
 
+	// Maximum number of records to query from database
+	// TODO: remove this once proper pagination has been implemented
+	Limit int `json:"limit,omitempty" form:"limit" url:"limit,omitempty"`
+
 	// FILTERING OPTIONS
 
 	// ResourceTypes filters results to include only these enum.Resource values
-	ResourceTypes []string `json:"resource_types,omitempty"`
+	ResourceTypes []string `json:"resource_types,omitempty" form:"resource_types" url:"resource_types,omitempty"`
 	// ResourceID filters results by a specific resource ID
-	ResourceID string `json:"resource_id,omitempty"`
+	ResourceID string `json:"resource_id,omitempty" form:"resource_id" url:"resource_id,omitempty"`
 	// ResourceTypes filters results to include only these enum.Actor values
-	ActorTypes []string `json:"actor_types,omitempty"`
+	ActorTypes []string `json:"actor_types,omitempty" form:"actor_types" url:"actor_types,omitempty"`
 	// ActorID filters results by a specific actor ID
-	ActorID string `json:"actor_id,omitempty"`
+	ActorID string `json:"actor_id,omitempty" form:"actor_id" url:"actor_id,omitempty"`
 	// After filters results to include logs with ResourceModified on or after this time (inclusive)
-	After *time.Time `json:"after,omitempty"`
+	After *time.Time `json:"after,omitempty" form:"after" url:"after,omitempty"`
 	// Before filters results to include logs with ResourceModified before this time (exclusive)
-	Before *time.Time `json:"before,omitempty"`
+	Before *time.Time `json:"before,omitempty" form:"before" url:"before,omitempty"`
 
 	// DISPLAY OPTIONS
 
@@ -206,8 +127,8 @@ func (q *ComplianceAuditLogQuery) Validate() (err error) {
 	// Check ResourceTypes are valid for the enum values
 	if len(q.ResourceTypes) != 0 {
 		for _, t := range q.ResourceTypes {
-			if ok, _ := enum.CheckResource(t, enum.ResourceTransaction, enum.ResourceUser, enum.ResourceAPIKey, enum.ResourceCounterparty, enum.ResourceAccount, enum.ResourceSunrise); !ok {
-				err = ValidationError(err, IncorrectField("resource_types", "must be one of transaction, user, api_key, counterparty, account, or sunrise"))
+			if !enum.ValidResource(t) {
+				err = ValidationError(err, IncorrectField("resource_types", fmt.Sprintf("invalid resource_types value: '%s'", t)))
 			}
 		}
 	}
@@ -215,25 +136,17 @@ func (q *ComplianceAuditLogQuery) Validate() (err error) {
 	// Check ActorTypes are valid for the enum values
 	if len(q.ActorTypes) != 0 {
 		for _, t := range q.ActorTypes {
-			if ok, _ := enum.CheckActor(t, enum.ActorUser, enum.ActorAPIKey, enum.ActorSunrise); !ok {
-				err = ValidationError(err, IncorrectField("actor_types", "must be one of user, api_key, or sunrise"))
+			if !enum.ValidActor(t) {
+				err = ValidationError(err, IncorrectField("actor_types", fmt.Sprintf("invalid actor_types value: '%s'", t)))
 			}
 		}
 	}
 
-	// Check After and Before times
-	if q.After != nil && !q.After.IsZero() {
-		// Check After is not in the future (timeline example: '...(After)->......(Now)...')
-		if ok := time.Now().After(*q.After); !ok {
-			err = ValidationError(err, IncorrectField("after", "cannot be in the future"))
-		}
-
-		// Check Before is after After (timeline example: '...(After)->......<-(Before)...')
-		if q.Before != nil && !q.Before.IsZero() {
-			if ok := q.Before.After(*q.After); !ok {
-				err = ValidationError(err, IncorrectField("before", "before must come before after"))
-				err = ValidationError(err, IncorrectField("after", "after must come after before"))
-			}
+	// Check Before is after After (timeline example: '...(After)->......<-(Before)...')
+	if (q.After != nil && !q.After.IsZero()) && (q.Before != nil && !q.Before.IsZero()) {
+		if ok := q.Before.After(*q.After); !ok {
+			err = ValidationError(err, IncorrectField("before", "before must come before after"))
+			err = ValidationError(err, IncorrectField("after", "after must come after before"))
 		}
 	}
 
@@ -249,6 +162,7 @@ func (q *ComplianceAuditLogQuery) Query() (query *models.ComplianceAuditLogPageI
 			PageSize: uint32(q.PageSize),
 			// TODO: pagination tokens->IDs
 		},
+		Limit:         q.Limit,
 		ResourceTypes: q.ResourceTypes,
 		ResourceID:    q.ResourceID,
 		ActorTypes:    q.ActorTypes,
@@ -282,12 +196,13 @@ type NewLogFunc func(*models.ComplianceAuditLog) *ComplianceAuditLog
 
 // Creates an api.ComplianceAuditLogList from a models.ComplianceAuditLogPage
 // using the function provided to convert it.
-func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage, newLogFn NewLogFunc) (out *ComplianceAuditLogList, err error) {
+func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage) (out *ComplianceAuditLogList, err error) {
 	out = &ComplianceAuditLogList{
 		Page: &ComplianceAuditLogQuery{
 			PageQuery: PageQuery{
 				PageSize: int(page.Page.PageSize),
 			},
+			Limit:         page.Page.Limit,
 			ResourceTypes: page.Page.ResourceTypes,
 			ResourceID:    page.Page.ResourceID,
 			ActorTypes:    page.Page.ActorTypes,
@@ -300,7 +215,7 @@ func NewComplianceAuditLogList(page *models.ComplianceAuditLogPage, newLogFn New
 	}
 
 	for _, model := range page.Logs {
-		out.Logs = append(out.Logs, newLogFn(model))
+		out.Logs = append(out.Logs, NewComplianceAuditLog(model))
 	}
 
 	return out, nil
