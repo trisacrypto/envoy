@@ -62,6 +62,10 @@
             "description": "Secure envelopes store PII data in an encrypted fashion and record an audit log of information exchanges with a counterparty about a specific transaction."
         },
         {
+            "name": "Audit Logs",
+            "description": "The audit log captures a cryptographically immutable record of every transfer state change, user and API key event, and counterparty update in Envoy."
+        },
+        {
             "name": "Users",
             "description": "Envoy user access management and identity control for compliance auditing purposes."
         },
@@ -76,10 +80,6 @@
         {
             "name": "Webhooks",
             "description": "Webhooks for making callbacks to an API client system."
-        },
-        {
-            "name": "Audit Logs",
-            "description": "The audit log captures a cryptographically immutable record of every transfer state change, user and API key event, and counterparty update in Envoy."
         }
     ],
     "externalDocs": {
@@ -14516,7 +14516,8 @@
                         },
                         "in": "query",
                         "name": "resource_types",
-                        "description": "filters results to include only these resource types"
+                        "description": "filters results to include only these resource types",
+                        "allowEmptyValue": false
                     },
                     {
                         "schema": {
