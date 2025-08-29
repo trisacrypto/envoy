@@ -119,7 +119,7 @@ type ComplianceAuditLogQuery struct {
 
 	// DetailedLogs will return the full log entry if true (otherwise List
 	// returns only summary info)
-	DetailedLogs bool `json:"detailed_logs,omitempty"`
+	DetailedLogs bool `json:"detailed_logs,omitempty" form:"detailed_logs" url:"detailed_logs,omitempty"`
 }
 
 // Validates an API ComplianceAuditLogQuery
