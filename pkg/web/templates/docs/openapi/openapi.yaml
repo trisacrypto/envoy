@@ -35,6 +35,8 @@ tags:
     description: These actions allow you to move a transaction through the travel rule compliance resolution workflow.
   - name: Secure Envelopes
     description: Secure envelopes store PII data in an encrypted fashion and record an audit log of information exchanges with a counterparty about a specific transaction.
+  - name: Audit Logs
+    description: The audit log captures a cryptographically immutable record of every transfer state change, user and API key event, and counterparty update in Envoy.
   - name: Users
     description: Envoy user access management and identity control for compliance auditing purposes.
   - name: API Keys
@@ -43,8 +45,6 @@ tags:
     description: Other useful API methods and helper functionality not associated with a REST resource.
   - name: Webhooks
     description: Webhooks for making callbacks to an API client system.
-  - name: Audit Logs
-    description: The audit log captures a cryptographically immutable record of every transfer state change, user and API key event, and counterparty update in Envoy.
 externalDocs:
   description: TRISA Documentation
   url: https://trisa.dev

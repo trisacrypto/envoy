@@ -14516,8 +14516,7 @@
                         },
                         "in": "query",
                         "name": "resource_types",
-                        "description": "filters results to include only these resource types",
-                        "allowEmptyValue": false
+                        "description": "filters results to include only these resource types"
                     },
                     {
                         "schema": {
