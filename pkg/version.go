@@ -11,8 +11,8 @@ const (
 	VersionMajor         = 1
 	VersionMinor         = 2
 	VersionPatch         = 0
-	VersionReleaseLevel  = "rc"
-	VersionReleaseNumber = 1
+	VersionReleaseLevel  = "final"
+	VersionReleaseNumber = 0
 )
 
 // Set the GitVersion via -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=$(git rev-parse --short HEAD)'"
