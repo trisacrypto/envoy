@@ -3,7 +3,7 @@
 {{ define "pretitle" }}Travel Rule{{ end }}
 {{ define "pagetitle" }}Send a Travel Rule Message{{ end }}
 
-{{ define "main"  }}
+{{ define "main" }}
 <section>
   <div class="row justify-content-between align-items-center mb-5">
     <div class="col-12">
@@ -19,13 +19,15 @@
       <div class="accordion" id="availableProtocols">
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingTRISA">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRISA" aria-expanded="true" aria-controls="collapseTRISA">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRISA"
+              aria-expanded="true" aria-controls="collapseTRISA">
               <strong class='{{ if not .TRISAEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
                 <i class="fe fe-shield"></i> TRISA
               </strong>
             </button>
           </h2>
-          <div id="collapseTRISA" class="accordion-collapse collapse show" aria-labelledby="headingTRISA" data-bs-parent="#availableProtocols">
+          <div id="collapseTRISA" class="accordion-collapse collapse show" aria-labelledby="headingTRISA"
+            data-bs-parent="#availableProtocols">
             <div class="accordion-body">
               {{ if not .TRISAEnabled }}
               <div class="alert alert-warning" role="alert">
@@ -38,7 +40,7 @@
               </div>
               {{ end }}
               <p>
-                <a href="https://trisa.io" target="_blank">TRISA</a> is a secure
+                <a href="https://travelrule.io" target="_blank">TRISA</a> is a secure
                 peer-to-peer messaging system that uses strong cryptography and a
                 certificate authority with mTLS to verify counterparties and protect
                 PII both in-flight and at-rest.
@@ -47,19 +49,22 @@
                 To send a TRISA message, first select a counterparty from the TRISA
                 Directory, which lists all registered TRISA VASPs.
               </p>
-              <a href="/send/trisa" class="btn btn-primary btn-sm mt-2{{ if not .TRISAEnabled}} disabled{{ end }}">Send TRISA Message</a>
+              <a href="/send/trisa" class="btn btn-primary btn-sm mt-2{{ if not .TRISAEnabled}} disabled{{ end }}">Send
+                TRISA Message</a>
             </div>
           </div>
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingTRP">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRP" aria-expanded="true" aria-controls="collapseTRP">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTRP"
+              aria-expanded="true" aria-controls="collapseTRP">
               <strong class='{{ if not .TRPEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
                 <i class="fe fe-zap"></i> TRP (OpenVASP)
               </strong>
             </button>
           </h2>
-          <div id="collapseTRP" class="accordion-collapse collapse show" aria-labelledby="headingTRP" data-bs-parent="#availableProtocols">
+          <div id="collapseTRP" class="accordion-collapse collapse show" aria-labelledby="headingTRP"
+            data-bs-parent="#availableProtocols">
             <div class="accordion-body">
               {{ if not .TRPEnabled }}
               <div class="alert alert-warning" role="alert">
@@ -76,7 +81,8 @@
                 quickly facilitate PII transactions between VASPs.
               </p>
               <p>
-                To send a TRP message you must have the <a href="https://www.21analytics.ch/glossary/travel-address/" target="_blank">Travel Address</a>
+                To send a TRP message you must have the <a href="https://www.21analytics.ch/glossary/travel-address/"
+                  target="_blank">Travel Address</a>
                 of the recipient you wish to send a message to. The Travel Address encodes
                 the details of how to reach the counterparty and the account holder
                 initiating the transfer is responsible for collecting the travel address
@@ -85,19 +91,22 @@
               <p class="text-body-secondary">
                 At this time there exists no directory of TRP travel addresses.
               </p>
-              <a href="/send/trp" class="btn btn-primary btn-sm mt-2{{ if not .TRPEnabled}} disabled{{ end }}">Send TRP Message</a>
+              <a href="/send/trp" class="btn btn-primary btn-sm mt-2{{ if not .TRPEnabled}} disabled{{ end }}">Send TRP
+                Message</a>
             </div>
           </div>
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingSunrise">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSunrise" aria-expanded="true" aria-controls="collapseSunrise">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSunrise"
+              aria-expanded="true" aria-controls="collapseSunrise">
               <strong class='{{ if not .SunriseEnabled }}text-decoration-line-through text-body-secondary{{ end }}'>
                 <i class="fe fe-sunrise"></i> Sunrise
               </strong>
             </button>
           </h2>
-          <div id="collapseSunrise" class="accordion-collapse collapse show" aria-labelledby="headingSunrise" data-bs-parent="#availableProtocols">
+          <div id="collapseSunrise" class="accordion-collapse collapse show" aria-labelledby="headingSunrise"
+            data-bs-parent="#availableProtocols">
             <div class="accordion-body">
               {{ if not .SunriseEnabled }}
               <div class="alert alert-warning" role="alert">
@@ -117,7 +126,8 @@
                 responsible party at the recipient VASP; then create a secure message
                 to send a secure verification link via email.
               </p>
-              <a href="/send/sunrise" class="btn btn-primary btn-sm mt-2{{ if not .SunriseEnabled}} disabled{{ end }}">Send Sunrise Email</a>
+              <a href="/send/sunrise"
+                class="btn btn-primary btn-sm mt-2{{ if not .SunriseEnabled}} disabled{{ end }}">Send Sunrise Email</a>
             </div>
           </div>
         </div>

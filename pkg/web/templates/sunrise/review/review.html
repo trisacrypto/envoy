@@ -4,24 +4,21 @@
 {{ define "pagetitle" }}Review Travel Rule Message{{ end }}
 
 {{ define "htmxConfig" }}
-<meta
-  name="htmx-config"
-  content='{
+<meta name="htmx-config" content='{
     "responseHandling":[
       {"code":"204", "swap": false},
       {"code":"[23]..", "swap": true},
       {"code":"[45]..", "swap": false, "error":true},
       {"code":"...", "swap": true}
     ]
-  }'
-/>
+  }' />
 {{ end }}
 
 {{ define "modals" }}
-  {{ template "rejectSunriseModal" . }}
+{{ template "rejectSunriseModal" . }}
 {{ end }}
 
-{{ define "main"  }}
+{{ define "main" }}
 <div class="row">
   <div class="col">
     <div id="alerts"></div>
@@ -37,14 +34,14 @@
 <p class="text-secondary">
   {{- if .Organization }}
   {{ .Organization }} requires a
-  <a href="https://trisa.io/about/" target="_blank">Travel Rule information exchange</a>
+  <a href="https://travelrule.io/about/" target="_blank">Travel Rule information exchange</a>
   for compliance in their jurisdiction before we can transfer virtual assets to one of
   your account holders. Please carefully review the compliance information provided below
   and provide any required information to accept the transfer. If you're not yet part of
   the TRISA network, <a href="https://trisa.directory/guide" target="_blank">consider joining</a>
   to streamline future Travel Rule compliance and secure data exchanges.
   {{- else }}
-  Please review the <a href="https://trisa.io/about/" target="_blank">Travel Rule information</a>
+  Please review the <a href="https://travelrule.io/about/" target="_blank">Travel Rule information</a>
   for a virtual asset transfer and provide the required beneficiary information to
   accept the transfer. If you're not yet part of the TRISA network,
   <a href="https://trisa.directory/guide" target="_blank">consider joining</a>
@@ -61,7 +58,7 @@
   <div class="col-md-4">
     <h3>Transaction Information</h3>
     {{ template "transactionList" .Transaction }}
-  </dl>
+    </dl>
   </div>
 
   {{- with .Identity }}
@@ -86,13 +83,15 @@
 
 <hr class="mb-4" />
 
-<form  id="acceptForm" class="mb-5" hx-post="/sunrise/accept" hx-ext="json-enc" hx-swap="none" hx-disabled-elt="find button[type='submit']">
+<form id="acceptForm" class="mb-5" hx-post="/sunrise/accept" hx-ext="json-enc" hx-swap="none"
+  hx-disabled-elt="find button[type='submit']">
   <div class="row align-items-center">
     <div class="col">
       <h2>{{ if .Beneficiary.Plural }}Beneficiaries{{ else }}Beneficiary{{ end }}</h2>
     </div>
     <div class="col-auto">
-      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiary" aria-expanded="false" aria-controls="extendedBeneficiary">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended"
+        data-bs-target="#extendedBeneficiary" aria-expanded="false" aria-controls="extendedBeneficiary">
         <i class="fe fe-eye"></i>
         Show Details
       </button>
@@ -114,7 +113,8 @@
       <h2>Beneficiary VASP</h2>
     </div>
     <div class="col-auto">
-      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended" data-bs-target="#extendedBeneficiaryVASP" aria-expanded="false" aria-controls="extendedBeneficiaryVASP">
+      <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="extended"
+        data-bs-target="#extendedBeneficiaryVASP" aria-expanded="false" aria-controls="extendedBeneficiaryVASP">
         <i class="fe fe-eye"></i>
         Show Details
       </button>
@@ -144,7 +144,7 @@
     <div class="col">
       <button type="button" class="btn w-100 btn-danger" data-bs-toggle="modal" data-bs-target="#rejectSunriseModal">
         <i class="fe fe-x-square"></i> Reject
-      </a>
+        </a>
     </div>
   </div>
 </form>

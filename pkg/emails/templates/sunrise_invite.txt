@@ -19,7 +19,7 @@ If you have any compliance questions about this transaction, please contact us a
 Thank you,
 {{ .ComplianceName }}
 Powered by TRISA Envoy
-https://trisa.io
+https://travelrule.io
 
 This email and any attachments are intended solely for the Compliance & Travel Rule team of the designated CASP/VASP to which it is addressed and may contain confidential or privileged information.
 
