@@ -10,7 +10,8 @@
       <tr>
         <td style="padding: 20px; font-family: sans-serif; font-size: 16px; line-height: 20px; color: #000000;">
 
-          <p style="margin: 0 0 16px;">{{ if .ContactName }}Hello {{ .ContactName }},{{ else }}To Whom It May Concern:{{ end }}</p>
+          <p style="margin: 0 0 16px;">{{ if .ContactName }}Hello {{ .ContactName }},{{ else }}To Whom It May Concern:{{
+            end }}</p>
           <p style="padding: 12px 0; margin: 0;">
             {{ .ComplianceName }} has sent a secure Travel Rule Data Message that is pending your approval.
           </p>
@@ -51,16 +52,19 @@
       <tr>
         <td style="padding: 2px 20px; font-family: sans-serif; font-size: 16px; line-height: 20px; color: #000000;">
           {{- if .SupportEmail }}
-          <p style="margin: 0 0 16px;">If you have trouble visiting the link, please contact us at <a href="mailto:{{ .SupportEmail }}">{{ .SupportEmail }}</a>.</p>
+          <p style="margin: 0 0 16px;">If you have trouble visiting the link, please contact us at <a
+              href="mailto:{{ .SupportEmail }}">{{ .SupportEmail }}</a>.</p>
           {{- end }}
           {{- if .ComplianceEmail }}
-          <p style="margin: 0 0 16px;">If you have any compliance questions about this transaction, please contact us at <a href="mailto:{{ .ComplianceEmail }}">{{ .ComplianceEmail }}</a>.</p>
+          <p style="margin: 0 0 16px;">If you have any compliance questions about this transaction, please contact us at
+            <a href="mailto:{{ .ComplianceEmail }}">{{ .ComplianceEmail }}</a>.</p>
           {{- end }}
         </td>
       </tr>
       <tr>
         <td style="padding: 20px; font-family: sans-serif; font-size: 16px; line-height: 20px; color: #000000;">
-          <p style="margin: 0 0 16px;">Thank you, <br /> {{ .ComplianceName }} <br /> Powered by <a href="https://trisa.io">TRISA Envoy</a></p>
+          <p style="margin: 0 0 16px;">Thank you, <br /> {{ .ComplianceName }} <br /> Powered by <a
+              href="https://travelrule.io">TRISA Envoy</a></p>
         </td>
       </tr>
     </table>
@@ -69,5 +73,5 @@
 {{- end }}
 
 {{ define "bottom" }}
-  {{ template "disclaimer" . }}
+{{ template "disclaimer" . }}
 {{ end }}

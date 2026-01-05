@@ -9,4 +9,4 @@ If you did not request this email, please ignore it. For security reasons, this 
 If you have trouble verifying your email address, please contact us at {{ .SupportEmail }}.
 
 This email was sent by TRISA Envoy{{ if .ComplianceName }} on behalf of {{ .ComplianceName }}{{ end }}.
-https://trisa.io
+https://travelrule.io
