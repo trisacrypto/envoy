@@ -59,7 +59,13 @@
         {{ range .Counterparties }}
         <tr>
           <td><span class="item-name">{{ .Name }}</span></td>
-          <td><a href="{{ .Website }}" target="_blank"><span class="item-website">{{ .Website }}</span></a></td>
+          <td>
+            {{- if .Website -}}
+            <a href="{{ .Website }}" target="_blank"><span class="item-website">{{ .Website }}</span></a>
+            {{- else -}}
+            <span class="item-website">&mdash;</span>
+            {{- end -}}
+          </td>
           <td class="text-center">{{ if .Country }}{{ flag .Country }} <span class="item-country">{{ .Country }}</span>{{ else }}<span class="item-country">&mdash;</span>{{ end }}</td>
           <td><span class="item-protocol">{{ .Protocol }}</span></td>
           <td class="text-truncate font-monospace" style="max-width: 256px"><span class="item-travel-address">{{ if eq .Protocol "sunrise" }}{{ .Endpoint }}{{ else }}{{ .TravelAddress }}{{ end }}</span></td>
@@ -80,6 +86,29 @@
               </a>
 
               <div class="dropdown-menu dropdown-menu-end">
+                <a href="/counterparties/{{ .ID }}" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View
+                </a>
+                {{ if and $canEditCounterparties (eq .Source "user") }}
+                <a href="/counterparties/{{ .ID }}/edit" class="dropdown-item">
+                  <i class="fe fe-edit"></i> Edit
+                </a>
+                <a
+                  href="#!"
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteCounterpartyModal"
+                  data-bs-counterparty-id="{{ .ID }}"
+                  data-bs-counterparty-name="{{ .Name }}"
+                  data-bs-counterparty-protocol="{{ .Protocol }}"
+                  data-bs-counterparty-endpoint="{{ .Endpoint }}"
+                >
+                  <i class="fe fe-trash"></i> Delete
+                </a>
+                {{ end }}
+
+                <div class="dropdown-divider"></div>
+
                 {{ if .Protocol }}
                 <a href="/send/{{ .Protocol }}?cid={{ .ID }}" class="dropdown-item">
                   Send {{ if eq .Protocol "sunrise" }}Sunrise{{ else }}{{ uppercase .Protocol }}{{ end }} Transfer
@@ -89,21 +118,6 @@
                   Send Transfer
                 </a>
                 {{ end }}
-
-              <!-- TODO: Add this functionality -->
-              <!--
-                <a href="#!" class="dropdown-item">
-                  View
-                </a>
-                {{ if $canEditCounterparties }}
-                <a href="#!" class="dropdown-item">
-                  Edit
-                </a>
-                {{ end }}
-                <a href="#!" class="dropdown-item">
-                  Copy Travel Address
-                </a>
-                -->
               </div>
             </div>
           </td>

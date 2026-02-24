@@ -9,6 +9,7 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
@@ -177,6 +178,12 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
+	// If this is an HTMX request, redirect to the counterparty edit page.
+	if htmx.IsHTMXRequest(c) {
+		htmx.Redirect(c, http.StatusSeeOther, "/counterparties/"+counterparty.ID.String()+"/edit")
+		return
+	}
+
 	// Convert the model back to an API response
 	if out, err = api.NewCounterparty(counterparty, query); err != nil {
 		c.Error(err)
@@ -184,27 +191,16 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "counterparty_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) CounterpartyDetail(c *gin.Context) {
 	var (
-		err            error
-		query          *api.EncodingQuery
-		counterpartyID ulid.ULID
-		counterparty   *models.Counterparty
-		out            *api.Counterparty
+		err          error
+		query        *api.EncodingQuery
+		counterparty *models.Counterparty
+		out          *api.Counterparty
 	)
-
-	// Parse the counterpartyID passed in from the URL
-	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
-		return
-	}
 
 	query = &api.EncodingQuery{}
 	if err = c.BindQuery(query); err != nil {
@@ -220,8 +216,8 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	}
 
 	// Fetch the model from the database
-	if counterparty, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
 			return
 		}
@@ -246,57 +242,32 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	})
 }
 
-func (s *Server) UpdateCounterpartyPreview(c *gin.Context) {
+// Helper function to retrieve a counterparty detail for the counterparties UI pages and API.
+func (s *Server) RetrieveCounterparty(c *gin.Context) (*models.Counterparty, error) {
 	var (
 		err            error
 		counterpartyID ulid.ULID
-		query          *api.EncodingQuery
 		counterparty   *models.Counterparty
-		out            *api.Counterparty
 	)
 
-	// Parse the counterpartyID passed in from the URL
+	// Parse the counterpartyID passed in from the URL.
 	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
-		return
+		return nil, ErrNotFound
 	}
 
-	query = &api.EncodingQuery{}
-	if err = c.BindQuery(query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse encoding query"))
-		return
-	}
-
-	if err = query.Validate(); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error(err))
-		return
-	}
-
-	// Fetch the model from the database
+	// Fetch the model from the database.
 	if counterparty, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
-			return
+			return nil, ErrNotFound
 		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
+		return nil, err
 	}
 
-	if out, err = api.NewCounterparty(counterparty, query); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
+	return counterparty, nil
+}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "counterparty_preview.html",
-	})
+func (s *Server) UpdateCounterpartyPreview(c *gin.Context) {
+	s.CounterpartyDetail(c)
 }
 
 func (s *Server) UpdateCounterparty(c *gin.Context) {
@@ -412,6 +383,12 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
+	// If this is an HTMX request, trigger counterparties updated event and return 204.
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CounterpartiesUpdated)
+		return
+	}
+
 	// Convert model back to an api response
 	if out, err = api.NewCounterparty(counterparty, query); err != nil {
 		c.Error(err)
@@ -419,11 +396,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "counterparty_update.html",
-	})
+	c.JSON(http.StatusOK, out)
 }
 
 func (s *Server) DeleteCounterparty(c *gin.Context) {
@@ -470,11 +443,12 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     scene.Scene{"CounterpartyID": counterpartyID, "Source": counterparty.Source},
-		HTMLName: "counterparty_delete.html",
-	})
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CounterpartiesUpdated)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
 }
 
 func (s *Server) ListContacts(c *gin.Context) {

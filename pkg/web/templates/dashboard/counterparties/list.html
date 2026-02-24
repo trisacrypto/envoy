@@ -5,10 +5,19 @@
 
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
-<button class="btn btn-primary ms-2" disabled>
+<button class="btn btn-primary ms-2 lift" data-bs-toggle="modal" data-bs-target="#createCounterpartyModal">
   Add Counterparty
 </button>
 {{- end }}
+{{- end }}
+
+{{- define "modals" }}
+  {{ template "createCounterpartyModal" . }}
+  {{ template "deleteCounterpartyModal" . }}
+{{- end }}
+
+{{- define "alerts" }}
+  <div id="pageAlerts" class="pageAlerts"></div>
 {{- end }}
 
 {{- define "tabs" }}
@@ -43,7 +52,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="counterparties" hx-get="/v1/counterparties?source={{ .Source }}" hx-trigger="load">
+<section id="counterparties" hx-get="/v1/counterparties?source={{ .Source }}" hx-trigger="load, counterparties-updated from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">

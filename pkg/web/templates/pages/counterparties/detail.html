@@ -17,14 +17,202 @@
 />
 {{ end }}
 
-{{ define "page-content" }}
-<section id="transaction" hx-get="/v1/counterparties/{{ .ID }}" hx-trigger="load, counterparties-updated from:body">
-  <div class="card">
-    <div class="card-body text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+{{ define "page-content" -}}
+{{- with .CounterpartyDetail -}}
+{{- $canEditCounterparties := and (not $.IsViewOnly) .IsEditable -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Counterparties</h6>
+        <h1 class="header-title">{{ .Name }}</h1>
+      </div>
+      <div class="col-auto d-flex">
+        {{ if .Protocol }}
+        <a href="/send/{{ .Protocol }}?cid={{ .ID }}" class="btn btn-primary lift me-2">
+          Send Transfer
+        </a>
+        {{ end }}
+        <a href="/counterparties" class="btn btn-white lift" title="Back to Counterparty List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+    {{ template "counterpartyTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditCounterparties) }}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-4">
+    <div class="card card-fill">
+      <div class="card-header">
+        <h4 class="card-header-title">Routing</h4>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Protocol</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ uppercase .Protocol }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Endpoint</h5></div>
+              <div class="col-auto text-end text-break"><span class="text-body-secondary">{{ .Endpoint }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Travel Address</h5></div>
+              <div class="col-auto text-end text-break">
+                <span class="text-body-secondary font-monospace">
+                  {{ if .HasTravelAddress }}{{ .TravelAddress }}{{ else }}&mdash;{{ end }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Source</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ titlecase .Source }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Verified</h5></div>
+              <div class="col-auto">
+                {{- if .VerifiedOn -}}
+                <time class="text-body-secondary">{{ .VerifiedOn.Format "Jan 02, 2006" }}</time>
+                {{- else -}}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end -}}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</section>
-{{ end }}
+
+  <div class="col-12 col-lg-8">
+    <div class="card card-fill">
+      <div class="card-header">
+        <h4 class="card-header-title">Counterparty Details</h4>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Envoy ID</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ .ID }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Legal Name</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ .Name }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Common Name</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ .CommonName }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Website</h5></div>
+              <div class="col-auto">
+                {{- if .Website -}}
+                <a href="{{ .Website }}" target="_blank" class="text-body-secondary">{{ .Website }}</a>
+                {{- else -}}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end -}}
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Country</h5></div>
+              <div class="col-auto">
+                {{- if .Country -}}
+                <span class="text-body-secondary">{{ flag .Country }} {{ country .Country }}</span>
+                {{- else -}}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end -}}
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Directory ID</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ if .DirectoryID }}{{ .DirectoryID }}{{ else }}&mdash;{{ end }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Registered Directory</h5></div>
+              <div class="col-auto"><span class="text-body-secondary">{{ if .RegisteredDirectory }}{{ .RegisteredDirectory }}{{ else }}&mdash;{{ end }}</span></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Created</h5></div>
+              <div class="col-auto"><time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time></div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col"><h5 class="mb-0">Modified</h5></div>
+              <div class="col-auto">
+                {{- if .Modified.IsZero -}}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- else -}}
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+                {{- end -}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h4 class="card-header-title">IVMS 101 Legal Person</h4>
+  </div>
+  <div class="card-body">
+    {{- if .HasIVMSRecord -}}
+    <dl class="row mb-0">
+      <dt class="col-4">Legal Name</dt>
+      <dd class="col-8">{{ if .IVMSRecord.LegalName }}{{ .IVMSRecord.LegalName }}{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4">Country of Registration</dt>
+      <dd class="col-8">{{ if .IVMSRecord.CountryOfRegistration }}{{ flag .IVMSRecord.CountryOfRegistration }} {{ country .IVMSRecord.CountryOfRegistration }}{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4">Customer Number</dt>
+      <dd class="col-8">{{ if .IVMSRecord.CustomerNumber }}{{ .IVMSRecord.CustomerNumber }}{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4">National Identifier</dt>
+      <dd class="col-8">{{ if .IVMSRecord.NationalIdentifier.Identifier }}{{ .IVMSRecord.NationalIdentifier.Identifier }}{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-4">Address</dt>
+      <dd class="col-8">
+        {{- if or .IVMSRecord.AddressLine0 .IVMSRecord.AddressLine1 .IVMSRecord.AddressLine2 .IVMSRecord.AddressCountry -}}
+          {{ if .IVMSRecord.AddressLine0 }}{{ .IVMSRecord.AddressLine0 }}<br>{{ end }}
+          {{ if .IVMSRecord.AddressLine1 }}{{ .IVMSRecord.AddressLine1 }}<br>{{ end }}
+          {{ if .IVMSRecord.AddressLine2 }}{{ .IVMSRecord.AddressLine2 }}<br>{{ end }}
+          {{ if .IVMSRecord.AddressCountry }}{{ flag .IVMSRecord.AddressCountry }} {{ country .IVMSRecord.AddressCountry }}{{ end }}
+        {{- else -}}
+          &mdash;
+        {{- end -}}
+      </dd>
+    </dl>
+    {{- else -}}
+    <p class="text-body-secondary mb-0">
+      No IVMS101 legal person data has been saved for this counterparty yet.
+    </p>
+    {{- end -}}
+  </div>
+</div>
+{{- end -}}
+{{- end }}

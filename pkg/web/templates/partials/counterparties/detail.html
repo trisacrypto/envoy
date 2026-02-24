@@ -1,0 +1,24 @@
+{{- with .CounterpartyDetail -}}
+<div class="card">
+  <div class="card-header">
+    <h4 class="card-header-title">{{ .Name }}</h4>
+    <div class="card-header-actions">
+      <a href="/counterparties/{{ .ID }}" class="btn btn-sm btn-white">
+        Open Detail
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Protocol</dt>
+      <dd class="col-sm-8">{{ uppercase .Protocol }}</dd>
+      <dt class="col-sm-4">Endpoint</dt>
+      <dd class="col-sm-8 text-break">{{ .Endpoint }}</dd>
+      <dt class="col-sm-4">Travel Address</dt>
+      <dd class="col-sm-8 text-break">{{ if .HasTravelAddress }}{{ .TravelAddress }}{{ else }}&mdash;{{ end }}</dd>
+      <dt class="col-sm-4">Country</dt>
+      <dd class="col-sm-8">{{ if .Country }}{{ flag .Country }} {{ country .Country }}{{ else }}&mdash;{{ end }}</dd>
+    </dl>
+  </div>
+</div>
+{{- end -}}

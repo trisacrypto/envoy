@@ -1,0 +1,20 @@
+{{ define "counterpartyTabs" -}}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/counterparties/{{ .ID }}" class='nav-link{{ if eq .Tab "detail" }} active{{ end }}'>
+          Detail
+        </a>
+      </li>
+      {{ if .CanEdit }}
+      <li class="nav-item">
+        <a href="/counterparties/{{ .ID }}/edit" class='nav-link{{ if eq .Tab "edit" }} active{{ end }}'>
+          Edit
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+</div>
+{{- end }}
