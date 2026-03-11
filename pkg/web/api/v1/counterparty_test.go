@@ -111,6 +111,17 @@ func TestCounterpartyValidate(t *testing.T) {
 		require.EqualError(t, counterparty.Validate(), "missing endpoint: this field is required")
 	})
 
+	t.Run("SunriseNoEndpointOrCommonName", func(t *testing.T) {
+		// Sunrise counterparties do not require endpoint or common_name in Validate();
+		// the create handler fills them before calling Validate().
+		counterparty := &Counterparty{
+			Protocol: "sunrise",
+			Name:     "Test Sunrise VASP",
+			Country:  "FR",
+		}
+		require.NoError(t, counterparty.Validate(), "Sunrise counterparty should not require endpoint or common_name")
+	})
+
 	t.Run("Name", func(t *testing.T) {
 		counterparty := &Counterparty{
 			Protocol:   "trp",
@@ -192,7 +203,8 @@ func TestCounterpartyValidate(t *testing.T) {
 
 		verr, ok := err.(ValidationErrors)
 		require.True(t, ok, "expected error to be ValidationErrors")
-		require.Len(t, verr, 8)
+		// Endpoint and common_name are only required for non-Sunrise; invalid protocol yields 6 errors
+		require.Len(t, verr, 6)
 
 	})
 }
@@ -290,5 +302,45 @@ func TestCounterpartyQueryValidate(t *testing.T) {
 			err := query.Validate()
 			require.EqualError(t, err, tc.err, "test case %d failed", i)
 		}
+	})
+}
+
+func TestCommonNameFromWebsiteOrEmail(t *testing.T) {
+	t.Run("ValidWebsite", func(t *testing.T) {
+		cn, err := CommonNameFromWebsiteOrEmail("https://example.com/path", "user@other.com")
+		require.NoError(t, err)
+		require.Equal(t, "example.com", cn)
+	})
+	t.Run("WebsiteWithPort", func(t *testing.T) {
+		cn, err := CommonNameFromWebsiteOrEmail("https://example.com:443", "")
+		require.NoError(t, err)
+		require.Equal(t, "example.com:443", cn)
+	})
+	t.Run("EmptyWebsiteUsesEmailDomain", func(t *testing.T) {
+		cn, err := CommonNameFromWebsiteOrEmail("", "compliance@vasp.example.org")
+		require.NoError(t, err)
+		require.Equal(t, "vasp.example.org", cn)
+	})
+	t.Run("InvalidWebsiteNoValidFallback", func(t *testing.T) {
+		// Invalid website and email has no valid domain (no @) so both fail
+		_, err := CommonNameFromWebsiteOrEmail("://bad", "no-at-sign")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "common_name")
+	})
+	t.Run("EmptyWebsiteNoEmailDomain", func(t *testing.T) {
+		_, err := CommonNameFromWebsiteOrEmail("", "no-at-sign")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "common_name")
+	})
+	t.Run("InvalidWebsiteFallbackToValidEmail", func(t *testing.T) {
+		cn, err := CommonNameFromWebsiteOrEmail("://bad", "user@vasp.example.com")
+		require.NoError(t, err)
+		require.Equal(t, "vasp.example.com", cn)
+	})
+	t.Run("InvalidWebsiteFallbackToInvalidEmailDomain", func(t *testing.T) {
+		// Domain empty after @ so URL parse is not used and fallback fails
+		_, err := CommonNameFromWebsiteOrEmail("://bad", "user@")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "common_name")
 	})
 }

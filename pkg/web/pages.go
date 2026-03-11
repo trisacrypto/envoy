@@ -273,6 +273,14 @@ func (s *Server) CounterpartyDetailTemplate(c *gin.Context, template string) {
 		return
 	}
 
+	// Edit page is only for user-created Sunrise counterparties; otherwise redirect to detail.
+	if template == "pages/counterparties/edit.html" {
+		if counterparty.Source != enum.SourceUserEntry || counterparty.Protocol != enum.ProtocolSunrise {
+			htmx.Redirect(c, http.StatusSeeOther, "/counterparties/"+counterparty.ID.String())
+			return
+		}
+	}
+
 	// Create a scene with the counterparty model.
 	c.HTML(http.StatusOK, template, scene.New(c).WithAPIData(counterparty))
 }

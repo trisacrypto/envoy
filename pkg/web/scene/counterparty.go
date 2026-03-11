@@ -46,8 +46,11 @@ func (s Scene) CounterpartyDetail() *Counterparty {
 	return nil
 }
 
+// IsEditable returns true only if the counterparty is user-created and uses the Sunrise protocol,
+// matching the UpdateCounterparty endpoint restriction.
 func (c Counterparty) IsEditable() bool {
-	return strings.EqualFold(c.Source, enum.SourceUserEntry.String())
+	return strings.EqualFold(c.Source, enum.SourceUserEntry.String()) &&
+		strings.EqualFold(c.Protocol, enum.ProtocolSunrise.String())
 }
 
 func (c Counterparty) HasTravelAddress() bool {

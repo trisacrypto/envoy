@@ -44,6 +44,8 @@ type Counterparty struct {
 	VerifiedOn          *time.Time     `json:"verified_on,omitempty"`
 	IVMSRecord          string         `json:"ivms101,omitempty"`
 	Contacts            []*Contact     `json:"contacts,omitempty"`
+	ContactEmail        string         `json:"contact_email,omitempty"`
+	ContactName         string         `json:"contact_name,omitempty"`
 	Created             time.Time      `json:"created,omitempty"`
 	Modified            *time.Time     `json:"modified,omitempty"`
 	encoding            *EncodingQuery `json:"-"`
@@ -183,29 +185,30 @@ func (c *Counterparty) Validate() (err error) {
 		err = ValidationError(err, ReadOnlyField("registered_directory"))
 	}
 
-	if protocol, perr := enum.ParseProtocol(c.Protocol); perr != nil {
+	protocol, perr := enum.ParseProtocol(c.Protocol)
+	if perr != nil {
 		err = ValidationError(err, IncorrectField("protocol", "use trisa, trp, or sunrise"))
 	} else if protocol == enum.ProtocolUnknown {
 		err = ValidationError(err, MissingField("protocol"))
 	}
 
-	if c.CommonName == "" {
-		// Set common name to the hostname endpoint if not supplied by default
-		if c.Endpoint != "" {
-			if u, err := url.Parse(c.Endpoint); err == nil {
-				c.CommonName = u.Hostname()
+	// Endpoint and CommonName are required only for non-Sunrise counterparties.
+	// Sunrise create flow fills them in the handler before Validate().
+	if perr == nil && protocol != enum.ProtocolSunrise {
+		if c.CommonName == "" {
+			// Set common name to the hostname from endpoint if not supplied
+			if c.Endpoint != "" {
+				if u, parseErr := url.Parse(c.Endpoint); parseErr == nil {
+					c.CommonName = u.Hostname()
+				}
+			}
+			if c.CommonName == "" {
+				err = ValidationError(err, MissingField("common_name"))
 			}
 		}
-
-		// If no common name still exists (e.g. endpoint is missing or not parseable)
-		// then return a missing field error
-		if c.CommonName == "" {
-			err = ValidationError(err, MissingField("common_name"))
+		if c.Endpoint == "" {
+			err = ValidationError(err, MissingField("endpoint"))
 		}
-	}
-
-	if c.Endpoint == "" {
-		err = ValidationError(err, MissingField("endpoint"))
 	}
 
 	if c.Name == "" {
@@ -398,6 +401,39 @@ func (c *CounterpartyQuery) Query() (query *models.CounterpartyPageInfo) {
 //===========================================================================
 // Helper Functions
 //===========================================================================
+
+// CommonNameFromWebsiteOrEmail returns a common name (host or host:port) for Sunrise counterparties.
+// If website is valid, returns the URL host (hostname:port when present) and no error.
+// If website is invalid or empty, falls back to the domain part of contactEmail, validates it as
+// a URL with http://, and returns the host if valid. If both fail, returns an error.
+func CommonNameFromWebsiteOrEmail(website, contactEmail string) (string, error) {
+	website = strings.TrimSpace(website)
+	if website != "" {
+		parsed, err := url.Parse(website)
+		if err == nil && (parsed.Host != "" || parsed.Path != "") {
+			if parsed.Host == "" {
+				parsed, err = url.Parse("https://" + website)
+			}
+			if err == nil && parsed.Host != "" {
+				return parsed.Host, nil
+			}
+		}
+	}
+
+	// Fallback to domain from contact email; validate as URL with http:// and return host
+	contactEmail = strings.TrimSpace(contactEmail)
+	if idx := strings.LastIndex(contactEmail, "@"); idx >= 0 && idx < len(contactEmail)-1 {
+		domain := strings.ToLower(contactEmail[idx+1:])
+		if domain != "" {
+			parsed, err := url.Parse("http://" + domain)
+			if err == nil && parsed.Host != "" {
+				return parsed.Host, nil
+			}
+		}
+	}
+
+	return "", ValidationError(nil, MissingField("common_name"))
+}
 
 func EndpointTravelAddress(endpoint string, protocol enum.Protocol) (string, error) {
 	// Cannot generate a travel address for a sunrise Counterparty

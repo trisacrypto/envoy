@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
@@ -115,7 +116,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		out          *api.Counterparty
 	)
 
-	// Parse the model from the POST reqeust
+	// Parse the model from the POST request
 	in = &api.Counterparty{}
 	if err = c.BindJSON(in); err != nil {
 		c.Error(err)
@@ -136,6 +137,42 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
+	// Only Sunrise counterparties can be created via this endpoint
+	if in.Protocol != "sunrise" {
+		c.JSON(http.StatusBadRequest, api.Error("only Sunrise counterparties can be created via this endpoint"))
+		return
+	}
+
+	// Contact email is required for Sunrise create
+	contactEmail := strings.ToLower(strings.TrimSpace(in.ContactEmail))
+	if contactEmail == "" {
+		c.JSON(http.StatusUnprocessableEntity, api.Error("contact email is required"))
+		return
+	}
+
+	// Default contact name to legal entity name when omitted
+	contactName := strings.TrimSpace(in.ContactName)
+	if contactName == "" {
+		contactName = strings.TrimSpace(in.Name)
+	}
+
+	contact := &api.Contact{Name: contactName, Email: contactEmail, Role: "Primary Contact"}
+	if err = contact.Validate(true); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+	in.Contacts = []*api.Contact{contact}
+
+	// Derive endpoint and common name for Sunrise (mailto and host from website or email domain)
+	in.Endpoint = "mailto:" + contactEmail
+	in.CommonName, err = api.CommonNameFromWebsiteOrEmail(in.Website, contactEmail)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
 	in.SetEncoding(query)
 	if err = in.Validate(); err != nil {
 		c.Error(err)
@@ -149,7 +186,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Covert the API serializer into a database model
+	// Convert the API serializer into a database model
 	if counterparty, err = in.Model(); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, api.Error(err))
@@ -287,6 +324,21 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
+	// Load the existing counterparty by ID first; only user-created Sunrise counterparties can be updated
+	if original, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+	if original.Protocol != enum.ProtocolSunrise || original.Source != enum.SourceUserEntry {
+		c.JSON(http.StatusForbidden, api.Error("only user-created Sunrise counterparties can be updated"))
+		return
+	}
+
 	// Parse the counterparty data to PUT to the endpoint
 	in = &api.Counterparty{}
 	if err = c.BindJSON(in); err != nil {
@@ -315,12 +367,6 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Ensure that only user sourced entries can be edited.
-	if ok, _ := enum.CheckSource(in.Source, enum.SourceUnknown, enum.SourceUserEntry); !ok {
-		c.JSON(http.StatusConflict, api.Error("only user entered records can be updated"))
-		return
-	}
-
 	in.SetEncoding(query)
 	if err = in.Validate(); err != nil {
 		c.Error(err)
@@ -334,29 +380,7 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	// Ensure the user is not trying to overwrite an entity created by another source
-	if original, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
-		if errors.Is(err, dberr.ErrNotFound) {
-			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
-			return
-		}
-
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error(err))
-		return
-	}
-
-	if counterparty.Source != enum.SourceUnknown && original.Source != counterparty.Source {
-		if original.Source != enum.SourceUserEntry {
-			c.JSON(http.StatusConflict, api.Error("only user created records can be edited"))
-		} else {
-			c.JSON(http.StatusConflict, api.Error("the source of a counterparty record cannot be changed"))
-		}
-		return
-	}
-
-	// Ensure that the source is always set to the original source for API updates
-	// (e.g. overwrite source unknown)
+	// Use the original source (already verified as user-created Sunrise above)
 	counterparty.Source = original.Source
 
 	// Ensure the website has a protocol (only return if a valid string is unparseable)

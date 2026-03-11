@@ -16,17 +16,16 @@
           hx-indicator="#loaderCreateCounterparty"
           hx-disabled-elt="next button[type='submit'], next button[type='reset']"
         >
+          <input type="hidden" name="protocol" value="sunrise">
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
                 <label class="form-label" for="protocol">Protocol</label>
-                <select class="form-control" id="protocol" name="protocol" required>
-                  <option value="trisa">TRISA</option>
-                  <option value="trp">TRP</option>
-                  <option value="sunrise">Sunrise</option>
+                <select class="form-control" id="protocol" disabled>
+                  <option value="sunrise" selected>Sunrise</option>
                 </select>
                 <small class="form-text mt-1">
-                  Choose how transfers are sent to this counterparty.
+                  Counterparties created here use Sunrise (email-based transfers).
                 </small>
               </div>
             </div>
@@ -49,17 +48,20 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label class="form-label" for="common_name">Common Name</label>
-                <input type="text" class="form-control" id="common_name" name="common_name" required>
+                <label class="form-label" for="contact_name">Contact Name</label>
+                <input type="text" class="form-control" id="contact_name" name="contact_name" placeholder="Optional">
                 <small class="form-text mt-1">
-                  Hostname or identifier for the endpoint certificate.
+                  Defaults to the legal entity name if left blank.
                 </small>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
-                <label class="form-label" for="endpoint">Endpoint</label>
-                <input type="text" class="form-control" id="endpoint" name="endpoint" placeholder="trisa.example.com:443" required>
+                <label class="form-label" for="contact_email">Contact Email</label>
+                <input type="email" class="form-control" id="contact_email" name="contact_email" required placeholder="compliance@example.com">
+                <small class="form-text mt-1">
+                  Required. Used for Sunrise transfer notifications.
+                </small>
               </div>
             </div>
           </div>
