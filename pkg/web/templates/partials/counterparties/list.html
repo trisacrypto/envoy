@@ -89,7 +89,7 @@
                 <a href="/counterparties/{{ .ID }}" class="dropdown-item">
                   <i class="fe fe-eye"></i> View
                 </a>
-                {{ if and $canEditCounterparties (eq .Source "user") }}
+                {{ if and $canEditCounterparties (eq .Source "user") (eq .Protocol "sunrise") }}
                 <a href="/counterparties/{{ .ID }}/edit" class="dropdown-item">
                   <i class="fe fe-edit"></i> Edit
                 </a>

@@ -192,9 +192,9 @@ func (c *Counterparty) Validate() (err error) {
 		err = ValidationError(err, MissingField("protocol"))
 	}
 
-	// Endpoint and CommonName are required only for non-Sunrise counterparties.
+	// Endpoint and CommonName are required unless this is a valid Sunrise protocol;
 	// Sunrise create flow fills them in the handler before Validate().
-	if perr == nil && protocol != enum.ProtocolSunrise {
+	if perr != nil || protocol != enum.ProtocolSunrise {
 		if c.CommonName == "" {
 			// Set common name to the hostname from endpoint if not supplied
 			if c.Endpoint != "" {

@@ -203,8 +203,8 @@ func TestCounterpartyValidate(t *testing.T) {
 
 		verr, ok := err.(ValidationErrors)
 		require.True(t, ok, "expected error to be ValidationErrors")
-		// Endpoint and common_name are only required for non-Sunrise; invalid protocol yields 6 errors
-		require.Len(t, verr, 6)
+		// Invalid protocol should still validate common_name and endpoint requirements.
+		require.Len(t, verr, 8)
 
 	})
 }
