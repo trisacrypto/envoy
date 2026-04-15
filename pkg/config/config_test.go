@@ -31,6 +31,7 @@ var testEnv = map[string]string{
 	"TRISA_WEB_BIND_ADDR":                   ":4000",
 	"TRISA_WEB_ORIGIN":                      "https://example.com",
 	"TRISA_WEB_DOCS_NAME":                   "Test Server",
+	"TRISA_WEB_LOGO_URI":                    "/static/img/blockpass-logo.webp",
 	"TRISA_WEB_AUTH_KEYS":                   "foo:/path/to/foo.pem,bar:/path/to/bar.pem",
 	"TRISA_WEB_AUTH_AUDIENCE":               "https://example.com",
 	"TRISA_WEB_AUTH_ISSUER":                 "https://auth.example.com",
@@ -97,6 +98,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, testEnv["TRISA_WEB_ORIGIN"], conf.Web.Origin)
 	require.Equal(t, testEnv["TRISA_ENDPOINT"], conf.Web.TRISAEndpoint)
 	require.Equal(t, testEnv["TRISA_WEB_DOCS_NAME"], conf.Web.DocsName)
+	require.Equal(t, testEnv["TRISA_WEB_LOGO_URI"], conf.Web.LogoURI)
 	require.Len(t, conf.Web.Auth.Keys, 2)
 	require.Equal(t, testEnv["TRISA_WEB_AUTH_AUDIENCE"], conf.Web.Auth.Audience)
 	require.Equal(t, testEnv["TRISA_WEB_AUTH_ISSUER"], conf.Web.Auth.Issuer)
