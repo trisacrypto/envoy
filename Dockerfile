@@ -1,6 +1,6 @@
 # Dynamic Builds
 ARG XX_IMAGE=tonistiigi/xx
-ARG BUILDER_IMAGE=golang:1.23-bookworm
+ARG BUILDER_IMAGE=golang:1.26-bookworm
 ARG FINAL_IMAGE=debian:bookworm-slim
 
 # Build stage
@@ -12,6 +12,7 @@ COPY --from=xx / /
 
 # Build Args
 ARG GIT_REVISION=""
+ARG BUILD_DATE=""
 
 # Platform args
 ARG TARGETOS
@@ -23,7 +24,7 @@ RUN update-ca-certificates
 
 # Prepare for cross-compilation
 RUN apt-get update && apt-get install -y clang lld
-RUN xx-apt install -y libc6-dev gcc
+RUN xx-apt-get install -y libc6-dev gcc
 
 # Use modules for dependencies
 WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
@@ -31,6 +32,7 @@ WORKDIR $GOPATH/src/github.com/trisacrypto/envoy
 COPY go.mod .
 COPY go.sum .
 
+ENV CC=$(xx-info)-gcc
 ENV CGO_ENABLED=1
 ENV GO111MODULE=on
 RUN go mod download
@@ -40,7 +42,11 @@ RUN go mod verify
 COPY . .
 
 # Build binary
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -o /go/bin/envoy -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}'" ./cmd/envoy && xx-verify /go/bin/envoy
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -v \
+    -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}' -X 'github.com/trisacrypto/envoy/pkg.BuildDate=${BUILD_DATE}'" \
+    -o /go/bin/envoy \
+    ./cmd/envoy && \
+    xx-verify /go/bin/envoy
 
 # Final Stage
 FROM --platform=${BUILDPLATFORM} ${FINAL_IMAGE} AS final
