@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.23.x
+          go-version: 1.26.x
 
       - name: Install Staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@2024.1.1
+        run: go install honnef.co/go/tools/cmd/staticcheck@2026.1
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Lint Go Code
         run: staticcheck ./...
@@ -39,12 +39,12 @@ jobs:
         working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.23.x
+          go-version: 1.26.x
 
       - name: Cache Speedup
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
 
@@ -77,12 +77,12 @@ jobs:
         working-directory: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.23.x
+          go-version: 1.26.x
 
       - name: Cache Speedup
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ${{ env.GOPATH }}/src/github.com/trisacrypto/envoy
 

@@ -1,7 +1,7 @@
 # Dynamic Builds
 ARG XX_IMAGE=tonistiigi/xx
-ARG BUILDER_IMAGE=golang:1.23-bookworm
-ARG FINAL_IMAGE=debian:bookworm-slim
+ARG BUILDER_IMAGE=dhi.io/golang:1.26-debian13-dev
+ARG FINAL_IMAGE=dhi.io/golang:1.26-debian13-dev
 
 # Build stage
 FROM --platform=${BUILDPLATFORM} ${XX_IMAGE} AS xx
@@ -12,6 +12,7 @@ COPY --from=xx / /
 
 # Build Args
 ARG GIT_REVISION=""
+ARG BUILD_DATE=""
 
 # Platform args
 ARG TARGETOS
@@ -40,7 +41,11 @@ RUN go mod verify
 COPY . .
 
 # Build binary
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -o /go/bin/envoy -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}'" ./cmd/envoy && xx-verify /go/bin/envoy
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} xx-go build -v \
+    -ldflags="-X 'github.com/trisacrypto/envoy/pkg.GitVersion=${GIT_REVISION}' -X 'github.com/trisacrypto/envoy/pkg.BuildDate=${BUILD_DATE}'" \
+    -o /go/bin/envoy \
+    ./cmd/envoy && \
+    xx-verify /go/bin/envoy
 
 # Final Stage
 FROM --platform=${BUILDPLATFORM} ${FINAL_IMAGE} AS final
