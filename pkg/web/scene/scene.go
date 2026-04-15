@@ -37,6 +37,9 @@ var (
 
 	// daybreakEnabled is true iff daybreak is enabled by the configuration
 	daybreakEnabled *bool
+
+	// Sets a custom logo for the web UI (either a file in static or a URL)
+	logoURI string
 )
 
 // Keys for default Scene context items
@@ -54,9 +57,13 @@ const (
 	TRPEnabled      = "TRPEnabled"
 	SunriseEnabled  = "SunriseEnabled"
 	DaybreakEnabled = "DaybreakEnabled"
+	LogoURI         = "LogoURI"
 )
 
-const ToastCookie = "toast_messages"
+const (
+	ToastCookie    = "toast_messages"
+	DefaultLogoURI = "/static/img/envoy-logo.webp"
+)
 
 type Scene map[string]interface{}
 
@@ -73,6 +80,7 @@ func New(c *gin.Context) Scene {
 		Version:      version,
 		ShortVersion: shortVersion,
 		Page:         c.Request.URL.Path,
+		LogoURI:      logoURI,
 	}
 
 	// Does the user exist in the gin context?
@@ -104,7 +112,6 @@ func New(c *gin.Context) Scene {
 	if daybreakEnabled != nil {
 		context[DaybreakEnabled] = *daybreakEnabled
 	}
-
 	return context
 }
 
@@ -417,4 +424,11 @@ func WithConf(conf *config.Config) {
 	trisaEnabled = &conf.Node.Enabled
 	trpEnabled = &conf.TRP.Enabled
 	daybreakEnabled = &conf.Web.Daybreak.Enabled
+
+	// Set the logo URI for the configuration
+	if conf.Web.LogoURI != "" {
+		logoURI = conf.Web.LogoURI
+	} else {
+		logoURI = DefaultLogoURI
+	}
 }
