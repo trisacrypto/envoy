@@ -69,7 +69,7 @@ type WebConfig struct {
 	Origin        string         `default:"http://localhost:8000" desc:"origin (url) of the web ui for creating endpoints and CORS access"`
 	TRISAEndpoint string         `env:"TRISA_ENDPOINT" desc:"trisa endpoint as assigned to the mTLS certificates for the trisa node"`
 	TRPEndpoint   string         `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
-	DocsName      string         `split_words:"true" desc:"the display name for the API docs server in the Swagger app"`
+	DocsName      string         `default:"Envoy API Reference" split_words:"true" desc:"the display name for the API docs server in the Swagger app"`
 	LogoURI       string         `split_words:"true" desc:"use a custom logo for the web UI"`
 	Auth          AuthConfig     `split_words:"true"`
 	Daybreak      DaybreakConfig `split_words:"true"`
