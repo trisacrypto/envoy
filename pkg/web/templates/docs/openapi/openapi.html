@@ -1,7 +1,7 @@
 {{ template "base" . }}
 {{ define "head" }}
 <head>
-  <meta charset="utf-8"> <!-- Important: rapi-doc uses utf-8 characters -->
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="robots" content="noindex,follow">
@@ -14,32 +14,96 @@
 
   <title>Envoy API Documentation</title>
 
-  <script type="module" src="/static/js/rapidoc/rapidoc-min.js"></script>
+  <style>
+    html, body { margin: 0; min-height: 100%; }
+    #scalar-api-reference { min-height: 100vh; }
+  </style>
+
+  <script src="/static/js/scalar/standalone.js"></script>
 </head>
 {{ end }}
 {{ define "body" }}
 <body>
-  <rapi-doc
-    spec-url="/v1/docs/openapi.json"
-    theme = "light"
-    show-header = "false"
-    allow-spec-url-load = "false"
-    allow-spec-file-load = "false"
-    allow-spec-file-download = "true"
-    schema-style = "table"
-    schema-description-expanded	= "true"
-    render-style = "focused"
-    text-color = "#333333"
-    primary-color = "#55ACD8"
-    font-size = "default"
-    nav-bg-color = "#EFEFEF"
-    nav-item-spacing = "compact"
-    fill-request-fields-with-example = "false"
-  >
-    <img
-      slot="nav-logo"
-      src="/static/img/trisa-logo-512.png"
-    />
-  </rapi-doc>
+  <div id="scalar-api-reference" data-docs-label="{{ .Title }}"></div>
+  <script>
+    (function () {
+      var logoURL = "/static/img/trisa-logo-512.png";
+      var docsLabel = document.getElementById("scalar-api-reference").dataset.docsLabel || "Envoy API Reference";
+
+      var themeCss = [
+        ".light-mode {",
+        "  --scalar-font: system-ui, -apple-system, sans-serif;",
+        "  --scalar-font-code: ui-monospace, monospace;",
+        "  --scalar-color-1: #333333;",
+        "  --scalar-color-2: #5a5a5a;",
+        "  --scalar-color-accent: #55acd8;",
+        "  --scalar-background-1: #ffffff;",
+        "  --scalar-background-2: #f8f8f8;",
+        "  --scalar-background-3: #efefef;",
+        "  --scalar-sidebar-background-1: #efefef;",
+        "  --scalar-sidebar-color-1: #333333;",
+        "  --scalar-sidebar-color-2: #6b6b6b;",
+        "  --scalar-sidebar-item-hover-background: rgba(0, 0, 0, 0.04);",
+        "  --scalar-sidebar-item-active-background: rgba(85, 172, 216, 0.20);",
+        "  --scalar-sidebar-color-active: #2e87b1;",
+        "  --scalar-sidebar-border-color: rgba(0, 0, 0, 0.08);",
+        "  --scalar-border-color: rgba(0, 0, 0, 0.08);",
+        "}",
+        ".light-mode .t-doc__sidebar .envoy-home-link {",
+        "  display: flex;",
+        "  align-items: center;",
+        "  gap: 0.5rem;",
+        "  padding: 1rem;",
+        "  color: var(--scalar-sidebar-color-1);",
+        "  text-decoration: none;",
+        "  font-size: 0.875rem;",
+        "  font-weight: 500;",
+        "  line-height: 1.5rem;",
+        "}",
+        ".light-mode .t-doc__sidebar .envoy-home-link:hover {",
+        "  color: var(--scalar-sidebar-color-active);",
+        "}",
+        ".light-mode .t-doc__sidebar .envoy-home-link img {",
+        "  width: 1.5rem;",
+        "  height: 1.5rem;",
+        "}",
+      ].join("\n");
+
+      Scalar.createApiReference("#scalar-api-reference", {
+        url: "/v1/docs/openapi.json",
+        metaData: { title: "Envoy API Documentation" },
+        layout: "modern",
+        darkMode: false,
+        theme: "default",
+        modelsSectionLabel: "Models",
+        defaultOpenFirstTag: false,
+        agent: { disabled: true },
+        telemetry: false,
+        withDefaultFonts: false,
+        showDeveloperTools: "localhost",
+        customCss: themeCss,
+        onLoaded: function () {
+          var sidebar = document.querySelector("#scalar-api-reference .t-doc__sidebar");
+          if (!sidebar || sidebar.querySelector(".envoy-home-link")) return;
+
+          var link = document.createElement("a");
+          link.className = "envoy-home-link";
+          link.href = "/";
+          link.setAttribute("aria-label", "Back to Envoy");
+          link.innerHTML = '<img src="' + logoURL + '" alt="" width="24" height="24"><span>' + docsLabel + "</span>";
+          sidebar.prepend(link);
+        },
+        customFetch: function (input, init) {
+          init = init || {};
+          var headers = new Headers(init.headers || {});
+          headers.set("Accept", "application/json");
+          return window.fetch(input, Object.assign({}, init, {
+            credentials: "include",
+            headers: headers,
+          }));
+        },
+      });
+    })();
+  </script>
 </body>
 {{ end }}

@@ -1,6 +1,7 @@
 {
     "info": {
-        "title": "TRISA Envoy API",
+        "title": "{{ .Title }}",
+        "summary": "The TRISA Envoy API allows users to interact with their TRISA open source Envoy node in a programmatic fashion.",
         "description": "The TRISA Envoy API allows users to interact with their TRISA open source Envoy node in a programmatic fashion. The API allows users to manage server objects such as accounts and counterparties and to send and manage Travel Rule transactions without having to know the details of the TRISA or TRP protocols.",
         "contact": {
             "name": "Rotational Labs",
@@ -19,9 +20,7 @@
     "openapi": "3.1.0",
     "servers": [
         {
-            "url": "{{ .Origin }}",
-            "variables": {},
-            "description": "{{ .Description }}"
+            "url": "/"
         }
     ],
     "tags": [
