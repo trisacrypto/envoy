@@ -72,6 +72,8 @@ type Store struct {
 	OnUpdateContact                  func(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error
 	OnDeleteContact                  func(ctx context.Context, contactID, counterparty any, log *models.ComplianceAuditLog) error
 	OnUseTravelAddressFactory        func(models.TravelAddressFactory)
+	OnRegenerateTravelAddresses      func(ctx context.Context) error
+	OnCountTravelAddresses           func(ctx context.Context) (int64, error)
 	OnListSunrise                    func(ctx context.Context, page *models.PageInfo) (*models.SunrisePage, error)
 	OnCreateSunrise                  func(ctx context.Context, msg *models.Sunrise, log *models.ComplianceAuditLog) error
 	OnRetrieveSunrise                func(ctx context.Context, id ulid.ULID) (*models.Sunrise, error)
@@ -607,6 +609,24 @@ func (s *Store) UseTravelAddressFactory(f models.TravelAddressFactory) {
 		s.OnUseTravelAddressFactory(f)
 	}
 	panic("UseTravelAddressFactory callback not set")
+}
+
+// Calls the callback previously set with `s.OnRegenerateTravelAddresses = ...`
+func (s *Store) RegenerateTravelAddresses(ctx context.Context) error {
+	s.calls["RegenerateTravelAddresses"]++
+	if s.OnRegenerateTravelAddresses != nil {
+		return s.OnRegenerateTravelAddresses(ctx)
+	}
+	panic("RegenerateTravelAddresses callback not set")
+}
+
+// Calls the callback previously set with `s.OnCountTravelAddresses = ...`
+func (s *Store) CountTravelAddresses(ctx context.Context) (int64, error) {
+	s.calls["CountTravelAddresses"]++
+	if s.OnCountTravelAddresses != nil {
+		return s.OnCountTravelAddresses(ctx)
+	}
+	panic("CountTravelAddresses callback not set")
 }
 
 //===========================================================================

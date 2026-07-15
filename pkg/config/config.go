@@ -46,6 +46,7 @@ type Config struct {
 	ConsoleLog      bool                `split_words:"true" default:"false" desc:"if true logs colorized human readable output instead of json"`
 	DatabaseURL     string              `split_words:"true" default:"sqlite3:///trisa.db" desc:"dsn containing backend database configuration"`
 	SearchThreshold float64             `split_words:"true" default:"0.0" desc:"specify the threshold for fuzzy search (0.0 to 1.0)"`
+	Boot            BootConfig          `split_words:"true"`
 	Web             WebConfig           `split_words:"true"`
 	Webhook         WebhookConfig       `split_words:"true"`
 	Node            TRISAConfig         `split_words:"true"`
@@ -147,6 +148,10 @@ type WebhookConfig struct {
 
 type DaybreakConfig struct {
 	Enabled bool `default:"false" desc:"if true, the Daybreak counterparties list tab will be shown, otherwise not shown"`
+}
+
+type BootConfig struct {
+	RegenerateTravelAddresses bool `default:"false" split_words:"true" desc:"if true, the travel addresses will be regenerated when envoy starts"`
 }
 
 // Optional region and deployment information associated with the node.

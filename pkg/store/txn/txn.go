@@ -1,7 +1,7 @@
 /*
 Unfortunately, to prevent import cycle, we have to put the transaction interface in a
 subpackage of store so that store and other packages can import it. This means that
-whenver a new database interface is created, we have to also implement the parallel
+whenever a new database interface is created, we have to also implement the parallel
 transaction interface as well.
 */
 package txn

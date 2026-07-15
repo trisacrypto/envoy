@@ -26,3 +26,7 @@ var (
 	ErrMissingValue       = errors.New("missing a required record value")
 	ErrMissingActor       = errors.New("missing actor metadata")
 )
+
+var (
+	ErrMissingTravelAddressFactory = errors.New("cannot regenerate travel addresses: travel address factory is not set")
+)
