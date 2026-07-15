@@ -1,7 +1,9 @@
 package node
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -166,6 +168,11 @@ func (s *Node) Serve() (err error) {
 		s.errc <- s.Shutdown()
 	}()
 
+	// Run bootup tasks if configured to do so.
+	if err = s.bootup(); err != nil {
+		return err
+	}
+
 	// Run services that should not be run in maintenance mode
 	if !s.conf.Maintenance {
 		// Run the directory sync service
@@ -225,4 +232,24 @@ func (s *Node) Shutdown() (err error) {
 
 	log.Debug().Msg("envoy node has shutdown")
 	return err
+}
+
+func (s *Node) bootup() (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Regenerate the travel addresses if configured to do so.
+	if s.conf.Boot.RegenerateTravelAddresses {
+		count, err := s.store.CountTravelAddresses(ctx)
+		if err != nil {
+			return fmt.Errorf("could not count travel addresses: %w", err)
+		}
+
+		log.Info().Int64("count", count).Msg("regenerating travel addresses")
+		if err = s.store.RegenerateTravelAddresses(ctx); err != nil {
+			return fmt.Errorf("could not regenerate travel addresses: %w", err)
+		}
+		log.Info().Msg("travel addresses regenerated")
+	}
+	return nil
 }
