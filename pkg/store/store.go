@@ -163,6 +163,8 @@ type ContactStore interface {
 
 type TravelAddressStore interface {
 	UseTravelAddressFactory(models.TravelAddressFactory)
+	RegenerateTravelAddresses(context.Context) error
+	CountTravelAddresses(context.Context) (int64, error)
 }
 
 // Sunrise store manages both contacts and counterparties.

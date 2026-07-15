@@ -30,6 +30,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
 	"github.com/trisacrypto/envoy/pkg/web/auth/passwords"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
+	"github.com/trisacrypto/trisa/pkg/openvasp/traddr"
 
 	"github.com/trisacrypto/envoy/pkg/config"
 
@@ -93,9 +94,9 @@ func main() {
 			},
 		},
 		{
-			Name:     "createuser",
+			Name:     "users:create",
 			Usage:    "create a new user to access Envoy with",
-			Category: "admin",
+			Category: "auth",
 			Before:   openDB,
 			Action:   createUser,
 			After:    closeDB,
@@ -120,9 +121,9 @@ func main() {
 			},
 		},
 		{
-			Name:     "pwreset",
+			Name:     "users:pwreset",
 			Usage:    "reset a user's password",
-			Category: "admin",
+			Category: "auth",
 			Before:   openDB,
 			Action:   resetPassword,
 			After:    closeDB,
@@ -136,9 +137,9 @@ func main() {
 			},
 		},
 		{
-			Name:      "createapikey",
+			Name:      "apikey:create",
 			Usage:     "create a new api key with the specified permissions",
-			Category:  "admin",
+			Category:  "auth",
 			Before:    openDB,
 			Action:    createAPIKey,
 			After:     closeDB,
@@ -146,7 +147,15 @@ func main() {
 			ArgsUsage: "all | permission [permission ...]",
 		},
 		{
-			Name:     "tokenkey",
+			Name:     "admin:traveladdresses",
+			Usage:    "regenerate all travel addresseses with the current configuration",
+			Category: "admin",
+			Before:   openDB,
+			Action:   regenerateTravelAddresses,
+			After:    closeDB,
+		},
+		{
+			Name:     "admin:tokenkey",
 			Usage:    "generate an RSA token key pair and ulid for JWT token signing",
 			Category: "admin",
 			Action:   generateTokenKey,
@@ -165,7 +174,7 @@ func main() {
 			},
 		},
 		{
-			Name:     "hmackey",
+			Name:     "admin:hmackey",
 			Usage:    "generate an HMAC key and keyID for webhook authentication",
 			Category: "admin",
 			Action:   generateHMACKey,
@@ -186,7 +195,7 @@ func main() {
 		{
 			Name:     "daybreak:import",
 			Usage:    "Import Daybreak counterparties from a JSON file that contains a list of Counterparty objects",
-			Category: "admin",
+			Category: "daybreak",
 			Before:   openDB,
 			Action:   daybreakImport,
 			After:    closeDB,
@@ -202,7 +211,7 @@ func main() {
 		{
 			Name:     "daybreak:retire",
 			Usage:    "Deletes any Daybreak counterparties and contacts which do not have any transactions associated with them",
-			Category: "admin",
+			Category: "daybreak",
 			Before:   openDB,
 			Action:   daybreakRetire,
 			After:    closeDB,
@@ -477,6 +486,56 @@ func createAPIKey(c *cli.Context) (err error) {
 	return nil
 }
 
+func regenerateTravelAddresses(c *cli.Context) (err error) {
+	var conf config.Config
+	if conf, err = config.New(); err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	var factory models.TravelAddressFactory
+	if factory, err = node.TravelAddressFactory(conf); err != nil {
+		return cli.Exit(fmt.Errorf("could not create travel address factory: %w", err), 1)
+	}
+
+	var example string
+	if example, err = factory(ulid.Make()); err != nil {
+		return cli.Exit(fmt.Errorf("could not generate travel address: %w", err), 1)
+	}
+
+	var decoded string
+	if decoded, err = traddr.Decode(example); err != nil {
+		return cli.Exit(fmt.Errorf("could not decode travel address: %w", err), 1)
+	}
+
+	fmt.Print("This operation will encode travel addresses as follows:\n\n")
+	fmt.Printf("    encoded travel address: %s\n", example)
+	fmt.Printf("    decoded travel address: %s\n", decoded)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	var count int64
+	if count, err = db.CountTravelAddresses(ctx); err != nil {
+		return cli.Exit(fmt.Errorf("could not count travel addresses: %w", err), 1)
+	}
+
+	fmt.Printf("\nThis operation will regenerate %d travel addresses in the database\n\n", count)
+	if !confirm("Are you sure you wish to proceed?") {
+		return cli.Exit("operation cancelled by user", 0)
+	}
+
+	// Set the travel address factory on the store.
+	db.UseTravelAddressFactory(factory)
+
+	// Execute the travel address regeneration.
+	if err = db.RegenerateTravelAddresses(ctx); err != nil {
+		return cli.Exit(fmt.Errorf("could not regenerate travel addresses: %w", err), 1)
+	}
+
+	fmt.Println("Travel addresses regenerated successfully")
+	return nil
+}
+
 func generateTokenKey(c *cli.Context) (err error) {
 	// Create ULID and determine outpath
 	keyid := ulid.Make()
@@ -553,8 +612,8 @@ func daybreakImport(c *cli.Context) (err error) {
 		return cli.Exit(err, 1)
 	}
 
-	var cpartyImports []*api.Counterparty
-	if err = json.Unmarshal(jb, &cpartyImports); err != nil {
+	var counterpartyImports []*api.Counterparty
+	if err = json.Unmarshal(jb, &counterpartyImports); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -580,19 +639,19 @@ func daybreakImport(c *cli.Context) (err error) {
 	// database, so its important to ensure only a single import runs at at time.
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
-		return cli.Exit(fmt.Sprintf("could not list daybreak couunterparties: %s", err), 1)
+		return cli.Exit(fmt.Sprintf("could not list daybreak counterparties: %s", err), 1)
 	}
 
 	// Begin import; all counterparties and associated contacts that can be created will
 	// be; otherwise the entire counterparty will be skipped.
-	log.Info().Msgf("starting to import %d Daybreak Counterparties...", len(cpartyImports))
+	log.Info().Msgf("starting to import %d Daybreak Counterparties...", len(counterpartyImports))
 
 	var (
 		updated int
 		created int
 	)
 
-	for _, apiCounterparty := range cpartyImports {
+	for _, apiCounterparty := range counterpartyImports {
 		// Convert the api.Counterparty to a model.Counterparty
 		var modelCounterparty *models.Counterparty
 		if modelCounterparty, err = apiCounterparty.Model(); err != nil {
@@ -615,7 +674,7 @@ func daybreakImport(c *cli.Context) (err error) {
 			continue
 		}
 
-		// Ensure the website has a protocol (only return if a valid string is unparseable)
+		// Ensure the website has a protocol (only return if a valid string is unparsable)
 		if modelCounterparty.Website.String, err = modelCounterparty.NormalizedWebsite(); err != nil {
 			if !errors.Is(err, dberr.ErrNullString) {
 				log.Warn().Str("directory_id", apiCounterparty.DirectoryID).Str("name", apiCounterparty.Name).Str("website", modelCounterparty.Website.String).Msg("cannot parse counterparty website string")
@@ -675,11 +734,11 @@ func daybreakImport(c *cli.Context) (err error) {
 
 	log.Info().
 		Int("imported", updated+created).
-		Int("errors", len(cpartyImports)-updated-created).
+		Int("errors", len(counterpartyImports)-updated-created).
 		Int("created", created).
 		Int("updated", updated).
-		Int("total", len(cpartyImports)).
-		Float64("percent_success", (float64(created+updated) / float64(len(cpartyImports)) * 100.0)).
+		Int("total", len(counterpartyImports)).
+		Float64("percent_success", (float64(created+updated) / float64(len(counterpartyImports)) * 100.0)).
 		Msg("daybreak import complete")
 
 	return nil
@@ -706,7 +765,7 @@ func daybreakRetire(c *cli.Context) (err error) {
 	// Get all Daybreak Counterparties
 	var srcMap map[string]*models.CounterpartySourceInfo
 	if srcMap, err = ddb.ListDaybreak(ctx); err != nil {
-		return cli.Exit(fmt.Sprintf("could not list daybreak couunterparties: %s", err), 1)
+		return cli.Exit(fmt.Sprintf("could not list daybreak counterparties: %s", err), 1)
 	}
 
 	// Delete all of the counterparties (`ignoreTxns` is `false`)
@@ -915,4 +974,25 @@ func valueForColumn(table, column string) interface{} {
 	}
 
 	panic(fmt.Errorf("unknown type for %s.%s", table, column))
+}
+
+func confirm(prompt string) bool {
+	for {
+		var response string
+		fmt.Printf("%s [y/n]: ", prompt)
+		if _, err := fmt.Scanln(&response); err != nil {
+			response = ""
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+		if response == "y" || response == "yes" {
+			return true
+		}
+
+		if response == "n" || response == "no" {
+			return false
+		}
+
+		fmt.Println("invalid response, please enter 'y' or 'n'")
+	}
 }
