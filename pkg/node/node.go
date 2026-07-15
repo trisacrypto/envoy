@@ -14,7 +14,6 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 	"github.com/trisacrypto/envoy/pkg/metrics"
 	"github.com/trisacrypto/envoy/pkg/store"
-	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/store/sqlite"
 	"github.com/trisacrypto/envoy/pkg/trisa"
 	"github.com/trisacrypto/envoy/pkg/trisa/keychain"
@@ -77,7 +76,7 @@ func New(conf config.Config) (node *Node, err error) {
 	sqlite.SetThreshold(conf.SearchThreshold)
 
 	// Configure the store with travel address generators
-	if factory, err := models.NewTravelAddressFactory(conf.Node.Endpoint, "trisa"); err != nil {
+	if factory, err := TravelAddressFactory(conf); err != nil {
 		log.Warn().Err(err).Msg("could not configure travel address factory")
 	} else {
 		node.store.UseTravelAddressFactory(factory)
@@ -106,7 +105,7 @@ func New(conf config.Config) (node *Node, err error) {
 		Msg("trisa initialized")
 
 	// Add the node's keychain.KeyChain (created in the network) to the audit package
-	// for ComlianceAuditLog signatures and verification. NOTE: ComplianceAuditLogs
+	// for ComplianceAuditLog signatures and verification. NOTE: ComplianceAuditLogs
 	// are currently required, so it is required that we have a keychain.KeyChain
 	// at this step.
 	var kc keychain.KeyChain

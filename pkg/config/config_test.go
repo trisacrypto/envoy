@@ -56,6 +56,7 @@ var testEnv = map[string]string{
 	"TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT": "localhost:2526",
 	"TRISA_DIRECTORY_SYNC_ENABLED":          "true",
 	"TRISA_DIRECTORY_SYNC_INTERVAL":         "10m",
+	"TRISA_TRP_ENDPOINT":                    "https://trp.example.com",
 	"TRISA_TRP_ENABLED":                     "true",
 	"TRISA_TRP_BIND_ADDR":                   ":8012",
 	"TRISA_TRP_USE_MTLS":                    "false",
@@ -128,6 +129,7 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, int32(2840302), conf.RegionInfo.ID)
 	require.True(t, conf.TRP.Maintenance)
 	require.True(t, conf.TRP.Enabled)
+	require.Equal(t, testEnv["TRISA_TRP_ENDPOINT"], conf.TRP.Endpoint)
 	require.Equal(t, testEnv["TRISA_TRP_BIND_ADDR"], conf.TRP.BindAddr)
 	require.False(t, conf.TRP.UseMTLS)
 	require.Equal(t, testEnv["TRISA_TRP_POOL"], conf.TRP.Pool)
@@ -164,6 +166,7 @@ func TestConfigValidation(t *testing.T) {
 			TRP: config.TRPConfig{
 				Maintenance: false,
 				BindAddr:    ":8012",
+				Endpoint:    "https://trp.example.com",
 			},
 			Webhook: config.WebhookConfig{
 				URL: "https://example.com/callback",
@@ -645,10 +648,12 @@ func TestTRPConfig(t *testing.T) {
 				Enabled: false,
 			},
 			{
+				Endpoint: "https://trp.example.com",
 				Enabled:  true,
 				BindAddr: ":8012",
 			},
 			{
+				Endpoint: "https://trp.example.com",
 				Enabled:  true,
 				BindAddr: ":8012",
 				UseMTLS:  true,
@@ -657,6 +662,7 @@ func TestTRPConfig(t *testing.T) {
 				},
 			},
 			{
+				Endpoint: "https://trp.example.com",
 				Enabled:  true,
 				BindAddr: ":8012",
 				UseMTLS:  true,
@@ -679,6 +685,15 @@ func TestTRPConfig(t *testing.T) {
 		}{
 			{
 				conf: config.TRPConfig{
+					Endpoint: "",
+					Enabled:  true,
+					BindAddr: ":8012",
+				},
+				errString: "invalid configuration: missing trp endpoint",
+			},
+			{
+				conf: config.TRPConfig{
+					Endpoint: "https://trp.example.com",
 					Enabled:  true,
 					BindAddr: "",
 				},
@@ -686,6 +701,7 @@ func TestTRPConfig(t *testing.T) {
 			},
 			{
 				conf: config.TRPConfig{
+					Endpoint: "https://trp.example.com",
 					Enabled:  true,
 					BindAddr: ":8012",
 					UseMTLS:  true,
@@ -694,6 +710,7 @@ func TestTRPConfig(t *testing.T) {
 			},
 			{
 				conf: config.TRPConfig{
+					Endpoint: "https://trp.example.com",
 					Enabled:  true,
 					BindAddr: ":8012",
 					UseMTLS:  true,

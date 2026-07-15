@@ -116,6 +116,7 @@ type DirectorySyncConfig struct {
 type TRPConfig struct {
 	MTLSConfig
 	Maintenance bool   `env:"TRISA_MAINTENANCE" desc:"if true sets the trp node to maintenance mode; inherited from parent"`
+	Endpoint    string `env:"TRISA_TRP_ENDPOINT" desc:"trp endpoint as assigned to the mTLS certificates for the trp node"`
 	Enabled     bool   `default:"true" desc:"if false, the trp server will not be run"`
 	BindAddr    string `default:":8200" split_words:"true" desc:"the ip address and port to bind the trp server on"`
 	UseMTLS     bool   `default:"true" split_words:"true" desc:"if true the trp server will require mTLS authentication"`
@@ -333,6 +334,10 @@ func (c DirectoryConfig) Network() string {
 // Validate that the TRP config is suitable for operation of the server
 func (c *TRPConfig) Validate() error {
 	if c.Enabled {
+		if c.Endpoint == "" {
+			return errors.New("invalid configuration: missing trp endpoint")
+		}
+
 		if c.BindAddr == "" {
 			return errors.New("invalid configuration: missing bind address")
 		}
