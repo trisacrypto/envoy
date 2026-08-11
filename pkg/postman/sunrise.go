@@ -12,6 +12,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/emails"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 	"github.com/trisacrypto/trisa/pkg/ivms101"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	generic "github.com/trisacrypto/trisa/pkg/trisa/data/generic/v1beta1"
@@ -121,6 +122,29 @@ func ReceiveSunriseReject(envelopeID uuid.UUID, reject *trisa.Error) (packet *Su
 	}
 
 	return packet, nil
+}
+
+// WebhookRequest creates a notification for the result of a Sunrise review.
+// Unlike a network reply, the webhook should receive the state of the outgoing
+// response because the incoming envelope is synthetic.
+func (s *SunrisePacket) WebhookRequest() (request *webhook.Request, err error) {
+	request = s.In.WebhookRequest()
+	request.TransferState = s.Out.Envelope.TransferState().String()
+
+	if s.In.Envelope.IsError() {
+		return request, nil
+	}
+
+	var payload *trisa.Payload
+	if payload, err = s.In.Envelope.Payload(); err != nil {
+		return nil, fmt.Errorf("could not retrieve sunrise webhook payload: %w", err)
+	}
+
+	if err = request.AddPayload(payload); err != nil {
+		return nil, fmt.Errorf("could not add sunrise webhook payload: %w", err)
+	}
+
+	return request, nil
 }
 
 // Returns the email contacts of the compliance officers associated with the counterparty.

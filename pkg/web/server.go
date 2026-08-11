@@ -16,6 +16,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -33,6 +34,7 @@ type Server struct {
 	url     *url.URL
 	vasp    *models.Counterparty
 	trisa   network.Network
+	webhook webhook.Handler
 	started time.Time
 	healthy bool
 	ready   bool

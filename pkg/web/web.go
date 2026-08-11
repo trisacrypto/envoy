@@ -9,21 +9,23 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/network"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 
 	"github.com/gin-gonic/gin"
 	"go.rtnl.ai/ulid"
 )
 
 // Create a new web server that serves the compliance and admin web user interface.
-func New(conf config.Config, store store.Store, network network.Network) (s *Server, err error) {
+func New(conf config.Config, store store.Store, network network.Network, callback webhook.Handler) (s *Server, err error) {
 	if err = conf.Web.Validate(); err != nil {
 		return nil, err
 	}
 
 	s = &Server{
-		conf:  conf,
-		store: store,
-		trisa: network,
+		conf:    conf,
+		store:   store,
+		trisa:   network,
+		webhook: callback,
 	}
 
 	// If not enabled, return just the server stub
@@ -70,7 +72,7 @@ func New(conf config.Config, store store.Store, network network.Network) (s *Ser
 // Debug returns a server that uses the specified http server instead of creating one.
 // This function is primarily used to create test servers easily.
 func Debug(conf config.Config, store store.Store, network network.Network, srv *http.Server) (s *Server, err error) {
-	if s, err = New(conf, store, network); err != nil {
+	if s, err = New(conf, store, network, nil); err != nil {
 		return nil, err
 	}
 

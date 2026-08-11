@@ -22,6 +22,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
+	"github.com/trisacrypto/envoy/pkg/webhook"
 	trisa "github.com/trisacrypto/trisa/pkg/trisa/api/v1beta1"
 	"github.com/trisacrypto/trisa/pkg/trisa/envelope"
 	"github.com/trisacrypto/trisa/pkg/trisa/keys"
@@ -69,6 +70,19 @@ func (s *Server) SendSunrise(ctx context.Context, packet *postman.SunrisePacket)
 	}
 
 	return nil
+}
+
+// Sends a webhook request to the configured webhook handler for the result of
+// a sunrise review.
+func (s *Server) notifySunriseWebhook(ctx context.Context, request *webhook.Request) {
+	if s.webhook == nil {
+		return
+	}
+
+	if _, err := s.webhook.Callback(ctx, request); err != nil {
+		log := logger.Tracing(ctx)
+		log.Error().Err(err).Msg("could not notify webhook of sunrise message")
+	}
 }
 
 //===========================================================================
@@ -312,6 +326,7 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 		sunriseID  ulid.ULID
 		sunriseMsg *models.Sunrise
 		packet     *postman.SunrisePacket
+		hookReq    *webhook.Request
 	)
 
 	in = &api.Rejection{}
@@ -377,6 +392,13 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 		return
 	}
 
+	// Build the webhook request before Save seals the incoming envelope.
+	if hookReq, err = packet.WebhookRequest(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
 	// Create a prepared transaction to create secure envelopes
 	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{
 		ChangeNotes: sql.NullString{Valid: true, String: "Server.SunriseMessageReject()"},
@@ -409,6 +431,9 @@ func (s *Server) SunriseMessageReject(c *gin.Context) {
 		return
 	}
 
+	// Notify the webhook only after the review has been committed.
+	s.notifySunriseWebhook(ctx, hookReq)
+
 	// If successful, then redirect to the sunrise message complete page.
 	htmx.Redirect(c, http.StatusTemporaryRedirect, "/sunrise/complete")
 }
@@ -422,6 +447,7 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		sunriseMsg *models.Sunrise
 		payload    *trisa.Payload
 		packet     *postman.SunrisePacket
+		hookReq    *webhook.Request
 	)
 
 	in = &api.Envelope{}
@@ -500,6 +526,13 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		return
 	}
 
+	// Build the webhook request before Save seals the incoming envelope.
+	if hookReq, err = packet.WebhookRequest(); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
+		return
+	}
+
 	// Create a prepared transaction to create secure envelopes
 	if packet.DB, err = s.store.PrepareTransaction(ctx, packet.Transaction.ID, &models.ComplianceAuditLog{
 		ChangeNotes: sql.NullString{Valid: true, String: "Server.SunriseMessageAccept()"},
@@ -537,6 +570,9 @@ func (s *Server) SunriseMessageAccept(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, api.Error("could not complete request"))
 		return
 	}
+
+	// Notify the webhook only after the review has been committed.
+	s.notifySunriseWebhook(ctx, hookReq)
 
 	// If successful, then redirect to the sunrise message complete page.
 	htmx.Redirect(c, http.StatusTemporaryRedirect, "/sunrise/complete")
