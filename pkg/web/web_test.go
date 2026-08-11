@@ -30,7 +30,7 @@ func TestServerEnabled(t *testing.T) {
 			UIEnabled:  false,
 		}}
 
-		_, err := web.New(conf, nil, nil)
+		_, err := web.New(conf, nil, nil, nil)
 		require.EqualError(t, err, "invalid configuration: if enabled, either the api, ui, or both need to be enabled")
 	})
 
@@ -73,7 +73,7 @@ func TestServerEnabled(t *testing.T) {
 			Origin:     "http://locahost:57132",
 		}}
 
-		srv, err := web.New(conf, store, network)
+		srv, err := web.New(conf, store, network, nil)
 		require.NoError(t, err, "could not start web server")
 
 		err = srv.Serve(nil)
@@ -166,7 +166,7 @@ func TestServerEnabled(t *testing.T) {
 			Origin:     "http://locahost:57132",
 		}}
 
-		srv, err := web.New(conf, store, network)
+		srv, err := web.New(conf, store, network, nil)
 		require.NoError(t, err, "could not start web server")
 
 		err = srv.Serve(nil)

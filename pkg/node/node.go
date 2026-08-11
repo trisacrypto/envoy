@@ -120,7 +120,7 @@ func New(conf config.Config) (node *Node, err error) {
 	audit.UseKeyChain(kc)
 
 	// Create the admin web ui server if it is enabled
-	if node.admin, err = web.New(conf, node.store, node.network); err != nil {
+	if node.admin, err = web.New(conf, node.store, node.network, node.webhook); err != nil {
 		return nil, err
 	}
 
