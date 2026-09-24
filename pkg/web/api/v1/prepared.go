@@ -32,6 +32,7 @@ type Routing struct {
 	CounterpartyID ulid.ULID `json:"counterparty_id,omitempty"`
 	Counterparty   string    `json:"counterparty,omitempty"`
 	EmailAddress   string    `json:"email,omitempty"`
+	AsBeneficiary  bool      `json:"as_beneficiary,omitempty"`
 }
 
 type Person struct {

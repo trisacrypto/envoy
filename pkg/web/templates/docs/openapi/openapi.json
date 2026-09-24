@@ -2824,6 +2824,11 @@
                         "type": "string",
                         "description": "Optional for the Sunrise protocol, the email address of the compliance contact at the counterparty to send the Sunrise message to. May contain a name and bracketed email.",
                         "example": "Jane Smith <jane@alicecoin.com>"
+                    },
+                    "as_beneficiary": {
+                        "type": "boolean",
+                        "description": "Mark the sender as the beneficiary and the counterparty as the originator for reverse Travel Rule requests.",
+                        "example": true
                     }
                 },
                 "required": [
@@ -9533,7 +9538,8 @@
                                 "routing": {
                                     "protocol": "sunrise",
                                     "counterparty": "AliceCoin, LLC",
-                                    "email": "Jane Smith <jane@alicecoin.com>"
+                                    "email": "Jane Smith <jane@alicecoin.com>",
+                                    "as_beneficiary": true
                                 },
                                 "originator": {
                                     "first_name": "James",
