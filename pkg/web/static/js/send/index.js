@@ -149,6 +149,11 @@ document.body.addEventListener('htmx:configRequest', function(e) {
         value = parseFloat(value);
       }
 
+      // Need to convert the routing_as_beneficiary checkbox to a boolean.
+      if (key == "as_beneficiary") {
+        value = JSON.parse(value);
+      }
+
       obj[key] = value;
     });
 

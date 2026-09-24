@@ -21,6 +21,8 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 		err             error
 		in              *api.Prepare
 		out             *api.Prepared
+		localparty      *models.Counterparty
+		counterparty    *models.Counterparty
 		beneficiaryVASP *models.Counterparty
 		originatorVASP  *models.Counterparty
 	)
@@ -39,7 +41,7 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 	}
 
 	// Get originator VASP information from database
-	if originatorVASP, err = s.Localparty(c.Request.Context()); err != nil {
+	if localparty, err = s.Localparty(c.Request.Context()); err != nil {
 		c.Error(err)
 		if errors.Is(err, ErrNoLocalparty) {
 			c.JSON(http.StatusPreconditionFailed, api.Error("no IVMS101 information found for local party; node is incorrectly configured or directory sync has failed"))
@@ -53,9 +55,18 @@ func (s *Server) PrepareTransaction(c *gin.Context) {
 	// Parse the routing object to identify the beneficiary VASP and lookup the
 	// counterparty in the local database for IVMS101 information if any.
 	// If this is a sunrise message, the counterparty is created if necessary.
-	if beneficiaryVASP, err = s.ResolveCounterparty(c, in.Routing); err != nil {
+	if counterparty, err = s.ResolveCounterparty(c, in.Routing); err != nil {
 		// NOTE: CounterpartyFromTravelAddress handles API response back to user.
 		return
+	}
+
+	// Determine the originator and the beneficiary based on the routing object.
+	if in.Routing.AsBeneficiary {
+		originatorVASP = counterparty
+		beneficiaryVASP = localparty
+	} else {
+		originatorVASP = localparty
+		beneficiaryVASP = counterparty
 	}
 
 	// Convert the incoming data into the appropriate TRISA data structures
