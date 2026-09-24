@@ -147,6 +147,17 @@
       </div>
     </div>
     {{ end}}
+
+    <!-- Send as beneficiary checkbox is valid for all protocols-->
+    <div class="form-group">
+      <div class="form-check form-switch">
+        <input type="checkbox" class="form-check-input" id="routingAsBeneficiary" name="routing_as_beneficiary" value="true">
+        <label class="form-check-label" for="routingAsBeneficiary">Send as Beneficiary</label>
+      </div>
+      <small class="form-text text-body-secondary mt-2 ps-1">
+        Create a transaction where our VASP is the beneficiary and the counterparty is the originator for reverse Travel Rule requests.
+      </small>
+    </div>
   </fieldset><!-- end choose counterparty -->
   <hr class="mt-4 mb-5">
 
