@@ -3,6 +3,8 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"net/mail"
 	"net/url"
 	"regexp"
 	"strings"
@@ -183,10 +185,44 @@ func (c *Counterparty) Validate() (err error) {
 		err = ValidationError(err, ReadOnlyField("registered_directory"))
 	}
 
+	// Protocol specific handling
 	if protocol, perr := enum.ParseProtocol(c.Protocol); perr != nil {
 		err = ValidationError(err, IncorrectField("protocol", "use trisa, trp, or sunrise"))
-	} else if protocol == enum.ProtocolUnknown {
-		err = ValidationError(err, MissingField("protocol"))
+	} else {
+		switch protocol {
+		case enum.ProtocolTRP:
+			if c.TravelAddress != "" && c.Endpoint == "" {
+				// Set the endpoint to the travel address
+				if c.Endpoint, perr = traddr.DecodeURL(c.TravelAddress); perr != nil {
+					err = ValidationError(err, IncorrectField("travel_address", "invalid travel address"))
+				}
+			}
+
+			if c.Endpoint == "" && c.TravelAddress == "" {
+				err = ValidationError(err, MissingField("travel_address"))
+			}
+
+		case enum.ProtocolSunrise:
+			if len(c.Contacts) > 0 && c.Endpoint == "" {
+				// Set the endpoint to the first contact's email
+				var mailto *mail.Address
+				if mailto, perr = mail.ParseAddress(c.Contacts[0].Email); perr != nil {
+					err = ValidationError(err, IncorrectField("contacts", "invalid contact email"))
+				} else {
+					c.Endpoint = fmt.Sprintf("mailto:%s", mailto.Address)
+				}
+
+				if c.CommonName == "" {
+					c.CommonName = strings.Split(mailto.Address, "@")[1]
+				}
+			}
+
+			if c.Endpoint == "" && len(c.Contacts) == 0 {
+				err = ValidationError(err, MissingField("contacts"))
+			}
+		case enum.ProtocolUnknown:
+			err = ValidationError(err, MissingField("protocol"))
+		}
 	}
 
 	if c.CommonName == "" {

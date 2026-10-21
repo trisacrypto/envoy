@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/rotationalio/confire"
 	"github.com/stretchr/testify/require"
 	"github.com/trisacrypto/envoy/pkg/emails"
+	"go.rtnl.ai/confire"
 )
 
 var testEnv = map[string]string{

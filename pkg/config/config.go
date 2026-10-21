@@ -13,8 +13,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rotationalio/confire"
 	"github.com/rs/zerolog"
+	"go.rtnl.ai/confire"
 )
 
 // All environment variables will have this prefix unless otherwise defined in struct

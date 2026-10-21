@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/joho/godotenv"
-	"github.com/rotationalio/confire"
 	"github.com/stretchr/testify/require"
 	. "github.com/trisacrypto/envoy/pkg/emails"
+	"go.rtnl.ai/confire"
 	"go.rtnl.ai/x/vero"
 )
 

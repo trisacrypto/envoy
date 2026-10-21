@@ -37,8 +37,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg"
 
 	"github.com/joho/godotenv"
-	confire "github.com/rotationalio/confire/usage"
 	"github.com/urfave/cli/v2"
+	confire "go.rtnl.ai/confire/usage"
 	"go.rtnl.ai/ulid"
 )
 
