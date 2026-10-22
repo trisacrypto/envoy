@@ -106,7 +106,7 @@ func (tm *ClaimsIssuer) Verify(tks string) (claims *Claims, err error) {
 // handled on a case-by-case basis; for example by validating an expired access token
 // during reauthentication.
 func (tm *ClaimsIssuer) Parse(tks string) (claims *Claims, err error) {
-	parser := &jwt.Parser{SkipClaimsValidation: true}
+	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
 	claims = &Claims{}
 	if _, err = parser.ParseWithClaims(tks, claims, tm.keyFunc); err != nil {
 		return nil, err

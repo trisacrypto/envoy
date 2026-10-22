@@ -22,7 +22,46 @@ func TestCounterpartyValidate(t *testing.T) {
 			Country:    "FR",
 		}
 
+		require.EqualError(t, counterparty.Validate(), "invalid field source: must be one of gds, user, or daybreak")
+	})
+
+	t.Run("SourceDaybreak", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "daybreak",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
 		require.EqualError(t, counterparty.Validate(), "read-only field source: this field cannot be written by the user")
+	})
+
+	t.Run("SourceGDS", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "gds",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
+		require.EqualError(t, counterparty.Validate(), "read-only field source: this field cannot be written by the user")
+	})
+
+	t.Run("SourceUser", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "user",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
+		require.NoError(t, counterparty.Validate(), "expected counterparty to be valid with source user")
 	})
 
 	t.Run("DirectoryID", func(t *testing.T) {
@@ -74,6 +113,18 @@ func TestCounterpartyValidate(t *testing.T) {
 
 			require.EqualError(t, counterparty.Validate(), "invalid field protocol: use trisa, trp, or sunrise")
 		})
+
+		t.Run("TRISA", func(t *testing.T) {
+			counterparty := &Counterparty{
+				Protocol:   "trisa",
+				CommonName: "trisa.example.com",
+				Endpoint:   "trisa.example.com:443",
+				Name:       "Test VASP",
+				Country:    "FR",
+			}
+
+			require.EqualError(t, counterparty.Validate(), "invalid field protocol: cannot edit counterparties with the TRISA protocol")
+		})
 	})
 
 	t.Run("CommonName", func(t *testing.T) {
@@ -84,7 +135,7 @@ func TestCounterpartyValidate(t *testing.T) {
 				Country:  "FR",
 			}
 
-			require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  missing common_name: this field is required\n  missing endpoint: this field is required")
+			require.EqualError(t, counterparty.Validate(), "3 validation errors occurred:\n  missing travel_address: this field is required\n  missing common_name: this field is required\n  missing endpoint: this field is required")
 		})
 
 		t.Run("FromEndpoint", func(t *testing.T) {
@@ -101,14 +152,92 @@ func TestCounterpartyValidate(t *testing.T) {
 	})
 
 	t.Run("Endpoint", func(t *testing.T) {
-		counterparty := &Counterparty{
-			Protocol:   "trp",
-			CommonName: "trisa.example.com",
-			Name:       "Test VASP",
-			Country:    "FR",
-		}
+		t.Run("TRISA", func(t *testing.T) {
+			counterparty := &Counterparty{
+				Protocol:   "trisa",
+				CommonName: "trisa.example.com",
+				Name:       "Test VASP",
+				Country:    "FR",
+			}
 
-		require.EqualError(t, counterparty.Validate(), "missing endpoint: this field is required")
+			require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  invalid field protocol: cannot edit counterparties with the TRISA protocol\n  missing endpoint: this field is required")
+		})
+
+		t.Run("TRP", func(t *testing.T) {
+			t.Run("Missing", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol:   "trp",
+					CommonName: "trisa.example.com",
+					Name:       "Test VASP",
+					Country:    "FR",
+				}
+
+				require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  missing travel_address: this field is required\n  missing endpoint: this field is required")
+			})
+
+			t.Run("InvalidTravelAddress", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol:      "trp",
+					TravelAddress: "invalid",
+					CommonName:    "example.com",
+					Name:          "Test VASP",
+					Country:       "FR",
+				}
+
+				require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  invalid field travel_address: invalid travel address\n  missing endpoint: this field is required")
+			})
+
+			t.Run("FromTravelAddress", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol:      "trp",
+					TravelAddress: "ta32sgxYnHqYMeJSfyng1wA3s7zCw5Q48v",
+					Name:          "Test VASP",
+					Country:       "FR",
+				}
+
+				require.NoError(t, counterparty.Validate(), "expected counterparty to be valid with travel address")
+				require.Equal(t, "https://beneficiary.com?t=i", counterparty.Endpoint, "expected endpoint to be set to the travel address")
+				require.Equal(t, "beneficiary.com", counterparty.CommonName, "expected common name to be set to the travel address")
+			})
+		})
+
+		t.Run("Sunrise", func(t *testing.T) {
+			t.Run("Missing", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol:   "sunrise",
+					CommonName: "example.com",
+					Name:       "Test VASP",
+					Country:    "FR",
+				}
+
+				require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  missing contacts: this field is required\n  missing endpoint: this field is required")
+			})
+
+			t.Run("InvalidContacts", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol:   "sunrise",
+					CommonName: "example.com",
+					Name:       "Test VASP",
+					Country:    "FR",
+					Contacts:   []*Contact{{Email: "invalid"}},
+				}
+
+				require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  invalid field contacts: invalid contact email\n  missing endpoint: this field is required")
+			})
+
+			t.Run("FromContacts", func(t *testing.T) {
+				counterparty := &Counterparty{
+					Protocol: "sunrise",
+					Name:     "Test VASP",
+					Country:  "FR",
+					Contacts: []*Contact{{Name: "Compliance Officer", Email: "compliance@beneficiary.com"}},
+				}
+
+				require.NoError(t, counterparty.Validate(), "expected counterparty to be valid with travel address")
+				require.Equal(t, "mailto:compliance@beneficiary.com", counterparty.Endpoint, "expected endpoint to be set to the travel address")
+				require.Equal(t, "beneficiary.com", counterparty.CommonName, "expected common name to be set to the travel address")
+			})
+		})
 	})
 
 	t.Run("Name", func(t *testing.T) {

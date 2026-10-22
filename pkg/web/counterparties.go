@@ -3,6 +3,7 @@ package web
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -171,8 +172,12 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 	if err = s.store.CreateCounterparty(c.Request.Context(), counterparty, &models.ComplianceAuditLog{
 		ChangeNotes: sql.NullString{Valid: true, String: "Server.CreateCounterparty()"},
 	}); err != nil {
-		// TODO: are there other error types we need to handle to return a 400?
 		c.Error(err)
+		if errors.Is(err, dberr.ErrAlreadyExists) {
+			c.JSON(http.StatusConflict, api.Error(fmt.Errorf("counterparty already exists: %s", counterparty.CommonName)))
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, api.Error(err))
 		return
 	}
@@ -375,18 +380,16 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
-	if counterparty.Source != enum.SourceUnknown && original.Source != counterparty.Source {
-		if original.Source != enum.SourceUserEntry {
-			c.JSON(http.StatusConflict, api.Error("only user created records can be edited"))
-		} else {
-			c.JSON(http.StatusConflict, api.Error("the source of a counterparty record cannot be changed"))
-		}
+	if original.Source != enum.SourceUserEntry {
+		c.JSON(http.StatusConflict, api.Error("only user created records can be edited"))
 		return
 	}
 
 	// Ensure that the source is always set to the original source for API updates
 	// (e.g. overwrite source unknown)
 	counterparty.Source = original.Source
+	counterparty.DirectoryID = original.DirectoryID
+	counterparty.RegisteredDirectory = original.RegisteredDirectory
 
 	// Ensure the website has a protocol (only return if a valid string is unparseable)
 	if counterparty.Website.String, err = counterparty.NormalizedWebsite(); err != nil {

@@ -1,0 +1,31 @@
+{{ define "deleteCounterpartyModal" }}
+<div id="deleteCounterpartyModal" class="modal" tabindex="-1">
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete Counterparty?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light">
+          Deleting a counterparty will <strong>not</strong> delete any associated
+          transfers that contain the counterparty PII data. It <em>will</em> delete
+          all associated counterparty IVMS101 data and the counterparty will be
+          unlinked from any transfers.
+        </div>
+        <p class="px-3 text-danger"><strong>Are you sure you want to delete the following counterparty?</strong></p>
+        <dl class="row px-3">
+          <dt class="col-5">Counterparty ID:</dt>
+          <dd class="col-7" id="counterpartyID"></dd>
+          <dt class="col-5">Counterparty Name:</dt>
+          <dd class="col-7" id="name"></dd>
+        </dl>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteBtn" type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}
