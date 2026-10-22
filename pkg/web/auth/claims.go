@@ -122,7 +122,7 @@ func (c Claims) HasAllPermissions(required ...string) bool {
 }
 
 // Used to extract expiration and not before timestamps without having to use public keys
-var tsparser = &jwt.Parser{SkipClaimsValidation: true}
+var tsparser = jwt.NewParser(jwt.WithoutClaimsValidation())
 
 func ParseUnverified(tks string) (claims *jwt.RegisteredClaims, err error) {
 	claims = &jwt.RegisteredClaims{}
