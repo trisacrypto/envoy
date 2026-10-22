@@ -22,7 +22,46 @@ func TestCounterpartyValidate(t *testing.T) {
 			Country:    "FR",
 		}
 
+		require.EqualError(t, counterparty.Validate(), "invalid field source: must be one of gds, user, or daybreak")
+	})
+
+	t.Run("SourceDaybreak", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "daybreak",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
 		require.EqualError(t, counterparty.Validate(), "read-only field source: this field cannot be written by the user")
+	})
+
+	t.Run("SourceGDS", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "gds",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
+		require.EqualError(t, counterparty.Validate(), "read-only field source: this field cannot be written by the user")
+	})
+
+	t.Run("SourceUser", func(t *testing.T) {
+		counterparty := &Counterparty{
+			Source:     "user",
+			Protocol:   "trp",
+			CommonName: "trisa.example.com",
+			Endpoint:   "https://trisa.example.com",
+			Name:       "Test VASP",
+			Country:    "FR",
+		}
+
+		require.NoError(t, counterparty.Validate(), "expected counterparty to be valid with source user")
 	})
 
 	t.Run("DirectoryID", func(t *testing.T) {
@@ -74,6 +113,18 @@ func TestCounterpartyValidate(t *testing.T) {
 
 			require.EqualError(t, counterparty.Validate(), "invalid field protocol: use trisa, trp, or sunrise")
 		})
+
+		t.Run("TRISA", func(t *testing.T) {
+			counterparty := &Counterparty{
+				Protocol:   "trisa",
+				CommonName: "trisa.example.com",
+				Endpoint:   "trisa.example.com:443",
+				Name:       "Test VASP",
+				Country:    "FR",
+			}
+
+			require.EqualError(t, counterparty.Validate(), "invalid field protocol: cannot edit counterparties with the TRISA protocol")
+		})
 	})
 
 	t.Run("CommonName", func(t *testing.T) {
@@ -109,7 +160,7 @@ func TestCounterpartyValidate(t *testing.T) {
 				Country:    "FR",
 			}
 
-			require.EqualError(t, counterparty.Validate(), "missing endpoint: this field is required")
+			require.EqualError(t, counterparty.Validate(), "2 validation errors occurred:\n  invalid field protocol: cannot edit counterparties with the TRISA protocol\n  missing endpoint: this field is required")
 		})
 
 		t.Run("TRP", func(t *testing.T) {

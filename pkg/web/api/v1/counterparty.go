@@ -173,8 +173,12 @@ func (c *Counterparty) IVMS101() (p *ivms101.LegalPerson, err error) {
 }
 
 func (c *Counterparty) Validate() (err error) {
-	if c.Source != "" && !enum.ValidSource(c.Source) {
-		err = ValidationError(err, ReadOnlyField("source"))
+	if c.Source != "" {
+		if src, perr := enum.ParseSource(c.Source); perr != nil {
+			err = ValidationError(err, IncorrectField("source", "must be one of gds, user, or daybreak"))
+		} else if src != enum.SourceUserEntry {
+			err = ValidationError(err, ReadOnlyField("source"))
+		}
 	}
 
 	if c.DirectoryID != "" {
@@ -220,6 +224,8 @@ func (c *Counterparty) Validate() (err error) {
 			if c.Endpoint == "" && len(c.Contacts) == 0 {
 				err = ValidationError(err, MissingField("contacts"))
 			}
+		case enum.ProtocolTRISA:
+			err = ValidationError(err, IncorrectField("protocol", "cannot edit counterparties with the TRISA protocol"))
 		case enum.ProtocolUnknown:
 			err = ValidationError(err, MissingField("protocol"))
 		}
