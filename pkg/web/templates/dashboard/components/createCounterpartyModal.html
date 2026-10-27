@@ -4,57 +4,92 @@
     <div class="modal-content">
       <div class="modal-header mb-n3">
         <h4 class="modal-title">Add Counterparty</h4>
-        <ul class="nav nav-tabs nav-tabs-sm card-header-tabs mb-n3" role="tablist">
-          <li class="nav-item">
-            <button id="createCounterpartyTabSunrise" class="nav-link active" data-bs-toggle="tab"
-              data-bs-target="#createCounterpartyTabSunrisePane" type="button" role="tab"
-              aria-controls="create-counterparty-sunrise-tab-pane", area-selected="true">
-              <i class="fe fe-sunrise"></i>
-              Sunrise
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="createCounterpartyTabTRP" class="nav-link" data-bs-toggle="tab"
-              data-bs-target="#createCounterpartyTabTRPPane" type="button" role="tab"
-              aria-controls="create-counterparty-trp-tab-pane" , area-selected="false">
-              <i class="fe fe-zap"></i>
-              TRP
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="createCounterpartyTabTRISA" class="nav-link" data-bs-toggle="tab"
-              data-bs-target="#createCounterpartyTabTRISAPane" type="button" role="tab"
-              aria-controls="create-counterparty-trisa-tab-pane" , area-selected="false">
-              <i class="fe fe-shield"></i>
-              TRISA
-            </button>
-          </li>
-        </ul>
       </div>
       <div class="modal-body">
         <div id="createCounterpartyAlerts" class="alerts"></div>
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="createCounterpartyTabSunrisePane"
-            role="tabpanel" aria-labelledby="createCounterpartyTabSunrise" tabindex="0">
-            <h4>Sunrise</h4>
+        <form id="createCounterpartyForm" hx-post="/v1/counterparties" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="#createCounterpartySubmit">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Counterparty Name</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="protocol">Protocol</label>
+                <select id="protocol" name="protocol" class="form-control" data-protocols='{"searchEnabled": false}'></select>
+              </div>
+            </div>
+            <div id="sunriseFields" class="d-none row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="contact_name">Contact Name</label>
+                  <input type="text" id="contact_name" name="contact_name" class="form-control">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="contact_email">Contact Email</label>
+                  <input type="email" id="contact_email" name="contact_email" class="form-control">
+                </div>
+              </div>
+            </div>
+            <div id="trpFields" class="d-none row">
+              <div class="form-group">
+                <label for="travel_address">Travel Address</label>
+                <input type="text" id="travel_address" name="travel_address" class="form-control">
+              </div>
+              <div class="d-flex align-items-center gap-3 my-3">
+                <div class="flex-grow-1 border-top"></div>
+                <span class="text-muted">OR</span>
+                <div class="flex-grow-1 border-top"></div>
+              </div>
+              <div class="form-group">
+                <label for="endpoint">Endpoint</label>
+                <input type="text" id="endpoint" name="endpoint" class="form-control">
+              </div>
+            </div>
+            <div id="optionalFields">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="country">Country</label>
+                    <select class="form-control" id="country" name="country" data-countries='{"searchEnabled": true}'></select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="website">Website</label>
+                    <input type="url" id="website" name="website" class="form-control">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="business_category">Business Category</label>
+                    <select class="form-control" id="business_category" name="business_category" data-business-categories='{"searchEnabled": true}'></select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="vasp_categories">VASP Categories</label>
+                    <select class="form-control" id="vasp_categories" name="vasp_categories" multiple data-placeholder="Select VASP Categories" data-vasp-categories='{"searchEnabled": true}'></select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="tab-pane fade" id="createCounterpartyTabTRPPane"
-            role="tabpanel" aria-labelledby="createCounterpartyTabTRP" tabindex="0">
-            <h4>TRP</h4>
-          </div>
-          <div class="tab-pane fade" id="createCounterpartyTabTRISAPane"
-            role="tabpanel" aria-labelledby="createCounterpartyTabTRISA" tabindex="0">
-            <h4>TRISA</h4>
-          </div>
-        </div>
+        </form>
       </div>
       <div class="modal-footer">
         <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        <button type="submit" form="createCounterpartyForm" class="btn btn-primary">
-          Create
-        </button>
-        <button type="reset" form="createCounterpartyForm" class="btn btn-secondary" data-bs-dismiss="modal">
+        <button type="button" id="cancelCreateCounterparty" class="btn btn-secondary" data-bs-dismiss="modal">
           Cancel
+        </button>
+        <button id="createCounterpartySubmit" type="submit" form="createCounterpartyForm" class="btn btn-primary">
+          Create
         </button>
       </div>
     </div>
