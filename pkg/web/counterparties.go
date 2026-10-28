@@ -500,9 +500,10 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 
 func (s *Server) CounterpartyQRCode(c *gin.Context) {
 	var (
-		err          error
-		counterparty *models.Counterparty
-		qrc          *qrcode.QRCode
+		err           error
+		counterparty  *models.Counterparty
+		travelAddress string
+		qrc           *qrcode.QRCode
 	)
 
 	// Retrieve the counterparty from the database.
@@ -517,12 +518,21 @@ func (s *Server) CounterpartyQRCode(c *gin.Context) {
 		return
 	}
 
-	if !counterparty.TravelAddress.Valid || counterparty.TravelAddress.String == "" {
+	// Match NewCounterparty: use the stored travel address, or derive it from the endpoint.
+	if counterparty.TravelAddress.Valid && counterparty.TravelAddress.String != "" {
+		travelAddress = counterparty.TravelAddress.String
+	} else if travelAddress, err = api.EndpointTravelAddress(counterparty.Endpoint, counterparty.Protocol); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate travel address"))
+		return
+	}
+
+	if travelAddress == "" {
 		c.JSON(http.StatusNotFound, api.Error("counterparty does not have a travel address"))
 		return
 	}
 
-	if qrc, err = qrcode.New(counterparty.TravelAddress.String, qrcode.Medium); err != nil {
+	if qrc, err = qrcode.New(travelAddress, qrcode.Medium); err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
 		return

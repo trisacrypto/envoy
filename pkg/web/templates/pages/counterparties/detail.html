@@ -1,7 +1,5 @@
 {{ template "page.html" . }}
 {{ define "title" }}Counterparty Management | TRISA Envoy{{ end }}
-{{ define "pretitle" }}Counterparties{{ end }}
-{{ define "pagetitle" }}Counterparty Detail{{ end }}
 
 {{ define "htmxConfig" }}
 <meta
@@ -38,9 +36,9 @@
 </div>
 
 <div class="row">
+  {{- if eq .Protocol "trp" }}
   <div class="col-12 col-lg-4">
-
-    <!-- QR Code -->
+    <!-- Travel Address QR Code -->
     <div class="card card-fill">
       <div class="card-header">
         <div class="row">
@@ -54,73 +52,86 @@
       </div>
       <div class="card-body">
         <img class="img-fluid" src="/v1/counterparties/{{ .ID }}/qrcode" alt="Update to Regenerate Travel Address" />
-        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ .TravelAddress }}</p>
+        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ if .TravelAddress }}{{ .TravelAddress }}{{ else }}&mdash;{{ end }}</p>
       </div>
     </div>
-
   </div>
+  {{- end }}
 
-  <div class="col-12 col-lg-8">
+  <div class="col-12{{ if eq .Protocol "trp" }} col-lg-8{{ end }}">
     <div class="card card-fill">
       <div class="card-header">
-        <div class="row">
-          <div class="col">
-            <h4 class="card-title">
-              Customer Number:
-              <span class="text-muted font-monospace ms-1">&mdash;</span>
-              <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="" data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
-            </h4>
-          </div>
-          {{/*
-          <div class="col-auto">
-            {{- if .HasIVMSRecord }}
-            <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
-            {{- else }}
-            <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
-            {{- end }}
-          </div>
-          */}}
-        </div>
+        <h4 class="card-header-title">Details</h4>
       </div>
       <div class="card-body">
         <div class="list-group list-group-flush my-n3">
           <div class="list-group-item">
             <div class="row align-items-center">
               <div class="col">
-                <h5 class="mb-0">Envoy ID</h5>
+                <h5 class="mb-0">Protocol</h5>
               </div>
               <div class="col-auto">
-                <span class="text-body-secondary">&mdash;</span>
+                <span class="text-body-secondary">{{ if .Protocol }}{{ .Protocol }}{{ else }}&mdash;{{ end }}</span>
               </div>
             </div>
           </div>
           <div class="list-group-item">
             <div class="row align-items-center">
               <div class="col">
-                <h5 class="mb-0">Customer ID</h5>
+                <h5 class="mb-0">Endpoint</h5>
               </div>
               <div class="col-auto">
-                <span class="text-body-secondary">&mdash;</span>
+                <span class="text-body-secondary font-monospace">{{ if .Endpoint }}{{ .Endpoint }}{{ else }}&mdash;{{ end }}</span>
               </div>
             </div>
           </div>
           <div class="list-group-item">
             <div class="row align-items-center">
               <div class="col">
-                <h5 class="mb-0">First Name</h5>
+                <h5 class="mb-0">Website</h5>
               </div>
               <div class="col-auto">
+                {{- if .Website }}
+                <a class="text-body-secondary" href="{{ .Website }}" target="_blank" rel="noopener noreferrer">{{ .Website }}</a>
+                {{- else }}
                 <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
               </div>
             </div>
           </div>
           <div class="list-group-item">
             <div class="row align-items-center">
               <div class="col">
-                <h5 class="mb-0">Last Name</h5>
+                <h5 class="mb-0">Country</h5>
               </div>
               <div class="col-auto">
-                <span class="text-body-secondary">&mdash;</span>
+                <span class="text-body-secondary">{{ if .Country }}{{ flag .Country }} {{ .Country }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Business Category</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .BusinessCategory }}{{ .BusinessCategory }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">VASP Categories</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">
+                  {{- if .VASPCategories }}
+                  {{- range $i, $cat := .VASPCategories }}{{ if $i }}, {{ end }}{{ $cat }}{{ end }}
+                  {{- else }}
+                  &mdash;
+                  {{- end }}
+                </span>
               </div>
             </div>
           </div>
@@ -130,7 +141,11 @@
                 <h5 class="mb-0">Created</h5>
               </div>
               <div class="col-auto">
+                {{- if not .Created.IsZero }}
                 <time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+                {{- else }}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
               </div>
             </div>
           </div>
@@ -140,7 +155,11 @@
                 <h5 class="mb-0">Modified</h5>
               </div>
               <div class="col-auto">
+                {{- if and .Modified (not .Modified.IsZero) }}
                 <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+                {{- else }}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
               </div>
             </div>
           </div>
