@@ -270,15 +270,6 @@ func (s Scene) CounterpartyList() *api.CounterpartyList {
 	return nil
 }
 
-func (s Scene) CounterpartyDetail() *api.Counterparty {
-	if data, ok := s[APIData]; ok {
-		if out, ok := data.(*api.Counterparty); ok {
-			return out
-		}
-	}
-	return nil
-}
-
 func (s Scene) ContactList() *api.ContactList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.ContactList); ok {
