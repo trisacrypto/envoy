@@ -20,6 +20,7 @@ function resetCreateContactForm() {
 }
 
 document.addEventListener("htmx:afterSettle", function (e) {
+  // Initialize List.js.
   if (isRequestMatch(e, "/v1/counterparties/[0-7][0-9A-HJKMNP-TV-Z]{25}/contacts", "get")) {
     const table = document.getElementById("contactList");
     if (table) createList(table);
@@ -28,10 +29,12 @@ document.addEventListener("htmx:afterSettle", function (e) {
 
 const createContactModal = document.getElementById("createContactModal");
 if (createContactModal) {
+  // Reset the form when the modal is hidden.
   createContactModal.addEventListener("hidden.bs.modal", resetCreateContactForm);
 }
 
 document.body.addEventListener("contact-created", function () {
+  // Hide the modal and reset the form when a contact is created.
   const modal = Modal.getInstance(createContactModal);
   if (modal) {
     modal.hide();
@@ -39,6 +42,7 @@ document.body.addEventListener("contact-created", function () {
   resetCreateContactForm();
 });
 
+// Handle errors from the create counterparty contact endpoint.
 document.body.addEventListener("htmx:responseError", function (e) {
   if (isRequestMatch(e, "/v1/counterparties/[0-7][0-9A-HJKMNP-TV-Z]{25}/contacts", "post")) {
     const error = JSON.parse(e.detail.xhr.response);
