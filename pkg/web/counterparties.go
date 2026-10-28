@@ -10,6 +10,7 @@ import (
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
 	"github.com/trisacrypto/envoy/pkg/web/api/v1"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 	"github.com/trisacrypto/envoy/pkg/web/scene"
 
 	"github.com/gin-gonic/gin"
@@ -182,6 +183,11 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CounterpartyCreated)
+		return
+	}
+
 	// Convert the model back to an API response
 	if out, err = api.NewCounterparty(counterparty, query); err != nil {
 		c.Error(err)
@@ -189,11 +195,7 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "counterparty_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) CounterpartyDetail(c *gin.Context) {

@@ -52,7 +52,7 @@
 {{- end }}
 
 {{- define "main" }}
-<section id="counterparties" hx-get="/v1/counterparties?source={{ .Source }}" hx-trigger="load">
+<section id="counterparties" hx-get="/v1/counterparties?source={{ .Source }}" hx-trigger="load, counterparty-created from:body">
   <div class="card">
     <div class="card-body text-center">
       <div class="spinner-border" role="status">
