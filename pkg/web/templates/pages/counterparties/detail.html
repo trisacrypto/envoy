@@ -18,13 +18,136 @@
 {{ end }}
 
 {{ define "page-content" }}
-<section id="transaction" hx-get="/v1/counterparties/{{ .ID }}" hx-trigger="load, counterparties-updated from:body">
-  <div class="card">
-    <div class="card-body text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+{{- $canEditCounterparties := not .IsViewOnly -}}
+{{ with .CounterpartyDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle"><a href="/counterparties">Counterparties</a></h6>
+        <h1 class="header-title">{{ .Name }}</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/counterparties" class="btn btn-white lift" title="Back to Counterparties List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+    {{ template "counterpartyTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditCounterparties) }}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-4">
+
+    <!-- QR Code -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-header-title">Travel Address</h4>
+          </div>
+          <div class="col-auto">
+            <i class="fe fe-help-circle has-tooltip" title="The travel address must be sent to counterparties so they can begin TRP requests to your Envoy node." data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <img class="img-fluid" src="/v1/counterparties/{{ .ID }}/qrcode" alt="Update to Regenerate Travel Address" />
+        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ .TravelAddress }}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-12 col-lg-8">
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-title">
+              Customer Number:
+              <span class="text-muted font-monospace ms-1">&mdash;</span>
+              <small class="text-muted ms-2"><i class="fe fe-help-circle has-tooltip" title="" data-bs-toggle="tooltip" data-bs-placement="right"></i></small>
+            </h4>
+          </div>
+          {{/*
+          <div class="col-auto">
+            {{- if .HasIVMSRecord }}
+            <h4 class="card-title"><i class="fe fe-user-check has-tooltip" title="IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- else }}
+            <h4 class="card-title"><i class="fe fe-user-x has-tooltip" title="No IVMS101 Record Available" data-bs-toggle="tooltip" data-bs-placement="right"></i></h4>
+            {{- end }}
+          </div>
+          */}}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Envoy ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Customer ID</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">First Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Last Name</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Created</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Modified</h5>
+              </div>
+              <div class="col-auto">
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</section>
+</div>
+{{ end }}
 {{ end }}

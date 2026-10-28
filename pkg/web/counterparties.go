@@ -1,11 +1,13 @@
 package web
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/skip2/go-qrcode"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -200,19 +202,13 @@ func (s *Server) CreateCounterparty(c *gin.Context) {
 
 func (s *Server) CounterpartyDetail(c *gin.Context) {
 	var (
-		err            error
-		query          *api.EncodingQuery
-		counterpartyID ulid.ULID
-		counterparty   *models.Counterparty
-		out            *api.Counterparty
+		err          error
+		query        *api.EncodingQuery
+		counterparty *models.Counterparty
+		out          *api.Counterparty
 	)
 
-	// Parse the counterpartyID passed in from the URL
-	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
-		c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
-		return
-	}
-
+	// Parse the query parameters from the input request.
 	query = &api.EncodingQuery{}
 	if err = c.BindQuery(query); err != nil {
 		c.Error(err)
@@ -227,7 +223,7 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 	}
 
 	// Fetch the model from the database
-	if counterparty, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
 		if errors.Is(err, dberr.ErrNotFound) {
 			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
 			return
@@ -245,12 +241,32 @@ func (s *Server) CounterpartyDetail(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "partials/counterparties/detail.html",
-		HTMLData: scene.New(c).WithAPIData(out),
-	})
+	c.JSON(http.StatusOK, out)
+}
+
+// Helper function to retrieve a counterparty detail for the counterparties UI pages and the API.
+func (s *Server) RetrieveCounterparty(c *gin.Context) (*models.Counterparty, error) {
+	var (
+		err            error
+		counterpartyID ulid.ULID
+		counterparty   *models.Counterparty
+	)
+
+	// Parse the counterpartyID passed in from the URL.
+	if counterpartyID, err = ulid.Parse(c.Param("id")); err != nil {
+		return nil, ErrNotFound
+	}
+
+	// Fetch the model from the database.
+	if counterparty, err = s.store.RetrieveCounterparty(c.Request.Context(), counterpartyID); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+
+		return nil, err
+	}
+
+	return counterparty, nil
 }
 
 func (s *Server) UpdateCounterpartyPreview(c *gin.Context) {
@@ -480,6 +496,48 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 		Data:     scene.Scene{"CounterpartyID": counterpartyID, "Source": counterparty.Source},
 		HTMLName: "counterparty_delete.html",
 	})
+}
+
+func (s *Server) CounterpartyQRCode(c *gin.Context) {
+	var (
+		err          error
+		counterparty *models.Counterparty
+		qrc          *qrcode.QRCode
+	)
+
+	// Retrieve the counterparty from the database.
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve counterparty"))
+		return
+	}
+
+	if !counterparty.TravelAddress.Valid || counterparty.TravelAddress.String == "" {
+		c.JSON(http.StatusNotFound, api.Error("counterparty does not have a travel address"))
+		return
+	}
+
+	if qrc, err = qrcode.New(counterparty.TravelAddress.String, qrcode.Medium); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not generate QR code"))
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if err = qrc.Write(512, buf); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not write QR code"))
+		return
+	}
+
+	filename := counterparty.ID.String() + ".png"
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "image/png", buf.Bytes())
 }
 
 func (s *Server) ListContacts(c *gin.Context) {

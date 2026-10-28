@@ -265,6 +265,37 @@ func (s *Server) CounterpartyDetailPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "pages/counterparties/detail.html", ctx)
 }
 
+func (s *Server) CounterpartyEditPage(c *gin.Context) {
+	s.CounterpartyDetailTemplate(c, "pages/counterparties/edit.html")
+}
+
+func (s *Server) CounterpartyTransfersPage(c *gin.Context) {
+	s.CounterpartyDetailTemplate(c, "pages/counterparties/transfers.html")
+}
+
+func (s *Server) CounterpartyDetailTemplate(c *gin.Context, template string) {
+	var (
+		err          error
+		counterparty *models.Counterparty
+		ctx          scene.Scene
+	)
+
+	// Retrieve the counterparty from the database and handle errors
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			s.NotFound(c)
+			return
+		}
+
+		s.Error(c, err)
+		return
+	}
+
+	// Create a scene with the counterparty model
+	ctx = scene.New(c).WithAPIData(counterparty)
+	c.HTML(http.StatusOK, template, ctx)
+}
+
 //===========================================================================
 // Utility Pages
 //===========================================================================

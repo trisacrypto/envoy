@@ -105,8 +105,6 @@ func (s *Server) setupRoutes() (err error) {
 		ui.GET("/", s.Home)
 		ui.GET("/about", s.AboutPage)
 		ui.GET("/settings", s.SettingsPage)
-		ui.GET("/counterparties", s.CounterpartiesListPage)
-		ui.GET("/counterparties/:id", s.CounterpartyDetailPage)
 		ui.GET("/users", s.UsersListPage)
 		ui.GET("/apikeys", s.APIKeysListPage)
 		ui.GET("/utilities/travel-address", s.TravelAddressUtility)
@@ -118,6 +116,15 @@ func (s *Server) setupRoutes() (err error) {
 			accounts.GET("/:id", authorize(permiss.AccountsView), s.AccountDetailPage)
 			accounts.GET("/:id/edit", authorize(permiss.AccountsManage), s.AccountEditPage)
 			accounts.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.AccountTransfersPage)
+		}
+
+		// Counterparties Pages
+		counterparties := ui.Group("/counterparties")
+		{
+			counterparties.GET("", authorize(permiss.CounterpartiesView), s.CounterpartiesListPage)
+			counterparties.GET("/:id", authorize(permiss.CounterpartiesView), s.CounterpartyDetailPage)
+			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.CounterpartyEditPage)
+			counterparties.GET("/:id/transfers", authorize(permiss.TravelRuleView), s.CounterpartyTransfersPage)
 		}
 
 		// Profile Pages
@@ -266,6 +273,7 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
 			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
+			counterparties.GET("/:id/qrcode", authorize(permiss.CounterpartiesView), s.CounterpartyQRCode)
 
 			// Contacts Resource (nested on Counterparty)
 			contacts := counterparties.Group("/:id/contacts")
