@@ -279,6 +279,15 @@ func (s Scene) CounterpartyDetail() *api.Counterparty {
 	return nil
 }
 
+func (s Scene) ContactList() *api.ContactList {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.ContactList); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) APIKeysList() *api.APIKeyList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.APIKeyList); ok {

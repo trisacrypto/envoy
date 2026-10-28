@@ -1,0 +1,30 @@
+{{ with .ContactList -}}
+{{- if .Contacts }}
+<div id="contacts" class="table-responsive mb-0">
+  <table id="contactList" class="table table-sm table-nowrap table-hover card-table" data-list='{"valueNames": ["contact-name", "contact-email"]}'>
+    <thead>
+      <tr>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="contact-name">Name</a></th>
+        <th><a href="#" class="list-sort text-body-secondary" data-sort="contact-email">Email</a></th>
+      </tr>
+    </thead>
+    <tbody class="list fs-base">
+      {{ range .Contacts }}
+      <tr>
+        <td class="contact-name">{{ if .Name }}{{ .Name }}{{ else }}&mdash;{{ end }}</td>
+        <td class="contact-email">{{ .Email }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{- else }}
+<div id="contacts" class="card-body">
+  <div class="row">
+    <div class="col-12 text-center">
+      <p>There are no contacts associated with this counterparty.</p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

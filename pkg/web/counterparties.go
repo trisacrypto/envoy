@@ -518,7 +518,7 @@ func (s *Server) CounterpartyQRCode(c *gin.Context) {
 		return
 	}
 
-	// Match NewCounterparty: use the stored travel address, or derive it from the endpoint.
+	// Use the stored travel address or derive it from the endpoint.
 	if counterparty.TravelAddress.Valid && counterparty.TravelAddress.String != "" {
 		travelAddress = counterparty.TravelAddress.String
 	} else if travelAddress, err = api.EndpointTravelAddress(counterparty.Endpoint, counterparty.Protocol); err != nil {
@@ -598,7 +598,8 @@ func (s *Server) ListContacts(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "contact_list.html",
+		HTMLName: "partials/counterparties/contacts.html",
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(counterpartyID),
 	})
 }
 
@@ -655,6 +656,12 @@ func (s *Server) CreateContact(c *gin.Context) {
 		return
 	}
 
+	// If this is an HTMX request, trigger the contact created event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.ContactCreated)
+		return
+	}
+
 	// Convert the model back to an API response
 	if out, err = api.NewContact(model); err != nil {
 		c.Error(err)
@@ -662,11 +669,7 @@ func (s *Server) CreateContact(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusCreated, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		Data:     out,
-		HTMLName: "contact_create.html",
-	})
+	c.JSON(http.StatusCreated, out)
 }
 
 func (s *Server) ContactDetail(c *gin.Context) {

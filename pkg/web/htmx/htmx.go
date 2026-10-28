@@ -44,6 +44,7 @@ const (
 	UsersUpdated           = "users-updated"
 	APIKeysUpdated         = "apikeys-updated"
 	CounterpartyCreated    = "counterparty-created"
+	ContactCreated         = "contact-created"
 )
 
 // Redirect determines if the request is an HTMX request, if so, it sets the HX-Redirect
