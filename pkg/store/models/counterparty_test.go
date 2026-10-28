@@ -93,6 +93,7 @@ func TestCounterpartyScan(t *testing.T) {
 			time.Now(),                          // Created
 			time.Now(),                          // Modified
 			"LEI",                               // LEI
+			"TravelAddress",                     // TravelAddress
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)
@@ -121,6 +122,7 @@ func TestCounterpartyScan(t *testing.T) {
 		require.Equal(t, data[14], model.Created, "expected field Created to match data[14]")
 		require.Equal(t, data[15], model.Modified, "expected field Modified to match data[15]")
 		require.Equal(t, data[16], model.LEI.String, "expected field LEI to match data[16]")
+		require.Equal(t, data[17], model.TravelAddress.String, "expected field TravelAddress to match data[17]")
 	})
 
 	t.Run("SuccessNulls", func(t *testing.T) {
@@ -143,6 +145,7 @@ func TestCounterpartyScan(t *testing.T) {
 			time.Now(),                 // Created
 			time.Time{},                // Modified (testing zero value)
 			nil,                        // LEI (testing null)
+			nil,                        // TravelAddress (testing null)
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)
@@ -174,6 +177,7 @@ func TestCounterpartyScan(t *testing.T) {
 			time.Now(),                    // Created
 			time.Time{},                   // Modified (testing zero value)
 			nil,                           // LEI (testing null)
+			nil,                           // TravelAddress (testing null)
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)
@@ -205,6 +209,7 @@ func TestCounterpartyScan(t *testing.T) {
 			time.Now(),                 // Created
 			time.Time{},                // Modified (testing zero value)
 			nil,                        // LEI (testing null)
+			nil,                        // TravelAddress (testing null)
 		}
 		mockScanner := &mock.MockScanner{}
 		mockScanner.SetData(data)

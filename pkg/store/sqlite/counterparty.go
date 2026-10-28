@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties ORDER BY name ASC"
-	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE source=:source ORDER BY name ASC"
+	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created FROM counterparties ORDER BY name ASC"
+	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created FROM counterparties WHERE source=:source ORDER BY name ASC"
 )
 
 func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {
@@ -115,7 +115,7 @@ func (t *Tx) ListCounterpartySourceInfo(source enum.Source) (out []*models.Count
 	return out, nil
 }
 
-const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, lei, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :lei, :created, :modified)"
+const createCounterpartySQL = "INSERT INTO counterparties (id, source, directory_id, registered_directory, protocol, common_name, endpoint, name, website, country, business_category, vasp_categories, verified_on, ivms101, lei, travel_address, created, modified) VALUES (:id, :source, :directoryID, :registeredDirectory, :protocol, :commonName, :endpoint, :name, :website, :country, :businessCategory, :vaspCategories, :verifiedOn, :ivms101, :lei, :travelAddress, :created, :modified)"
 
 func (s *Store) CreateCounterparty(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
@@ -256,7 +256,7 @@ func (t *Tx) LookupCounterparty(field, value string) (counterparty *models.Count
 	return counterparty, nil
 }
 
-const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, lei=:lei, modified=:modified WHERE id=:id"
+const updateCounterpartySQL = "UPDATE counterparties SET source=:source, directory_id=:directoryID, registered_directory=:registeredDirectory, protocol=:protocol, common_name=:commonName, endpoint=:endpoint, name=:name, website=:website, country=:country, business_category=:businessCategory, vasp_categories=:vaspCategories, verified_on=:verifiedOn, ivms101=:ivms101, lei=:lei, travel_address=:travelAddress, modified=:modified WHERE id=:id"
 
 func (s *Store) UpdateCounterparty(ctx context.Context, counterparty *models.Counterparty, auditLog *models.ComplianceAuditLog) (err error) {
 	var tx *Tx
