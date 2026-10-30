@@ -60,6 +60,8 @@
 <div id="alerts"></div>
 <form id="editCounterpartyForm" hx-put="/v1/counterparties/{{ .ID }}?encoding=base64&format=json" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
   <input type="hidden" name="id" value="{{ .ID }}" />
+  <input type="hidden" name="name" value="{{ .Name }}" />
+  <input type="hidden" name="protocol" value="{{ .Protocol }}" />
   <input type="hidden" name="source" value="{{ .Source }}" />
   <input type="hidden" name="common_name" value="{{ .CommonName }}" />
 
