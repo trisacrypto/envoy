@@ -64,21 +64,6 @@
   <input type="hidden" name="common_name" value="{{ .CommonName }}" />
 
   <fieldset id="fieldsetCounterparty">
-    <div class="row">
-      <div class="col-12 col-md-6">
-        <div class="form-group">
-          <label class="form-label" for="name">Counterparty Name</label>
-          <input type="text" class="form-control" id="name" name="name" value="{{ .Name }}" required>
-        </div>
-      </div>
-      <div class="col-12 col-md-6">
-        <div class="form-group">
-          <label class="form-label" for="protocol">Protocol</label>
-          <select class="form-control" id="protocol" name="protocol" data-protocols='{"searchEnabled": false}' data-selected="{{ .Protocol }}"></select>
-        </div>
-      </div>
-    </div>
-
     <div id="trpFields" class="row{{ if ne .Protocol "trp" }} d-none{{ end }}">
       <div class="col-12">
         <div class="form-group">

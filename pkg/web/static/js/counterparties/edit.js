@@ -77,9 +77,8 @@ if (protocolSelect) {
 
 // Pre-flight request configuration for htmx requests.
 document.body.addEventListener("htmx:configRequest", function(e) {
-  /*
-  Prepare IVMS101 legal person record for updating the counterparty endpoint.
-  */
+  
+  // Prepare IVMS101 legal person record for updating the counterparty endpoint.
   if (isRequestMatch(e, "/v1/counterparties/[0-7][0-9A-HJKMNP-TV-Z]{25}", "put")) {
     const form = e.target;
     const formData = new FormData(form);
@@ -141,9 +140,7 @@ document.body.addEventListener("htmx:configRequest", function(e) {
 });
 
 
-/*
-Post-event handling when the counterparty-updated event is fired.
-*/
+// Post-event handling when the counterparty-updated event is fired.
 document.body.addEventListener("counterparty-updated", function(e) {
   const elt = e.detail?.elt;
   if (elt) {

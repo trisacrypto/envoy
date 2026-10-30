@@ -6,9 +6,8 @@ import (
 	"github.com/trisacrypto/envoy/pkg/store/models"
 )
 
-// Counterparty is used instead of api.Counterparty here to ensure we don't serialize and
-// deserialize the IVMSRecord field in the API response. It does add a bit of duplication
-// wrt the API code, but hopefully that will not be too onerous to maintain.
+// Counterparty is used instead of api.Counterparty to ensure we don't serialize and
+// deserialize the IVMSRecord field in the API response.
 type Counterparty struct {
 	ID                  string
 	Source              string
