@@ -44,6 +44,7 @@ const (
 	UsersUpdated           = "users-updated"
 	APIKeysUpdated         = "apikeys-updated"
 	CounterpartyCreated    = "counterparty-created"
+	CounterpartyUpdated    = "counterparty-updated"
 	ContactCreated         = "contact-created"
 )
 

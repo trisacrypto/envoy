@@ -83,6 +83,11 @@
                 <a href="/counterparties/{{ .ID }}" class="dropdown-item">
                   <i class="fe fe-eye"></i> View
                 </a>
+                {{ if $canEditCounterparties }}
+                <a href="/counterparties/{{ .ID }}/edit" class="dropdown-item">
+                  <i class="fe fe-edit"></i> Edit
+                </a>
+                {{ end }}
                 {{ if .Protocol }}
                 <a href="/send/{{ .Protocol }}?cid={{ .ID }}" class="dropdown-item">
                  <i class="fe fe-send"></i> Send {{ if eq .Protocol "sunrise" }}Sunrise{{ else }}{{ uppercase .Protocol }}{{ end }} Transfer
@@ -95,11 +100,6 @@
 
               <!-- TODO: Add this functionality -->
                 <!--
-                {{ if $canEditCounterparties }}
-                <a href="#!" class="dropdown-item">
-                  Edit
-                </a>
-                {{ end }}
                 <a href="#!" class="dropdown-item">
                   Copy Travel Address
                 </a>

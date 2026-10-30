@@ -1,0 +1,238 @@
+{{ template "page.html" . }}
+{{ define "title" }}Edit Counterparty | TRISA Envoy{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "modals" }}
+  {{ with .CounterpartyDetail }}
+  <div id="confirmDeleteModal" class="modal" tabindex="-1">
+    <div class='modal-dialog'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Counterparty?</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="lead">Are you sure you want to delete this counterparty?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteBtn" type="button" class="btn btn-danger" hx-delete="/v1/counterparties/{{ .ID }}">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+{{ end }}
+
+{{ define "page-content" -}}
+{{- $canEditCounterparties := not .IsViewOnly -}}
+{{ with .CounterpartyDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Counterparties</h6>
+        <h1 class="header-title">{{ .Name }}</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/counterparties" class="btn btn-white lift" title="Back to Counterparties List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div> <!-- / .row -->
+    {{ template "counterpartyTabs" (dict "ID" .ID "Tab" "edit" "CanEdit" $canEditCounterparties) }}
+  </div>
+</div><!-- header ends -->
+
+<div id="alerts"></div>
+<form id="editCounterpartyForm" hx-put="/v1/counterparties/{{ .ID }}?encoding=base64&format=json" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="find button[type='submit']">
+  <input type="hidden" name="id" value="{{ .ID }}" />
+  <input type="hidden" name="name" value="{{ .Name }}" />
+  <input type="hidden" name="protocol" value="{{ .Protocol }}" />
+  <input type="hidden" name="source" value="{{ .Source }}" />
+  <input type="hidden" name="common_name" value="{{ .CommonName }}" />
+  <input type="hidden" name="travel_address" value="{{ .TravelAddress }}" />
+  <input type="hidden" name="endpoint" value="{{ .Endpoint }}" />
+
+  <fieldset id="fieldsetCounterparty">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="country">Country</label>
+          <select class="form-control" id="country" name="country" data-countries='{"searchEnabled": true}' data-selected="{{ .Country }}"></select>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="website">Website</label>
+          <input type="url" class="form-control" id="website" name="website" value="{{ .Website }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="business_category">Business Category</label>
+          <select class="form-control" id="business_category" name="business_category" data-business-categories='{"searchEnabled": true}' data-selected="{{ .BusinessCategory }}"></select>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="vasp_categories">VASP Categories</label>
+          <select class="form-control" id="vasp_categories" name="vasp_categories" multiple data-placeholder="Select VASP Categories" data-vasp-categories='{"searchEnabled": true}' data-selected="{{ range $i, $cat := .VASPCategories }}{{ if $i }},{{ end }}{{ $cat }}{{ end }}"></select>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <hr class="mt-4 mb-5">
+
+  <h3 class="mb-1">IVMS 101 Record</h3>
+  <small class="form-text text-body-secondary">
+    Add an IVMS101 legal person record so that you can easily populate VASP information
+    into the identity payloads of transfers.
+  </small>
+
+  {{ with .IVMSRecord -}}
+  <fieldset id="fieldsetIVMS101" class="mt-4" data-person="ivms">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_legalPersonName">Legal Name</label>
+          <small class="form-text text-body-secondary">
+            The legal name of the entity as registered with the appropriate authority.
+          </small>
+          <input type="text" class="form-control" id="ivms_legalPersonName" name="ivms_name_nameIdentifier_0_legalPersonName" placeholder="Legal Entity Name" value="{{ .LegalName }}">
+          <input type="hidden" id="ivms_legalPersonNameIdentifierType" name="ivms_name_nameIdentifier_0_legalPersonNameIdentifierType" value="{{ .LegalNameType }}">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_countryOfRegistration">Country of Registration</label>
+          <small class="form-text text-body-secondary">
+            The country in which the legal entity is registered.
+          </small>
+          <select class="form-control" id="ivms_countryOfRegistration" name="ivms_countryOfRegistration" data-countries='{"searchEnabled": true}' data-selected="{{ .CountryOfRegistration }}"></select>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label mb-1" for="ivms_customerNumber">Internal Customer Identifier</label>
+          <small class="form-text text-body-secondary">
+            Optional, an internal identifier for the counterparty.
+          </small>
+          <input type="text" class="form-control" id="ivms_customerNumber" name="ivms_customerNumber" placeholder="Customer Identifier" value="{{ .CustomerNumber }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h4 class="mb-1">Geographic Address</h4>
+      <small class="form-text text-body-secondary">
+        A physical or mailing address for the counterparty for identification purposes.
+      </small>
+      <div class="row mt-3">
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_addressType">Address Type</label>
+            <select class="form-control" id="ivms_addressType" name="ivms_geographicAddress_0_addressType" data-address-type='{"searchEnabled": false}' data-selected="{{ .AddressType }}"></select>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_addressLine1">Address Line 1</label>
+            <input type="text" class="form-control" id="ivms_addressLine1" name="ivms_geographicAddress_0_addressLine_0" placeholder="Street Address" value="{{ .AddressLine0 }}">
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_addressLine2">Address Line 2</label>
+            <input type="text" class="form-control" id="ivms_addressLine2" name="ivms_geographicAddress_0_addressLine_1" placeholder="Suite or Building Details" value="{{ .AddressLine1 }}">
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_addressLine3">Address Line 3</label>
+            <input type="text" class="form-control" id="ivms_addressLine3" name="ivms_geographicAddress_0_addressLine_2" placeholder="City, State, Postal Code" value="{{ .AddressLine2 }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label class="form-label" for="ivms_addressCountry">Address Country</label>
+            <select class="form-control" id="ivms_addressCountry" name="ivms_geographicAddress_0_country" data-countries='{"searchEnabled": true}' data-selected="{{ .AddressCountry }}"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h4 class="mb-1">National Identification</h4>
+      <small class="form-text text-body-secondary">
+        National identifiers assist with verifying the counterparty's identity and should be issued by a government entity.
+      </small>
+      <div class="row mt-3">
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_nationalIdentificationType">Type of National Identification</label>
+            <select class="form-control" id="ivms_nationalIdentificationType" name="ivms_nationalIdentification_nationalIdentifierType" data-national-identifier-type='{"searchEnabled": false}' data-selected="{{ .NationalIdentifier.TypeCode }}"></select>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="ivms_nationalIdentificationNumber">National Identification Number</label>
+            <input type="text" class="form-control" id="ivms_nationalIdentificationNumber" name="ivms_nationalIdentification_nationalIdentifier" placeholder="Identification Number" value="{{ .NationalIdentifier.Identifier }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label class="form-label" for="ivms_registrationAuthority">Registration Authority</label>
+            <input type="text" class="form-control" id="ivms_registrationAuthority" name="ivms_nationalIdentification_registrationAuthority" placeholder="RA-777777" value="{{ .NationalIdentifier.RegistrationAuthority }}">
+            <small class="form-text text-body-secondary">
+              Should be blank for an LEI, RA-777777 for a Tax ID, or a GLEIF RA number.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+  {{- end }}
+
+  <button type="submit" class="btn btn-primary mt-4">Save Changes</button>
+  <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+</form>
+
+<hr class="mt-4 mb-5">
+
+<div class="row justify-content-between mb-7">
+  <div class="col-12 col-md-6">
+    <h4>Delete Counterparty</h4>
+
+    <p class="small text-body-secondary mb-md-0">
+      Will delete counterparty and related contacts but will not delete
+      any transfers associated with the counterparty.
+    </p>
+
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Delete</button>
+  </div>
+</div>
+
+{{- end }}
+{{- end }}
+
+{{- define "appcode" -}}
+<script type="module" src="/static/js/modules/alerts.js"></script>
+<script type="module" src="/static/js/counterparties/edit.js"></script>
+{{- end }}

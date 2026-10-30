@@ -264,7 +264,6 @@ func (s *Server) CounterpartyDetailTemplate(c *gin.Context, template string) {
 	var (
 		err          error
 		counterparty *models.Counterparty
-		out          *api.Counterparty
 		ctx          scene.Scene
 	)
 
@@ -279,14 +278,8 @@ func (s *Server) CounterpartyDetailTemplate(c *gin.Context, template string) {
 		return
 	}
 
-	// Convert the model into an API response for the scene helper
-	if out, err = api.NewCounterparty(counterparty, &api.EncodingQuery{}); err != nil {
-		s.Error(c, err)
-		return
-	}
-
-	// Create a scene with the counterparty API data
-	ctx = scene.New(c).WithAPIData(out)
+	// Create a scene with the counterparty model
+	ctx = scene.New(c).WithAPIData(counterparty)
 	c.HTML(http.StatusOK, template, ctx)
 }
 

@@ -433,6 +433,11 @@ func (s *Server) UpdateCounterparty(c *gin.Context) {
 		return
 	}
 
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CounterpartyUpdated)
+		return
+	}
+
 	// Convert model back to an api response
 	if out, err = api.NewCounterparty(counterparty, query); err != nil {
 		c.Error(err)
@@ -488,6 +493,11 @@ func (s *Server) DeleteCounterparty(c *gin.Context) {
 
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.CounterpartyUpdated)
 		return
 	}
 
