@@ -64,26 +64,10 @@
   <input type="hidden" name="protocol" value="{{ .Protocol }}" />
   <input type="hidden" name="source" value="{{ .Source }}" />
   <input type="hidden" name="common_name" value="{{ .CommonName }}" />
+  <input type="hidden" name="travel_address" value="{{ .TravelAddress }}" />
+  <input type="hidden" name="endpoint" value="{{ .Endpoint }}" />
 
   <fieldset id="fieldsetCounterparty">
-    <div id="trpFields" class="row{{ if ne .Protocol "trp" }} d-none{{ end }}">
-      <div class="col-12">
-        <div class="form-group">
-          <label class="form-label" for="travel_address">Travel Address</label>
-          <input type="text" class="form-control" id="travel_address" name="travel_address" value="{{ .TravelAddress }}">
-        </div>
-        <div class="d-flex align-items-center gap-3 my-3">
-          <div class="flex-grow-1 border-top"></div>
-          <span class="text-muted">OR</span>
-          <div class="flex-grow-1 border-top"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="endpoint">Endpoint</label>
-          <input type="text" class="form-control" id="endpoint" name="endpoint" value="{{ .Endpoint }}">
-        </div>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-12 col-md-6">
         <div class="form-group">

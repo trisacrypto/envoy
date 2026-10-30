@@ -5,34 +5,12 @@ import Alerts from '../modules/alerts.js';
 import { selectBusinessCategory, selectVASPCategory } from '../modules/categories.js';
 import { selectCountry } from '../modules/countries.js';
 import { selectAddressType, selectNationalIdentifierType, encode, LegalPerson } from '../modules/ivms101.js';
-import { selectProtocol } from '../modules/protocols.js';
 
 // Initialize the alerts component.
 const alerts = new Alerts(document.getElementById("alerts"), {autoClose: true});
 
-const protocolSelect = document.getElementById('protocol');
-const trpFields = document.getElementById('trpFields');
-
-// Show TRP travel address / endpoint fields when protocol is TRP.
-function updateProtocolFields(protocol) {
-  if (!trpFields) {
-    return;
-  }
-
-  if (protocol === 'trp') {
-    trpFields.classList.remove('d-none');
-  } else {
-    trpFields.classList.add('d-none');
-  }
-}
-
 // Initialize the select elements with choices.js in the form element.
 function initializeChoices(elem) {
-  // Initialize the protocol select.
-  elem.querySelectorAll('[data-protocols]').forEach(elem => {
-    selectProtocol(elem);
-  });
-
   // Initialize the country select choices.
   elem.querySelectorAll('[data-countries]').forEach(elem => {
     selectCountry(elem);
@@ -67,13 +45,6 @@ function initializeChoices(elem) {
 
 // Initialize the form choices when the page loads.
 initializeChoices(document);
-updateProtocolFields(protocolSelect?.value || '');
-
-if (protocolSelect) {
-  protocolSelect.addEventListener('change', function (e) {
-    updateProtocolFields(e.target.value);
-  });
-}
 
 // Pre-flight request configuration for htmx requests.
 document.body.addEventListener("htmx:configRequest", function(e) {
