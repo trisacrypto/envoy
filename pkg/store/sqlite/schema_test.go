@@ -65,6 +65,11 @@ func TestMigrations(t *testing.T) {
 			Name: "Compliance Audit Log",
 			Path: "0009_compliance_audit_log.sql",
 		},
+		{
+			ID:   10,
+			Name: "Counterparty Travel Address",
+			Path: "0010_counterparty_travel_address.sql",
+		},
 	}
 
 	for i, migration := range migrations {

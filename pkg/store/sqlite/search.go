@@ -44,7 +44,7 @@ func GetThreshold() float64 {
 const (
 	counterpartySearchSQL       = "SELECT id, name FROM counterparties ORDER BY name ASC"
 	counterpartyDomainSearchSQL = "SELECT id, website FROM counterparties WHERE website LIKE :domainParam UNION select id, endpoint FROM counterparties WHERE endpoint LIKE :domainParam"
-	counterpartySearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, created FROM counterparties WHERE id=:id"
+	counterpartySearchExpandSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created FROM counterparties WHERE id=:id"
 )
 
 // SearchCounterparties uses an in-memory fuzzy search to find counterparties whose name

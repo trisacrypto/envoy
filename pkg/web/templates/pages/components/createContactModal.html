@@ -1,0 +1,30 @@
+{{ define "createContactModal" }}
+<div id="createContactModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Contact</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="createContactAlerts" class="alerts"></div>
+        <form id="createContactForm" hx-post="/v1/counterparties/{{ .ID }}/contacts" hx-ext="json-enc" hx-swap="none" hx-indicator="#createContactLoader" hx-disabled-elt="#createContactSubmit">
+          <div class="form-group">
+            <label class="form-label" for="contact_name">Name</label>
+            <input type="text" class="form-control" id="contact_name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact_email">Email</label>
+            <input type="email" class="form-control" id="contact_email" name="email" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span id="createContactLoader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="createContactSubmit" type="submit" form="createContactForm" class="btn btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

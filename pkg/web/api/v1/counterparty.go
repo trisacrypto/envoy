@@ -128,8 +128,12 @@ func NewCounterparty(model *models.Counterparty, encoding *EncodingQuery) (out *
 		out.Contacts = append(out.Contacts, c)
 	}
 
-	// Compute the travel address from the endpoint (ignore errors)
-	out.TravelAddress, _ = EndpointTravelAddress(model.Endpoint, model.Protocol)
+	// Use the provided travel address or compute it from the endpoint.
+	if model.TravelAddress.Valid && model.TravelAddress.String != "" {
+		out.TravelAddress = model.TravelAddress.String
+	} else {
+		out.TravelAddress, _ = EndpointTravelAddress(model.Endpoint, model.Protocol)
+	}
 	return out, nil
 }
 
@@ -295,6 +299,7 @@ func (c *Counterparty) Model() (model *models.Counterparty, err error) {
 		RegisteredDirectory: sql.NullString{String: c.RegisteredDirectory, Valid: c.RegisteredDirectory != ""},
 		CommonName:          c.CommonName,
 		Endpoint:            c.Endpoint,
+		TravelAddress:       sql.NullString{String: c.TravelAddress, Valid: c.TravelAddress != ""},
 		Name:                c.Name,
 		Website:             sql.NullString{String: c.Website, Valid: c.Website != ""},
 		Country:             sql.NullString{String: c.Country, Valid: c.Country != ""},
@@ -447,12 +452,20 @@ func EndpointTravelAddress(endpoint string, protocol enum.Protocol) (string, err
 		return "", nil
 	}
 
-	params := make(url.Values)
+	// Parse the endpoint so schemes like https:// are stripped before encoding.
+	// Travel addresses imply https and traddr.Encode rejects URIs that still have a scheme.
+	uri, err := traddr.Parse(endpoint)
+	if err != nil {
+		return "", err
+	}
+	uri.Scheme = ""
+
+	params := uri.Query()
 	params.Set("t", "i")
 	if protocol != enum.ProtocolUnknown {
 		params.Set("mode", protocol.String())
 	}
+	uri.RawQuery = params.Encode()
 
-	uri := &url.URL{Host: endpoint, RawQuery: params.Encode()}
 	return traddr.Encode(strings.TrimPrefix(uri.String(), "//"))
 }

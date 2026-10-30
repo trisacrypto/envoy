@@ -1,7 +1,5 @@
 {{ template "page.html" . }}
 {{ define "title" }}Counterparty Management | TRISA Envoy{{ end }}
-{{ define "pretitle" }}Counterparties{{ end }}
-{{ define "pagetitle" }}Counterparty Detail{{ end }}
 
 {{ define "htmxConfig" }}
 <meta
@@ -17,14 +15,193 @@
 />
 {{ end }}
 
+{{ define "modals" }}
+  {{ with .CounterpartyDetail }}
+  {{ template "createContactModal" . }}
+  {{ end }}
+{{ end }}
+
 {{ define "page-content" }}
-<section id="transaction" hx-get="/v1/counterparties/{{ .ID }}" hx-trigger="load, counterparties-updated from:body">
-  <div class="card">
-    <div class="card-body text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+{{- $canEditCounterparties := not .IsViewOnly -}}
+{{ with .CounterpartyDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle"><a href="/counterparties">Counterparties</a></h6>
+        <h1 class="header-title">{{ .Name }}</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/counterparties" class="btn btn-white lift" title="Back to Counterparties List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+    {{ template "counterpartyTabs" (dict "ID" .ID "Tab" "detail" "CanEdit" $canEditCounterparties) }}
+  </div>
+</div>
+
+<div class="row">
+  {{- if eq .Protocol "trp" }}
+  <div class="col-12 col-lg-4">
+    <!-- Travel Address QR Code -->
+    <div class="card card-fill">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <h4 class="card-header-title">Travel Address</h4>
+          </div>
+          <div class="col-auto">
+            <i class="fe fe-help-circle has-tooltip" title="The travel address must be sent to counterparties so they can begin TRP requests to your Envoy node." data-bs-toggle="tooltip" data-bs-placement="right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <img class="img-fluid" src="/v1/counterparties/{{ .ID }}/qrcode" alt="Update to Regenerate Travel Address" />
+        <p class="text-truncate text-body-secondary small w-100 mt-2 mb-0">{{ if .TravelAddress }}{{ .TravelAddress }}{{ else }}&mdash;{{ end }}</p>
       </div>
     </div>
   </div>
-</section>
+  {{- end }}
+
+  <div class="col-12{{ if eq .Protocol "trp" }} col-lg-8{{ end }}">
+    <div class="card card-fill">
+      <div class="card-header">
+        <h4 class="card-header-title">Details</h4>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Protocol</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .Protocol }}{{ .Protocol }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Endpoint</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary font-monospace">{{ if .Endpoint }}{{ .Endpoint }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Website</h5>
+              </div>
+              <div class="col-auto">
+                {{- if .Website }}
+                <a class="text-body-secondary" href="{{ .Website }}" target="_blank" rel="noopener noreferrer">{{ .Website }}</a>
+                {{- else }}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Country</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .Country }}{{ flag .Country }} {{ .Country }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Business Category</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">{{ if .BusinessCategory }}{{ .BusinessCategory }}{{ else }}&mdash;{{ end }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">VASP Categories</h5>
+              </div>
+              <div class="col-auto">
+                <span class="text-body-secondary">
+                  {{- if .VASPCategories }}
+                  {{- range $i, $cat := .VASPCategories }}{{ if $i }}, {{ end }}{{ $cat }}{{ end }}
+                  {{- else }}
+                  &mdash;
+                  {{- end }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Created</h5>
+              </div>
+              <div class="col-auto">
+                {{- if not .Created.IsZero }}
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Created }}">{{ .Created.Format "Jan 02, 2006" }}</time>
+                {{- else }}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
+              </div>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">Modified</h5>
+              </div>
+              <div class="col-auto">
+                {{- if and .Modified (not .Modified.IsZero) }}
+                <time class="text-body-secondary" datetime="{{ rfc3339 .Modified }}">{{ moment .Modified }}</time>
+                {{- else }}
+                <span class="text-body-secondary">&mdash;</span>
+                {{- end }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card"
+  hx-get="/v1/counterparties/{{ .ID }}/contacts"
+  hx-trigger="load, contact-created from:body"
+  hx-target="#contacts"
+  hx-swap="outerHTML"
+>
+  <div class="card-header">
+    <h4 class="card-header-title">Contacts</h4>
+    {{- if $canEditCounterparties }}
+    <button id="createContactBtn" class="btn btn-sm btn-white" data-bs-toggle="modal" data-bs-target="#createContactModal">
+      <i class="fe fe-plus-circle"></i> Add
+    </button>
+    {{- end }}
+  </div>
+  <div id="contacts" class="card-body">
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/counterparties/detail.js"></script>
 {{ end }}

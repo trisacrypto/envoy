@@ -80,21 +80,21 @@
               </a>
 
               <div class="dropdown-menu dropdown-menu-end">
+                <a href="/counterparties/{{ .ID }}" class="dropdown-item">
+                  <i class="fe fe-eye"></i> View
+                </a>
                 {{ if .Protocol }}
                 <a href="/send/{{ .Protocol }}?cid={{ .ID }}" class="dropdown-item">
-                  Send {{ if eq .Protocol "sunrise" }}Sunrise{{ else }}{{ uppercase .Protocol }}{{ end }} Transfer
+                 <i class="fe fe-send"></i> Send {{ if eq .Protocol "sunrise" }}Sunrise{{ else }}{{ uppercase .Protocol }}{{ end }} Transfer
                 </a>
                 {{ else }}
                 <a href="/send" class="dropdown-item">
-                  Send Transfer
+                  <i class="fe fe-send"></i> Send Transfer
                 </a>
                 {{ end }}
 
               <!-- TODO: Add this functionality -->
-              <!--
-                <a href="#!" class="dropdown-item">
-                  View
-                </a>
+                <!--
                 {{ if $canEditCounterparties }}
                 <a href="#!" class="dropdown-item">
                   Edit

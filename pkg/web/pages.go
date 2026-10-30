@@ -249,20 +249,45 @@ func (s *Server) CounterpartiesListPage(c *gin.Context) {
 }
 
 func (s *Server) CounterpartyDetailPage(c *gin.Context) {
-	// Get the counterparty ID from the URL path and make available to the template.
-	// The counterparty detail is loaded using htmx.
-	counterpartyID := c.Param("id")
+	s.CounterpartyDetailTemplate(c, "pages/counterparties/detail.html")
+}
 
-	// Validate that the counterparty ID is a valid UUID.
-	if _, err := ulid.Parse(counterpartyID); err != nil {
-		htmx.Redirect(c, http.StatusTemporaryRedirect, "/not-found")
+func (s *Server) CounterpartyEditPage(c *gin.Context) {
+	s.CounterpartyDetailTemplate(c, "pages/counterparties/edit.html")
+}
+
+func (s *Server) CounterpartyTransfersPage(c *gin.Context) {
+	s.CounterpartyDetailTemplate(c, "pages/counterparties/transfers.html")
+}
+
+func (s *Server) CounterpartyDetailTemplate(c *gin.Context, template string) {
+	var (
+		err          error
+		counterparty *models.Counterparty
+		out          *api.Counterparty
+		ctx          scene.Scene
+	)
+
+	// Retrieve the counterparty from the database and handle errors
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			s.NotFound(c)
+			return
+		}
+
+		s.Error(c, err)
 		return
 	}
 
-	ctx := scene.New(c)
-	ctx["ID"] = counterpartyID
+	// Convert the model into an API response for the scene helper
+	if out, err = api.NewCounterparty(counterparty, &api.EncodingQuery{}); err != nil {
+		s.Error(c, err)
+		return
+	}
 
-	c.HTML(http.StatusOK, "pages/counterparties/detail.html", ctx)
+	// Create a scene with the counterparty API data
+	ctx = scene.New(c).WithAPIData(out)
+	c.HTML(http.StatusOK, template, ctx)
 }
 
 //===========================================================================
