@@ -1,0 +1,69 @@
+{{ with .TransactionsList -}}
+{{- if .Transactions -}}
+<div id="counterparty-transfers" class="table-responsive mb-0">
+  <table id="counterpartyTransfersList" class="table table-sm table-nowrap table-hover card-table" data-list='{"valueNames": ["item-status", "item-originator", "item-beneficiary", "item-virtual-asset", "item-amount"]}'>
+    <thead>
+      <tr>
+        <th>
+          <a class="list-sort text-body-secondary" data-sort="item-status" href="#">Status</a>
+        </th>
+        <th>
+          <a class="list-sort text-body-secondary" data-sort="item-originator" href="#">Originator</a>
+        </th>
+        <th>
+          <a class="list-sort text-body-secondary" data-sort="item-beneficiary" href="#">Beneficiary</a>
+        </th>
+        <th>
+          <a class="list-sort text-body-secondary" data-sort="item-virtual-asset" href="#">Virtual Asset</a>
+        </th>
+        <th colspan="2">
+          <a class="list-sort text-body-secondary" data-sort="item-amount" href="#">Amount</a>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="list fs-base">
+      {{ range .Transactions }}
+      <tr>
+        <td><span class='item-status has-tooltip badge bg-{{ .Status.Color }}  {{ .Status.Opacity }}' title="{{ .Status.Tooltip }}" data-bs-toggle="tooltip" data-bs-placement="right">{{ .Status }}</span></td>
+        <td style="max-width: 212px" class="text-truncate">
+          <a class="item-originator text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .OriginatorAddress }}">
+          {{- if .Originator -}}
+          {{- .Originator -}}
+          <small class="d-none text-secondary">{{- .OriginatorAddress -}}</small>
+          {{- else -}}
+            <small class="text-secondary">{{- .OriginatorAddress -}}</small>
+          {{- end -}}
+          </a>
+        </td>
+        <td style="max-width: 212px" class="text-truncate">
+          <a class="item-beneficiary text-reset" href="#" data-bs-custom-class="address-tooltip" data-bs-toggle="tooltip" title="{{ .BeneficiaryAddress }}">
+          {{- if .Beneficiary -}}
+          {{- .Beneficiary -}}
+          <small class="d-none text-secondary">{{- .BeneficiaryAddress -}}</small>
+          {{- else -}}
+            <small class="text-secondary">{{- .BeneficiaryAddress -}}</small>
+          {{- end -}}
+          </a>
+        </td>
+        <td class="item-virtual-asset">{{ .VirtualAsset }}</td>
+        <td class="item-amount">{{ .Amount }}</td>
+        <td class="text-end">
+          <a class="btn btn-icon btn-sm btn-primary" href="/transfers/{{ .ID }}" data-bs-toggle="tooltip" title="View Transfer">
+            <i class="fe fe-eye"></i>
+          </a>
+        </td>
+      </tr>
+      {{- end -}}
+    </tbody>
+  </table>
+</div>
+{{- else }}
+<div id="counterparty-transfers" class="card-body">
+  <div class="row">
+    <div class="col-12 text-center">
+      <p>There are no transfers associated with this counterparty.</p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

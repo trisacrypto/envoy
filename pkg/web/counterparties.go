@@ -617,7 +617,7 @@ func (s *Server) ListCounterpartyTransfers(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "partials/counterparties/transactions.html",
+		HTMLName: "partials/counterparties/transfers.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
 }
