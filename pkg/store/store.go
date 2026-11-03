@@ -151,6 +151,7 @@ type CounterpartyStore interface {
 	LookupCounterparty(ctx context.Context, field, value string) (*models.Counterparty, error)
 	UpdateCounterparty(context.Context, *models.Counterparty, *models.ComplianceAuditLog) error
 	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+	ListCounterpartyTransfers(ctx context.Context, counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 }
 
 type ContactStore interface {
