@@ -66,6 +66,7 @@ type Store struct {
 	OnLookupCounterparty             func(ctx context.Context, field, value string) (*models.Counterparty, error)
 	OnUpdateCounterparty             func(ctx context.Context, in *models.Counterparty, log *models.ComplianceAuditLog) error
 	OnDeleteCounterparty             func(ctx context.Context, counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnListCounterpartyTransfers      func(ctx context.Context, counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 	OnListContacts                   func(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
 	OnCreateContact                  func(ctx context.Context, in *models.Contact, log *models.ComplianceAuditLog) error
 	OnRetrieveContact                func(ctx context.Context, contactID, counterparty any) (*models.Contact, error)
@@ -547,6 +548,15 @@ func (s *Store) DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID
 		return s.OnDeleteCounterparty(ctx, counterpartyID, log)
 	}
 	panic("DeleteCounterparty callback not set")
+}
+
+// Calls the callback previously set with `s.OnListCounterpartyTransfers = ...`
+func (s *Store) ListCounterpartyTransfers(ctx context.Context, counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error) {
+	s.calls["ListCounterpartyTransfers"]++
+	if s.OnListCounterpartyTransfers != nil {
+		return s.OnListCounterpartyTransfers(ctx, counterpartyID, page)
+	}
+	panic("ListCounterpartyTransfers callback not set")
 }
 
 //===========================================================================

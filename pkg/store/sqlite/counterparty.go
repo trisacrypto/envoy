@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/trisacrypto/envoy/pkg/enum"
@@ -344,6 +345,84 @@ func (t *Tx) DeleteCounterparty(counterpartyID ulid.ULID, auditLog *models.Compl
 	}
 
 	return nil
+}
+
+const listCounterpartyTxnsSQL = `
+	SELECT t.id, t.source, t.status, t.counterparty, t.counterparty_id, t.originator, t.originator_address, t.beneficiary, t.beneficiary_address, t.virtual_asset, t.amount, t.archived, t.archived_on, t.last_update, t.modified, t.created, count(e.id) AS numEnvelopes
+		FROM transactions t
+		LEFT JOIN secure_envelopes e ON t.id=e.envelope_id
+		WHERE t.counterparty_id=:counterpartyID AND t.archived=:archives
+		GROUP BY t.id
+		ORDER BY t.created DESC`
+
+func (s *Store) ListCounterpartyTransfers(ctx context.Context, counterpartyID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
+	var tx *Tx
+	if tx, err = s.BeginTx(ctx, &sql.TxOptions{ReadOnly: true}); err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if out, err = tx.ListCounterpartyTransfers(counterpartyID, page); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (t *Tx) ListCounterpartyTransfers(counterpartyID ulid.ULID, page *models.TransactionPageInfo) (out *models.TransactionPage, err error) {
+	out = &models.TransactionPage{
+		Transactions: make([]*models.Transaction, 0),
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
+	}
+
+	query := listCounterpartyTxnsSQL
+	params := []interface{}{
+		sql.Named("counterpartyID", counterpartyID),
+		sql.Named("archives", page.Archives),
+	}
+
+	if len(page.Status) > 0 || len(page.VirtualAsset) > 0 {
+		filters := make([]string, 0, 2)
+		if len(page.Status) > 0 {
+			inquery, inparams := listParametrize(page.Status, "s")
+			filters = append(filters, "status IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		if len(page.VirtualAsset) > 0 {
+			inquery, inparams := listParametrize(page.VirtualAsset, "a")
+			filters = append(filters, "virtual_asset IN "+inquery)
+			params = append(params, inparams...)
+		}
+
+		query = "WITH txns AS (" + listCounterpartyTxnsSQL + ") SELECT * FROM txns WHERE "
+		query += strings.Join(filters, " AND ")
+	}
+
+	var rows *sql.Rows
+	if rows, err = t.tx.Query(query, params...); err != nil {
+		return nil, dbe(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		transaction := &models.Transaction{}
+		if err = transaction.ScanWithCount(rows); err != nil {
+			return nil, err
+		}
+
+		out.Transactions = append(out.Transactions, transaction)
+	}
+
+	return out, nil
 }
 
 const listContactsSQL = "SELECT * FROM contacts WHERE counterparty_id=:counterpartyID"
