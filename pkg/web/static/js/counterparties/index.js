@@ -1,8 +1,11 @@
-import { isRequestFor } from '../htmx/helpers.js';
+import { isRequestFor, isRequestMatch } from '../htmx/helpers.js';
 import { selectBusinessCategory, selectVASPCategory } from '../modules/categories.js';
 import { createList, createPageSizeSelect } from '../modules/components.js';
 import { selectCountry } from '../modules/countries.js';
 import { selectProtocol } from '../modules/protocols.js';
+import Alerts from '../modules/alerts.js';
+
+const pageAlerts = new Alerts(document.getElementById("pageAlerts"));
 
 document.addEventListener("htmx:afterSettle", function (e) {
   // Initialize List.js
@@ -96,3 +99,54 @@ document.body.addEventListener("counterparty-created", function () {
   }
   clearCPForm();
 });
+
+// Post-event handling when the counterparty-updated event is fired.
+document.body.addEventListener("counterparty-updated", function (e) {
+  const elt = e.detail?.elt;
+  if (elt) {
+    if (elt.id === "deleteBtn") {
+      const deleteCounterpartyModal = Modal.getInstance(document.getElementById("deleteCounterpartyModal"));
+      if (deleteCounterpartyModal) {
+        deleteCounterpartyModal.hide();
+      }
+    }
+  }
+});
+
+// Handle any htmx errors that are not swapped by the htmx config.
+document.body.addEventListener("htmx:responseError", function (e) {
+  // Handle errors for delete counterparty by showing a toast alert.
+  if (isRequestMatch(e, "/v1/counterparties/[0-7][0-9A-HJKMNP-TV-Z]{25}", "delete")) {
+    const error = JSON.parse(e.detail.xhr.response);
+    pageAlerts.danger("Delete Counterparty Error:", error.error);
+    return;
+  }
+
+  // If the error is unhandled; throw it
+  throw new Error(`unhandled htmx error: status ${e.detail.xhr.status}`);
+});
+
+
+// Show the delete modal and populate its contents with the data attributes from the table row. 
+// When hidden, make sure the modal is reset to its initial state.
+const deleteCounterpartyModal = document.getElementById("deleteCounterpartyModal");
+if (deleteCounterpartyModal) {
+  deleteCounterpartyModal.addEventListener("show.bs.modal", function (event) {
+    const button = event.relatedTarget;
+    deleteCounterpartyModal.querySelector("#counterpartyID").textContent = button.dataset.bsCounterpartyId || "—";
+    deleteCounterpartyModal.querySelector("#name").textContent = button.dataset.bsName || "—";
+
+    const deleteBtn = deleteCounterpartyModal.querySelector("#deleteBtn");
+    deleteBtn.setAttribute("hx-delete", "/v1/counterparties/" + button.dataset.bsCounterpartyId);
+    htmx.process(deleteBtn);
+  });
+
+  deleteCounterpartyModal.addEventListener("hidden.bs.modal", function () {
+    deleteCounterpartyModal.querySelector("#counterpartyID").textContent = "";
+    deleteCounterpartyModal.querySelector("#name").textContent = "";
+
+    const deleteBtn = deleteCounterpartyModal.querySelector("#deleteBtn");
+    deleteBtn.removeAttribute("hx-delete");
+    htmx.process(deleteBtn);
+  });
+}
