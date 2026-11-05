@@ -1,3 +1,5 @@
+{{ $counterpartyID := .Parent }}
+{{ $canEditCounterparties := not .IsViewOnly -}}
 {{ with .ContactList -}}
 {{- if .Contacts }}
 <div id="contacts" class="table-responsive mb-0">
@@ -5,7 +7,7 @@
     <thead>
       <tr>
         <th><a href="#" class="list-sort text-body-secondary" data-sort="contact-name">Name</a></th>
-        <th><a href="#" class="list-sort text-body-secondary" data-sort="contact-email">Email</a></th>
+        <th colspan="2"><a href="#" class="list-sort text-body-secondary" data-sort="contact-email">Email</a></th>
       </tr>
     </thead>
     <tbody class="list fs-base">
@@ -13,6 +15,23 @@
       <tr>
         <td class="contact-name">{{ if .Name }}{{ .Name }}{{ else }}&mdash;{{ end }}</td>
         <td class="contact-email">{{ .Email }}</td>
+        {{- if $canEditCounterparties }}
+        <td class="text-end">
+          <div class="dropdown">
+            <a class="dropdown-ellipses dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fe fe-more-vertical"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end">
+              <a href="#!" class="dropdown-item" hx-get="/v1/counterparties/{{ $counterpartyID }}/contacts/{{ .ID }}" hx-trigger="click" hx-target="#editContactModal" hx-swap="innerHTML">
+                <i class="fe fe-edit"></i> Edit
+              </a>
+              <a href="#!" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteContactModal" data-bs-contact-id="{{ .ID }}" data-bs-contact-name="{{ .Name }}" data-bs-contact-email="{{ .Email }}">
+                <i class="fe fe-trash"></i> Delete
+              </a>
+            </div>
+          </div>
+        </td>
+        {{- end }}
       </tr>
       {{ end }}
     </tbody>

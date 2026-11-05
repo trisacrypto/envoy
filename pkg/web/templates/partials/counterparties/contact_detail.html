@@ -1,0 +1,30 @@
+{{ $counterpartyID := .Parent -}}
+{{ with .ContactDetail -}}
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Edit Contact</h4>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <div id="editContactAlerts" class="alerts"></div>
+      <form id="editContactForm" hx-put="/v1/counterparties/{{ $counterpartyID }}/contacts/{{ .ID }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#editContactLoader" hx-disabled-elt="#editContactSubmit">
+        <input type="hidden" name="id" value="{{ .ID }}">
+        <div class="form-group">
+          <label class="form-label" for="edit_contact_name">Name</label>
+          <input type="text" class="form-control" id="edit_contact_name" name="name" value="{{ .Name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit_contact_email">Email</label>
+          <input type="email" class="form-control" id="edit_contact_email" name="email" value="{{ .Email }}" required>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <span id="editContactLoader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button id="editContactSubmit" type="submit" form="editContactForm" class="btn btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+{{ end }}

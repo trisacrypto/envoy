@@ -725,7 +725,8 @@ func (s *Server) ContactDetail(c *gin.Context) {
 	c.Negotiate(http.StatusOK, gin.Negotiate{
 		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
 		Data:     out,
-		HTMLName: "contact_detail.html",
+		HTMLName: "partials/counterparties/contact_detail.html",
+		HTMLData: scene.New(c).WithAPIData(out).WithParent(counterpartyID),
 	})
 }
 
@@ -795,6 +796,12 @@ func (s *Server) UpdateContact(c *gin.Context) {
 		return
 	}
 
+	// If this is an HTMX request, trigger the contact updated event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.ContactUpdated)
+		return
+	}
+
 	// Convert the model back to an api response
 	if out, err = api.NewContact(model); err != nil {
 		c.Error(err)
@@ -842,10 +849,11 @@ func (s *Server) DeleteContact(c *gin.Context) {
 		return
 	}
 
-	c.Negotiate(http.StatusOK, gin.Negotiate{
-		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
-		HTMLData: scene.Scene{"CounterpartyID": counterpartyID, "ContactID": contactID},
-		JSONData: api.Reply{Success: true},
-		HTMLName: "contact_delete.html",
-	})
+	// If this is an HTMX request, trigger the contact deleted event
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.ContactDeleted)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Reply{Success: true})
 }
