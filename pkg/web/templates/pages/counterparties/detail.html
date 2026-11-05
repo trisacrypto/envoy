@@ -18,6 +18,9 @@
 {{ define "modals" }}
   {{ with .CounterpartyDetail }}
   {{ template "createContactModal" . }}
+  {{ template "deleteContactModal" . }}
+  {{/* Edit Contact Modal */}}
+  <div id="editContactModal" class="modal" tabindex="-1"></div>
   {{ end }}
 {{ end }}
 
@@ -177,7 +180,7 @@
 
 <div class="card"
   hx-get="/v1/counterparties/{{ .ID }}/contacts"
-  hx-trigger="load, contact-created from:body"
+  hx-trigger="load, contact-created from:body, contact-updated from:body, contact-deleted from:body"
   hx-target="#contacts"
   hx-swap="outerHTML"
 >

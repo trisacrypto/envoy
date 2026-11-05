@@ -279,6 +279,15 @@ func (s Scene) ContactList() *api.ContactList {
 	return nil
 }
 
+func (s Scene) ContactDetail() *api.Contact {
+	if data, ok := s[APIData]; ok {
+		if out, ok := data.(*api.Contact); ok {
+			return out
+		}
+	}
+	return nil
+}
+
 func (s Scene) APIKeysList() *api.APIKeyList {
 	if data, ok := s[APIData]; ok {
 		if out, ok := data.(*api.APIKeyList); ok {

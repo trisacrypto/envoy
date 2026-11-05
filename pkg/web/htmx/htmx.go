@@ -46,6 +46,8 @@ const (
 	CounterpartyCreated    = "counterparty-created"
 	CounterpartyUpdated    = "counterparty-updated"
 	ContactCreated         = "contact-created"
+	ContactUpdated         = "contact-updated"
+	ContactDeleted         = "contact-deleted"
 )
 
 // Redirect determines if the request is an HTMX request, if so, it sets the HX-Redirect
