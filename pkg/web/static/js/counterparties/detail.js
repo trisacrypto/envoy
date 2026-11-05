@@ -25,6 +25,8 @@ const contactListPath = /^\/v1\/counterparties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\/con
 document.addEventListener("htmx:afterSettle", function (e) {
   // After fetching a contact, display the edit contact modal.
   if (isRequestMatch(e, contactDetailPath, "get")) {
+    // Edit contact content is loaded into an empty modal shell via HTMX. Create the 
+    // Bootstrap modal instance and show it after settle.
     const editContactModal = new Modal("#editContactModal", {});
     editContactModal.show();
     return;
