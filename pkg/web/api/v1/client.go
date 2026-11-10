@@ -607,8 +607,10 @@ func (s *APIv1) DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddres
 //===========================================================================
 
 const (
-	counterpartiesEP       = "/v1/counterparties"
-	counterpartiesSearchEP = "/v1/counterparties/search"
+	counterpartiesEP          = "/v1/counterparties"
+	counterpartiesSearchEP    = "/v1/counterparties/search"
+	counterpartiesTransfersEP = "transfers"
+	counterpartiesQRCodeEP    = "qrcode"
 )
 
 func (s *APIv1) SearchCounterparties(ctx context.Context, in *SearchQuery) (out *CounterpartyList, err error) {
@@ -662,6 +664,62 @@ func (s *APIv1) UpdateCounterparty(ctx context.Context, in *Counterparty) (out *
 func (s *APIv1) DeleteCounterparty(ctx context.Context, id ulid.ULID) (err error) {
 	endpoint, _ := url.JoinPath(counterpartiesEP, id.String())
 	return s.Delete(ctx, endpoint)
+}
+
+func (s *APIv1) ListCounterpartyTransfers(ctx context.Context, id ulid.ULID, in *TransactionListQuery) (out *TransactionsList, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, id.String(), counterpartiesTransfersEP)
+	if err = s.List(ctx, endpoint, in, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *APIv1) CounterpartyQRCode(ctx context.Context, id ulid.ULID) (_ []byte, err error) {
+	endpoint, _ := url.JoinPath(counterpartiesEP, id.String(), counterpartiesQRCodeEP)
+
+	var req *http.Request
+	if req, err = s.NewRequest(ctx, http.MethodGet, endpoint, nil, nil); err != nil {
+		return nil, err
+	}
+
+	var rep *http.Response
+	if rep, err = s.client.Do(req); err != nil {
+		return nil, fmt.Errorf("could not execute qrcode request: %w", err)
+	}
+	defer rep.Body.Close()
+
+	if rep.StatusCode < 200 || rep.StatusCode >= 300 {
+		// Attempt to read the error response from JSON, if available
+		serr := &StatusError{
+			StatusCode: rep.StatusCode,
+		}
+
+		if err = json.NewDecoder(rep.Body).Decode(&serr.Reply); err == nil {
+			return nil, serr
+		}
+
+		// If we can't read a reply from JSON return a generic response
+		serr.Reply = Reply{
+			Success: false,
+			Error:   http.StatusText(rep.StatusCode),
+		}
+		return nil, serr
+	}
+
+	if ct := rep.Header.Get("Content-Type"); ct != "" {
+		if mt, _, err := mime.ParseMediaType(ct); err != nil {
+			return nil, fmt.Errorf("malformed content-type header: %w", err)
+		} else if mt != "image/png" {
+			return nil, fmt.Errorf("unexpected content type: %q", mt)
+		}
+	}
+
+	buf := bytes.NewBuffer(make([]byte, 0, rep.ContentLength))
+	if _, err = io.Copy(buf, rep.Body); err != nil {
+		return nil, fmt.Errorf("could not read qrcode response: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 //===========================================================================

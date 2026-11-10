@@ -66,6 +66,7 @@ type Tx struct {
 	OnLookupCounterparty             func(field, value string) (*models.Counterparty, error)
 	OnUpdateCounterparty             func(in *models.Counterparty, log *models.ComplianceAuditLog) error
 	OnDeleteCounterparty             func(counterpartyID ulid.ULID, log *models.ComplianceAuditLog) error
+	OnListCounterpartyTransfers      func(counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 	OnListContacts                   func(counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
 	OnCreateContact                  func(in *models.Contact, log *models.ComplianceAuditLog) error
 	OnRetrieveContact                func(contactID, counterpartyID any) (*models.Contact, error)
@@ -681,6 +682,18 @@ func (tx *Tx) DeleteCounterparty(counterpartyID ulid.ULID, log *models.Complianc
 		return tx.OnDeleteCounterparty(counterpartyID, log)
 	}
 	panic("DeleteCounterparty callback not set")
+}
+
+// Calls the callback previously set with "OnListCounterpartyTransfers()".
+func (tx *Tx) ListCounterpartyTransfers(counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error) {
+	if err := tx.check(false); err != nil {
+		return nil, err
+	}
+
+	if tx.OnListCounterpartyTransfers != nil {
+		return tx.OnListCounterpartyTransfers(counterpartyID, page)
+	}
+	panic("ListCounterpartyTransfers callback not set")
 }
 
 //===========================================================================

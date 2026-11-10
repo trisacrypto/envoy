@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/trisacrypto/envoy/pkg/enum"
 	dberr "github.com/trisacrypto/envoy/pkg/store/errors"
 	"github.com/trisacrypto/envoy/pkg/store/models"
@@ -429,5 +430,144 @@ func (w *webTestSuite) TestDeleteCounterparty() {
 
 		err := client.DeleteCounterparty(ctx, ulid.MustParse("01M5JH36M7EWMCBJNRWJM9NSM9"))
 		require.EqualError(err, "[404] counterparty not found")
+	})
+}
+
+var counterpartyTransfers = map[ulid.ULID][]*models.Transaction{
+	ulid.MustParse("01M5JFVEAER0R39G3SZ0KHDR20"): {
+		{
+			ID:           uuid.MustParse("3b0ed85d-5eb4-406f-abca-57b199453343"),
+			Source:       enum.SourceLocal,
+			Status:       enum.StatusPending,
+			Counterparty: "NorthEx CoinBank",
+			CounterpartyID: ulid.NullULID{
+				ULID:  ulid.MustParse("01M5JFVEAER0R39G3SZ0KHDR20"),
+				Valid: true,
+			},
+			VirtualAsset: "BTC",
+			Amount:       0.25,
+			Created:      time.Date(2026, 10, 22, 19, 5, 0, 0, time.UTC),
+			Modified:     time.Date(2026, 10, 22, 19, 5, 0, 0, time.UTC),
+		},
+		{
+			ID:           uuid.MustParse("03451485-8ae4-4f89-b80f-e2688ee2df37"),
+			Source:       enum.SourceRemote,
+			Status:       enum.StatusCompleted,
+			Counterparty: "NorthEx CoinBank",
+			CounterpartyID: ulid.NullULID{
+				ULID:  ulid.MustParse("01M5JFVEAER0R39G3SZ0KHDR20"),
+				Valid: true,
+			},
+			VirtualAsset: "ETH",
+			Amount:       1.5,
+			Created:      time.Date(2026, 10, 22, 19, 6, 0, 0, time.UTC),
+			Modified:     time.Date(2026, 10, 22, 19, 6, 0, 0, time.UTC),
+		},
+	},
+	ulid.MustParse("01M5JFVQYXMJTMVND5VTDDWBGK"): {
+		{
+			ID:           uuid.MustParse("bc9ca2bc-c9a8-435b-a146-5c28a3f23e34"),
+			Source:       enum.SourceLocal,
+			Status:       enum.StatusPending,
+			Counterparty: "Unchanged India",
+			CounterpartyID: ulid.NullULID{
+				ULID:  ulid.MustParse("01M5JFVQYXMJTMVND5VTDDWBGK"),
+				Valid: true,
+			},
+			VirtualAsset: "BTC",
+			Amount:       0.01,
+			Created:      time.Date(2026, 10, 22, 19, 7, 0, 0, time.UTC),
+			Modified:     time.Date(2026, 10, 22, 19, 7, 0, 0, time.UTC),
+		},
+	},
+}
+
+func onListCounterpartyTransfers(ctx context.Context, counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error) {
+	_, ok := counterparties[counterpartyID]
+	if !ok {
+		return nil, dberr.ErrNotFound
+	}
+
+	txs := counterpartyTransfers[counterpartyID]
+	if txs == nil {
+		txs = []*models.Transaction{}
+	}
+
+	return &models.TransactionPage{
+		Transactions: txs,
+		Page: &models.TransactionPageInfo{
+			PageInfo:     *models.PageInfoFrom(&page.PageInfo),
+			Status:       page.Status,
+			VirtualAsset: page.VirtualAsset,
+			Archives:     page.Archives,
+		},
+	}, nil
+}
+
+func (w *webTestSuite) TestListCounterpartyTransfers() {
+	require := w.Require()
+	client := w.ClientWithPermissions([]string{"counterparties:view"})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	w.Run("Success - Counterparty One", func() {
+		w.store.OnRetrieveCounterparty = onRetrieveCounterparty
+		w.store.OnListCounterpartyTransfers = onListCounterpartyTransfers
+
+		out, err := client.ListCounterpartyTransfers(ctx,
+			ulid.MustParse("01M5JFVEAER0R39G3SZ0KHDR20"),
+			&api.TransactionListQuery{},
+		)
+		require.NoError(err, "could not list counterparty transfers")
+		require.NotNil(out)
+		require.Len(out.Transactions, 2)
+		require.Equal("3b0ed85d-5eb4-406f-abca-57b199453343", out.Transactions[0].ID.String())
+		require.Equal("pending", out.Transactions[0].Status)
+		require.Equal("BTC", out.Transactions[0].VirtualAsset)
+		require.Equal("03451485-8ae4-4f89-b80f-e2688ee2df37", out.Transactions[1].ID.String())
+		require.Equal("completed", out.Transactions[1].Status)
+		require.Equal("ETH", out.Transactions[1].VirtualAsset)
+	})
+
+	w.Run("Success - Counterparty Two", func() {
+		w.store.OnRetrieveCounterparty = onRetrieveCounterparty
+		w.store.OnListCounterpartyTransfers = onListCounterpartyTransfers
+
+		out, err := client.ListCounterpartyTransfers(ctx,
+			ulid.MustParse("01M5JFVQYXMJTMVND5VTDDWBGK"),
+			&api.TransactionListQuery{},
+		)
+		require.NoError(err, "could not list counterparty transfers")
+		require.NotNil(out)
+		require.Len(out.Transactions, 1)
+		require.Equal("bc9ca2bc-c9a8-435b-a146-5c28a3f23e34", out.Transactions[0].ID.String())
+		require.Equal("pending", out.Transactions[0].Status)
+		require.Equal("BTC", out.Transactions[0].VirtualAsset)
+	})
+
+	w.Run("Empty", func() {
+		w.store.OnRetrieveCounterparty = onRetrieveCounterparty
+		w.store.OnListCounterpartyTransfers = onListCounterpartyTransfers
+
+		out, err := client.ListCounterpartyTransfers(ctx,
+			ulid.MustParse("01M5JFW33AE7J8ZF8S76F8FK11"),
+			&api.TransactionListQuery{},
+		)
+		require.NoError(err)
+		require.NotNil(out)
+		require.Empty(out.Transactions)
+	})
+
+	w.Run("NotFound", func() {
+		w.store.OnRetrieveCounterparty = onRetrieveCounterparty
+		w.store.OnListCounterpartyTransfers = onListCounterpartyTransfers
+
+		out, err := client.ListCounterpartyTransfers(ctx,
+			ulid.MustParse("01M5JH36M7EWMCBJNRWJM9NSM9"),
+			&api.TransactionListQuery{},
+		)
+		require.EqualError(err, "[404] counterparty not found")
+		require.Nil(out)
 	})
 }

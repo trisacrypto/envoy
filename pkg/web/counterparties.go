@@ -560,6 +560,68 @@ func (s *Server) CounterpartyQRCode(c *gin.Context) {
 	c.Data(http.StatusOK, "image/png", buf.Bytes())
 }
 
+func (s *Server) ListCounterpartyTransfers(c *gin.Context) {
+	var (
+		err          error
+		in           *api.TransactionListQuery
+		counterparty *models.Counterparty
+		page         *models.TransactionPage
+		out          *api.TransactionsList
+	)
+
+	// Parse the URL parameters from the request.
+	in = &api.TransactionListQuery{}
+	if err = c.BindQuery(in); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
+		return
+	}
+
+	// Validate the incoming parameters from the query.
+	if err = in.Validate(); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		return
+	}
+
+	// Retrieve counterparty from the database.
+	if counterparty, err = s.RetrieveCounterparty(c); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not retrieve counterparty"))
+		return
+	}
+
+	// Fetch transactions list from the database.
+	if page, err = s.store.ListCounterpartyTransfers(c.Request.Context(), counterparty.ID, in.Query()); err != nil {
+		if errors.Is(err, dberr.ErrNotFound) {
+			c.JSON(http.StatusNotFound, api.Error("counterparty not found"))
+			return
+		}
+
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process transactions list request"))
+		return
+	}
+
+	// Convert the page into a transactions list object
+	if out, err = api.NewTransactionList(page); err != nil {
+		c.Error(err)
+		c.JSON(http.StatusInternalServerError, api.Error("could not process transactions list request"))
+		return
+	}
+
+	c.Negotiate(http.StatusOK, gin.Negotiate{
+		Offered:  []string{binding.MIMEJSON, binding.MIMEHTML},
+		Data:     out,
+		HTMLName: "partials/counterparties/transfers.html",
+		HTMLData: scene.New(c).WithAPIData(out),
+	})
+}
+
 func (s *Server) ListContacts(c *gin.Context) {
 	var (
 		err            error

@@ -85,6 +85,8 @@ type Client interface {
 	CounterpartyDetail(context.Context, ulid.ULID) (*Counterparty, error)
 	UpdateCounterparty(context.Context, *Counterparty) (*Counterparty, error)
 	DeleteCounterparty(context.Context, ulid.ULID) error
+	ListCounterpartyTransfers(context.Context, ulid.ULID, *TransactionListQuery) (*TransactionsList, error)
+	CounterpartyQRCode(context.Context, ulid.ULID) ([]byte, error)
 
 	// Contacts Resource
 	ListContacts(ctx context.Context, counterpartyID ulid.ULID, in *PageQuery) (*ContactList, error)

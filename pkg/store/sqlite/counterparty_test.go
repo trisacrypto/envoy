@@ -1038,3 +1038,69 @@ func (s *storeTestSuite) TestDeleteFailures() {
 		require.True(ok, "audit log count was off")
 	})
 }
+
+func (s *storeTestSuite) TestListCounterpartyTransfers() {
+	counterpartyID := ulid.MustParse("01HWR5VWW8V7ZFFVJVBEC7AV8A")
+	s.Run("Success", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := counterpartyID
+
+		transactions, err := s.store.ListCounterpartyTransfers(ctx, counterpartyID, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error")
+		require.NotNil(transactions, "transactions should not be nil")
+		require.NotNil(transactions.Transactions, "transactions.Transactions should not be nil")
+		require.Len(transactions.Transactions, 2, fmt.Sprintf("should be 2 transactions, found %d instead", len(transactions.Transactions)))
+	})
+	s.Run("SuccessStatusFilter", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := counterpartyID
+
+		transactions, err := s.store.ListCounterpartyTransfers(ctx, counterpartyID, &models.TransactionPageInfo{Status: []string{"pending"}})
+		require.NoError(err, "expected no error")
+		require.NotNil(transactions, "transactions should not be nil")
+		require.NotNil(transactions.Transactions, "transactions.Transactions should not be nil")
+		require.Len(transactions.Transactions, 1, fmt.Sprintf("should be 1 transaction, found %d instead", len(transactions.Transactions)))
+	})
+	s.Run("SuccessVirtualAssetFilter", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := counterpartyID
+
+		transactions, err := s.store.ListCounterpartyTransfers(ctx, counterpartyID, &models.TransactionPageInfo{VirtualAsset: []string{"BTC"}})
+		require.NoError(err, "expected no error")
+		require.NotNil(transactions, "transactions should not be nil")
+		require.NotNil(transactions.Transactions, "transactions.Transactions should not be nil")
+		require.Len(transactions.Transactions, 1, fmt.Sprintf("should be 1 transaction, found %d instead", len(transactions.Transactions)))
+	})
+	s.Run("SuccessArchiveFilter", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := counterpartyID
+
+		transactions, err := s.store.ListCounterpartyTransfers(ctx, counterpartyID, &models.TransactionPageInfo{Archives: true})
+		require.NoError(err, "expected no error")
+		require.NotNil(transactions, "transactions should not be nil")
+		require.NotNil(transactions.Transactions, "transactions.Transactions should not be nil")
+		require.Len(transactions.Transactions, 0, fmt.Sprintf("should be 0 transactions, found %d instead", len(transactions.Transactions)))
+	})
+	s.Run("NoTransactions", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := ulid.MakeSecure()
+
+		transactions, err := s.store.ListCounterpartyTransfers(ctx, counterpartyID, &models.TransactionPageInfo{})
+		require.NoError(err, "expected no error")
+		require.NotNil(transactions, "transactions should not be nil")
+		require.NotNil(transactions.Transactions, "transactions.Transactions should not be nil")
+		require.Len(transactions.Transactions, 0, fmt.Sprintf("should be 0 transactions, found %d instead", len(transactions.Transactions)))
+	})
+	s.Run("PanicsNilPageInfo", func() {
+		require := s.Require()
+		ctx := s.ActorContext()
+		counterpartyID := counterpartyID
+
+		require.Panics(func() { s.store.ListCounterpartyTransfers(ctx, counterpartyID, nil) }, "should panic with nil page info")
+	})
+}
