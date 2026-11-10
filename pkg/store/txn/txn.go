@@ -99,6 +99,7 @@ type CounterpartyTxn interface {
 	LookupCounterparty(field, value string) (*models.Counterparty, error)
 	UpdateCounterparty(*models.Counterparty, *models.ComplianceAuditLog) error
 	DeleteCounterparty(counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+	ListCounterpartyTransfers(counterpartyID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
 }
 
 type ContactTxn interface {

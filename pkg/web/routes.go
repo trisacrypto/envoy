@@ -274,6 +274,7 @@ func (s *Server) setupRoutes() (err error) {
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)
 			counterparties.DELETE("/:id", authorize(permiss.CounterpartiesManage), s.DeleteCounterparty)
 			counterparties.GET("/:id/qrcode", authorize(permiss.CounterpartiesView), s.CounterpartyQRCode)
+			counterparties.GET("/:id/transfers", authorize(permiss.CounterpartiesView), s.ListCounterpartyTransfers)
 
 			// Contacts Resource (nested on Counterparty)
 			contacts := counterparties.Group("/:id/contacts")

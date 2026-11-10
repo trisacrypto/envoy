@@ -1,0 +1,56 @@
+{{ template "page.html" . }}
+{{ define "title" }}Counterparty Transfers | TRISA Envoy{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "page-content" -}}
+{{- $canEditCounterparties := not .IsViewOnly -}}
+{{ with .CounterpartyDetail -}}
+<div class="header mt-md-5">
+  <div class="header-body">
+    <div class="row align-items-center">
+      <div class="col">
+        <h6 class="header-pretitle">Counterparties</h6>
+        <h1 class="header-title">{{ .Name }}</h1>
+      </div>
+      <div class="col-auto">
+        <a href="/counterparties" class="btn btn-white lift" title="Back to Counterparties List">
+          <i class="fe fe-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+    {{ template "counterpartyTabs" (dict "ID" .ID "Tab" "transfers" "CanEdit" $canEditCounterparties) }}
+  </div>
+</div>
+<div class="card" hx-get="/v1/counterparties/{{ .ID }}/transfers" hx-trigger="load, transactions-updated from:body" hx-target="#counterparty-transfers" hx-swap="outerHTML">
+  <div class="card-header">
+    <h4 class="card-header-title">Related Transfers</h4>
+  </div>
+  <div id="counterparty-transfers" class="card-body">
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/counterparties/transfers.js"></script>
+{{- end }}
