@@ -44,6 +44,13 @@ document.addEventListener("htmx:afterSettle", function(e) {
     return;
   }
 
+  // Display the userEditModal after fetching the user detail.
+  if (isRequestMatch(e, /^\/v1\/users\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/gm, "get")) {
+    const userEditModal = new Modal("#userEditModal", {});
+    userEditModal.show()
+    return;
+  }
+
 });
 
 /*
@@ -51,11 +58,18 @@ Post-event handling when the users-updated event is fired.
 */
 document.body.addEventListener("users-updated", function(e) {
   const elt = e.detail?.elt;
+  console.log(elt)
   if (elt) {
     if (elt.id === 'deleteBtn') {
       const confirmRevokeModal = Modal.getInstance(document.getElementById("confirmDeleteUserModal"));
       confirmRevokeModal.hide();
     }
+  }
+
+  // Hide userEditModal after successfully editing a user.
+  const userEditModal = Modal.getInstance("#userEditModal")
+  if (userEditModal) {
+    userEditModal.hide();
   }
 });
 
