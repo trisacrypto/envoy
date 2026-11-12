@@ -19,15 +19,15 @@
 
 {{- define "modals" }}
   {{ template "createUserModal" . }}
-  {{ template "resetPasswordModal" . }}
   {{ template "confirmDeleteUserModal" . }}
 
   <!-- htmx populates this modal with the user details after creation -->
   <!-- When the modal is closed it erases its internal contents -->
   <div id="userCreatedModal" class="modal" tabindex="-1"></div>
 
-  <!-- htmx modal targets for user edit-->
+  <!-- htmx modal targets for user edit and password reset -->
   <div id="userEditModal" class="modal" tabindex="-1"></div>
+  <div id="resetPasswordModal" class="modal" tabindex="-1"></div>
 {{- end }}
 
 {{- define "header-actions" }}

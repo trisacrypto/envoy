@@ -87,7 +87,7 @@
                 <button class="dropdown-item" hx-get="/v1/users/{{ .ID }}?detail=user" hx-target="#userEditModal">
                   <i class="fe fe-edit"></i> Edit
                 </button>
-                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" data-bs-user-email="{{ .Email }}">
+                <button class="dropdown-item" hx-get="/v1/users/{{ .ID }}?detail=password" hx-target="#resetPasswordModal">
                   <i class="fe fe-lock"></i> Reset Password
                 </button>
                 <a href="#!" class="dropdown-item"

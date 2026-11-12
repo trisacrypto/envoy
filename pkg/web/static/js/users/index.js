@@ -3,7 +3,7 @@ Application code for the user management dashboard page.
 */
 
 import { createList, createPageSizeSelect, activateCopyButtons } from '../modules/components.js';
-import { isRequestFor, isRequestMatch } from '../htmx/helpers.js';
+import { isRequestFor, isRequestMatch, urlQuery } from '../htmx/helpers.js';
 import Alerts from '../modules/alerts.js';
 
 
@@ -47,23 +47,12 @@ document.addEventListener("htmx:afterSettle", function(e) {
     return;
   }
 
-  // Display the userEditModal after fetching the user detail.
+  // Display the edit or reset password modal after fetching the user detail.
   if (isRequestMatch(e, /^\/v1\/users\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/gm, "get")) {
-    const userEditModal = new Modal("#userEditModal", {});
-    userEditModal.show()
-    return;
-  }
-
-});
-
-// Event handling before a request is sent.
-document.body.addEventListener("htmx:configRequest", function(e) {
-  // TODO: Update endpoint.
-  if (isRequestFor(e, "/v1/forgot-password", "post")) {
-    const params = new FormData();
-    const resetPasswordModal = document.getElementById("resetPasswordModal");
-    params.append("email", resetPasswordModal.dataset.userEmail);
-    e.detail.parameters = params;
+    const detail = urlQuery(e.detail.requestConfig.path).get("detail");
+    const modalID = detail === "password" ? "#resetPasswordModal" : "#userEditModal"
+    const modal = new Modal(modalID, {});
+    modal.show();
   }
 });
 
@@ -139,18 +128,12 @@ if (userCreatedModal) {
 }
 
 /*
-When the reset password button is pressed in the list, store the user email on the modal
-so the reset password request can include it.
+When the reset password modal is closed, clear its contents so the next open starts fresh.
 */
 const resetPasswordModal = document.getElementById('resetPasswordModal');
 if (resetPasswordModal) {
-  resetPasswordModal.addEventListener('show.bs.modal', function(event) {
-    const button = event.relatedTarget;
-    resetPasswordModal.dataset.userEmail = button.dataset.bsUserEmail || "";
-  });
-
   resetPasswordModal.addEventListener('hidden.bs.modal', function() {
-    delete resetPasswordModal.dataset.userEmail;
+    resetPasswordModal.innerHTML = '';
   });
 }
 
