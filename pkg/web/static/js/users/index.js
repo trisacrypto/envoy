@@ -3,8 +3,11 @@ Application code for the user management dashboard page.
 */
 
 import { createList, createPageSizeSelect, activateCopyButtons } from '../modules/components.js';
-import { isRequestFor, isRequestMatch } from '../htmx/helpers.js';
+import { isRequestFor, isRequestMatch, urlQuery } from '../htmx/helpers.js';
+import Alerts from '../modules/alerts.js';
 
+
+const pageAlerts = new Alerts(document.getElementById("pageAlerts"));
 
 /*
 Post-event handling after htmx has settled the DOM.
@@ -44,6 +47,28 @@ document.addEventListener("htmx:afterSettle", function(e) {
     return;
   }
 
+  // Display the edit or reset password modal after fetching the user detail.
+  if (isRequestMatch(e, /^\/v1\/users\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/gm, "get")) {
+    const detail = urlQuery(e.detail.requestConfig.path).get("detail");
+    const modalID = detail === "password" ? "#resetPasswordModal" : "#userEditModal"
+    const modal = new Modal(modalID, {});
+    modal.show();
+  }
+});
+
+/*
+Close the reset password modal and show a page alert after a successful request.
+*/
+document.body.addEventListener("htmx:afterRequest", function(e) {
+  // TODO: Update endpoint.
+  if (isRequestFor(e, "/v1/forgot-password", "post") && e.detail.successful) {
+    const resetPasswordModal = Modal.getInstance(document.getElementById("resetPasswordModal"));
+    if (resetPasswordModal) {
+      resetPasswordModal.hide();
+    }
+
+    pageAlerts.success("", "A password reset email has been sent to the user.");
+  }
 });
 
 /*
@@ -51,11 +76,18 @@ Post-event handling when the users-updated event is fired.
 */
 document.body.addEventListener("users-updated", function(e) {
   const elt = e.detail?.elt;
+  console.log(elt)
   if (elt) {
     if (elt.id === 'deleteBtn') {
       const confirmRevokeModal = Modal.getInstance(document.getElementById("confirmDeleteUserModal"));
       confirmRevokeModal.hide();
     }
+  }
+
+  // Hide userEditModal after successfully editing a user.
+  const userEditModal = Modal.getInstance("#userEditModal")
+  if (userEditModal) {
+    userEditModal.hide();
   }
 });
 
@@ -92,6 +124,16 @@ const userCreatedModal = document.getElementById('userCreatedModal');
 if (userCreatedModal) {
   userCreatedModal.addEventListener('hidden.bs.modal', function() {
     userCreatedModal.innerHTML = '';
+  });
+}
+
+/*
+When the reset password modal is closed, clear its contents so the next open starts fresh.
+*/
+const resetPasswordModal = document.getElementById('resetPasswordModal');
+if (resetPasswordModal) {
+  resetPasswordModal.addEventListener('hidden.bs.modal', function() {
+    resetPasswordModal.innerHTML = '';
   });
 }
 

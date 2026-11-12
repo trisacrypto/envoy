@@ -1,0 +1,42 @@
+{{ with .UserDetail }}
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit User</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="editUserAlerts" class="alerts"></div>
+        <form id="editUserForm" hx-put="/v1/users/{{ .ID }}" hx-ext="json-enc" hx-swap="none" hx-indicator="#loader" hx-disabled-elt="next button[type='submit'], next button[type='reset']">
+          <input type="hidden" name="id" value="{{ .ID }}">
+          <div class="form-group">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" id="name" name="name" value="{{ .Name }}" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" name="email" value="{{ .Email }}" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="role" class="form-label">Role</label>
+            <select id="role" name="role" class="form-select" required>
+              <option value>Please select a role</option>
+              <option {{ if eq .Role "Admin" }}selected{{ end }} value="Admin">Administrator</option>
+              <option {{ if eq .Role "Compliance" }}selected{{ end }} value="Compliance">Compliance User</option>
+              <option {{ if eq .Role "Observer" }}selected{{ end }} value="Observer">Observer</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span id="loader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" id="editUserBttn" form="editUserForm" class="btn btn-primary">
+          Save
+        </button>
+        <button type="reset" form="editUserForm" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+{{ end }}

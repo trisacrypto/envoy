@@ -200,12 +200,12 @@ func (s *Server) UserDetail(c *gin.Context) {
 	var template string
 	switch query.Detail {
 	case api.DetailUser:
-		template = "user_detail.html"
+		template = "partials/users/detail.html"
 	case api.DetailPassword:
-		template = "user_password.html"
+		template = "partials/users/password.html"
 	default:
 		c.Error(fmt.Errorf("unhandled detail query '%q'", query.Detail))
-		template = "user_detail.html"
+		template = "partials/users/detail.html"
 	}
 
 	c.Negotiate(http.StatusOK, gin.Negotiate{
@@ -287,6 +287,11 @@ func (s *Server) UpdateUser(c *gin.Context) {
 		// TODO: handle other types of database errors and constraints
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error(err))
+		return
+	}
+
+	if htmx.IsHTMXRequest(c) {
+		htmx.Trigger(c, htmx.UsersUpdated)
 		return
 	}
 
