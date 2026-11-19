@@ -156,6 +156,12 @@ func (s *Server) setupRoutes() (err error) {
 			auditlogs.GET("/", s.ComplianceAuditLogListPage)
 			auditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
 		}
+
+		// Transfer Policy pages
+		transferPolicies := ui.Group("/transfer-policies")
+		{
+			transferPolicies.GET("", s.TransferPolicyListPage)
+		}
 	}
 
 	// Swagger documentation with Swagger UI hosted from a CDN
@@ -261,6 +267,12 @@ func (s *Server) setupRoutes() (err error) {
 				se.GET("", authorize(permiss.TravelRuleView), s.ListSecureEnvelopes)
 				se.GET("/:envelopeID", authorize(permiss.TravelRuleView), s.SecureEnvelopeDetail)
 			}
+		}
+
+		// Transfer Policies Resource
+		transferPolicies := v1.Group("/transfer-policies", authenticate)
+		{
+			transferPolicies.GET("", authorize(permiss.TransferPoliciesView), s.ListTransferPolicies)
 		}
 
 		// Counterparties Resource
