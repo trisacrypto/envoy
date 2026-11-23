@@ -66,36 +66,20 @@ func (s *Server) SearchCounterparties(c *gin.Context) {
 }
 
 func (s *Server) ListCounterparties(c *gin.Context) {
-	var (
-		err  error
-		in   *api.CounterpartyQuery
-		page *models.CounterpartyPage
-		out  *api.CounterpartyList
-	)
-
-	// Parse the URL parameters from the input request
-	in = &api.CounterpartyQuery{}
-	if err = c.BindQuery(in); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, api.Error("could not parse page query request"))
-		return
-	}
-
-	if err = in.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, api.Error(err))
-		return
-	}
-
-	// TODO: implement better pagination mechanism (with pagination tokens)
-
-	if page, err = s.store.ListCounterparties(c.Request.Context(), in.Query()); err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, api.Error("could not process counterparty list request"))
+	page, status, err := s.loadCounterpartyList(c, false)
+	if err != nil {
+		if status == http.StatusInternalServerError {
+			c.Error(err)
+			c.JSON(status, api.Error("could not process counterparty list request"))
+		} else {
+			c.JSON(status, api.Error(err))
+		}
 		return
 	}
 
 	// Convert the counterparties page into an api response
-	if out, err = api.NewCounterpartyList(page); err != nil {
+	out, err := api.NewCounterpartyList(page)
+	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, api.Error("could not process counterparty list request"))
 		return
@@ -107,6 +91,45 @@ func (s *Server) ListCounterparties(c *gin.Context) {
 		HTMLName: "partials/counterparties/list.html",
 		HTMLData: scene.New(c).WithAPIData(out),
 	})
+}
+
+func (s *Server) ListCounterpartyOptions(c *gin.Context) {
+	page, status, err := s.loadCounterpartyList(c, true)
+	if err != nil && status != http.StatusInternalServerError {
+		c.JSON(status, api.Error(err))
+		return
+	}
+
+	ctx := scene.New(c)
+	if err != nil {
+		c.Error(err)
+		ctx["Unavailable"] = true
+	} else {
+		ctx["Counterparties"] = page.Counterparties
+	}
+
+	c.HTML(http.StatusOK, "partials/counterparties/options.html", ctx)
+}
+
+func (s *Server) loadCounterpartyList(c *gin.Context, requireProtocol bool) (*models.CounterpartyPage, int, error) {
+	in := &api.CounterpartyQuery{}
+	if err := c.ShouldBindQuery(in); err != nil {
+		c.Error(err)
+		return nil, http.StatusBadRequest, errors.New("could not parse page query request")
+	}
+	if err := in.Validate(); err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	if requireProtocol && in.Protocol == "" {
+		return nil, http.StatusBadRequest, api.MissingField("protocol")
+	}
+
+	// TODO: implement better pagination mechanism (with pagination tokens)
+	page, err := s.store.ListCounterparties(c.Request.Context(), in.Query())
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	return page, http.StatusOK, nil
 }
 
 func (s *Server) CreateCounterparty(c *gin.Context) {

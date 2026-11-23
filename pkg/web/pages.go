@@ -342,6 +342,10 @@ func (s *Server) TransferPolicyListPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard/transferpolicies/list.html", scene.New(c))
 }
 
+func (s *Server) AddTransferPolicyPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "pages/transferpolicies/new.html", scene.New(c))
+}
+
 //===========================================================================
 // Node Info Pages
 //===========================================================================
