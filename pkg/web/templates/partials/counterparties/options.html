@@ -1,0 +1,14 @@
+<select class="form-control" id="policy-counterparties" name="counterparties"
+        {{- if .Counterparties }} multiple
+        data-choices='{"searchEnabled":true, "removeItemButton":true, "placeholder":true,"placeholderValue":"Select counterparties", "labelId":"policy-counterparties-label"}'
+        {{- else }} disabled{{ end }}
+        {{- if .Unavailable }} aria-describedby="policy-counterparties-error"{{ end }}>
+  {{- range .Counterparties }}
+  <option value="{{ .ID }}">{{ .Name }}</option>
+  {{- else }}
+  <option>No counterparties available</option>
+  {{- end }}
+</select>
+{{- if .Unavailable }}
+<div id="policy-counterparties-error" class="form-text text-danger">Unable to load counterparties for the selected protocol</div>
+{{- end }}

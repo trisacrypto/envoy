@@ -26,7 +26,8 @@ import (
 
 type CounterpartyQuery struct {
 	PageQuery
-	Source string `json:"source,omitempty" url:"source,omitempty" form:"source"`
+	Source   string `json:"source,omitempty" url:"source,omitempty" form:"source"`
+	Protocol string `json:"protocol,omitempty" url:"protocol,omitempty" form:"protocol"`
 }
 
 type Counterparty struct {
@@ -143,7 +144,8 @@ func NewCounterpartyList(page *models.CounterpartyPage) (out *CounterpartyList, 
 			PageQuery: PageQuery{
 				PageSize: int(page.Page.PageSize),
 			},
-			Source: page.Page.Source,
+			Source:   page.Page.Source,
+			Protocol: page.Page.Protocol,
 		},
 		Counterparties: make([]*Counterparty, 0, len(page.Counterparties)),
 	}
@@ -424,6 +426,13 @@ func (c *Contact) Validate(create bool) (err error) {
 //===========================================================================
 
 func (c *CounterpartyQuery) Validate() (err error) {
+	if c.Protocol != "" {
+		if protocol, perr := enum.ParseProtocol(c.Protocol); perr != nil || protocol == enum.ProtocolUnknown {
+			err = ValidationError(err, IncorrectField("protocol", "must be one of trisa, trp, or sunrise"))
+		} else {
+			c.Protocol = protocol.String()
+		}
+	}
 	if c.Source != "" {
 		if ok, _ := enum.CheckSource(c.Source, enum.SourceUnknown, enum.SourceDirectorySync, enum.SourceUserEntry, enum.SourceDaybreak); !ok {
 			err = ValidationError(err, IncorrectField("source", "must be one of gds, user, or daybreak"))
@@ -437,7 +446,8 @@ func (c *CounterpartyQuery) Query() (query *models.CounterpartyPageInfo) {
 		PageInfo: models.PageInfo{
 			PageSize: uint32(c.PageSize),
 		},
-		Source: c.Source,
+		Source:   c.Source,
+		Protocol: c.Protocol,
 	}
 	return query
 }

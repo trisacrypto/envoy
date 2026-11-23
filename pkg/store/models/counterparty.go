@@ -47,7 +47,8 @@ type Counterparty struct {
 
 type CounterpartyPageInfo struct {
 	PageInfo
-	Source string `json:"source,omitempty"`
+	Source   string `json:"source,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
 }
 
 // Scan a complete SELECT into the counterparty model

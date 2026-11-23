@@ -15,10 +15,10 @@ import (
 	"go.rtnl.ai/ulid"
 )
 
-const (
-	listCounterpartiesSQL   = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created FROM counterparties ORDER BY name ASC"
-	filterCounterpartiesSQL = "SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created FROM counterparties WHERE source=:source ORDER BY name ASC"
-)
+const listCounterpartiesSQL = `SELECT id, source, protocol, endpoint, name, website, country, verified_on, travel_address, created
+FROM counterparties
+WHERE (:source = '' OR source = :source) AND (:protocol = '' OR protocol = :protocol)
+ORDER BY name ASC`
 
 func (s *Store) ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (out *models.CounterpartyPage, err error) {
 	var tx *Tx
@@ -42,18 +42,16 @@ func (t *Tx) ListCounterparties(page *models.CounterpartyPageInfo) (out *models.
 	// TODO: handle pagination
 	out = &models.CounterpartyPage{
 		Counterparties: make([]*models.Counterparty, 0),
-		Page:           &models.CounterpartyPageInfo{PageInfo: *models.PageInfoFrom(&page.PageInfo), Source: page.Source},
+		Page: &models.CounterpartyPageInfo{
+			PageInfo: *models.PageInfoFrom(&page.PageInfo),
+			Source:   page.Source,
+			Protocol: page.Protocol,
+		},
 	}
 
 	var rows *sql.Rows
-	if page.Source != "" {
-		if rows, err = t.tx.Query(filterCounterpartiesSQL, sql.Named("source", page.Source)); err != nil {
-			return nil, dbe(err)
-		}
-	} else {
-		if rows, err = t.tx.Query(listCounterpartiesSQL); err != nil {
-			return nil, dbe(err)
-		}
+	if rows, err = t.tx.Query(listCounterpartiesSQL, sql.Named("source", page.Source), sql.Named("protocol", page.Protocol)); err != nil {
+		return nil, dbe(err)
 	}
 	defer rows.Close()
 

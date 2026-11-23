@@ -2,12 +2,19 @@
 {{- define "title" }}Transfer Policy Management | TRISA Envoy{{ end }}
 {{- define "pretitle" }}Transfer Policies{{ end }}
 {{- define "pagetitle" }}View Transfer Policies{{ end }}
-{{- define "header-action-text" }}New Policy{{ end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<a class="btn btn-primary" href="/transfer-policies/new">
+  New Policy
+</a>
+{{- end }}
+{{- end }}
 
 {{- define "main" }}
 <div class="row">
   <div class="col-12 col-xl-9">
-    <section id="transfer-policies" hx-get="/v1/transfer-policies" hx-trigger="load">
+    <section id="transfer-policies">
       <div class="card">
         <div class="card-body text-center">
           <p>No transfer policies have been added.</p>
