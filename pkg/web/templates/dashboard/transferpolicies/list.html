@@ -1,0 +1,41 @@
+{{ template "dashboard.html" . }}
+{{- define "title" }}Transfer Policy Management | TRISA Envoy{{ end }}
+{{- define "pretitle" }}Transfer Policies{{ end }}
+{{- define "pagetitle" }}View Transfer Policies{{ end }}
+{{- define "header-action-text" }}New Policy{{ end }}
+
+{{- define "main" }}
+<div class="row">
+  <div class="col-12 col-xl-9">
+    <section id="transfer-policies" hx-get="/v1/transfer-policies" hx-trigger="load">
+      <div class="card">
+        <div class="card-body text-center">
+          <p>No transfer policies have been added.</p>
+          {{/*
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          */}}
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="col-12 col-xl-3">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-header-title h5">MATCHED POLICIES</h5>
+      </div>
+      <div class="card-body">
+        <div>
+          <p class="h2 mb-1">0</p>
+          <p class="text-muted">across all policies</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+{{- end }}
