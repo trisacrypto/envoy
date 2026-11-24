@@ -3,7 +3,6 @@
 {{- define "pretitle" }}Transfer Policies{{ end }}
 {{- define "pagetitle" }}View Transfer Policies{{ end }}
 
-<<<<<<< HEAD
 {{- define "appstyle" }}
 <style>
   #transfer-policies [data-policy-value-dropdown] {
@@ -17,8 +16,6 @@
 </style>
 {{- end }}
 
-=======
->>>>>>> main
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
 <a class="btn btn-primary" href="/transfer-policies/new">
@@ -27,7 +24,6 @@
 {{- end }}
 {{- end }}
 
-<<<<<<< HEAD
 {{- define "modals" }}
   {{ template "deleteTransferPolicyModal" . }}
 {{- end }}
@@ -248,36 +244,6 @@
     <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#deleteTransferPolicyModal">
       <i class="fe fe-trash me-1" aria-hidden="true"></i> Delete
     </button>
-=======
-{{- define "main" }}
-<div class="row">
-  <div class="col-12 col-xl-9">
-    <section id="transfer-policies">
-      <div class="card">
-        <div class="card-body text-center">
-          <p>No transfer policies have been added.</p>
-          {{/*
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          */}}
-        </div>
-      </div>
-    </section>
-  </div>
-  <div class="col-12 col-xl-3">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-header-title h5">MATCHED POLICIES</h5>
-      </div>
-      <div class="card-body">
-        <div>
-          <p class="h2 mb-1">0</p>
-          <p class="text-muted">across all policies</p>
-        </div>
-      </div>
-    </div>
->>>>>>> main
   </div>
 </div>
 {{- end }}
