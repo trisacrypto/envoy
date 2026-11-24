@@ -24,6 +24,10 @@
 {{- end }}
 {{- end }}
 
+{{- define "modals" }}
+  {{ template "deleteTransferPolicyModal" . }}
+{{- end }}
+
 {{- define "tabs" }}
 <p class="text-muted mt-2 mb-0">
   Enabled policies decide inbound transfers automatically. A transfer that matches no policy stays in the inbox for a manual decision.
@@ -237,7 +241,7 @@
     <a class="dropdown-item" href="/transfer-policies/{{ .ID }}/edit">
       <i class="fe fe-edit me-1" aria-hidden="true"></i> Edit
     </a>
-    <button class="dropdown-item" type="button" disabled>
+    <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#deleteTransferPolicyModal">
       <i class="fe fe-trash me-1" aria-hidden="true"></i> Delete
     </button>
   </div>
