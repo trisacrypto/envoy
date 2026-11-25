@@ -18,6 +18,7 @@ import (
 	"go.rtnl.ai/confire/contest"
 	"go.rtnl.ai/confire/env"
 	"go.rtnl.ai/confire/validate"
+	"go.rtnl.ai/x/region"
 )
 
 // cSpell: ignore webp GTFZ00N6IHYMHHNT8S51
@@ -221,14 +222,23 @@ var validConfig = config.Config{
 			APIKey: "sg:fakeapikey",
 		},
 	},
-	RegionInfo: config.RegionInfo{
-		ID:      2840302,
-		Name:    "us-east4c",
-		Country: "US",
-		Cloud:   "GCP",
-		Cluster: "rotational-testing-gke-9",
-		Zone:    "us-east4-c",
-	},
+	RegionInfo: validRegionInfo(),
+}
+
+// The region info that matches the testEnv. Validating region info caches the country
+// details of its country code in an unexported field, which the Country method also
+// does; it is called here so that this fixture is equal to a validated config.
+func validRegionInfo() region.Info {
+	info := region.Info{
+		ID:          region.GCP_US_EAST_4C,
+		Name:        "us-east4c",
+		CountryCode: "US",
+		Cloud:       "GCP",
+		Cluster:     "rotational-testing-gke-9",
+		Zone:        "us-east4-c",
+	}
+	info.Country()
+	return info
 }
 
 // The smallest environment that produces a valid configuration: everything else has
@@ -405,6 +415,11 @@ func TestConfig(t *testing.T) {
 				clear: []string{"TRISA_EMAIL_SENDGRID_API_KEY", "TRISA_EMAIL_SMTP_USERNAME"},
 				err:   "smtp.use_cram_md5 cram-md5 authentication requires a username and password",
 			},
+			{
+				name: "RegionInfo",
+				set:  contest.Env{"REGION_INFO_COUNTRY": "ZZ"},
+				err:  `unknown country code "ZZ"`,
+			},
 		}
 
 		for _, tc := range tests {
@@ -433,6 +448,7 @@ func TestConfig(t *testing.T) {
 			{"TRISA_WEB_AUTH_ACCESS_TOKEN_TTL": "soon"},
 			{"TRISA_EMAIL_SMTP_PORT": "-1"},
 			{"REGION_INFO_ID": "us-east4c"},
+			{"REGION_INFO_ID": "9999999"},
 		}
 
 		t.Cleanup(testEnv.Set())
@@ -597,6 +613,11 @@ func TestConfigValidation(t *testing.T) {
 				func(c *config.Config) { c.Email.Testing = false },
 				"emails.smtp cannot specify both smtp and sendgrid configurations",
 			},
+			{
+				"RegionInfo",
+				func(c *config.Config) { c.RegionInfo.CountryCode = "ZZ" },
+				`unknown country code "ZZ"`,
+			},
 		}
 
 		for _, tc := range tests {
@@ -677,26 +698,28 @@ func TestCertsFallback(t *testing.T) {
 	}
 }
 
+// The region can be identified by either its code or its name and any region info that
+// is not specified in the environment should be derived from the region.
 func TestRegionInfo(t *testing.T) {
-	t.Run("Unavailable", func(t *testing.T) {
-		conf := config.RegionInfo{}
-		require.False(t, conf.Available(), "expected region info to be unavailable")
-	})
+	expected := region.Info{
+		ID:          region.GCP_US_EAST_4C,
+		Name:        "gcp-us-east-4c",
+		CountryCode: "US",
+		Cloud:       "GCP",
+		Cluster:     "rotational-testing-gke-9",
+		Zone:        "4C",
+	}
+	expected.Country()
 
-	t.Run("Available", func(t *testing.T) {
-		tests := map[string]config.RegionInfo{
-			"All":     validConfig.RegionInfo,
-			"ID":      {ID: 2840302},
-			"Name":    {Name: "us-east4c"},
-			"Country": {Country: "US"},
-			"Cloud":   {Cloud: "GCP"},
-			"Cluster": {Cluster: "rotational-testing-gke-9"},
-		}
+	for _, id := range []string{"2840302", "gcp-us-east-4c", "GCP_US_EAST_4C"} {
+		t.Run(id, func(t *testing.T) {
+			setTestEnv(t, contest.Env{"REGION_INFO_ID": id}, "REGION_INFO_NAME", "REGION_INFO_COUNTRY", "REGION_INFO_CLOUD", "REGION_INFO_ZONE")
 
-		for name, tc := range tests {
-			require.True(t, tc.Available(), "expected region info with %s to be available", name)
-		}
-	})
+			conf, err := config.New()
+			require.NoError(t, err, "could not process configuration from the environment")
+			require.Equal(t, expected, conf.RegionInfo)
+		})
+	}
 }
 
 //============================================================================

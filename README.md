@@ -291,14 +291,16 @@ Emails are sent using either SMTP or SendGrid, but not both: set `TRISA_EMAIL_SM
 
 Optional information about where the node is deployed. These variables do not have the `TRISA_` prefix.
 
+The region must be one of the regions defined by the [`go.rtnl.ai/x/region`](https://pkg.go.dev/go.rtnl.ai/x/region) package; Envoy will not start if `REGION_INFO_ID` is set to a region that is not. If the region is set, then the name, country, cloud, and zone are derived from it unless they are overridden by their own variables.
+
 | Variable | Type | Default | Description |
 | --- | --- | --- | --- |
-| `REGION_INFO_ID` | integer | | The 7 digit region identifier code. |
-| `REGION_INFO_NAME` | string | | The name of the region. |
-| `REGION_INFO_COUNTRY` | string | | The alpha-2 country code of the region. |
+| `REGION_INFO_ID` | region | | The region identifier, either its code (e.g. `2840302`) or its name (e.g. `gcp-us-east-4c`). |
+| `REGION_INFO_NAME` | string | | The human readable name of the region. |
+| `REGION_INFO_COUNTRY` | string | | The ISO 3166-1 country code of the region; must be a valid country code if the region is set. |
 | `REGION_INFO_CLOUD` | string | | The cloud service provider. |
 | `REGION_INFO_CLUSTER` | string | | The name of the cluster the node is hosted in. |
-| `REGION_INFO_ZONE` | string | | The zone the node is hosted in. |
+| `REGION_INFO_ZONE` | string | | The zone of the datacenter the node is hosted in. |
 
 ### Keeping this Section Up to Date
 

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.rtnl.ai/confire"
 	"go.rtnl.ai/confire/validate"
+	"go.rtnl.ai/x/region"
 )
 
 // All environment variables will have this prefix unless otherwise defined in struct
@@ -52,21 +53,11 @@ type Config struct {
 	Sunrise         SunriseConfig       `split_words:"true"`
 	Daybreak        DaybreakConfig      `split_words:"true"`
 	Email           emails.Config       `split_words:"true"`
-	RegionInfo      RegionInfo          `split_words:"true"`
+	RegionInfo      region.Info         `split_words:"true"`
 }
 
 type BootConfig struct {
 	RegenerateTravelAddresses bool `default:"false" split_words:"true" desc:"if true, the travel addresses will be regenerated when envoy starts"`
-}
-
-// Optional region and deployment information associated with the node.
-type RegionInfo struct {
-	ID      int32  `env:"REGION_INFO_ID" desc:"the 7 digit region identifier code"`
-	Name    string `env:"REGION_INFO_NAME" desc:"the name of the region"`
-	Country string `env:"REGION_INFO_COUNTRY" desc:"the alpha-2 country code of the region"`
-	Cloud   string `env:"REGION_INFO_CLOUD" desc:"the cloud service provider"`
-	Cluster string `env:"REGION_INFO_CLUSTER" desc:"the name of the cluster the node is hosted in"`
-	Zone    string `env:"REGION_INFO_ZONE" desc:"the zone the node is hosted in"`
 }
 
 func New() (conf *Config, err error) {
@@ -99,11 +90,6 @@ func (c Config) GetLogLevel() zerolog.Level {
 func (c Config) DatabaseDSN() *dsn.DSN {
 	uri, _ := dsn.Parse(c.DatabaseURL)
 	return uri
-}
-
-// Determines if region info is available or not.
-func (c RegionInfo) Available() bool {
-	return c.ID > 0 || c.Name != "" || c.Country != "" || c.Cloud != "" || c.Cluster != ""
 }
 
 //============================================================================
