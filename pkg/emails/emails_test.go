@@ -80,6 +80,41 @@ func TestLiveEmails(t *testing.T) {
 	})
 }
 
+// Configure must not start sending emails with a config that is not valid, whether the
+// problem is with the email config or with the SMTP config that is nested in it.
+func TestConfigureInvalid(t *testing.T) {
+	testCases := []struct {
+		conf Config
+		err  string
+	}{
+		{
+			Config{
+				SendGrid: SendGridConfig{APIKey: "sg:fakeapikey"},
+			},
+			"emails.sender is required but not set",
+		},
+		{
+			Config{
+				Sender:   "orchid@example.com",
+				SMTP:     SMTPConfig{Host: "smtp.example.com", Port: 587, PoolSize: 2},
+				SendGrid: SendGridConfig{APIKey: "sg:fakeapikey"},
+			},
+			"emails.smtp cannot specify both smtp and sendgrid configurations",
+		},
+		{
+			Config{
+				Sender: "orchid@example.com",
+				SMTP:   SMTPConfig{Host: "smtp.example.com", Port: 587, PoolSize: 0},
+			},
+			"smtp.pool_size pool size must be greater than zero",
+		},
+	}
+
+	for i, tc := range testCases {
+		require.ErrorContains(t, Configure(tc.conf), tc.err, "test case %d failed", i)
+	}
+}
+
 func CheckEnvVars(t *testing.T, envs ...string) {
 	for _, env := range envs {
 		require.NotEmpty(t, os.Getenv(env), "required environment variable $%s not set", env)

@@ -41,69 +41,64 @@ func init() {
 }
 
 // Create a new TRISA node from the global configuration, ready to serve.
-func New(conf config.Config) (node *Node, err error) {
-	// Load the default configuration from the environment if config is empty.
-	if conf.IsZero() {
-		if conf, err = config.New(); err != nil {
-			return nil, err
-		}
+func New() (node *Node, err error) {
+	// Create the node and start to register its internal servers
+	node = &Node{errc: make(chan error, 1)}
+
+	// Load the configuration from the environment.
+	if node.conf, err = config.Get(); err != nil {
+		return nil, err
 	}
 
 	// Setup our logging config first thing
-	zerolog.SetGlobalLevel(conf.GetLogLevel())
-	if conf.ConsoleLog {
+	zerolog.SetGlobalLevel(node.conf.GetLogLevel())
+	if node.conf.ConsoleLog {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	// Set the gin mode for all gin servers
-	gin.SetMode(conf.Mode)
+	gin.SetMode(node.conf.Mode)
 
 	// Register the prometheus metrics
 	if err = metrics.Setup(); err != nil {
 		return nil, err
 	}
 
-	// Create the node and start to register its internal servers
-	node = &Node{
-		conf: conf,
-		errc: make(chan error, 1),
-	}
-
 	// Connect to the database store
-	if node.store, err = store.Open(conf.DatabaseURL); err != nil {
+	if node.store, err = store.Open(node.conf.DatabaseURL); err != nil {
 		return nil, err
 	}
 
 	// Set the search threshold for fuzzy searching
-	sqlite.SetThreshold(conf.SearchThreshold)
+	sqlite.SetThreshold(node.conf.SearchThreshold)
 
 	// Configure the store with travel address generators
-	if factory, err := TravelAddressFactory(conf); err != nil {
+	if factory, err := TravelAddressFactory(node.conf); err != nil {
 		log.Warn().Err(err).Msg("could not configure travel address factory")
 	} else {
 		node.store.UseTravelAddressFactory(factory)
 	}
 
 	// Configure the webhook if it's enabled
-	if conf.Webhook.Enabled() {
-		if node.webhook, err = webhook.New(conf.Webhook); err != nil {
+	if node.conf.Webhook.Enabled() {
+		if node.webhook, err = webhook.New(node.conf.Webhook); err != nil {
 			return nil, err
 		}
 	}
 
 	// Configure email if it's available
-	if err = emails.Configure(conf.Email); err != nil {
+	if err = emails.Configure(node.conf.Email); err != nil {
 		return nil, err
 	}
 
 	// Create the TRISA management system
-	if node.network, err = network.New(conf.Node); err != nil {
+	if node.network, err = network.New(node.conf.Node); err != nil {
 		return nil, err
 	}
 	log.Debug().
-		Str("endpoint", conf.Node.Endpoint).
-		Str("gds", conf.Node.Directory.Endpoint).
-		Str("members", conf.Node.Directory.MembersEndpoint).
+		Str("endpoint", node.conf.Node.Endpoint).
+		Str("gds", node.conf.Node.Directory.Endpoint).
+		Str("members", node.conf.Node.Directory.MembersEndpoint).
 		Msg("trisa initialized")
 
 	// Add the node's keychain.KeyChain (created in the network) to the audit package
@@ -120,22 +115,22 @@ func New(conf config.Config) (node *Node, err error) {
 	audit.UseKeyChain(kc)
 
 	// Create the admin web ui server if it is enabled
-	if node.admin, err = web.New(conf, node.store, node.network, node.webhook); err != nil {
+	if node.admin, err = web.New(node.conf, node.store, node.network, node.webhook); err != nil {
 		return nil, err
 	}
 
 	// Create the TRISA API server
-	if node.trisa, err = trisa.New(conf.Node, node.network, node.store, node.webhook, node.errc); err != nil {
+	if node.trisa, err = trisa.New(node.conf.Node, node.network, node.store, node.webhook, node.errc); err != nil {
 		return nil, err
 	}
 
 	// Create the TRP server
-	if node.trp, err = trp.New(conf, node.store, node.network); err != nil {
+	if node.trp, err = trp.New(node.conf, node.store, node.network); err != nil {
 		return nil, err
 	}
 
 	// Create the directory sync background routine
-	if node.syncd, err = directory.New(conf.DirectorySync, node.network, node.store, node.errc); err != nil {
+	if node.syncd, err = directory.New(node.conf.DirectorySync, node.network, node.store, node.errc); err != nil {
 		return nil, err
 	}
 

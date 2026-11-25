@@ -76,6 +76,7 @@
             </span>
             {{- end }}
           </td>
+          {{ if $canEditUsers }}
           <td class="text-end">
             <!-- Dropdown -->
             <div class="dropdown">
@@ -83,23 +84,22 @@
                 <i class="fe fe-more-vertical"></i>
               </a>
               <div class="dropdown-menu dropdown-menu-end">
-                {{ if $canEditUsers }}
-                <a href="#!" class="dropdown-item">
+                <button class="dropdown-item" hx-get="/v1/users/{{ .ID }}?detail=user" hx-target="#userEditModal">
                   <i class="fe fe-edit"></i> Edit
-                </a>
-                <a href="#!" class="dropdown-item">
-                  <i class="fe fe-lock"></i> Change Password
-                </a>
+                </button>
+                <button class="dropdown-item" hx-get="/v1/users/{{ .ID }}?detail=password" hx-target="#resetPasswordModal">
+                  <i class="fe fe-lock"></i> Reset Password
+                </button>
                 <a href="#!" class="dropdown-item"
                   data-bs-toggle="modal" data-bs-target="#confirmDeleteUserModal"
                   data-bs-user-id="{{ .ID }}" data-bs-name="{{ .Name }}" data-bs-email="{{ .Email }}"
                 >
                   <i class="fe fe-trash"></i> Remove
                 </a>
-                {{ end }}
               </div>
             </div>
           </td>
+          {{ end }}
         </tr>
         {{ end }}
       </tbody>

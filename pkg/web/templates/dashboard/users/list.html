@@ -25,8 +25,9 @@
   <!-- When the modal is closed it erases its internal contents -->
   <div id="userCreatedModal" class="modal" tabindex="-1"></div>
 
-  <!-- htmx modal targets for user edit-->
+  <!-- htmx modal targets for user edit and password reset -->
   <div id="userEditModal" class="modal" tabindex="-1"></div>
+  <div id="resetPasswordModal" class="modal" tabindex="-1"></div>
 {{- end }}
 
 {{- define "header-actions" }}
@@ -67,6 +68,7 @@
 {{- end }}
 
 {{- define "main" }}
+<div id="pageAlerts"></div>
 <section id="users" hx-get="/v1/users{{ if .Role }}?role={{ .Role }}{{ end }}" hx-trigger="load, users-updated from:body">
   <div class="card">
     <div class="card-body text-center">

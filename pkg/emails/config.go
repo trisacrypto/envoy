@@ -7,6 +7,7 @@ import (
 
 	"github.com/jordan-wright/email"
 	"github.com/sendgrid/sendgrid-go"
+	"go.rtnl.ai/confire"
 )
 
 // The emails config allows users to either send messages via SendGrid or via SMTP.
@@ -16,8 +17,8 @@ type Config struct {
 	SupportEmail    string         `split_words:"true" desc:"the email address to refer support requests to"`
 	ComplianceEmail string         `split_words:"true" desc:"the email address to refer compliance requests to"`
 	Testing         bool           `split_words:"true" default:"false" desc:"set the emailer to testing mode to ensure no live emails are sent"`
-	SMTP            SMTPConfig     `split_words:"true"`
-	SendGrid        SendGridConfig `split_words:"false"`
+	SMTP            SMTPConfig     `split_words:"true" validate:"ignore"`
+	SendGrid        SendGridConfig `split_words:"false" validate:"ignore"`
 }
 
 // Configuration for sending emails via SMTP.
@@ -40,7 +41,7 @@ func (c Config) Available() bool {
 	return c.SMTP.Enabled() || c.SendGrid.Enabled()
 }
 
-func (c Config) Validate() (err error) {
+func (c *Config) Validate() (err error) {
 	// It is important that if we're in testing mode that we do not validate the
 	// config because this creates dependencies for config validation in other modules.
 	// If the config is not available, then do not validate it.
@@ -50,72 +51,62 @@ func (c Config) Validate() (err error) {
 
 	// Check that a from email exists and that it is parseable
 	if c.Sender == "" {
-		return ErrConfigMissingSender
-	}
-
-	if _, perr := mail.ParseAddress(c.Sender); perr != nil {
-		return ErrConfigInvalidSender
+		err = confire.Join(err, confire.Required("emails", "sender"))
+	} else if _, perr := mail.ParseAddress(c.Sender); perr != nil {
+		err = confire.Join(err, confire.Invalid("emails", "sender", "not a valid email address"))
 	}
 
 	if c.SupportEmail != "" {
 		if _, perr := mail.ParseAddress(c.SupportEmail); perr != nil {
-			return ErrConfigInvalidSupport
+			err = confire.Join(err, confire.Invalid("emails", "support_email", "not a valid email address"))
 		}
 	}
 
 	if c.ComplianceEmail != "" {
 		if _, perr := mail.ParseAddress(c.ComplianceEmail); perr != nil {
-			return ErrConfigInvalidCompliance
+			err = confire.Join(err, confire.Invalid("emails", "compliance_email", "not a valid email address"))
 		}
 	}
 
 	// Cannot specify both email mechanisms
 	if c.SMTP.Enabled() && c.SendGrid.Enabled() {
-		return ErrConfigConflict
+		err = confire.Join(err, confire.Invalid("emails", "smtp", "cannot specify both smtp and sendgrid configurations"))
 	}
 
-	// Validate the SMTP configuration
-	if c.SMTP.Enabled() {
-		if err = c.SMTP.Validate(); err != nil {
-			return err
-		}
-	}
+	// Manually call the nested config validators to ensure that they are validated
+	// Note that confire will skip validating them automatically. This is necessary
+	// because of testing mode and the fact that the Config needs a pointer-receiver.
+	err = confire.Join(err, c.SMTP.Validate())
+	err = confire.Join(err, c.SendGrid.Validate())
 
-	// Validate the SendGrid configuration
-	if c.SendGrid.Enabled() {
-		if err = c.SendGrid.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (c SMTPConfig) Enabled() bool {
 	return c.Host != ""
 }
 
-func (c SMTPConfig) Validate() (err error) {
+func (c *SMTPConfig) Validate() (err error) {
 	// Do not validate if not enabled
 	if !c.Enabled() {
 		return nil
 	}
 
 	if c.Port == 0 {
-		return ErrConfigMissingPort
+		err = confire.Join(err, confire.Required("smtp", "port"))
 	}
 
 	if c.PoolSize < 1 {
-		return ErrConfigPoolSize
+		err = confire.Join(err, confire.Invalid("smtp", "pool_size", "pool size must be greater than zero"))
 	}
 
 	if c.UseCRAMMD5 {
 		if c.Username == "" || c.Password == "" {
-			return ErrConfigCRAMMD5Auth
+			err = confire.Join(err, confire.Invalid("smtp", "use_cram_md5", "cram-md5 authentication requires a username and password"))
 		}
 	}
 
-	return nil
+	return err
 }
 
 func (c SMTPConfig) Pool() (*email.Pool, error) {
@@ -137,12 +128,17 @@ func (c SendGridConfig) Enabled() bool {
 	return c.APIKey != ""
 }
 
-func (c SendGridConfig) Validate() (err error) {
+func (c *SendGridConfig) Validate() (err error) {
 	// Do not validate if not enabled
 	if !c.Enabled() {
 		return nil
 	}
-	return nil
+
+	if c.APIKey == "" {
+		err = confire.Join(err, confire.Required("sendgrid", "api_key"))
+	}
+
+	return err
 }
 
 func (c SendGridConfig) Client() *sendgrid.Client {

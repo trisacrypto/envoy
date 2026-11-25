@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/metrics"
 	"github.com/trisacrypto/envoy/pkg/web/auth"
 	permiss "github.com/trisacrypto/envoy/pkg/web/auth/permissions"
+	"github.com/trisacrypto/envoy/pkg/web/htmx"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -156,6 +157,13 @@ func (s *Server) setupRoutes() (err error) {
 			auditlogs.GET("/", s.ComplianceAuditLogListPage)
 			auditlogs.GET("/:id", s.ComplianceAuditLogDetailPage)
 		}
+
+		// Transfer Policy pages
+		transferPolicies := ui.Group("/transfer-policies")
+		{
+			transferPolicies.GET("", s.TransferPolicyListPage)
+			transferPolicies.GET("/new", s.AddTransferPolicyPage)
+		}
 	}
 
 	// Swagger documentation with Swagger UI hosted from a CDN
@@ -263,12 +271,19 @@ func (s *Server) setupRoutes() (err error) {
 			}
 		}
 
+		// Transfer Policies Resource
+		transferPolicies := v1.Group("/transfer-policies", authenticate)
+		{
+			transferPolicies.GET("", authorize(permiss.TransferPoliciesView), s.ListTransferPolicies)
+		}
+
 		// Counterparties Resource
 		counterparties := v1.Group("/counterparties", authenticate)
 		{
 			counterparties.GET("", authorize(permiss.CounterpartiesView), s.ListCounterparties)
 			counterparties.POST("", authorize(permiss.CounterpartiesManage), s.CreateCounterparty)
 			counterparties.GET("/search", authorize(permiss.CounterpartiesView), s.SearchCounterparties)
+			counterparties.GET("/options", authorize(permiss.CounterpartiesView), htmx.Only, s.ListCounterpartyOptions)
 			counterparties.GET("/:id", authorize(permiss.CounterpartiesView), s.CounterpartyDetail)
 			counterparties.GET("/:id/edit", authorize(permiss.CounterpartiesManage), s.UpdateCounterpartyPreview)
 			counterparties.PUT("/:id", authorize(permiss.CounterpartiesManage), s.UpdateCounterparty)

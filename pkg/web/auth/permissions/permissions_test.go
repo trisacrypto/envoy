@@ -34,6 +34,7 @@ func TestParse(t *testing.T) {
 			{uint8(15), permissions.PKIManage},
 			{uint8(16), permissions.PKIDelete},
 			{uint8(17), permissions.PKIView},
+			{uint8(18), permissions.TransferPoliciesView},
 			{int64(0), permissions.Unknown},
 			{int64(1), permissions.UsersManage},
 			{int64(2), permissions.UsersView},
@@ -52,6 +53,7 @@ func TestParse(t *testing.T) {
 			{int64(15), permissions.PKIManage},
 			{int64(16), permissions.PKIDelete},
 			{int64(17), permissions.PKIView},
+			{int64(18), permissions.TransferPoliciesView},
 			{"unknown", permissions.Unknown},
 			{"users:manage", permissions.UsersManage},
 			{"users:view", permissions.UsersView},
@@ -65,6 +67,7 @@ func TestParse(t *testing.T) {
 			{"travelrule:manage", permissions.TravelRuleManage},
 			{"travelrule:delete", permissions.TravelRuleDelete},
 			{"travelrule:view", permissions.TravelRuleView},
+			{"transferpolicies:view", permissions.TransferPoliciesView},
 			{"config:manage", permissions.ConfigManage},
 			{"config:view", permissions.ConfigView},
 			{"pki:manage", permissions.PKIManage},
@@ -74,6 +77,7 @@ func TestParse(t *testing.T) {
 			{"APIKeys:Revoke", permissions.APIKeysRevoke},
 			{"  config:manage   ", permissions.ConfigManage},
 			{permissions.UsersManage, permissions.UsersManage},
+			{permissions.TransferPoliciesView, permissions.TransferPoliciesView},
 		}
 
 		for i, tc := range tests {
@@ -118,6 +122,7 @@ func TestJSON(t *testing.T) {
 		permissions.PKIManage,
 		permissions.PKIDelete,
 		permissions.PKIView,
+		permissions.TransferPoliciesView,
 	}
 
 	for _, perm := range all {
