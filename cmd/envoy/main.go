@@ -226,17 +226,12 @@ func main() {
 //===========================================================================
 
 func serve(c *cli.Context) (err error) {
-	var conf config.Config
-	if conf, err = config.New(); err != nil {
+	var envoy *node.Node
+	if envoy, err = node.New(); err != nil {
 		return cli.Exit(err, 1)
 	}
 
-	var trisa *node.Node
-	if trisa, err = node.New(conf); err != nil {
-		return cli.Exit(err, 1)
-	}
-
-	if err = trisa.Serve(); err != nil {
+	if err = envoy.Serve(); err != nil {
 		return cli.Exit(err, 1)
 	}
 	return nil
@@ -262,7 +257,7 @@ func remigrate(c *cli.Context) (err error) {
 	var orig, back string
 	if orig = c.String("db"); orig == "" {
 		// Load the source from the envoy config
-		if conf, err = config.New(); err != nil {
+		if conf, err = config.Get(); err != nil {
 			return cli.Exit(err, 1)
 		}
 
@@ -488,7 +483,7 @@ func createAPIKey(c *cli.Context) (err error) {
 
 func regenerateTravelAddresses(c *cli.Context) (err error) {
 	var conf config.Config
-	if conf, err = config.New(); err != nil {
+	if conf, err = config.Get(); err != nil {
 		return cli.Exit(err, 1)
 	}
 
@@ -811,7 +806,7 @@ func setupAuditLog(actorId string, ctx context.Context) (newCtx context.Context,
 		conf config.Config
 		kc   keychain.KeyChain
 	)
-	if conf, err = config.New(); err != nil {
+	if conf, err = config.Get(); err != nil {
 		return nil, fmt.Errorf("cannot load mTLS config: %s", err)
 	}
 	if kc, err = keychain.Load(&conf.Node.MTLSConfig); err != nil {
@@ -823,7 +818,7 @@ func setupAuditLog(actorId string, ctx context.Context) (newCtx context.Context,
 }
 
 func openDB(c *cli.Context) (err error) {
-	if conf, err = config.New(); err != nil {
+	if conf, err = config.Get(); err != nil {
 		return cli.Exit(err, 1)
 	}
 
