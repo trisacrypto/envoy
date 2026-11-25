@@ -347,7 +347,7 @@ func (s *Server) AddTransferPolicyPage(c *gin.Context) {
 }
 
 func (s *Server) EditTransferPolicyPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "pages/transferpolicies/edit.html", scene.New(c))
+	c.HTML(http.StatusOK, "pages/transferpolicies/edit.html", scene.New(c).With("ID", c.Param("id")))
 }
 
 //===========================================================================

@@ -1,4 +1,4 @@
-// Application code for the New Transfer Policy form.
+// Application code for the transfer policy form.
 
 import { choicesDefaultOptions } from '../modules/components.js';
 import { selectCountry } from '../modules/countries.js';

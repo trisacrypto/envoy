@@ -1,0 +1,272 @@
+{{ define "transferPolicyStyle" }}
+<style>
+  .policy-choice:checked + .btn,
+  .policy-choice:checked + .btn:hover {
+    background-color: var(--bs-primary-bg-subtle);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 1px var(--bs-primary);
+  }
+
+  .policy-choice:focus-visible + .btn {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 3px;
+  }
+</style>
+{{ end }}
+
+{{ define "transferPolicyFields" }}
+  <section class="card mb-4">
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-12 col-lg-3">
+          <h2 class="h3 mb-2"><span class="badge rounded-pill bg-primary-subtle text-primary me-2" aria-hidden="true">1</span>Policy</h2>
+          <p class="text-body-secondary mb-0" id="policy-name-help">A short name your team will recognize in the list.</p>
+        </div>
+        <div class="col-12 col-lg-9">
+          <label class="form-label" for="policy-name">Name</label>
+          <input class="form-control mb-4" id="policy-name" name="name" type="text" placeholder="Transfer Policy Name" aria-describedby="policy-name-help">
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" id="policy-enabled" name="enabled" type="checkbox" checked role="switch">
+            <label class="form-check-label" for="policy-enabled">Enabled after saving</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-12 col-lg-3">
+          <h2 id="protocol-heading" class="h3 mb-2"><span class="badge rounded-pill bg-primary-subtle text-primary me-2" aria-hidden="true">2</span>Protocol</h2>
+          <p class="text-body-secondary mb-0">Choose the protocol this policy applies to.</p>
+        </div>
+        <div class="col-12 col-lg-9">
+          <div class="row g-3" role="group" aria-labelledby="protocol-heading">
+            <div class="col-12 col-sm-6">
+              <input class="btn-check policy-choice" type="radio" name="protocol" id="policy-trisa" value="trisa" aria-labelledby="policy-trisa-title" aria-describedby="policy-trisa-help">
+              <label class="btn btn-white d-flex align-items-start text-start w-100 h-100 p-3" for="policy-trisa">
+                <i class="fe fe-share-2 text-primary fs-3 me-3" aria-hidden="true"></i>
+                <span>
+                  <span id="policy-trisa-title" class="d-block h3 text-body mb-1">TRISA</span>
+                  <span id="policy-trisa-help" class="d-block text-body">Match TRISA counterparty VASPs.</span>
+                </span>
+              </label>
+            </div>
+            <div class="col-12 col-sm-6">
+              <input class="btn-check policy-choice" type="radio" name="protocol" id="policy-sunrise" value="sunrise" aria-labelledby="policy-sunrise-title" aria-describedby="policy-sunrise-help">
+              <label class="btn btn-white d-flex align-items-start text-start w-100 h-100 p-3" for="policy-sunrise">
+                <i class="fe fe-mail text-primary fs-3 me-3" aria-hidden="true"></i>
+                <span>
+                  <span id="policy-sunrise-title" class="d-block h3 text-body mb-1">Sunrise</span>
+                  <span id="policy-sunrise-help" class="d-block text-body">Match Sunrise email counterparties.</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-12 col-lg-3">
+          <h2 class="h3 mb-2"><span class="badge rounded-pill bg-primary-subtle text-primary me-2" aria-hidden="true">3</span>Conditions</h2>
+          <p class="text-body-secondary mb-0">Set at least one condition. A transfer must meet every condition you set.</p>
+        </div>
+        <div class="col-12 col-lg-9">
+          <div class="form-group mb-0">
+            <label class="form-label fw-bold mb-1" for="policy-counterparties" id="policy-counterparties-label">Counterparties</label>
+            <p class="small text-body-secondary mb-2" id="policy-counterparties-help">The policy will match transfers involving any of the selected counterparties.</p>
+            <div id="policy-counterparty-options" aria-live="polite"
+                 hx-get="/v1/counterparties/options"
+                 hx-trigger="change from:input[name=protocol]"
+                 hx-include="input[name=protocol]:checked"
+                 hx-swap="innerHTML"
+                 hx-sync="this:replace">
+              <p class="text-body mb-0">Choose a protocol to view its counterparties.</p>
+            </div>
+          </div>
+          <hr class="my-4">
+
+          <div class="form-group">
+            <label class="form-label fw-bold mb-1" for="policy-jurisdictions" id="policy-jurisdictions-label">Jurisdictions</label>
+            <p class="small text-body-secondary mb-2" id="policy-jurisdictions-help">The policy will match transfers involving any of the selected jurisdictions.</p>
+            <select class="form-control" id="policy-jurisdictions" name="jurisdictions" multiple
+                    data-countries='{"searchEnabled":true, "removeItemButton":true, "placeholderValue":"Select jurisdiction(s)", "labelId":"policy-jurisdictions-label"}'></select>
+          </div>
+
+          <hr class="my-4">
+          <div class="form-group">
+            <label class="form-label fw-bold mb-1" for="policy-ivms-match" id="policy-ivms-match-label">Completeness Check</label>
+            <p class="small text-body-secondary mb-3" id="policy-ivms-match-help">The policy will check whether selected IVMS101 fields are present or missing. A jurisdiction may be set without adding this check.</p>
+            <select class="form-control" id="policy-ivms-match" name="ivmsMatch" aria-describedby="policy-ivms-match-help"
+                    data-policy-choices='{"searchEnabled":false,"labelId":"policy-ivms-match-label"}'>
+              <option value="any">Select completeness check type</option>
+              <option value="present">All selected fields are present</option>
+              <option value="missing">At least one selected field is missing</option>
+            </select>
+          </div>
+
+          <fieldset class="form-group mb-0" id="policy-ivms-fields" hidden disabled>
+            <label class="form-label fw-bold mb-1" for="policy-required-fields" id="policy-required-fields-label">IVMS101 Fields to Check</label>
+            <select class="form-control" id="policy-required-fields" name="requiredFields" multiple
+                    data-policy-choices='{"searchEnabled":true, "removeItemButton":true, "placeholder":true,"placeholderValue":"Select IVMS101 fields", "labelId":"policy-required-fields-label", "shouldSort":false}'>
+              <optgroup label="Originator">
+                <option value="originator.name">Originator full name</option>
+                <option value="originator.geographicAddress">Originator address</option>
+                <option value="originator.accountNumber">Originator account number</option>
+                <option value="originator.nationalIdentification">Originator national identification</option>
+                <option value="originator.dateAndPlaceOfBirth">Originator date and place of birth</option>
+                <option value="originator.customerIdentification">Originator customer identification</option>
+              </optgroup>
+              <optgroup label="Beneficiary">
+                <option value="beneficiary.name">Beneficiary full name</option>
+                <option value="beneficiary.geographicAddress">Beneficiary address</option>
+                <option value="beneficiary.accountNumber">Beneficiary account number</option>
+                <option value="beneficiary.nationalIdentification">Beneficiary national identification</option>
+                <option value="beneficiary.dateAndPlaceOfBirth">Beneficiary date and place of birth</option>
+                <option value="beneficiary.customerIdentification">Beneficiary customer identification</option>
+              </optgroup>
+            </select>
+          </fieldset>
+
+          <hr class="my-4">
+          <div class="form-group mb-0">
+            <h3 class="h4 mb-1">Amount threshold</h3>
+            <p class="small text-body-secondary mb-3" id="policy-amount-help">The policy will match transfers for any of the selected networks if the amount threshold condition is met.</p>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" id="policy-limit-amount" name="limitAmount" type="checkbox" role="switch" aria-describedby="policy-amount-help" aria-controls="policy-amount-fields">
+              <label class="form-check-label" for="policy-limit-amount">Limit by amount</label>
+            </div>
+
+            <fieldset id="policy-amount-fields" class="mt-3" aria-label="Amount threshold" hidden disabled>
+              <div class="row g-3">
+                <div class="col-12 col-md-4 form-group mb-0">
+                  <label class="form-label" for="policy-amount-network" id="policy-amount-network-label">Network</label>
+                  <select class="form-control" id="policy-amount-network" name="amountNetworks" multiple
+                          data-network='{"searchEnabled":true, "removeItemButton":true, "placeholderValue":"Select network(s)", "labelId":"policy-amount-network-label"}'></select>
+                </div>
+                <div class="col-12 col-md-4 form-group mb-0">
+                  <label class="form-label" for="policy-amount-condition" id="policy-amount-condition-label">Condition</label>
+                  <select class="form-control" id="policy-amount-condition" name="amountCondition"
+                          data-policy-choices='{"searchEnabled":false, "labelId":"policy-amount-condition-label"}'>
+                    <option value="" disabled>Select condition</option>
+                    <option value="below">Below</option>
+                    <option value="at_or_above">At or Above</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-4 form-group mb-0">
+                  <label class="form-label" for="policy-amount">Amount</label>
+                  <input class="form-control" id="policy-amount" name="amount" type="text" placeholder="Threshold Amount">
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-12 col-lg-3">
+          <h2 id="action-heading" class="h3 mb-2"><span class="badge rounded-pill bg-primary-subtle text-primary me-2" aria-hidden="true">4</span>Action</h2>
+          <p class="text-body-secondary mb-0">Choose one action per policy.</p>
+        </div>
+        <div class="col-12 col-lg-9">
+          <div class="row g-3" role="group" aria-labelledby="action-heading">
+            <div class="col-12 col-sm-4">
+              <input class="btn-check policy-choice" type="radio" name="action" id="policy-auto" value="auto" aria-labelledby="policy-auto-title" aria-describedby="policy-auto-help">
+              <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto">
+                <span id="policy-auto-title" class="d-block h3 text-body mb-2"><i class="fe fe-zap text-primary me-2" aria-hidden="true"></i>Auto</span>
+                <span id="policy-auto-help" class="d-block text-body">Automatically accept, reject, or request repair.</span>
+              </label>
+            </div>
+            <div class="col-12 col-sm-4">
+              <input class="btn-check policy-choice" type="radio" name="action" id="policy-label" value="label" aria-labelledby="policy-label-title" aria-describedby="policy-label-help">
+              <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label">
+                <span id="policy-label-title" class="d-block h3 text-body mb-2"><i class="fe fe-tag text-primary me-2" aria-hidden="true"></i>Label</span>
+                <span id="policy-label-help" class="d-block text-body">Label the message and leave the transfer decision to your team.</span>
+              </label>
+            </div>
+            <div class="col-12 col-sm-4">
+              <input class="btn-check policy-choice" type="radio" name="action" id="policy-archive" value="archive" aria-labelledby="policy-archive-title" aria-describedby="policy-archive-help">
+              <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-archive">
+                <span id="policy-archive-title" class="d-block h3 text-body mb-2"><i class="fe fe-archive text-primary me-2" aria-hidden="true"></i>Archive</span>
+                <span id="policy-archive-help" class="d-block text-body">Archive the transfer once it is marked complete.</span>
+              </label>
+            </div>
+          </div>
+          <fieldset id="policy-auto-fields" class="mt-4" hidden disabled>
+            <legend class="h4">Auto decision</legend>
+            <div class="row g-3">
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-accept" value="accept">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-accept">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-check text-primary me-2" aria-hidden="true"></i>Accept</span>
+                </label>
+              </div>
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-reject" value="reject">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-reject">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-x text-primary me-2" aria-hidden="true"></i>Reject</span>
+                </label>
+              </div>
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-repair" value="repair">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-repair">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-tool text-primary me-2" aria-hidden="true"></i>Request repair</span>
+                </label>
+              </div>
+            </div>
+            <fieldset id="policy-auto-response-fields" class="mt-3" hidden disabled>
+              <div class="form-group">
+                <label class="form-label" for="policy-auto-reason-code" id="policy-auto-reason-code-label">Reason</label>
+                <select class="form-control" id="policy-auto-reason-code" name="autoReasonCode"
+                        data-policy-choices='{"searchEnabled":true, "searchPlaceholderValue":"Search reason codes", "labelId":"policy-auto-reason-code-label"}'>
+                  <option value="" selected disabled>Select reason code</option>
+                  {{ template "transferReasonCodeOptions" "" }}
+                </select>
+              </div>
+              <div class="form-group mb-0">
+                <label class="form-label" for="policy-auto-message">Message</label>
+                <textarea class="form-control" id="policy-auto-message" name="autoMessage" rows="3"></textarea>
+              </div>
+            </fieldset>
+          </fieldset>
+          <fieldset id="policy-label-fields" class="mt-4" hidden disabled>
+            <legend class="h4">Label to apply</legend>
+            <div class="row g-3">
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-needs-review" value="needs_review">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-needs-review">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-eye text-primary me-2" aria-hidden="true"></i>Needs review</span>
+                </label>
+              </div>
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-follow-up" value="follow_up">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-follow-up">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-clock text-primary me-2" aria-hidden="true"></i>Follow up</span>
+                </label>
+              </div>
+              <div class="col-12 col-sm-4">
+                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-high-risk" value="high_risk">
+                <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-high-risk">
+                  <span class="d-block h3 text-body mb-0"><i class="fe fe-alert-triangle text-primary me-2" aria-hidden="true"></i>High risk</span>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </section>
+{{ end }}
+
+{{ define "transferPolicyScript" }}
+<script type="module" src="/static/js/transferpolicies/form.js"></script>
+{{ end }}
