@@ -28,10 +28,12 @@ func TestServerEnabled(t *testing.T) {
 			Enabled:    true,
 			APIEnabled: false,
 			UIEnabled:  false,
+			BindAddr:   "127.0.0.1:0",
+			Origin:     "http://localhost",
 		}}
 
 		_, err := web.New(conf, nil, nil, nil)
-		require.EqualError(t, err, "invalid configuration: if enabled, either the api, ui, or both need to be enabled")
+		require.EqualError(t, err, "invalid configuration: web.enabled if enabled, either the api, ui, or both need to be enabled")
 	})
 
 	store, _ := store.Open("mock:///")

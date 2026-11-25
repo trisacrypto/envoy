@@ -170,6 +170,10 @@ func (c *MTLSConfig) GetLeafCertificate() (_ *x509.Certificate, err error) {
 		if err = c.load(); err != nil {
 			return nil, err
 		}
+
+		if c.certs == nil {
+			return nil, ErrMTLSCertsNotConfigured
+		}
 	}
 
 	return c.certs.GetLeafCertificate()

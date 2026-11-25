@@ -432,7 +432,7 @@ func WithConf(conf *config.Config) {
 
 	trisaEnabled = &conf.Node.Enabled
 	trpEnabled = &conf.TRP.Enabled
-	daybreakEnabled = &conf.Web.Daybreak.Enabled
+	daybreakEnabled = &conf.Daybreak.Enabled
 
 	// Set the logo URI for the configuration
 	if conf.Web.LogoURI != "" {
