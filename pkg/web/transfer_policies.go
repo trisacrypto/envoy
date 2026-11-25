@@ -15,6 +15,18 @@ func (s *Server) ListTransferPolicies(c *gin.Context) {
 	c.HTML(http.StatusOK, "partials/transferpolicies/list.html", scene.New(c))
 }
 
+func (s *Server) CreateTransferPolicy(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
 func (s *Server) TransferPolicyDetail(c *gin.Context) {
-	c.HTML(http.StatusOK, "partials/transferpolicies/detail.html", scene.New(c))
+	c.HTML(http.StatusNotImplemented, "partials/transferpolicies/detail.html", scene.New(c))
+}
+
+func (s *Server) UpdateTransferPolicy(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
+func (s *Server) DeleteTransferPolicy(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
 }
