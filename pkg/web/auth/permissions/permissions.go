@@ -31,9 +31,10 @@ const (
 	PKIDelete
 	PKIView
 	TransferPoliciesView
+	TransferPoliciesManage
 )
 
-var AllPermissions = [18]Permission{
+var AllPermissions = [19]Permission{
 	UsersManage, UsersView,
 	APIKeysManage, APIKeysView, APIKeysRevoke,
 	CounterpartiesManage, CounterpartiesView,
@@ -41,10 +42,10 @@ var AllPermissions = [18]Permission{
 	TravelRuleManage, TravelRuleDelete, TravelRuleView,
 	ConfigManage, ConfigView,
 	PKIManage, PKIDelete, PKIView,
-	TransferPoliciesView,
+	TransferPoliciesView, TransferPoliciesManage,
 }
 
-var names = [19]string{
+var names = [20]string{
 	"unknown",
 	"users:manage", "users:view",
 	"apikeys:manage", "apikeys:view", "apikeys:revoke",
@@ -53,7 +54,7 @@ var names = [19]string{
 	"travelrule:manage", "travelrule:delete", "travelrule:view",
 	"config:manage", "config:view",
 	"pki:manage", "pki:delete", "pki:view",
-	"transferpolicies:view",
+	"transferpolicies:view", "transferpolicies:manage",
 }
 
 func Parse(p any) (Permission, error) {

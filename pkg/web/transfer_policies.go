@@ -14,3 +14,7 @@ import (
 func (s *Server) ListTransferPolicies(c *gin.Context) {
 	c.HTML(http.StatusOK, "partials/transferpolicies/list.html", scene.New(c))
 }
+
+func (s *Server) TransferPolicyDetail(c *gin.Context) {
+	c.HTML(http.StatusOK, "partials/transferpolicies/detail.html", scene.New(c))
+}
