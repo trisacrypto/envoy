@@ -100,11 +100,11 @@
 
           <hr class="my-4">
           <div class="form-group">
-            <label class="form-label fw-bold mb-1" for="policy-ivms-match" id="policy-ivms-match-label">Completeness Check</label>
+            <label class="form-label fw-bold mb-1" for="policy-ivms-match" id="policy-ivms-match-label">IVMS101 Completeness Check</label>
             <p class="small text-body-secondary mb-3" id="policy-ivms-match-help">The policy will check whether selected IVMS101 fields are present or missing. A jurisdiction may be set without adding this check.</p>
             <select class="form-control" id="policy-ivms-match" name="ivmsMatch" aria-describedby="policy-ivms-match-help"
                     data-policy-choices='{"searchEnabled":false,"labelId":"policy-ivms-match-label"}'>
-              <option value="any">Select completeness check type</option>
+              <option value="any">Select IVMS101 completeness check type</option>
               <option value="present">All selected fields are present</option>
               <option value="missing">At least one selected field is missing</option>
             </select>
@@ -138,7 +138,7 @@
             <h3 class="h4 mb-1">Amount threshold</h3>
             <p class="small text-body-secondary mb-3" id="policy-amount-help">The policy will match transfers for any of the selected networks if the amount threshold condition is met.</p>
             <div class="form-check form-switch mb-0">
-              <input class="form-check-input" id="policy-limit-amount" name="limitAmount" type="checkbox" role="switch" aria-describedby="policy-amount-help" aria-controls="policy-amount-fields">
+              <input class="form-check-input" id="policy-limit-amount" name="limit.enabled" type="checkbox" role="switch" aria-describedby="policy-amount-help" aria-controls="policy-amount-fields">
               <label class="form-check-label" for="policy-limit-amount">Limit by amount</label>
             </div>
 
@@ -146,12 +146,12 @@
               <div class="row g-3">
                 <div class="col-12 col-md-4 form-group mb-0">
                   <label class="form-label" for="policy-amount-network" id="policy-amount-network-label">Network</label>
-                  <select class="form-control" id="policy-amount-network" name="amountNetworks" multiple
+                  <select class="form-control" id="policy-amount-network" name="limit.networks" multiple
                           data-network='{"searchEnabled":true, "removeItemButton":true, "placeholderValue":"Select network(s)", "labelId":"policy-amount-network-label"}'></select>
                 </div>
                 <div class="col-12 col-md-4 form-group mb-0">
                   <label class="form-label" for="policy-amount-condition" id="policy-amount-condition-label">Condition</label>
-                  <select class="form-control" id="policy-amount-condition" name="amountCondition"
+                  <select class="form-control" id="policy-amount-condition" name="limit.condition"
                           data-policy-choices='{"searchEnabled":false, "labelId":"policy-amount-condition-label"}'>
                     <option value="" disabled>Select condition</option>
                     <option value="below">Below</option>
@@ -160,7 +160,7 @@
                 </div>
                 <div class="col-12 col-md-4 form-group mb-0">
                   <label class="form-label" for="policy-amount">Amount</label>
-                  <input class="form-control" id="policy-amount" name="amount" type="text" placeholder="Threshold Amount">
+                  <input class="form-control" id="policy-amount" name="limit.amount" type="text" placeholder="Threshold Amount">
                 </div>
               </div>
             </fieldset>
@@ -180,21 +180,21 @@
         <div class="col-12 col-lg-9">
           <div class="row g-3" role="group" aria-labelledby="action-heading">
             <div class="col-12 col-sm-4">
-              <input class="btn-check policy-choice" type="radio" name="action" id="policy-auto" value="auto" aria-labelledby="policy-auto-title" aria-describedby="policy-auto-help">
+              <input class="btn-check policy-choice" type="radio" name="action.type" id="policy-auto" value="auto" aria-labelledby="policy-auto-title" aria-describedby="policy-auto-help">
               <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto">
                 <span id="policy-auto-title" class="d-block h3 text-body mb-2"><i class="fe fe-zap text-primary me-2" aria-hidden="true"></i>Auto</span>
                 <span id="policy-auto-help" class="d-block text-body">Automatically accept, reject, or request repair.</span>
               </label>
             </div>
             <div class="col-12 col-sm-4">
-              <input class="btn-check policy-choice" type="radio" name="action" id="policy-label" value="label" aria-labelledby="policy-label-title" aria-describedby="policy-label-help">
+              <input class="btn-check policy-choice" type="radio" name="action.type" id="policy-label" value="label" aria-labelledby="policy-label-title" aria-describedby="policy-label-help">
               <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label">
                 <span id="policy-label-title" class="d-block h3 text-body mb-2"><i class="fe fe-tag text-primary me-2" aria-hidden="true"></i>Label</span>
                 <span id="policy-label-help" class="d-block text-body">Label the message and leave the transfer decision to your team.</span>
               </label>
             </div>
             <div class="col-12 col-sm-4">
-              <input class="btn-check policy-choice" type="radio" name="action" id="policy-archive" value="archive" aria-labelledby="policy-archive-title" aria-describedby="policy-archive-help">
+              <input class="btn-check policy-choice" type="radio" name="action.type" id="policy-archive" value="archive" aria-labelledby="policy-archive-title" aria-describedby="policy-archive-help">
               <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-archive">
                 <span id="policy-archive-title" class="d-block h3 text-body mb-2"><i class="fe fe-archive text-primary me-2" aria-hidden="true"></i>Archive</span>
                 <span id="policy-archive-help" class="d-block text-body">Archive the transfer once it is marked complete.</span>
@@ -202,22 +202,22 @@
             </div>
           </div>
           <fieldset id="policy-auto-fields" class="mt-4" hidden disabled>
-            <legend class="h4">Auto decision</legend>
+            <legend class="h4">Auto outcome</legend>
             <div class="row g-3">
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-accept" value="accept">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-auto-accept" value="accept">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-accept">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-check text-primary me-2" aria-hidden="true"></i>Accept</span>
                 </label>
               </div>
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-reject" value="reject">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-auto-reject" value="reject">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-reject">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-x text-primary me-2" aria-hidden="true"></i>Reject</span>
                 </label>
               </div>
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="autoDecision" id="policy-auto-repair" value="repair">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-auto-repair" value="repair">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-auto-repair">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-tool text-primary me-2" aria-hidden="true"></i>Request repair</span>
                 </label>
@@ -226,7 +226,7 @@
             <fieldset id="policy-auto-response-fields" class="mt-3" hidden disabled>
               <div class="form-group">
                 <label class="form-label" for="policy-auto-reason-code" id="policy-auto-reason-code-label">Reason</label>
-                <select class="form-control" id="policy-auto-reason-code" name="autoReasonCode"
+                <select class="form-control" id="policy-auto-reason-code" name="action.reasonCode"
                         data-policy-choices='{"searchEnabled":true, "searchPlaceholderValue":"Search reason codes", "labelId":"policy-auto-reason-code-label"}'>
                   <option value="" selected disabled>Select reason code</option>
                   {{ template "transferReasonCodeOptions" "" }}
@@ -234,7 +234,7 @@
               </div>
               <div class="form-group mb-0">
                 <label class="form-label" for="policy-auto-message">Message</label>
-                <textarea class="form-control" id="policy-auto-message" name="autoMessage" rows="3"></textarea>
+                <textarea class="form-control" id="policy-auto-message" name="action.message" rows="3"></textarea>
               </div>
             </fieldset>
           </fieldset>
@@ -242,19 +242,19 @@
             <legend class="h4">Label to apply</legend>
             <div class="row g-3">
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-needs-review" value="needs_review">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-label-needs-review" value="needs_review">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-needs-review">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-eye text-primary me-2" aria-hidden="true"></i>Needs review</span>
                 </label>
               </div>
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-follow-up" value="follow_up">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-label-follow-up" value="follow_up">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-follow-up">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-clock text-primary me-2" aria-hidden="true"></i>Follow up</span>
                 </label>
               </div>
               <div class="col-12 col-sm-4">
-                <input class="btn-check policy-choice" type="radio" name="labelValue" id="policy-label-high-risk" value="high_risk">
+                <input class="btn-check policy-choice" type="radio" name="action.outcome" id="policy-label-high-risk" value="high_risk">
                 <label class="btn btn-white d-block text-start w-100 h-100 p-3" for="policy-label-high-risk">
                   <span class="d-block h3 text-body mb-0"><i class="fe fe-alert-triangle text-primary me-2" aria-hidden="true"></i>High risk</span>
                 </label>
