@@ -9,6 +9,7 @@ import (
 	"github.com/trisacrypto/envoy/pkg/trisa/keychain/memks"
 
 	"github.com/stretchr/testify/require"
+	"github.com/trisacrypto/trisa/pkg/trisa/keys"
 )
 
 func TestEmptyCache(t *testing.T) {
@@ -221,6 +222,64 @@ func TestKeyStoreExpiration(t *testing.T) {
 	exchange, err = chain.ExchangeKey("bravo.trisa.dev")
 	require.ErrorIs(t, err, keyerr.KeyExpired, "expected internal key cache to have expired")
 	require.Nil(t, exchange)
+}
+
+func TestDefaultKeyCacheCollision(t *testing.T) {
+	// Loading an internal key, specifying it as a default
+	internalKey, err := loadKeyFixture(fixtureLocalKey)
+	require.NoError(t, err, "could not load internal key fixture")
+	keysig, err := internalKey.PublicKeySignature()
+	require.NoError(t, err, "could not compute public key signature")
+
+	chain, err := keychain.New(keychain.WithDefaultKey(internalKey), keychain.WithCacheDuration(100*time.Millisecond))
+	require.NoError(t, err, "could not create new keychain cache")
+
+	// Cache the public component of the default key as though it was received in a key
+	// exchange, e.g. when the node exchanges keys with itself or with a counterparty
+	// that is using the same certificates.
+	msg, err := internalKey.Proto()
+	require.NoError(t, err, "could not create signing key message from internal key")
+	externalKey, err := keys.FromSigningKey(msg)
+	require.NoError(t, err, "could not parse signing key message")
+
+	externalPKS, err := externalKey.PublicKeySignature()
+	require.NoError(t, err, "could not compute external pks")
+	require.Equal(t, keysig, externalPKS, "expected external key to have the same signature as the default key")
+
+	err = chain.Cache("bravo.trisa.dev", externalKey, 0)
+	require.NoError(t, err, "could not cache external exchange key")
+
+	// Wait until cache expires
+	time.Sleep(150 * time.Millisecond)
+
+	// Cache miss should occur for the external key
+	_, err = chain.SealingKey("bravo.trisa.dev")
+	require.ErrorIs(t, err, keyerr.KeyNotFound)
+
+	// The cache duration should not apply to the default key
+	keypair, err := chain.SigningKey()
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, keypair)
+
+	verify, err := chain.VerificationKey("")
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, verify)
+
+	verify, err = chain.VerificationKey(keysig)
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, verify)
+
+	keypair, err = chain.UnsealingKey("", "bravo.trisa.dev")
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, keypair)
+
+	storage, err := chain.StorageKey("", "bravo.trisa.dev")
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, storage)
+
+	exchange, err := chain.ExchangeKey("bravo.trisa.dev")
+	require.NoError(t, err, "default key should not be subject to key cache")
+	require.Equal(t, internalKey, exchange)
 }
 
 func TestLookup(t *testing.T) {

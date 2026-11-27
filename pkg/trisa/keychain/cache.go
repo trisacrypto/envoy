@@ -214,9 +214,12 @@ func (c *Cache) VerificationKey(signature string) (pubkey keys.PublicKey, err er
 	}
 
 	// Check if the key has expired (assume no TTL means it doesn't expire)
-	if ttl, ok := c.ttl[signature]; ok && time.Now().After(ttl) {
-		// Return KeyNotFound instead of KeyExpired to represent cache misses
-		return nil, keyerr.KeyNotFound
+	// NOTE: if the key is the default key it should not expire and be returned.
+	if signature != c.defaultKey {
+		if ttl, ok := c.ttl[signature]; ok && time.Now().After(ttl) {
+			// Return KeyNotFound instead of KeyExpired to represent cache misses
+			return nil, keyerr.KeyNotFound
+		}
 	}
 
 	// Fetch the key from the key store if it's available
