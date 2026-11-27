@@ -1,0 +1,195 @@
+{{- $canEditPolicies := not .IsViewOnly -}}
+
+{{- define "transfer-policy-value-filter" }}
+<div class="dropdown justify-content-end mt-3" data-policy-value-dropdown="{{ .Action }}">
+  <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+          aria-expanded="false">{{ .Name }}</button>
+  <div class="dropdown-menu">
+    <button class="dropdown-item active" type="button" aria-current="true">All</button>
+    {{- if eq .Action "auto" }}
+    <button class="dropdown-item" type="button">Accept</button>
+    <button class="dropdown-item" type="button">Reject</button>
+    <button class="dropdown-item" type="button">Request repair</button>
+    {{- else }}
+    <button class="dropdown-item" type="button">Needs review</button>
+    <button class="dropdown-item" type="button">Follow up</button>
+    <button class="dropdown-item" type="button">High risk</button>
+    {{- end }}
+  </div>
+</div>
+{{- end }}
+
+{{- define "transfer-policy-actions" }}
+<div class="dropdown">
+  <button class="btn btn-sm dropdown-ellipses dropdown-toggle text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Actions for {{ .Name }}">
+    <i class="fe fe-more-vertical" aria-hidden="true"></i>
+  </button>
+  <div class="dropdown-menu dropdown-menu-end">
+    <a class="dropdown-item" href="/transfer-policies/{{ .ID }}/edit">
+      <i class="fe fe-edit me-1" aria-hidden="true"></i> Edit
+    </a>
+    <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#deleteTransferPolicyModal">
+      <i class="fe fe-trash me-1" aria-hidden="true"></i> Delete
+    </button>
+  </div>
+</div>
+{{- end }}
+
+{{- define "transfer-policy-row" }}
+{{- $canEdit := .CanEdit }}
+{{- $headingID := printf "policy-name-%s-%s" .Scope .Policy.ID }}
+{{- with .Policy }}
+<li class="list-group-item px-4">
+  <div class="d-flex flex-column flex-sm-row gap-3">
+    <div class="d-flex flex-grow-1 gap-2">
+      <div class="form-check form-switch flex-shrink-0 mb-0">
+        <input class="form-check-input" type="checkbox" role="switch" aria-labelledby="{{ $headingID }}" checked>
+      </div>
+      <div class="text-break">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+          <span class="badge text-bg-secondary-subtle">{{ .Protocol }}</span>
+          <span class="badge text-bg-{{ .Color }}">{{ .Action }}{{ with .Value }} · {{ . }}{{ end }}</span>
+        </div>
+        <h3 class="mb-0" id="{{ $headingID }}">{{ .Name }}</h3>
+      </div>
+    </div>
+    <div class="d-flex flex-shrink-0 justify-content-end align-items-start gap-3">
+      <div class="text-end">
+        <div class="h2 fw-normal mb-0">{{ .Matches }}</div>
+        <div class="small text-muted">matched</div>
+      </div>
+      {{- if $canEdit }}
+      {{ template "transfer-policy-actions" . }}
+      {{- end }}
+    </div>
+  </div>
+</li>
+{{- end }}
+{{- end }}
+
+{{/* TODO: Replace mock data with actual policies from the backend. */}}
+{{- $policies := dict
+  "01" (dict "ID" "accept-small-btc-policy" "Name" "Accept small BTC transfers"
+    "Protocol" "TRISA" "Action" "AUTO" "Value" "ACCEPT" "Color" "success" "Matches" 143)
+  "02" (dict "ID" "reject-large-btc-policy" "Name" "Reject BTC transfers at or above 1.5"
+    "Protocol" "TRISA" "Action" "AUTO" "Value" "REJECT" "Color" "danger" "Matches" 9)
+  "03" (dict "ID" "repair-missing-address-policy" "Name" "Request missing originator addresses"
+    "Protocol" "SUNRISE" "Action" "AUTO" "Value" "REQUEST REPAIR" "Color" "warning" "Matches" 18)
+  "04" (dict "ID" "label-large-btc-policy" "Name" "Flag larger BTC transfers for review"
+    "Protocol" "TRISA" "Action" "LABEL" "Value" "NEEDS REVIEW" "Color" "info" "Matches" 24)
+  "05" (dict "ID" "label-missing-account-policy" "Name" "Follow up on missing account numbers"
+    "Protocol" "SUNRISE" "Action" "LABEL" "Value" "FOLLOW UP" "Color" "warning" "Matches" 10)
+  "06" (dict "ID" "label-large-eth-policy" "Name" "Flag high-value ETH transfers"
+    "Protocol" "SUNRISE" "Action" "LABEL" "Value" "HIGH RISK" "Color" "danger" "Matches" 5)
+  "07" (dict "ID" "archive-operations-policy" "Name" "Archive transfers from the operations desk"
+    "Protocol" "TRISA" "Action" "ARCHIVE" "Color" "secondary" "Matches" 27)
+}}
+{{- $autoMatches := 0 }}
+{{- $labelMatches := 0 }}
+{{- $archiveMatches := 0 }}
+{{- range $policies }}
+  {{- if eq .Action "AUTO" }}
+    {{- $autoMatches = add $autoMatches .Matches }}
+  {{- else if eq .Action "LABEL" }}
+    {{- $labelMatches = add $labelMatches .Matches }}
+  {{- else if eq .Action "ARCHIVE" }}
+    {{- $archiveMatches = add $archiveMatches .Matches }}
+  {{- end }}
+{{- end }}
+<div class="row">
+  <div class="col-12 col-xl-9">
+    <div class="tab-content" id="transfer-policies">
+      {{ template "transfer-policy-protocol-pane" (dict "Protocol" "all" "Policies" $policies "CanEdit" $canEditPolicies) }}
+      {{ template "transfer-policy-protocol-pane" (dict "Protocol" "trisa" "Policies" $policies "CanEdit" $canEditPolicies) }}
+      {{ template "transfer-policy-protocol-pane" (dict "Protocol" "sunrise" "Policies" $policies "CanEdit" $canEditPolicies) }}
+    </div>
+  </div>
+  <div class="col-12 col-xl-3">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-header-title h5">MATCHED POLICIES</h2>
+      </div>
+      <div class="card-body">
+        <p class="h2 fw-normal mb-1">{{ add (add $autoMatches $labelMatches) $archiveMatches }}</p>
+        {{/* TODO: Update Messages Matched totals and action counts when the selected protocol changes. */}}
+        <p class="text-muted mb-3">across {{ len $policies }} policies in all protocols</p>
+        <dl class="d-grid gap-2 border-top pt-3 mb-0">
+          <div class="d-flex justify-content-between">
+            <dt class="text-muted fw-normal">Auto</dt>
+            <dd class="mb-0">{{ $autoMatches }}</dd>
+          </div>
+          <div class="d-flex justify-content-between">
+            <dt class="text-muted fw-normal">Label</dt>
+            <dd class="mb-0">{{ $labelMatches }}</dd>
+          </div>
+          <div class="d-flex justify-content-between">
+            <dt class="text-muted fw-normal">Archive</dt>
+            <dd class="mb-0">{{ $archiveMatches }}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{- define "transfer-policy-protocol-pane" }}
+{{- $protocol := .Protocol }}
+{{- $protocolKey := uppercase $protocol }}
+{{- $policies := .Policies }}
+{{- $canEdit := .CanEdit }}
+{{- $count := 0 }}
+{{- range $policies }}
+  {{- if or (eq $protocol "all") (eq .Protocol $protocolKey) }}
+    {{- $count = add $count 1 }}
+  {{- end }}
+{{- end }}
+{{- $actions := dict "01" (dict "Key" "all" "Name" "All") "02" (dict "Key" "auto" "Name" "Auto")
+                     "03" (dict "Key" "label" "Name" "Label") "04" (dict "Key" "archive" "Name" "Archive") }}
+<section class="tab-pane{{ if eq $protocol "all" }} active{{ end }}" id="policy-protocol-pane-{{ $protocol }}"
+         role="tabpanel" aria-labelledby="policy-protocol-{{ $protocol }}">
+  <div class="card">
+    <div class="card-header h-auto py-3 px-4 flex-wrap justify-content-between gap-2">
+      <h2 class="card-header-title h4">Policies ({{ $count }})</h2>
+      <div class="d-flex flex-wrap align-items-baseline gap-2">
+        <div class="policy-action-filters">
+          <div class="nav nav-tabs nav-pills border-0 gap-1" role="tablist" aria-labelledby="policy-actions-label-{{ $protocol }}">
+            {{- range $actions }}
+            {{- $scope := printf "%s-%s" $protocol .Key }}
+            <button class="nav-link{{ if eq .Key "all" }} active{{ end }} border-0 mb-0 px-2 py-1" id="policy-action-{{ $scope }}"
+                    type="button" role="tab" data-bs-toggle="pill" data-bs-target="#policy-action-pane-{{ $scope }}"
+                    data-policy-action="{{ .Key }}" aria-controls="policy-action-pane-{{ $scope }}"
+                    {{- if eq .Key "all" }} aria-selected="true"{{ else }} aria-selected="false" tabindex="-1"{{ end }}>{{ .Name }}</button>
+            {{- end }}
+          </div>
+          {{ template "transfer-policy-value-filter" (dict "Action" "auto" "Name" "Responses") }}
+          {{ template "transfer-policy-value-filter" (dict "Action" "label" "Name" "Labels") }}
+        </div>
+      </div>
+    </div>
+    <div class="tab-content">
+      {{- range $actions }}
+      {{- $scope := printf "%s-%s" $protocol .Key }}
+      {{- $actionKey := uppercase .Key }}
+      {{- $count := 0 }}
+      <div class="tab-pane{{ if eq .Key "all" }} active{{ end }}" id="policy-action-pane-{{ $scope }}"
+           role="tabpanel" aria-labelledby="policy-action-{{ $scope }}">
+        <ul class="list-group list-group-flush">
+          {{- range $policies }}
+            {{- if and (or (eq $protocol "all") (eq .Protocol $protocolKey)) (or (eq $actionKey "ALL") (eq .Action $actionKey)) }}
+              {{- $count = add $count 1 }}
+              {{ template "transfer-policy-row" (dict "Policy" . "CanEdit" $canEdit "Scope" $scope) }}
+            {{- end }}
+          {{- end }}
+        </ul>
+        {{- if not $count }}
+        <div class="px-4 py-3">
+          <p class="text-muted mb-0">No policies match the selected filters.</p>
+        </div>
+        {{- end }}
+      </div>
+      {{- end }}
+    </div>
+  </div>
+</section>
+{{- end }}
+

@@ -3,6 +3,19 @@
 {{- define "pretitle" }}Transfer Policies{{ end }}
 {{- define "pagetitle" }}View Transfer Policies{{ end }}
 
+{{- define "appstyle" }}
+<style>
+  #transfer-policies [data-policy-value-dropdown] {
+    display: none;
+  }
+
+  #transfer-policies .policy-action-filters:has([data-policy-action="auto"].active) [data-policy-value-dropdown="auto"],
+  #transfer-policies .policy-action-filters:has([data-policy-action="label"].active) [data-policy-value-dropdown="label"] {
+    display: flex;
+  }
+</style>
+{{- end }}
+
 {{- define "header-actions" }}
 {{- if not .IsViewOnly }}
 <a class="btn btn-primary" href="/transfer-policies/new">
@@ -11,36 +24,41 @@
 {{- end }}
 {{- end }}
 
-{{- define "main" }}
-<div class="row">
-  <div class="col-12 col-xl-9">
-    <section id="transfer-policies">
-      <div class="card">
-        <div class="card-body text-center">
-          <p>No transfer policies have been added.</p>
-          {{/*
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          */}}
-        </div>
-      </div>
-    </section>
+{{- define "modals" }}
+  {{ template "deleteTransferPolicyModal" . }}
+{{- end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs" id="policy-protocol-tabs" role="tablist" aria-label="Policy protocol">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="policy-protocol-all" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#policy-protocol-pane-all" aria-controls="policy-protocol-pane-all" aria-selected="true">All Policies</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="policy-protocol-trisa" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#policy-protocol-pane-trisa" aria-controls="policy-protocol-pane-trisa" aria-selected="false" tabindex="-1">TRISA GDS</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="policy-protocol-sunrise" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#policy-protocol-pane-sunrise" aria-controls="policy-protocol-pane-sunrise" aria-selected="false" tabindex="-1">Sunrise</button>
+      </li>
+    </ul>
   </div>
-  <div class="col-12 col-xl-3">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-header-title h5">MATCHED POLICIES</h5>
-      </div>
-      <div class="card-body">
-        <div>
-          <p class="h2 mb-1">0</p>
-          <p class="text-muted">across all policies</p>
-        </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="transferPolicies" hx-get="/v1/transfer-policies" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
   </div>
-</div>
+</section>
 {{- end }}
 
 {{- define "appcode" }}
