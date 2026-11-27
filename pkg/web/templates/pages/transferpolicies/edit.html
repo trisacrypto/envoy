@@ -1,0 +1,33 @@
+{{ template "page.html" . }}
+{{- define "title" }}Edit Transfer Policy | TRISA Envoy{{ end }}
+{{- define "pretitle" }}Transfer Policies{{ end }}
+{{- define "pagetitle" }}Edit Transfer Policy{{ end }}
+
+{{- define "header-actions" }}
+<div class="col-auto">
+  <a href="/transfer-policies" class="btn btn-white lift" title="Back to Transfer Policies">
+    <i class="fe fe-arrow-left me-1" aria-hidden="true"></i>
+  </a>
+</div>
+{{- end }}
+
+{{- define "appstyle" }}
+{{ template "transferPolicyStyle" }}
+{{- end }}
+
+{{- define "main" }}
+<form aria-label="Edit transfer policy" class="pb-5" data-transfer-policy-form hx-put="/v1/transfer-policies/{{ .ID }}">
+  <input type="hidden" name="id" value="{{ .ID }}">
+  <div id="transfer-policy-detail" hx-get="/v1/transfer-policies/{{ .ID }}" hx-trigger="load" hx-swap="innerHTML">
+    <p role="status">Loading transfer policy…</p>
+  </div>
+  <div class="d-flex justify-content-end gap-2">
+    <a href="/transfer-policies" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary" disabled>Save Changes</button>
+  </div>
+</form>
+{{- end }}
+
+{{- define "appcode" }}
+{{ template "transferPolicyScript" }}
+{{- end }}

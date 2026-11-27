@@ -54,6 +54,7 @@ func TestParse(t *testing.T) {
 			{int64(16), permissions.PKIDelete},
 			{int64(17), permissions.PKIView},
 			{int64(18), permissions.TransferPoliciesView},
+			{int64(19), permissions.TransferPoliciesManage},
 			{"unknown", permissions.Unknown},
 			{"users:manage", permissions.UsersManage},
 			{"users:view", permissions.UsersView},
@@ -78,6 +79,7 @@ func TestParse(t *testing.T) {
 			{"  config:manage   ", permissions.ConfigManage},
 			{permissions.UsersManage, permissions.UsersManage},
 			{permissions.TransferPoliciesView, permissions.TransferPoliciesView},
+			{permissions.TransferPoliciesManage, permissions.TransferPoliciesManage},
 		}
 
 		for i, tc := range tests {
@@ -123,6 +125,7 @@ func TestJSON(t *testing.T) {
 		permissions.PKIDelete,
 		permissions.PKIView,
 		permissions.TransferPoliciesView,
+		permissions.TransferPoliciesManage,
 	}
 
 	for _, perm := range all {

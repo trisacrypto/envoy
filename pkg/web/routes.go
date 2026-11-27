@@ -163,6 +163,7 @@ func (s *Server) setupRoutes() (err error) {
 		{
 			transferPolicies.GET("", s.TransferPolicyListPage)
 			transferPolicies.GET("/new", s.AddTransferPolicyPage)
+			transferPolicies.GET("/:id/edit", s.EditTransferPolicyPage)
 		}
 	}
 
@@ -275,6 +276,10 @@ func (s *Server) setupRoutes() (err error) {
 		transferPolicies := v1.Group("/transfer-policies", authenticate)
 		{
 			transferPolicies.GET("", authorize(permiss.TransferPoliciesView), s.ListTransferPolicies)
+			transferPolicies.POST("", authorize(permiss.TransferPoliciesManage), s.CreateTransferPolicy)
+			transferPolicies.GET("/:id", authorize(permiss.TransferPoliciesManage), s.TransferPolicyDetail)
+			transferPolicies.PUT("/:id", authorize(permiss.TransferPoliciesManage), s.UpdateTransferPolicy)
+			transferPolicies.DELETE("/:id", authorize(permiss.TransferPoliciesManage), s.DeleteTransferPolicy)
 		}
 
 		// Counterparties Resource
